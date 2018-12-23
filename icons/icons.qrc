@@ -1,0 +1,31 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>car.png</file>
+        <file>car@2x.png</file>
+        <file>warning.png</file>
+        <file>warning@2x.png</file>
+        <file>weather.png</file>
+        <file>weather@2x.png</file>
+        <file>digit/icons.svg</file>
+        <file>digit/index.theme</file>
+        <file>digit/44x44/air-con.png</file>
+        <file>digit/44x44/command.png</file>
+        <file>digit/44x44/message.png</file>
+        <file>digit/44x44/music.png</file>
+        <file>digit/44x44/seats.png</file>
+        <file>digit/44x44/settings.png</file>
+        <file>digit/44x44/statistics.png</file>
+        <file>digit/44x44/windows.png</file>
+        <file>digit/44x44@2/air-con.png</file>
+        <file>digit/44x44@2/command.png</file>
+        <file>digit/44x44@2/message.png</file>
+        <file>digit/44x44@2/music.png</file>
+        <file>digit/44x44@2/navigation.png</file>
+        <file>digit/44x44@2/seats.png</file>
+        <file>digit/44x44@2/settings.png</file>
+        <file>digit/44x44@2/statistics.png</file>
+        <file>digit/44x44@2/windows.png</file>
+        <file>reverb_cube.png</file>
+        <file>reverb_cube@2x.png</file>
+    </qresource>
+</RCC>

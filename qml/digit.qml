@@ -91,6 +91,100 @@ ApplicationWindow {
         height: 100
         currentIndex: bar.currentIndex
 
+
+        Frame {
+            id: reverbFrame
+            width: 800
+            height: 480
+            z: -1
+
+            Column {
+                id: column
+                x: 53
+                y: 56
+                width: 120
+                height: 400
+
+                GlowingLabel {
+                    color: "#ffffff"
+                    text: qsTr("SIZE")
+                    font.pixelSize: fontSizeMedium
+                }
+
+                Dial {
+                    id: sizeDial
+                    from: 0
+                    value: 42
+                    Layout.minimumHeight: 64
+                    Layout.preferredWidth: 128
+                    Layout.minimumWidth: 64
+                    stepSize: 1
+                    Layout.preferredHeight: 128
+                    Layout.fillHeight: true
+                    Layout.alignment: Qt.AlignHCenter
+                    to: 100
+                    Layout.maximumWidth: 128
+                    Layout.maximumHeight: 128
+                    Label {
+                        color: "#ffffff"
+                        text: sizeDial.value.toFixed(0)
+                        font.pixelSize: Qt.application.font.pixelSize * 3
+                        anchors.centerIn: parent
+                    }
+                }
+            }
+
+
+            ColumnLayout {
+                x: 215
+                y: 106
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+
+                Image {
+                    Layout.fillHeight: true
+                    source: "qrc:/icons/reverb_cube.png"
+                    fillMode: Image.PreserveAspectFit
+                }
+                Layout.preferredWidth: 350
+            }
+
+
+            Column {
+                id: column1
+                x: 635
+                y: 56
+                width: 120
+                height: 400
+                GlowingLabel {
+                    color: "#ffffff"
+                    text: qsTr("SIZE")
+                    font.pixelSize: fontSizeMedium
+                }
+
+                Dial {
+                    id: mixDial
+                    stepSize: 1
+                    Layout.fillHeight: true
+                    from: 0
+                    Layout.maximumHeight: 128
+                    Layout.preferredHeight: 128
+                    to: 100
+                    Label {
+                        color: "#ffffff"
+                        text: mixDial.value.toFixed(0)
+                        font.pixelSize: Qt.application.font.pixelSize * 3
+                        anchors.centerIn: parent
+                    }
+                    Layout.minimumWidth: 64
+                    Layout.alignment: Qt.AlignHCenter
+                    value: 42
+                    Layout.minimumHeight: 64
+                    Layout.maximumWidth: 128
+                    Layout.preferredWidth: 128
+                }
+            }
+        }
         Frame {
             id: frame
             width: 800
@@ -655,49 +749,6 @@ ApplicationWindow {
                 }
             }
         }
-
-        Frame {
-            id: frame1
-            width: 800
-            height: 480
-            z: -1
-
-            Column {
-                id: column
-                x: 53
-                y: 56
-                width: 200
-                height: 400
-
-                GlowingLabel {
-                    color: "#ffffff"
-                    text: qsTr("SIZE")
-                    font.pixelSize: fontSizeMedium
-                }
-
-                Dial {
-                    id: volumeDial1
-                    from: 0
-                    value: 42
-                    Layout.minimumHeight: 64
-                    Layout.preferredWidth: 128
-                    Layout.minimumWidth: 64
-                    stepSize: 1
-                    Layout.preferredHeight: 128
-                    Layout.fillHeight: true
-                    Layout.alignment: Qt.AlignHCenter
-                    to: 100
-                    Layout.maximumWidth: 128
-                    Layout.maximumHeight: 128
-                    Label {
-                        color: "#ffffff"
-                        text: volumeDial1.value.toFixed(0)
-                        font.pixelSize: Qt.application.font.pixelSize * 3
-                        anchors.centerIn: parent
-                    }
-                }
-            }
-        }
     }
 
     TabBar {
@@ -731,7 +782,13 @@ ApplicationWindow {
 
 }
 
+
+
+
+
+
+
 /*##^## Designer {
-    D{i:3;invisible:true}D{i:2;invisible:true}
+    D{i:3;invisible:true}
 }
  ##^##*/
