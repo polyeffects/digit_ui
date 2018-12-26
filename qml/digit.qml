@@ -58,10 +58,12 @@ ApplicationWindow {
     id: window
     width: 800
     height: 480
-    minimumWidth: 1180
-    minimumHeight: 663
+    minimumWidth: 800
+    minimumHeight: 480
+    maximumWidth: 800
+    maximumHeight: 480
     visible: true
-    title: "Qt Quick Controls 2 - Imagine Style Example: Digit"
+    title: "Digit"
 
     readonly property color colorGlow: "#1d6d64"
     readonly property color colorWarning: "#d5232f"
@@ -87,104 +89,148 @@ ApplicationWindow {
 
     StackLayout {
         id: stackLayout
-        width: parent.width
-        height: 100
+        anchors.fill: parent
         currentIndex: bar.currentIndex
 
-
         Frame {
-            id: reverbFrame
-            width: 800
-            height: 480
+            id: reverbFrame1
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             z: -1
 
-            Column {
-                id: column
-                x: 53
-                y: 56
-                width: 120
-                height: 400
+            StackLayout {
+                id: reverbStack
+                anchors.fill: parent
 
-                GlowingLabel {
-                    color: "#ffffff"
-                    text: qsTr("SIZE")
-                    font.pixelSize: fontSizeMedium
-                }
 
-                Dial {
-                    id: sizeDial
-                    from: 0
-                    value: 42
-                    Layout.minimumHeight: 64
-                    Layout.preferredWidth: 128
-                    Layout.minimumWidth: 64
-                    stepSize: 1
-                    Layout.preferredHeight: 128
-                    Layout.fillHeight: true
-                    Layout.alignment: Qt.AlignHCenter
-                    to: 100
-                    Layout.maximumWidth: 128
-                    Layout.maximumHeight: 128
-                    Label {
-                        color: "#ffffff"
-                        text: sizeDial.value.toFixed(0)
-                        font.pixelSize: Qt.application.font.pixelSize * 3
-                        anchors.centerIn: parent
+                Frame {
+                    id: reverbFrame
+                    width: 800
+                    height: 480
+                    z: -1
+
+                    Column {
+                        id: column
+                        x: -12
+                        y: 168
+                        width: 120
+                        height: 258
+
+                        GlowingLabel {
+                            color: "#ffffff"
+                            text: qsTr("SIZE")
+                            font.pixelSize: fontSizeMedium
+                        }
+
+                        Dial {
+                            id: sizeDial
+                            width: 100
+                            height: 100
+                            from: 0
+                            value: 42
+                            Layout.minimumHeight: 64
+                            Layout.preferredWidth: 128
+                            Layout.minimumWidth: 64
+                            stepSize: 1
+                            Layout.preferredHeight: 128
+                            Layout.fillHeight: true
+                            Layout.alignment: Qt.AlignHCenter
+                            to: 100
+                            Layout.maximumWidth: 128
+                            Layout.maximumHeight: 128
+                            Label {
+                                color: "#ffffff"
+                                text: sizeDial.value.toFixed(0)
+                                font.pixelSize: Qt.application.font.pixelSize * 3
+                                anchors.centerIn: parent
+                            }
+                        }
+                    }
+
+
+                    ColumnLayout {
+                        x: 191
+                        y: 66
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+
+                        Image {
+                            x: 0
+                            Layout.fillHeight: false
+                            source: "qrc:/icons/reverb_cube.png"
+                            fillMode: Image.PreserveAspectFit
+                        }
+                        Layout.preferredWidth: 350
+                    }
+
+
+                    Column {
+                        id: column1
+                        x: 662
+                        y: 168
+                        width: 102
+                        height: 271
+                        GlowingLabel {
+                            color: "#ffffff"
+                            text: qsTr("MIX")
+                            font.pixelSize: fontSizeMedium
+                        }
+
+                        Dial {
+                            id: mixDial
+                            width: 100
+                            height: 100
+                            stepSize: 1
+                            Layout.fillHeight: true
+                            from: 0
+                            Layout.maximumHeight: 128
+                            Layout.preferredHeight: 128
+                            to: 100
+                            Label {
+                                color: "#ffffff"
+                                text: mixDial.value.toFixed(0)
+                                font.pixelSize: Qt.application.font.pixelSize * 3
+                                anchors.centerIn: parent
+                            }
+                            Layout.minimumWidth: 64
+                            Layout.alignment: Qt.AlignHCenter
+                            value: 42
+                            Layout.minimumHeight: 64
+                            Layout.maximumWidth: 128
+                            Layout.preferredWidth: 128
+                        }
                     }
                 }
             }
 
-
-            ColumnLayout {
-                x: 215
-                y: 106
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-
-                Image {
-                    Layout.fillHeight: true
-                    source: "qrc:/icons/reverb_cube.png"
-                    fillMode: Image.PreserveAspectFit
-                }
-                Layout.preferredWidth: 350
-            }
-
-
-            Column {
-                id: column1
-                x: 635
-                y: 56
-                width: 120
-                height: 400
-                GlowingLabel {
-                    color: "#ffffff"
-                    text: qsTr("SIZE")
-                    font.pixelSize: fontSizeMedium
+            TabBar {
+                id: reverbTabs
+                width: parent.width
+                height: 38
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 0
+                TabButton {
+                    id: tabButton4
+                    text: qsTr("Tab Button")
                 }
 
-                Dial {
-                    id: mixDial
-                    stepSize: 1
-                    Layout.fillHeight: true
-                    from: 0
-                    Layout.maximumHeight: 128
-                    Layout.preferredHeight: 128
-                    to: 100
-                    Label {
-                        color: "#ffffff"
-                        text: mixDial.value.toFixed(0)
-                        font.pixelSize: Qt.application.font.pixelSize * 3
-                        anchors.centerIn: parent
-                    }
-                    Layout.minimumWidth: 64
-                    Layout.alignment: Qt.AlignHCenter
-                    value: 42
-                    Layout.minimumHeight: 64
-                    Layout.maximumWidth: 128
-                    Layout.preferredWidth: 128
+                TabButton {
+                    id: tabButton5
+                    text: qsTr("Tab Button")
+                }
+
+                TabButton {
+                    id: tabButton6
+                    text: qsTr("Tab Button")
+                }
+
+                TabButton {
+                    id: tabButton7
+                    text: qsTr("Tab Button")
                 }
             }
         }
+
         Frame {
             id: frame
             width: 800
@@ -195,8 +241,7 @@ ApplicationWindow {
             anchors.topMargin: 0
             contentHeight: 480
             contentWidth: 800
-            anchors.fill: parent
-            anchors.margins: 90
+
 
             RowLayout {
                 id: mainRowLayout
@@ -255,6 +300,7 @@ ApplicationWindow {
 
                     FeatureButton {
                         text: qsTr("Settings")
+                        font.family: "Times New Roman"
                         icon.name: "settings"
                         Layout.fillHeight: true
                     }
@@ -749,6 +795,18 @@ ApplicationWindow {
                 }
             }
         }
+
+
+
+    }
+
+    RoundButton {
+        id: roundButton
+        x: 741
+        y: 422
+        width: 74
+        height: 77
+        text: "M"
     }
 
     TabBar {
@@ -758,24 +816,27 @@ ApplicationWindow {
 
         TabButton {
             id: tabButton
-            text: qsTr("Tab Button")
+            text: qsTr("Delay")
         }
 
         TabButton {
             id: tabButton1
-            text: qsTr("Tab Button")
+            text: qsTr("Reverb")
         }
 
         TabButton {
             id: tabButton2
-            text: qsTr("Tab Button")
+            text: qsTr("Mixer")
         }
 
         TabButton {
             id: tabButton3
-            text: qsTr("Tab Button")
+            text: qsTr("Cab")
         }
     }
+
+
+
 
 
 
@@ -788,7 +849,22 @@ ApplicationWindow {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*##^## Designer {
-    D{i:3;invisible:true}
+    D{i:121;anchors_height:480;anchors_width:800}D{i:122;anchors_height:480;anchors_width:800}
+D{i:2;anchors_height:480;anchors_width:800;anchors_x:0;anchors_y:0}
 }
  ##^##*/
