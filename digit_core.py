@@ -4,11 +4,47 @@
 # cab
 # effects 1-4 per delay & reverb
 
+#    
+from pluginsmanager.banks_manager import BanksManager
+from pluginsmanager.observer.mod_host.mod_host import ModHost
+from pluginsmanager.model.pedalboard import Pedalboard
+from pluginsmanager.model.connection import Connection
+from pluginsmanager.model.lv2.lv2_effect_builder import Lv2EffectBuilder
+from pluginsmanager.model.system.system_effect import SystemEffect
+
+# connect to mod host and load plugins
+manager = BanksManager()
+
+bank = Bank('Bank 1')
+manager.append(bank)
+mod_host = ModHost('localhost')
+mod_host.connect()
+manager.register(mod_host)
+pedalboard = Pedalboard('Digit')
+bank.append(pedalboard)
+mod_host.pedalboard = pedalboard
+
+builder = Lv2EffectBuilder()
+delays = []
+delays[0] = builder.build("http://drobilla.net/plugins/mda/Delay")
+reverb = builder.build('http://drobilla.net/plugins/fomp/reverb')
+# cab
+# load mixer LV2
+
+pedalboard.append(delay)
+pedalboard.append(reverb)
+
+# connect outputs
+from pluginsmanager.jack.jack_client import JackClient
+client = JackClient()
+sys_effect = SystemEffect('system', ['capture_1', 'capture_2', "capture_3, capture_4"],
+        ['playback_1', 'playback_2', 'playback_3', 'playback_4'])
+
+
 ## on ui knob change, set value in lv2
-def ui_knob_change(value):
+# def ui_knob_change(value):
     # knob is zero to 1, map to pedal range 
     #fuzz.params[0].minimum / fuzz.params[0].maximum
-
     #fuzz.params[0].value
 
 #

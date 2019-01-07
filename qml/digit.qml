@@ -1,58 +1,16 @@
-/****************************************************************************
-**
-** Copyright (C) 2017 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of the examples of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:BSD$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** BSD License Usage
-** Alternatively, you may use this file under the terms of the BSD license
-** as follows:
-**
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of The Qt Company Ltd nor the names of its
-**     contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
-**
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
+/* DIGIT UI ****************************************************************************/
 
-import QtQuick 2.12
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.Imagine 2.12
+//import QtQuick 2.12
+//import QtQuick.Layouts 1.12
+//import QtQuick.Controls 2.12
+//import QtQuick.Controls.Imagine 2.12
+//import QtQuick.Window 2.0
+import QtQuick 2.9
+import QtQuick.Layouts 1.3
+import QtQuick.Controls 2.3
+import QtQuick.Controls.Imagine 2.3
 import QtQuick.Window 2.0
+
 
 ApplicationWindow {
     id: window
@@ -77,20 +35,160 @@ ApplicationWindow {
     readonly property int fontSizeLarge: Qt.application.font.pixelSize * 2
     readonly property int fontSizeExtraLarge: Qt.application.font.pixelSize * 5
 
-    Component.onCompleted: {
-        x = Screen.width / 2 - width / 2
-        y = Screen.height / 2 - height / 2
-    }
+    //    Component.onCompleted: {
+    //        x = Screen.width / 2 - width / 2
+    //        y = Screen.height / 2 - height / 2
+    //    }
 
-    Shortcut {
-        sequence: "Ctrl+Q"
-        onActivated: Qt.quit()
-    }
+    //    Shortcut {
+    //        sequence: "Ctrl+Q"
+    //        onActivated: Qt.quit()
+    //    }
 
     StackLayout {
         id: stackLayout
         anchors.fill: parent
         currentIndex: bar.currentIndex
+
+        Frame {
+            id: delayFrame
+            Layout.fillWidth: true
+            z: -1
+            StackLayout {
+                id: reverbStack1
+                anchors.fill: parent
+                Frame {
+                    id: reverbFrame3
+                    width: 800
+                    height: 480
+                    z: -1
+                    Column {
+                        id: column2
+                        x: 0
+                        y: 42
+                        width: 120
+                        height: 258
+                    }
+
+                    Column {
+                        id: column3
+                        x: 650
+                        y: 58
+                        width: 102
+                        height: 271
+                        spacing: 10
+                        GlowingLabel {
+                            color: "#ffffff"
+                            text: qsTr("TIME")
+                            font.pixelSize: fontSizeMedium
+                        }
+
+                        Dial {
+                            id: mixDial1
+                            width: 100
+                            height: 100
+                            Layout.preferredHeight: 128
+                            Layout.alignment: Qt.AlignHCenter
+                            Label {
+                                color: "#ffffff"
+                                text: mixDial1.value.toFixed(0)
+                                font.pixelSize: Qt.application.font.pixelSize * 3
+                                anchors.centerIn: parent
+                            }
+                            Layout.maximumHeight: 128
+                            value: 42
+                            stepSize: 1
+                            to: 100
+                            Layout.preferredWidth: 128
+                            from: 0
+                            Layout.maximumWidth: 128
+                            Layout.minimumHeight: 64
+                            Layout.fillHeight: true
+                            Layout.minimumWidth: 64
+                        }
+
+                        GlowingLabel {
+                            color: "#ffffff"
+                            text: "FEEDBACK"
+                            font.pixelSize: fontSizeMedium
+                        }
+
+                        Dial {
+                            id: sizeDial1
+                            width: 100
+                            height: 100
+                            Layout.preferredHeight: 128
+                            Layout.alignment: Qt.AlignHCenter
+                            onMoved: {
+                                knobs.ui_knob_change("feedback", sizeDial1.value)
+                            }
+                            value: 42
+                            Layout.maximumHeight: 128
+                            Layout.preferredWidth: 128
+                            stepSize: 1
+                            to: 100
+                            from: 0
+                            Layout.maximumWidth: 128
+                            Layout.minimumHeight: 64
+                            Layout.fillHeight: true
+                            Layout.minimumWidth: 64
+
+                            Label {
+                                x: 33
+                                y: 8
+                                color: "#ffffff"
+                                text: sizeDial1.value.toFixed(0)
+
+                                font.pixelSize: Qt.application.font.pixelSize * 3
+                                anchors.centerIn: parent
+                            }
+                        }
+
+
+
+                    }
+                }
+            }
+
+            TabBar {
+                id: reverbTabs1
+                width: 376
+                height: 38
+                anchors.bottom: parent.bottom
+                TabButton {
+                    id: tabButton7
+                    text: qsTr("Main")
+                }
+
+                TabButton {
+                    id: tabButton8
+                    text: qsTr("Effects")
+                }
+
+                TabButton {
+                    id: tabButton9
+                    text: qsTr("Bus")
+                }
+                anchors.bottomMargin: 0
+            }
+
+            ProgressBar {
+                id: leftEncoderVal1
+                x: -12
+                y: -12
+                width: 93
+                height: 41
+                GlowingLabel {
+                    width: 93
+                    height: 41
+                    color: "#ffffff"
+                    text: qsTr("SIZE")
+                    font.pixelSize: fontSizeMedium
+                }
+                value: 0.5
+            }
+            Layout.fillHeight: true
+        }
 
         Frame {
             id: reverbFrame1
@@ -205,28 +303,40 @@ ApplicationWindow {
 
             TabBar {
                 id: reverbTabs
-                width: parent.width
+                width: 376
                 height: 38
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 0
                 TabButton {
                     id: tabButton4
-                    text: qsTr("Tab Button")
+                    text: qsTr("Main")
                 }
 
                 TabButton {
                     id: tabButton5
-                    text: qsTr("Tab Button")
+                    text: qsTr("Effects")
                 }
 
                 TabButton {
                     id: tabButton6
-                    text: qsTr("Tab Button")
+                    text: qsTr("Bus")
                 }
+            }
 
-                TabButton {
-                    id: tabButton7
-                    text: qsTr("Tab Button")
+            ProgressBar {
+                id: leftEncoderVal
+                x: -12
+                y: -12
+                width: 93
+                height: 41
+                value: 0.5
+
+                GlowingLabel {
+                    width: 93
+                    height: 41
+                    color: "#ffffff"
+                    text: qsTr("SIZE")
+                    font.pixelSize: fontSizeMedium
                 }
             }
         }
@@ -798,6 +908,7 @@ ApplicationWindow {
 
 
 
+
     }
 
     RoundButton {
@@ -811,8 +922,10 @@ ApplicationWindow {
 
     TabBar {
         id: bar
-        width: parent.width
-        height: 38
+        x: 94
+        y: 0
+        width: 613
+        height: 41
 
         TabButton {
             id: tabButton
@@ -863,8 +976,15 @@ ApplicationWindow {
 
 
 
+
+
+
+
+
+
+
+
 /*##^## Designer {
-    D{i:121;anchors_height:480;anchors_width:800}D{i:122;anchors_height:480;anchors_width:800}
-D{i:2;anchors_height:480;anchors_width:800;anchors_x:0;anchors_y:0}
+    D{i:125;invisible:true}
 }
  ##^##*/

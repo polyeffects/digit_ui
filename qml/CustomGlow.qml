@@ -47,8 +47,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-import QtGraphicalEffects 1.12
+import QtGraphicalEffects 1.0
+//import QtGraphicalEffects 1.12
 
 Glow {
     color: glowColor

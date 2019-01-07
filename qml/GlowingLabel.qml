@@ -48,9 +48,10 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.12
-import QtQuick.Controls 2.12
-
+//import QtQuick 2.12
+//import QtQuick.Controls 2.12
+import QtQuick 2.9
+import QtQuick.Controls 2.3
 // This container and the transform on the Label are
 // necessary to get precise bounding rect of the text for layouting reasons,
 // since some of the labels' font sizes can get quite large.
