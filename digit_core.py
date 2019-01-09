@@ -47,6 +47,9 @@ sys_effect = SystemEffect('system', ['capture_1', 'capture_2', "capture_3, captu
     #fuzz.params[0].minimum / fuzz.params[0].maximum
     #fuzz.params[0].value
 
+# 4 out, delay, reverb, cab
+# 4 in, delay, reverb, cab
+
 #
 # fuzz.toggle()
 # or

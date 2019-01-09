@@ -11,7 +11,6 @@ import QtQuick.Controls 2.3
 import QtQuick.Controls.Imagine 2.3
 import QtQuick.Window 2.0
 
-
 ApplicationWindow {
     id: window
     width: 800
