@@ -7,8 +7,11 @@
 #    
 from pluginsmanager.banks_manager import BanksManager
 from pluginsmanager.observer.mod_host.mod_host import ModHost
+
+from pluginsmanager.model.bank import Bank
 from pluginsmanager.model.pedalboard import Pedalboard
 from pluginsmanager.model.connection import Connection
+
 from pluginsmanager.model.lv2.lv2_effect_builder import Lv2EffectBuilder
 from pluginsmanager.model.system.system_effect import SystemEffect
 
@@ -28,17 +31,22 @@ builder = Lv2EffectBuilder()
 delays = []
 delays[0] = builder.build("http://drobilla.net/plugins/mda/Delay")
 reverb = builder.build('http://drobilla.net/plugins/fomp/reverb')
-# cab
 # load mixer LV2
+mixer = builder.build("http://gareus.org/oss/lv2/matrixmixer#i4o4")
+# cab
 
-pedalboard.append(delay)
+pedalboard.append(delays[0])
 pedalboard.append(reverb)
+pedalboard.append(mixer)
 
 # connect outputs
-from pluginsmanager.jack.jack_client import JackClient
-client = JackClient()
-sys_effect = SystemEffect('system', ['capture_1', 'capture_2', "capture_3, capture_4"],
-        ['playback_1', 'playback_2', 'playback_3', 'playback_4'])
+pedalboard.connect(delay.outputs[0], reverb.inputs[0])
+pedalboard.connect(reverb.outputs[0], mixer.inputs[0])
+
+# from pluginsmanager.jack.jack_client import JackClient
+# client = JackClient()
+# sys_effect = SystemEffect('system', ['capture_1', 'capture_2', "capture_3, capture_4"],
+#         ['playback_1', 'playback_2', 'playback_3', 'playback_4'])
 
 
 ## on ui knob change, set value in lv2
