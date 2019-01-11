@@ -125,7 +125,7 @@ ApplicationWindow {
                                 Layout.preferredHeight: 128
                                 Layout.alignment: Qt.AlignHCenter
                                 onMoved: {
-                                    knobs.ui_knob_change("feedback", sizeDial1.value)
+                                    knobs.ui_knob_change("delay1", "feedback", sizeDial1.value)
                                 }
                                 value: 42
                                 Layout.maximumHeight: 128

@@ -14,9 +14,9 @@ import resource_rc
 class Knobs(QObject):
     """Output stuff on the console."""
 
-    @Slot(str, 'double')
-    def ui_knob_change(self, x, y):
-        print(x, y)
+    @Slot(str, str, 'double')
+    def ui_knob_change(self, x, y, z):
+        print(x, y, z)
 
 if __name__ == "__main__":
 
