@@ -13,3 +13,6 @@ RESOURCES += \
 
 target.path = D:/git_repos/polydigit/UI
 INSTALLS += target
+
+DISTFILES += \
+    qtquickcontrols2.conf
