@@ -15,7 +15,7 @@ import sys
 ###### UI
 # --------------------------------------------------------------------------------------------------------
 from PySide2.QtGui import QGuiApplication
-from PySide2.QtCore import QObject, QUrl, Slot, QTimer
+from PySide2.QtCore import QObject, QUrl, Slot
 from PySide2.QtQml import QQmlApplicationEngine
 from PySide2.QtGui import QIcon
 # compiled QML files, compile with pyside2-rcc
@@ -46,19 +46,29 @@ def signalHandler(sig, frame):
 # --------------------------------------------------------------------------------------------------------
 # Poly Globals
 effects = IntEnum("Effects", "delay1 reverb mixer cab")
+# default connections, in 1, delay 1, in 1 to cab 1
+# delay 1 to reverb 1
+# reverb 1 to cab 1
+user_port_name = {}#
+
 portMap = {}
 invPortMap = {}
 # plugin names to Carla IDs
 pluginMap = {}
 #
+parameterMap = {}
 
 # --------------------------------------------------------------------------------------------------------
 class Knobs(QObject):
     """Output stuff on the console."""
 
     @Slot(str, str, 'double')
-    def ui_knob_change(self, x, y, z):
-        print(x, y, z)
+    def ui_knob_change(self, effect_name, parameter, value):
+        # print(x, y, z)
+        if effect_name in pluginMap:
+            host.set_parameter_value(pluginMap[effect_name], parameterMap[effect_name][parameter], value / 100.0)
+        else:
+            print("effect not found")
 
 
 def engineCallback(host, action, pluginId, value1, value2, value3, valueStr):
@@ -75,10 +85,17 @@ def engineCallback(host, action, pluginId, value1, value2, value3, valueStr):
         invPortMap[pluginId] = valueStr
     elif action == ENGINE_CALLBACK_PLUGIN_ADDED:
         pluginMap[valueStr] = pluginId
+        pluginParams = {}
+        for i in range(host.get_parameter_count(pluginId)):
+             p = host.get_parameter_info(pluginId, i)
+             pluginParams[p["symbol"]] = i
+        parameterMap[valueStr] = pluginParams
         print("plugin added", pluginId, valueStr)
-    elif action == ENGINE_CALLBACK_IDLE:
-        print("processing GUI events in CALLBACK")
-        # app.processEvents()
+    # elif action == ENGINE_CALLBACK_IDLE:
+    #     print("processing GUI events in CALLBACK")
+    #     app.processEvents()
+    elif action == ENGINE_CALLBACK_PATCHBAY_CLIENT_DATA_CHANGED:
+        print("patchbay data changed", pluginId, value1, value2)
     # if action == ENGINE_CALLBACK_ENGINE_STARTED:
     #     host.processMode   = value1
     #     host.transportMode = value2
@@ -132,8 +149,6 @@ def engineCallback(host, action, pluginId, value1, value2, value3, valueStr):
     #     host.PatchbayClientRemovedCallback.emit(pluginId)
     # elif action == ENGINE_CALLBACK_PATCHBAY_CLIENT_RENAMED:
     #     host.PatchbayClientRenamedCallback.emit(pluginId, valueStr)
-    # elif action == ENGINE_CALLBACK_PATCHBAY_CLIENT_DATA_CHANGED:
-    #     host.PatchbayClientDataChangedCallback.emit(pluginId, value1, value2)
     # elif action == ENGINE_CALLBACK_PATCHBAY_PORT_ADDED:
     #     print("patchbay port added", pluginId, value1, value2, valueStr)
         # def slot_handlePatchbayPortAddedCallback(self, clientId, portId, portFlags, portName):
@@ -181,7 +196,8 @@ if not host.engine_init("JACK", "PolyCarla"):
 
 
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay1", "http://drobilla.net/plugins/mda/Delay",  0, None, 0)
-host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverb", "http://drobilla.net/plugins/fomp/reverb", 0, None, 0)
+# host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverb", "http://drobilla.net/plugins/fomp/reverb", 0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverb", "http://guitarix.sourceforge.net/plugins/gx_reverb_stereo#_reverb_stereo", 0, None, 0)
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "mixer", "http://gareus.org/oss/lv2/matrixmixer#i4o4", 0, None, 0)
 # host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "", "http://gareus.org/oss/lv2/matrixmixer#i4o4", effects.cab, None, 0)
 
@@ -210,19 +226,15 @@ context.setContextProperty("knobs", knobs)
 # engine.load(QUrl("qrc:/qml/digit.qml"))
 qmlEngine.load(QUrl("qml/digit.qml"))
 
-def carla_loop():
-    if host.is_engine_running() and not gCarla.term:
-        print("engine is idle")
-        host.engine_idle()
-        # print("processing GUI events in CALLBACK")
-        # app.processEvents()
-        # sleep(0.5)
+while host.is_engine_running() and not gCarla.term:
+    # print("engine is idle")
+    host.engine_idle()
+    # print("processing GUI events in CALLBACK")
+    app.processEvents()
+    sleep(0.01)
+    # wait until the last of our plugins is added, then connect them if they haven't been connected yet
+    # default routing is input 1 to delay 1 to reverb to cab to out
 
-timer = QTimer()
-timer.timeout.connect(carla_loop)
-timer.start(500)
-
-sys.exit(app.exec_())
 if not gCarla.term:
     print("Engine closed abruptely")
 

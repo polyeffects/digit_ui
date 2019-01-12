@@ -13,16 +13,16 @@ import QtQuick.Window 2.0
 
 ApplicationWindow {
     id: window
-    // width: 480
-    // height: 800
-    // minimumHeight: 800
-    // minimumWidth: 480
-    // maximumHeight: 800
-    // maximumWidth: 480
+    width: 480
+    height: 800
+    minimumHeight: 800
+    minimumWidth: 480
+    maximumHeight: 800
+    maximumWidth: 480
     visible: true
     title: "Digit"
-    width: 800//Screen.height dev settings
-    height: 480//Screen.width
+    // width: 800//Screen.height dev settings
+    // height: 480//Screen.width
 
     readonly property color colorGlow: "#1d6d64"
     readonly property color colorWarning: "#d5232f"
@@ -37,13 +37,13 @@ ApplicationWindow {
     readonly property int fontSizeExtraLarge: Qt.application.font.pixelSize * 5
 
     Item {
-        // transform: Rotation {
-        //     angle: 90
-        //     /* origin.x: Screen.height / 2 */
-        //     /* origin.x: Screen.height / 2 */
-        //     origin.x: 480 / 2
-        //     origin.y: 480 / 2
-        // }
+        transform: Rotation {
+            angle: 90
+            /* origin.x: Screen.height / 2 */
+            /* origin.x: Screen.height / 2 */
+            origin.x: 480 / 2
+            origin.y: 480 / 2
+        }
         id: root
         width: 800//Screen.height
         height: 480//Screen.width
@@ -60,6 +60,8 @@ ApplicationWindow {
                 z: -1
                 StackLayout {
                     id: delayStack1
+                    anchors.rightMargin: 0
+                    anchors.topMargin: 27
                     currentIndex: delayTabs.currentIndex
                     anchors.fill: parent
                     Frame {
@@ -94,6 +96,9 @@ ApplicationWindow {
                                 height: 100
                                 Layout.preferredHeight: 128
                                 Layout.alignment: Qt.AlignHCenter
+                                onMoved: {
+                                    knobs.ui_knob_change("delay1", "l_delay", sizeDial1.value)
+                                }
                                 Label {
                                     color: "#ffffff"
                                     text: mixDial1.value.toFixed(0)
@@ -153,12 +158,349 @@ ApplicationWindow {
 
                         }
                     }
+
+                    Frame {
+                        id: effects
+                        width: 800
+                        height: 480
+                        z: -1
+
+                        Column {
+                            spacing: 8
+
+                            GroupBox {
+                                id: groupBox
+                                width: 200
+                                height: 200
+                                title: qsTr("Filter")
+
+                                Row {
+                                    x: 0
+                                    width: 800
+                                    height: 45
+                                    anchors.top: parent.top
+                                    anchors.topMargin: 10
+                                    Image {
+                                        source: "qrc:/icons/weather.png"
+                                    }
+
+                                    Column {
+                                        id: column
+
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("MIX")
+                                            verticalAlignment: 0
+                                            horizontalAlignment: -1
+                                            anchors.left: parent.left
+                                            anchors.leftMargin: -20
+                                            font.pixelSize: fontSizeMedium
+                                        }
+
+                                        Dial {
+                                            id: mixDial2
+                                            width: 30
+                                            height: 30
+                                            from: 0
+                                            Label {
+                                                color: "#ffffff"
+                                                text: mixDial2.value.toFixed(0)
+                                                font.pixelSize: Qt.application.font.pixelSize * 3
+                                                anchors.centerIn: parent
+                                            }
+                                            Layout.minimumHeight: 64
+                                            value: 42
+                                            Layout.minimumWidth: 64
+                                            Layout.maximumHeight: 128
+                                            Layout.fillHeight: true
+                                            stepSize: 1
+                                            to: 100
+                                            Layout.preferredWidth: 128
+                                            Layout.preferredHeight: 128
+                                            Layout.alignment: Qt.AlignHCenter
+                                            Layout.maximumWidth: 128
+                                        }
+                                        spacing: 20
+                                    }
+
+                                    Column {
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("MIX")
+                                            font.pixelSize: fontSizeMedium
+                                        }
+
+                                        Dial {
+                                            id: mixDial3
+                                            width: 30
+                                            height: 30
+                                            from: 0
+                                            Label {
+                                                color: "#ffffff"
+                                                text: mixDial3.value.toFixed(0)
+                                                font.pixelSize: Qt.application.font.pixelSize * 3
+                                                anchors.centerIn: parent
+                                            }
+                                            Layout.minimumHeight: 64
+                                            value: 42
+                                            Layout.minimumWidth: 64
+                                            Layout.maximumHeight: 128
+                                            Layout.fillHeight: true
+                                            Layout.preferredWidth: 128
+                                            to: 100
+                                            stepSize: 1
+                                            Layout.preferredHeight: 128
+                                            Layout.maximumWidth: 128
+                                            Layout.alignment: Qt.AlignHCenter
+                                        }
+                                        spacing: 8
+                                    }
+
+                                    Column {
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("MIX")
+                                            font.pixelSize: fontSizeMedium
+                                        }
+
+                                        Dial {
+                                            id: mixDial4
+                                            width: 30
+                                            height: 30
+                                            from: 0
+                                            Label {
+                                                color: "#ffffff"
+                                                text: mixDial4.value.toFixed(0)
+                                                font.pixelSize: Qt.application.font.pixelSize * 3
+                                                anchors.centerIn: parent
+                                            }
+                                            Layout.minimumHeight: 64
+                                            value: 42
+                                            Layout.minimumWidth: 64
+                                            Layout.maximumHeight: 128
+                                            Layout.fillHeight: true
+                                            Layout.preferredWidth: 128
+                                            to: 100
+                                            stepSize: 1
+                                            Layout.preferredHeight: 128
+                                            Layout.maximumWidth: 128
+                                            Layout.alignment: Qt.AlignHCenter
+                                        }
+                                        spacing: 8
+                                    }
+
+                                    Column {
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("MIX")
+                                            font.pixelSize: fontSizeMedium
+                                        }
+
+                                        Dial {
+                                            id: mixDial5
+                                            width: 30
+                                            height: 30
+                                            from: 0
+                                            Label {
+                                                color: "#ffffff"
+                                                text: mixDial5.value.toFixed(0)
+                                                font.pixelSize: Qt.application.font.pixelSize * 3
+                                                anchors.centerIn: parent
+                                            }
+                                            Layout.minimumHeight: 64
+                                            value: 42
+                                            Layout.minimumWidth: 64
+                                            Layout.maximumHeight: 128
+                                            Layout.fillHeight: true
+                                            Layout.preferredWidth: 128
+                                            to: 100
+                                            stepSize: 1
+                                            Layout.preferredHeight: 128
+                                            Layout.maximumWidth: 128
+                                            Layout.alignment: Qt.AlignHCenter
+                                        }
+                                        spacing: 8
+                                    }
+
+                                    SwitchDelegate {
+                                        text: qsTr("AC")
+                                        bottomPadding: 0
+                                        Layout.fillWidth: true
+                                        leftPadding: 0
+                                        topPadding: 0
+                                        rightPadding: 0
+                                    }
+                                    spacing: 35
+                                }
+                            }
+
+
+                        }
+                    }
+
+                    Frame {
+                        id: bus
+                        width: 800
+                        height: 480
+                        z: -1
+
+                        Row {
+                            id: row
+                            x: 0
+                            y: 10
+                            width: 800
+                            height: 376
+
+
+                            GroupBox {
+                                id: groupBox1
+                                width: 200
+                                height: 200
+                                anchors.left: parent.left
+                                anchors.leftMargin: 0
+                                title: qsTr("AVAILABLE")
+
+                                Frame {
+                                    id: stationFrame1
+                                    contentHeight: 300
+                                    contentWidth: 300
+                                    bottomPadding: 1
+                                    Layout.fillWidth: true
+                                    leftPadding: 1
+                                    ListView {
+                                        model: availablePolyConnections
+                                        clip: true
+                                        anchors.fill: parent
+                                        delegate: ItemDelegate {
+                                            // id: stationDelegate1
+                                            width: parent.width
+                                            height: 22
+                                            text: "section 1"+edit
+                                            bottomPadding: 0
+                                            // contentItem: RowLayout {
+                                            //     Label {
+                                            //         text: "test"+modelData
+                                            //         horizontalAlignment: Text.AlignLeft
+                                            //         Layout.fillWidth: true
+                                            //         font: stationDelegate1.font
+                                            //     }
+                                            // }
+                                            font.pixelSize: fontSizeExtraSmall
+                                            topPadding: 0
+                                            onClicked: { knobs.ui_add_connection(edit)}
+                                        }
+                                        ScrollIndicator.vertical: ScrollIndicator {
+                                            anchors.top: parent.top
+                                            parent: stationFrame1
+                                            anchors.right: parent.right
+                                            anchors.rightMargin: 1
+                                            anchors.bottom: parent.bottom
+                                        }
+                                    }
+                                    topPadding: 1
+                                    Layout.fillHeight: true
+                                    Layout.preferredHeight: 128
+                                    rightPadding: 1
+                                }
+                            }
+
+
+                            GroupBox {
+                                id: groupBox2
+                                width: 300
+                                height: 300
+                                anchors.right: parent.right
+                                anchors.rightMargin: 0
+                                title: qsTr("CONNECTED")
+
+                                Frame {
+                                    id: stationFrame2
+                                    anchors.fill: parent
+                                    contentHeight: 300
+                                    contentWidth: 300
+                                    bottomPadding: 1
+                                    Layout.fillWidth: true
+                                    leftPadding: 1
+                                    topPadding: 1
+                                    Layout.fillHeight: true
+                                    Layout.preferredHeight: 128
+                                    rightPadding: 1
+
+                                    ListView {
+                                        x: 0
+                                        y: 0
+                                        width: 300
+                                        height: 300
+                                        anchors.bottomMargin: 10
+                                        clip: true
+                                        anchors.fill: parent
+                                        model: connectedPorts
+
+                                        delegate: ItemDelegate {
+                                            // id: stationDelegate1
+                                            width: parent.width
+                                            height: 22
+                                            text: "section 1"+edit
+                                            bottomPadding: 0
+                                            // contentItem: RowLayout {
+                                            //     Label {
+                                            //         text: "test"+modelData
+                                            //         horizontalAlignment: Text.AlignLeft
+                                            //         Layout.fillWidth: true
+                                            //         font: stationDelegate1.font
+                                            //     }
+                                            // }
+                                            font.pixelSize: fontSizeExtraSmall
+                                            topPadding: 0
+                                            onClicked: { knobs.ui_remove_connection(edit)}
+                                        }
+                                        // delegate: ItemDelegate {
+                                        //     id: stationDelegate2
+                                        //     width: parent.width
+                                        //     height: 22
+                                        //     text: model.name
+                                        //     bottomPadding: 0
+                                        //     contentItem: RowLayout {
+                                        //         Label {
+                                        //             text: model.name
+                                        //             horizontalAlignment: Text.AlignLeft
+                                        //             Layout.fillWidth: true
+                                        //             font: stationDelegate2.font
+                                        //         }
+
+                                        //         Label {
+                                        //             text: model.frequency
+                                        //             horizontalAlignment: Text.AlignRight
+                                        //             Layout.fillWidth: true
+                                        //             font: stationDelegate2.font
+                                        //         }
+                                        //     }
+                                            // font.pixelSize: fontSizeExtraSmall
+                                            // topPadding: 0
+                                        // }
+                                        ScrollIndicator.vertical: ScrollIndicator {
+                                            anchors.top: parent.top
+                                            parent: stationFrame2
+                                            anchors.right: parent.right
+                                            anchors.rightMargin: 1
+                                            anchors.bottom: parent.bottom
+                                        }
+                                    }
+                                }
+                            }
+                            anchors.top: parent.top
+                            anchors.topMargin: 10
+                            spacing: 35
+                        }
+                    }
                 }
 
                 TabBar {
                     id: delayTabs
                     width: 376
                     height: 38
+                    spacing: 0
+                    currentIndex: 2
                     anchors.bottom: parent.bottom
                     TabButton {
                         id: tabButton7
@@ -175,22 +517,6 @@ ApplicationWindow {
                         text: qsTr("Bus")
                     }
                     anchors.bottomMargin: 0
-                }
-
-                ProgressBar {
-                    id: leftEncoderVal1
-                    x: -12
-                    y: -12
-                    width: 93
-                    height: 41
-                    GlowingLabel {
-                        width: 93
-                        height: 41
-                        color: "#ffffff"
-                        text: qsTr("SIZE")
-                        font.pixelSize: fontSizeMedium
-                    }
-                    value: 0.5
                 }
                 Layout.fillHeight: true
             }
@@ -212,44 +538,6 @@ ApplicationWindow {
                         height: 480
                         z: -1
 
-                        Column {
-                            id: column
-                            x: -12
-                            y: 168
-                            width: 120
-                            height: 258
-
-                            GlowingLabel {
-                                color: "#ffffff"
-                                text: qsTr("SIZE")
-                                font.pixelSize: fontSizeMedium
-                            }
-
-                            Dial {
-                                id: sizeDial
-                                width: 100
-                                height: 100
-                                from: 0
-                                value: 42
-                                Layout.minimumHeight: 64
-                                Layout.preferredWidth: 128
-                                Layout.minimumWidth: 64
-                                stepSize: 1
-                                Layout.preferredHeight: 128
-                                Layout.fillHeight: true
-                                Layout.alignment: Qt.AlignHCenter
-                                to: 100
-                                Layout.maximumWidth: 128
-                                Layout.maximumHeight: 128
-                                Label {
-                                    color: "#ffffff"
-                                    text: sizeDial.value.toFixed(0)
-                                    font.pixelSize: Qt.application.font.pixelSize * 3
-                                    anchors.centerIn: parent
-                                }
-                            }
-                        }
-
 
                         ColumnLayout {
                             x: 191
@@ -269,10 +557,11 @@ ApplicationWindow {
 
                         Column {
                             id: column1
-                            x: 662
-                            y: 168
+                            x: 625
+                            y: 66
                             width: 102
                             height: 271
+                            spacing: 10
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: qsTr("MIX")
@@ -302,6 +591,24 @@ ApplicationWindow {
                                 Layout.maximumWidth: 128
                                 Layout.preferredWidth: 128
                             }
+
+                            GlowingLabel {
+                                color: "#ffffff"
+                                text: qsTr("SIZE")
+                                font.pixelSize: fontSizeMedium
+                            }
+
+                            SwitchDelegate {
+                                text: qsTr("AC")
+                                bottomPadding: 0
+                                Layout.fillWidth: true
+                                leftPadding: 0
+                                topPadding: 0
+                                rightPadding: 0
+                            }
+
+
+
                         }
                     }
                 }
@@ -1166,6 +1473,7 @@ ApplicationWindow {
             y: 0
             width: 613
             height: 41
+            currentIndex: 0
 
             TabButton {
                 id: tabButton
@@ -1192,6 +1500,22 @@ ApplicationWindow {
 
 
 
+    }
+
+    ProgressBar {
+        id: leftEncoderVal1
+        x: -12
+        y: -12
+        width: 93
+        height: 41
+        GlowingLabel {
+            width: 93
+            height: 41
+            color: "#ffffff"
+            text: qsTr("SIZE")
+            font.pixelSize: fontSizeMedium
+        }
+        value: 0.5
     }
 
 }
@@ -1234,7 +1558,47 @@ ApplicationWindow {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*##^## Designer {
-    D{i:125;invisible:true}
+    D{i:6;invisible:true}D{i:235;anchors_y:242}D{i:125;invisible:true}
 }
  ##^##*/
