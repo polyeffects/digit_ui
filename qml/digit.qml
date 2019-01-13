@@ -558,10 +558,11 @@ ApplicationWindow {
                         z: -1
                         Column {
                             id: column4
-                            x: 97
-                            y: 36
+                            x: 100
+                            y: 5
                             width: 131
-                            height: 409
+                            height: 405
+                            spacing: 10
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: qsTr("IN 1")
@@ -570,8 +571,8 @@ ApplicationWindow {
 
                             Dial {
                                 id: sizeDial2
-                                width: 100
-                                height: 100
+                                width: 75
+                                height: 75
                                 from: 0
                                 Label {
                                     color: "#ffffff"
@@ -594,8 +595,8 @@ ApplicationWindow {
 
                             Dial {
                                 id: sizeDial3
-                                width: 100
-                                height: 100
+                                width: 75
+                                height: 75
                                 from: 0
                                 Label {
                                     color: "#ffffff"
@@ -618,8 +619,8 @@ ApplicationWindow {
 
                             Dial {
                                 id: sizeDial4
-                                width: 100
-                                height: 100
+                                width: 75
+                                height: 75
                                 from: 0
                                 Label {
                                     color: "#ffffff"
@@ -642,8 +643,8 @@ ApplicationWindow {
 
                             Dial {
                                 id: sizeDial5
-                                width: 100
-                                height: 100
+                                width: 75
+                                height: 75
                                 from: 0
                                 Label {
                                     color: "#ffffff"
@@ -783,71 +784,71 @@ ApplicationWindow {
 
                         Column {
                             id: columnMixer1
-							anchors.fill: parent
+                            anchors.fill: parent
 
                             Row {
-								anchors.left: parent.left
-								anchors.right: parent.right
-								height: 0.5 * parent.height
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                height: 0.5 * parent.height
                                 GroupBox {
                                     id: groupBox3
                                     title: qsTr("Input 1")
-									anchors.top: parent.top
-									anchors.bottom: parent.bottom
-									width: 0.5 * parent.width
+                                    anchors.top: parent.top
+                                    anchors.bottom: parent.bottom
+                                    width: 0.5 * parent.width
                                     PolyBus {
                                         id: polyBus3
                                         availablePorts: system_capture1AvailablePorts
                                         usedPorts: system_capture1UsedPorts
                                         sourcePort: "capture1"
                                         effect: "system"
-									}
-								}	
-								GroupBox {
-									id: groupBox4
-									title: qsTr("Input 2")
-									anchors.top: parent.top
-									anchors.bottom: parent.bottom
-									width: 0.5 * parent.width
-									PolyBus {
-										id: polyBus4
-										availablePorts: system_capture2AvailablePorts
-										usedPorts: system_capture2UsedPorts
-										sourcePort: "capture2"
-										effect: "system"
-									}
-								}
+                                    }
+                                }
+                                GroupBox {
+                                    id: groupBox4
+                                    title: qsTr("Input 2")
+                                    anchors.top: parent.top
+                                    anchors.bottom: parent.bottom
+                                    width: 0.5 * parent.width
+                                    PolyBus {
+                                        id: polyBus4
+                                        availablePorts: system_capture2AvailablePorts
+                                        usedPorts: system_capture2UsedPorts
+                                        sourcePort: "capture2"
+                                        effect: "system"
+                                    }
+                                }
                             }
                             Row {
-								anchors.left: parent.left
-								anchors.right: parent.right
-								height: 0.5 * parent.height
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                height: 0.5 * parent.height
                                 GroupBox {
                                     title: qsTr("Input 3")
-									anchors.top: parent.top
-									anchors.bottom: parent.bottom
-									width: 0.5 * parent.width
+                                    anchors.top: parent.top
+                                    anchors.bottom: parent.bottom
+                                    width: 0.5 * parent.width
                                     PolyBus {
                                         id: polyBusMix4
                                         availablePorts: system_capture3AvailablePorts
                                         usedPorts: system_capture3UsedPorts
                                         sourcePort: "capture3"
                                         effect: "system"
-									}
-								}	
-								GroupBox {
-									title: qsTr("Input 4")
-									anchors.top: parent.top
-									anchors.bottom: parent.bottom
-									width: 0.5 * parent.width
-									PolyBus {
-										id: polyBusMix5
-										availablePorts: system_capture4AvailablePorts
-										usedPorts: system_capture4UsedPorts
-										sourcePort: "capture4"
-										effect: "system"
-									}
-								}
+                                    }
+                                }
+                                GroupBox {
+                                    title: qsTr("Input 4")
+                                    anchors.top: parent.top
+                                    anchors.bottom: parent.bottom
+                                    width: 0.5 * parent.width
+                                    PolyBus {
+                                        id: polyBusMix5
+                                        availablePorts: system_capture4AvailablePorts
+                                        usedPorts: system_capture4UsedPorts
+                                        sourcePort: "capture4"
+                                        effect: "system"
+                                    }
+                                }
                             }
 
                         }
@@ -1516,6 +1517,10 @@ ApplicationWindow {
     }
 
 }
+
+
+
+
 
 
 
