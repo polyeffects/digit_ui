@@ -352,6 +352,10 @@ ApplicationWindow {
                             id: polyBus
                             width: 800
                             height: 404
+                            availablePorts: delay1_Left_OutAvailablePorts
+                            usedPorts: delay1_Left_OutUsedPorts
+                            effect: "delay1"
+                            sourcePort: "Left Out"
                         }
                     }
                 }
@@ -391,6 +395,7 @@ ApplicationWindow {
                 StackLayout {
                     id: reverbStack
                     anchors.fill: parent
+                    currentIndex: reverbTabs.currentIndex
 
 
                     Frame {
@@ -496,6 +501,22 @@ ApplicationWindow {
 
 
                         }
+                    }
+
+                    Frame {
+                        id: bus2
+                        width: 800
+                        height: 480
+                        PolyBus {
+                            id: polyBus5
+                            width: 800
+                            height: 404
+                            availablePorts: delay1_Left_OutAvailablePorts
+                            usedPorts: delay1_Left_OutUsedPorts
+                            effect: "delay1"
+                            sourcePort: "Left Out"
+                        }
+                        z: -1
                     }
                 }
 
@@ -759,102 +780,76 @@ ApplicationWindow {
                         width: 800
                         height: 480
                         z: -1
-                        Row {
-                            id: row1
-                            x: 0
-                            y: 10
-                            width: 800
-                            height: 376
-                            GroupBox {
-                                id: groupBox4
-                                width: 200
-                                height: 200
-                                title: qsTr("AVAILABLE")
-                                Frame {
-                                    id: stationFrame3
-                                    bottomPadding: 1
-                                    Layout.fillWidth: true
-                                    contentHeight: 300
-                                    leftPadding: 1
-                                    ListView {
-                                        clip: true
-                                        anchors.fill: parent
-                                        delegate: ItemDelegate {
-                                            width: parent.width
-                                            height: 22
-                                            text: edit
-                                            bottomPadding: 0
-                                            font.pixelSize: fontSizeExtraSmall
-                                            topPadding: 0
-                                        }
-                                        ScrollIndicator.vertical: ScrollIndicator {
-                                            anchors.top: parent.top
-                                            parent: stationFrame3
-                                            anchors.right: parent.right
-                                            anchors.rightMargin: 1
-                                            anchors.bottom: parent.bottom
-                                        }
-                                        model: delay1_Left_OutAvailablePorts
-                                    }
-                                    topPadding: 1
-                                    Layout.fillHeight: true
-                                    Layout.preferredHeight: 128
-                                    rightPadding: 1
-                                    contentWidth: 300
-                                }
-                                anchors.leftMargin: 0
-                                anchors.left: parent.left
+
+                        Column {
+                            id: columnMixer1
+							anchors.fill: parent
+
+                            Row {
+								anchors.left: parent.left
+								anchors.right: parent.right
+								height: 0.5 * parent.height
+                                GroupBox {
+                                    id: groupBox3
+                                    title: qsTr("Input 1")
+									anchors.top: parent.top
+									anchors.bottom: parent.bottom
+									width: 0.5 * parent.width
+                                    PolyBus {
+                                        id: polyBus3
+                                        availablePorts: system_capture1AvailablePorts
+                                        usedPorts: system_capture1UsedPorts
+                                        sourcePort: "capture1"
+                                        effect: "system"
+									}
+								}	
+								GroupBox {
+									id: groupBox4
+									title: qsTr("Input 2")
+									anchors.top: parent.top
+									anchors.bottom: parent.bottom
+									width: 0.5 * parent.width
+									PolyBus {
+										id: polyBus4
+										availablePorts: system_capture2AvailablePorts
+										usedPorts: system_capture2UsedPorts
+										sourcePort: "capture2"
+										effect: "system"
+									}
+								}
+                            }
+                            Row {
+								anchors.left: parent.left
+								anchors.right: parent.right
+								height: 0.5 * parent.height
+                                GroupBox {
+                                    title: qsTr("Input 3")
+									anchors.top: parent.top
+									anchors.bottom: parent.bottom
+									width: 0.5 * parent.width
+                                    PolyBus {
+                                        id: polyBusMix4
+                                        availablePorts: system_capture3AvailablePorts
+                                        usedPorts: system_capture3UsedPorts
+                                        sourcePort: "capture3"
+                                        effect: "system"
+									}
+								}	
+								GroupBox {
+									title: qsTr("Input 4")
+									anchors.top: parent.top
+									anchors.bottom: parent.bottom
+									width: 0.5 * parent.width
+									PolyBus {
+										id: polyBusMix5
+										availablePorts: system_capture4AvailablePorts
+										usedPorts: system_capture4UsedPorts
+										sourcePort: "capture4"
+										effect: "system"
+									}
+								}
                             }
 
-                            GroupBox {
-                                id: groupBox5
-                                width: 300
-                                height: 300
-                                title: qsTr("CONNECTED")
-                                Frame {
-                                    id: stationFrame4
-                                    bottomPadding: 1
-                                    Layout.fillWidth: true
-                                    contentHeight: 300
-                                    anchors.fill: parent
-                                    leftPadding: 1
-                                    ListView {
-                                        x: 0
-                                        y: 0
-                                        width: 300
-                                        height: 300
-                                        clip: true
-                                        anchors.bottomMargin: 10
-                                        anchors.fill: parent
-                                        delegate: ItemDelegate {
-                                            width: parent.width
-                                            height: 22
-                                            text: "section "+edit
-                                            bottomPadding: 0
-                                            font.pixelSize: fontSizeExtraSmall
-                                            topPadding: 0
-                                        }
-                                        ScrollIndicator.vertical: ScrollIndicator {
-                                            anchors.top: parent.top
-                                            anchors.right: parent.right
-                                            parent: stationFrame4
-                                            anchors.rightMargin: 1
-                                            anchors.bottom: parent.bottom
-                                        }
-                                        model: delay1_Left_OutUsedPorts
-                                    }
-                                    topPadding: 1
-                                    Layout.fillHeight: true
-                                    Layout.preferredHeight: 128
-                                    rightPadding: 1
-                                    contentWidth: 300
-                                }
-                                anchors.right: parent.right
-                                anchors.rightMargin: 0
-                            }
-                            anchors.top: parent.top
-                            anchors.topMargin: 10
-                            spacing: 35
                         }
                     }
 
@@ -870,7 +865,7 @@ ApplicationWindow {
                     y: -5
                     width: 376
                     height: 38
-                    currentIndex: 0
+                    currentIndex: 1
                     anchors.bottomMargin: 0
                     spacing: 0
                     TabButton {
@@ -1614,7 +1609,13 @@ ApplicationWindow {
 
 
 
+
+
+
+
+
+
 /*##^## Designer {
-    D{i:6;invisible:true}D{i:235;anchors_y:242}D{i:125;invisible:true}
+    D{i:6;invisible:true}D{i:125;invisible:true}
 }
  ##^##*/

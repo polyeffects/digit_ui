@@ -5,26 +5,38 @@ import QtQuick.Controls.Imagine 2.3
 // import QtQuick.Controls.Material 2.3
 import QtQuick.Window 2.0
 
-Item {
-    id: row1
-    x: 0
-    y: 10
-    width: 800
-    height: 376
+Row {
+	anchors.left: parent.left
+	anchors.right: parent.right
+	height: parent.height
+    id: control
+    property var availablePorts // maybe ListModel
+    property var usedPorts
+    property string effect
+    property string sourcePort
     GroupBox {
         id: groupBox4
-        width: 200
-        height: 200
+		anchors.top: parent.top
+		anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.leftMargin: 0
+		width: 0.5 * parent.width
         title: qsTr("AVAILABLE")
         Frame {
             id: stationFrame3
+			anchors.top: parent.top
+			anchors.bottom: parent.bottom
             bottomPadding: 1
             Layout.fillWidth: true
-            contentHeight: 300
+            // contentHeight: 300
             leftPadding: 1
             ListView {
+                width: parent.width
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
                 clip: true
-                anchors.fill: parent
                 delegate: ItemDelegate {
                     width: parent.width
                     height: 22
@@ -32,6 +44,9 @@ Item {
                     bottomPadding: 0
                     font.pixelSize: fontSizeExtraSmall
                     topPadding: 0
+                    onClicked: {
+                        knobs.ui_add_connection(effect, sourcePort, edit)
+                    }
                 }
                 ScrollIndicator.vertical: ScrollIndicator {
                     anchors.top: parent.top
@@ -40,35 +55,35 @@ Item {
                     anchors.rightMargin: 1
                     anchors.bottom: parent.bottom
                 }
-                model: delay1_Left_OutAvailablePorts
+                model: availablePorts
             }
             topPadding: 1
             Layout.fillHeight: true
             Layout.preferredHeight: 128
             rightPadding: 1
-            contentWidth: 300
+            // contentWidth: 300
         }
-        anchors.leftMargin: 0
-        anchors.left: parent.left
     }
 
     GroupBox {
         id: groupBox5
-        width: 300
-        height: 300
+		width: 0.5 * parent.width
+		anchors.top: parent.top
+		anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.topMargin: 0
         title: qsTr("CONNECTED")
         Frame {
             id: stationFrame4
             bottomPadding: 1
             Layout.fillWidth: true
-            contentHeight: 300
+            // contentHeaight: 300
             anchors.fill: parent
             leftPadding: 1
             ListView {
                 x: 0
                 y: 0
-                width: 300
-                height: 300
+                width: parent.width
                 clip: true
                 anchors.bottomMargin: 10
                 anchors.fill: parent
@@ -79,6 +94,9 @@ Item {
                     bottomPadding: 0
                     font.pixelSize: fontSizeExtraSmall
                     topPadding: 0
+                    onClicked: {
+                        knobs.ui_remove_connection(effect, sourcePort, edit)
+                    }
                 }
                 ScrollIndicator.vertical: ScrollIndicator {
                     anchors.top: parent.top
@@ -87,18 +105,26 @@ Item {
                     anchors.rightMargin: 1
                     anchors.bottom: parent.bottom
                 }
-                model: delay1_Left_OutUsedPorts
+                model: usedPorts
             }
             topPadding: 1
             Layout.fillHeight: true
             Layout.preferredHeight: 128
             rightPadding: 1
-            contentWidth: 300
+            // contentWidth: 300
         }
-        anchors.right: parent.right
         anchors.rightMargin: 0
     }
     anchors.top: parent.top
     anchors.topMargin: 10
 
 }
+
+
+
+
+
+/*##^## Designer {
+    D{i:0;autoSize:true;height:480;width:640}
+}
+ ##^##*/
