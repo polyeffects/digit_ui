@@ -4,6 +4,6 @@
         <file>GlowingLabel.qml</file>
         <file>CustomGlow.qml</file>
         <file>digit.qml</file>
-        <file>BusConnector.qml</file>
+        <file>PolyBus.qml</file>
     </qresource>
 </RCC>

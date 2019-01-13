@@ -348,153 +348,10 @@ ApplicationWindow {
                         height: 480
                         z: -1
 
-                        Row {
-                            id: row
-                            x: 0
-                            y: 10
+                        PolyBus {
+                            id: polyBus
                             width: 800
-                            height: 376
-
-
-                            GroupBox {
-                                id: groupBox1
-                                width: 200
-                                height: 200
-                                anchors.left: parent.left
-                                anchors.leftMargin: 0
-                                title: qsTr("AVAILABLE")
-
-                                Frame {
-                                    id: stationFrame1
-                                    contentHeight: 300
-                                    contentWidth: 300
-                                    bottomPadding: 1
-                                    Layout.fillWidth: true
-                                    leftPadding: 1
-                                    ListView {
-                                        model: delay1_Left_OutAvailablePorts
-                                        clip: true
-                                        anchors.fill: parent
-                                        delegate: ItemDelegate {
-                                            // id: stationDelegate1
-                                            width: parent.width
-                                            height: 22
-                                            text: edit
-                                            bottomPadding: 0
-                                            // contentItem: RowLayout {
-                                            //     Label {
-                                            //         text: "test"+modelData
-                                            //         horizontalAlignment: Text.AlignLeft
-                                            //         Layout.fillWidth: true
-                                            //         font: stationDelegate1.font
-                                            //     }
-                                            // }
-                                            font.pixelSize: fontSizeExtraSmall
-                                            topPadding: 0
-                                            onClicked: { knobs.ui_add_connection("delay1", "Left Out", edit)}
-                                        }
-                                        ScrollIndicator.vertical: ScrollIndicator {
-                                            anchors.top: parent.top
-                                            parent: stationFrame1
-                                            anchors.right: parent.right
-                                            anchors.rightMargin: 1
-                                            anchors.bottom: parent.bottom
-                                        }
-                                    }
-                                    topPadding: 1
-                                    Layout.fillHeight: true
-                                    Layout.preferredHeight: 128
-                                    rightPadding: 1
-                                }
-                            }
-
-
-                            GroupBox {
-                                id: groupBox2
-                                width: 300
-                                height: 300
-                                anchors.right: parent.right
-                                anchors.rightMargin: 0
-                                title: qsTr("CONNECTED")
-
-                                Frame {
-                                    id: stationFrame2
-                                    anchors.fill: parent
-                                    contentHeight: 300
-                                    contentWidth: 300
-                                    bottomPadding: 1
-                                    Layout.fillWidth: true
-                                    leftPadding: 1
-                                    topPadding: 1
-                                    Layout.fillHeight: true
-                                    Layout.preferredHeight: 128
-                                    rightPadding: 1
-
-                                    ListView {
-                                        x: 0
-                                        y: 0
-                                        width: 300
-                                        height: 300
-                                        anchors.bottomMargin: 10
-                                        clip: true
-                                        anchors.fill: parent
-                                        model: delay1_Left_OutUsedPorts
-
-                                        delegate: ItemDelegate {
-                                            // id: stationDelegate1
-                                            width: parent.width
-                                            height: 22
-                                            text: "section "+edit
-                                            bottomPadding: 0
-                                            // contentItem: RowLayout {
-                                            //     Label {
-                                            //         text: "test"+modelData
-                                            //         horizontalAlignment: Text.AlignLeft
-                                            //         Layout.fillWidth: true
-                                            //         font: stationDelegate1.font
-                                            //     }
-                                            // }
-                                            font.pixelSize: fontSizeExtraSmall
-                                            topPadding: 0
-                                            onClicked: { knobs.ui_remove_connection("delay1", "Left Out", edit)}
-                                        }
-                                        // delegate: ItemDelegate {
-                                        //     id: stationDelegate2
-                                        //     width: parent.width
-                                        //     height: 22
-                                        //     text: model.name
-                                        //     bottomPadding: 0
-                                        //     contentItem: RowLayout {
-                                        //         Label {
-                                        //             text: model.name
-                                        //             horizontalAlignment: Text.AlignLeft
-                                        //             Layout.fillWidth: true
-                                        //             font: stationDelegate2.font
-                                        //         }
-
-                                        //         Label {
-                                        //             text: model.frequency
-                                        //             horizontalAlignment: Text.AlignRight
-                                        //             Layout.fillWidth: true
-                                        //             font: stationDelegate2.font
-                                        //         }
-                                        //     }
-                                        // font.pixelSize: fontSizeExtraSmall
-                                        // topPadding: 0
-                                        // }
-                                        ScrollIndicator.vertical: ScrollIndicator {
-                                            anchors.top: parent.top
-                                            parent: stationFrame2
-                                            anchors.right: parent.right
-                                            anchors.rightMargin: 1
-                                            anchors.bottom: parent.bottom
-                                        }
-                                    }
-                                }
-                            }
-                            anchors.top: parent.top
-                            anchors.topMargin: 10
-                            spacing: 35
+                            height: 404
                         }
                     }
                 }
@@ -902,8 +759,102 @@ ApplicationWindow {
                         width: 800
                         height: 480
                         z: -1
-                        BusConnector {
+                        Row {
                             id: row1
+                            x: 0
+                            y: 10
+                            width: 800
+                            height: 376
+                            GroupBox {
+                                id: groupBox4
+                                width: 200
+                                height: 200
+                                title: qsTr("AVAILABLE")
+                                Frame {
+                                    id: stationFrame3
+                                    bottomPadding: 1
+                                    Layout.fillWidth: true
+                                    contentHeight: 300
+                                    leftPadding: 1
+                                    ListView {
+                                        clip: true
+                                        anchors.fill: parent
+                                        delegate: ItemDelegate {
+                                            width: parent.width
+                                            height: 22
+                                            text: edit
+                                            bottomPadding: 0
+                                            font.pixelSize: fontSizeExtraSmall
+                                            topPadding: 0
+                                        }
+                                        ScrollIndicator.vertical: ScrollIndicator {
+                                            anchors.top: parent.top
+                                            parent: stationFrame3
+                                            anchors.right: parent.right
+                                            anchors.rightMargin: 1
+                                            anchors.bottom: parent.bottom
+                                        }
+                                        model: delay1_Left_OutAvailablePorts
+                                    }
+                                    topPadding: 1
+                                    Layout.fillHeight: true
+                                    Layout.preferredHeight: 128
+                                    rightPadding: 1
+                                    contentWidth: 300
+                                }
+                                anchors.leftMargin: 0
+                                anchors.left: parent.left
+                            }
+
+                            GroupBox {
+                                id: groupBox5
+                                width: 300
+                                height: 300
+                                title: qsTr("CONNECTED")
+                                Frame {
+                                    id: stationFrame4
+                                    bottomPadding: 1
+                                    Layout.fillWidth: true
+                                    contentHeight: 300
+                                    anchors.fill: parent
+                                    leftPadding: 1
+                                    ListView {
+                                        x: 0
+                                        y: 0
+                                        width: 300
+                                        height: 300
+                                        clip: true
+                                        anchors.bottomMargin: 10
+                                        anchors.fill: parent
+                                        delegate: ItemDelegate {
+                                            width: parent.width
+                                            height: 22
+                                            text: "section "+edit
+                                            bottomPadding: 0
+                                            font.pixelSize: fontSizeExtraSmall
+                                            topPadding: 0
+                                        }
+                                        ScrollIndicator.vertical: ScrollIndicator {
+                                            anchors.top: parent.top
+                                            anchors.right: parent.right
+                                            parent: stationFrame4
+                                            anchors.rightMargin: 1
+                                            anchors.bottom: parent.bottom
+                                        }
+                                        model: delay1_Left_OutUsedPorts
+                                    }
+                                    topPadding: 1
+                                    Layout.fillHeight: true
+                                    Layout.preferredHeight: 128
+                                    rightPadding: 1
+                                    contentWidth: 300
+                                }
+                                anchors.right: parent.right
+                                anchors.rightMargin: 0
+                            }
+                            anchors.top: parent.top
+                            anchors.topMargin: 10
+                            spacing: 35
                         }
                     }
 
@@ -1499,6 +1450,7 @@ ApplicationWindow {
                             Layout.fillHeight: true
                         }
                     }
+
                 }
             }
 
@@ -1569,6 +1521,14 @@ ApplicationWindow {
     }
 
 }
+
+
+
+
+
+
+
+
 
 
 

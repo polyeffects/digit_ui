@@ -1,6 +1,7 @@
 TEMPLATE = app
 TARGET = digit
 QT += quick quickcontrols2
+CONFIG += qtquickcompiler
 
 SOURCES += \
     digit.cpp
