@@ -15,7 +15,7 @@ import sys
 ###### UI
 # --------------------------------------------------------------------------------------------------------
 from PySide2.QtGui import QGuiApplication
-from PySide2.QtCore import QObject, QUrl, Slot
+from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel
 from PySide2.QtQml import QQmlApplicationEngine
 from PySide2.QtGui import QIcon
 # compiled QML files, compile with pyside2-rcc
@@ -49,7 +49,20 @@ effects = IntEnum("Effects", "delay1 reverb mixer cab")
 # default connections, in 1, delay 1, in 1 to cab 1
 # delay 1 to reverb 1
 # reverb 1 to cab 1
-user_port_name = {}#
+source_port_names = {"In 1": ("system", "capture_1"),
+    "In 2": ("system", "capture_2"),
+    "In 3": ("system", "capture_3"),
+    "In 4": ("system", "capture_4"),
+    "Delay 1 Out": ("delay1", "Left Out")}
+
+output_port_names = {"Out 1": ("system", "playback_1"),
+    "Out 2": ("system", "playback_2"),
+    "Out 3": ("system", "playback_3"),
+    "Out 4": ("system", "playback_4"),
+    "Delay 1 In": ("delay1", "Left In") }
+default_source = {"delay1": "Left Out", "reverb": "Out" }
+inv_source_port_names = dict({(v, k) for k,v in source_port_names.items()})
+inv_output_port_names = dict({(v, k) for k,v in output_port_names.items()})
 
 portMap = {}
 invPortMap = {}
@@ -58,7 +71,21 @@ pluginMap = {}
 #
 parameterMap = {}
 
+current_connections = {} # these are group port group port to connection id pairs #TODO remove stale
+
 # --------------------------------------------------------------------------------------------------------
+available_port_models = {"delay1:Left Out": QStringListModel(), "reverb:Out": QStringListModel()}
+used_port_models = {"delay1:Left Out": QStringListModel(), "reverb:Out": QStringListModel()}
+
+def insert_row(model, row):
+    j = len(model.stringList())
+    model.insertRows(j, 1)
+    model.setData(model.index(j), row)
+
+def remove_row(model, row):
+    i = model.stringList().index(row)
+    model.removeRows(i, 1)
+
 class Knobs(QObject):
     """Output stuff on the console."""
 
@@ -66,9 +93,34 @@ class Knobs(QObject):
     def ui_knob_change(self, effect_name, parameter, value):
         # print(x, y, z)
         if effect_name in pluginMap:
-            host.set_parameter_value(pluginMap[effect_name], parameterMap[effect_name][parameter], value / 100.0)
+            host.set_parameter_value(pluginMap[effect_name], parameterMap[effect_name][parameter], value)
         else:
             print("effect not found")
+
+    @Slot(str, str, str)
+    def ui_add_connection(self, effect, source_port, x):
+        effect_source = effect + ":" + source_port
+        remove_row(available_port_models[effect_source], x)
+        insert_row(used_port_models[effect_source], x)
+        # print("portMap is", portMap)
+
+        host.patchbay_connect(portMap[effect]["group"],
+                portMap[effect]["ports"][source_port],
+                portMap[output_port_names[x][0]]["group"],
+                portMap[output_port_names[x][0]]["ports"][output_port_names[x][1]])
+        print(x)
+
+    @Slot(str, str)
+    def ui_remove_connection(self, effect, source_port, x):
+        effect_source = effect + ":" + source_port
+        remove_row(used_port_models[effect_source], x)
+        insert_row(available_port_models[effect_source], x)
+
+        host.patchbay_disconnect(current_connections[(portMap[effect]["group"],
+                portMap[effect]["ports"][source_port],
+                portMap[output_port_names[x][0]]["group"],
+                portMap[output_port_names[x][0]]["ports"][output_port_names[x][1]])])
+        print(x)
 
 
 def engineCallback(host, action, pluginId, value1, value2, value3, valueStr):
@@ -77,6 +129,10 @@ def engineCallback(host, action, pluginId, value1, value2, value3, valueStr):
         print("patchbay port added", pluginId, value1, value2, valueStr)
         if pluginId in invPortMap:
             portMap[invPortMap[pluginId]]["ports"][valueStr] = value1
+            for k, model in available_port_models.items():
+                if (invPortMap[pluginId], valueStr) in inv_output_port_names:
+                    insert_row(model, inv_output_port_names[(invPortMap[pluginId], valueStr)])
+
         else:
             print("got port without client")
     elif action == ENGINE_CALLBACK_PATCHBAY_CLIENT_ADDED:
@@ -96,6 +152,15 @@ def engineCallback(host, action, pluginId, value1, value2, value3, valueStr):
     #     app.processEvents()
     elif action == ENGINE_CALLBACK_PATCHBAY_CLIENT_DATA_CHANGED:
         print("patchbay data changed", pluginId, value1, value2)
+    elif action == ENGINE_CALLBACK_PATCHBAY_CONNECTION_ADDED:
+        gOut, pOut, gIn, pIn = [int(i) for i in valueStr.split(":")] # FIXME
+        current_connections[(gOut, pOut, gIn, pIn)] = pluginId
+        print("patchbay connection added", pluginId, gOut, pOut, gIn, pIn)
+        # host.PatchbayConnectionAddedCallback.emit(pluginId, gOut, pOut, gIn, pIn)
+    elif action == ENGINE_CALLBACK_PATCHBAY_CONNECTION_REMOVED:
+        # host.PatchbayConnectionRemovedCallback.emit(pluginId, value1, value2)
+        print("patchbay connection removed", pluginId, value1, value2)
+
     # if action == ENGINE_CALLBACK_ENGINE_STARTED:
     #     host.processMode   = value1
     #     host.transportMode = value2
@@ -157,11 +222,6 @@ def engineCallback(host, action, pluginId, value1, value2, value3, valueStr):
     #     host.PatchbayPortRemovedCallback.emit(pluginId, value1)
     # elif action == ENGINE_CALLBACK_PATCHBAY_PORT_RENAMED:
     #     host.PatchbayPortRenamedCallback.emit(pluginId, value1, valueStr)
-    # elif action == ENGINE_CALLBACK_PATCHBAY_CONNECTION_ADDED:
-    #     gOut, pOut, gIn, pIn = [int(i) for i in valueStr.split(":")] # FIXME
-    #     host.PatchbayConnectionAddedCallback.emit(pluginId, gOut, pOut, gIn, pIn)
-    # elif action == ENGINE_CALLBACK_PATCHBAY_CONNECTION_REMOVED:
-    #     host.PatchbayConnectionRemovedCallback.emit(pluginId, value1, value2)
     # elif action == ENGINE_CALLBACK_ENGINE_STARTED:
     #     host.EngineStartedCallback.emit(value1, value2, value3, valueStr)
     # elif action == ENGINE_CALLBACK_ENGINE_STOPPED:
@@ -223,6 +283,10 @@ qmlEngine = QQmlApplicationEngine()
 # Expose the object to QML.
 context = qmlEngine.rootContext()
 context.setContextProperty("knobs", knobs)
+for k, v in available_port_models.items():
+    context.setContextProperty(k.replace(" ", "_").replace(":", "_")+"AvailablePorts", v)
+for k, v in used_port_models.items():
+    context.setContextProperty(k.replace(" ", "_").replace(":", "_")+"UsedPorts", v)
 # engine.load(QUrl("qrc:/qml/digit.qml"))
 qmlEngine.load(QUrl("qml/digit.qml"))
 
