@@ -36,6 +36,10 @@ class Knobs(QObject):
         model.removeRows(i, 1)
         print(x)
 
+    @Slot(str)
+    def toggle_enabled(self, x):
+        print(x)
+
 model = QStringListModel()
 model2 = QStringListModel()
 if __name__ == "__main__":

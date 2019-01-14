@@ -12,6 +12,7 @@
 # sys_effect = SystemEffect('system', ['capture_1', 'capture_2', "capture_3, capture_4"],
 #         ['playback_1', 'playback_2', 'playback_3', 'playback_4'])
 import sys
+from collections import defaultdict
 ###### UI
 # --------------------------------------------------------------------------------------------------------
 from PySide2.QtGui import QGuiApplication
@@ -80,7 +81,8 @@ current_connections = {} # these are group port group port to connection id pair
 source_ports = ["delay1:Left Out", "reverb:Out", "reverb:Out1", "system:capture_1", "system:capture_2", "system:capture_3", "system:capture_4"]
 available_port_models = dict({(k, QStringListModel()) for k in source_ports})
 used_port_models = dict({(k, QStringListModel()) for k in available_port_models.keys()})
-
+# XXX temp, until I fix bypassing
+plugin_state = defaultdict(bool)
 
 def insert_row(model, row):
     j = len(model.stringList())
@@ -90,6 +92,11 @@ def insert_row(model, row):
 def remove_row(model, row):
     i = model.stringList().index(row)
     model.removeRows(i, 1)
+
+def set_active(effect, is_active):
+    print(effect, " active state is ", bool(is_active))
+    host.set_drywet(pluginMap[effect], is_active) # full wet if active else full dry
+    plugin_state[effect] = is_active
 
 class Knobs(QObject):
     """Output stuff on the console."""
@@ -126,6 +133,14 @@ class Knobs(QObject):
                 portMap[output_port_names[x][0]]["group"],
                 portMap[output_port_names[x][0]]["ports"][output_port_names[x][1]])])
         print(x)
+
+    @Slot(str)
+    def toggle_enabled(self, effect):
+        print("toggling", effect)
+        # host.set_active(pluginMap[effect], not bool(host.get_internal_parameter_value(pluginMap[effect], PARAMETER_ACTIVE)))
+        # active = host.get_internal_parameter_value(pluginMap[effect], PARAMETER_ACTIVE))
+        is_active = not plugin_state[effect]
+        set_active(effect, is_active)
 
 
 def engineCallback(host, action, pluginId, value1, value2, value3, valueStr):
@@ -265,6 +280,15 @@ host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay1", "http://drobilla.net/
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverb", "http://guitarix.sourceforge.net/plugins/gx_reverb_stereo#_reverb_stereo", 0, None, 0)
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "mixer", "http://gareus.org/oss/lv2/matrixmixer#i4o4", 0, None, 0)
 # host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "", "http://gareus.org/oss/lv2/matrixmixer#i4o4", effects.cab, None, 0)
+##### ---- Effects
+# tape/tube http://moddevices.com/plugins/tap/tubewarmth
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "tape1", "http://moddevices.com/plugins/tap/tubewarmth", 0, None, 0)
+# filter http://drobilla.net/plugins/fomp/mvclpf4
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "filter1", "http://drobilla.net/plugins/fomp/mvclpf1", 0, None, 0)
+# sigmoid  http://moddevices.com/plugins/tap/sigmoid
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "sigmoid1", "http://moddevices.com/plugins/tap/sigmoid", 0, None, 0)
+# bitcrusher 
+# eq 
 
 signal(SIGINT,  signalHandler)
 signal(SIGTERM, signalHandler)

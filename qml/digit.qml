@@ -103,6 +103,12 @@ ApplicationWindow {
                                 onMoved: {
                                     knobs.ui_knob_change("delay1", "l_delay", mixDial1.value)
                                 }
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        console.warn("warn completed")
+                                    }
+                                }
                                 Label {
                                     color: "#ffffff"
                                     text: mixDial1.value.toFixed(0)
@@ -171,163 +177,93 @@ ApplicationWindow {
 
                         Column {
                             spacing: 8
-
+                            width: parent.width
+                            anchors.fill: parent
                             GroupBox {
-                                id: groupBox
-                                width: 200
-                                height: 200
-                                title: qsTr("Filter")
+                                width: parent.width
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                title: qsTr("Tape / Tube")
 
                                 Row {
-                                    x: 0
                                     width: 800
-                                    height: 45
+                                    height: 35
                                     anchors.top: parent.top
-                                    anchors.topMargin: 10
-                                    Image {
-                                        source: "qrc:/icons/weather.png"
+                                    // anchors.topMargin: 10
+
+                                    GlowingLabel {
+                                        color: "#ffffff"
+                                        text: qsTr("DRIVE")
+                                        font.pixelSize: fontSizeMedium
                                     }
-
-                                    Column {
-                                        id: column
-
-                                        GlowingLabel {
-                                            color: "#ffffff"
-                                            text: qsTr("MIX")
-                                            verticalAlignment: 0
-                                            horizontalAlignment: -1
-                                            anchors.left: parent.left
-                                            anchors.leftMargin: -20
-                                            font.pixelSize: fontSizeMedium
-                                        }
-
-                                        Dial {
-                                            id: mixDial2
-                                            width: 30
-                                            height: 30
-                                            from: 0
-                                            Label {
-                                                color: "#ffffff"
-                                                text: mixDial2.value.toFixed(0)
-                                                font.pixelSize: Qt.application.font.pixelSize * 3
-                                                anchors.centerIn: parent
-                                            }
-                                            Layout.minimumHeight: 64
-                                            value: 42
-                                            Layout.minimumWidth: 64
-                                            Layout.maximumHeight: 128
-                                            Layout.fillHeight: true
-                                            stepSize: 1
-                                            to: 100
-                                            Layout.preferredWidth: 128
-                                            Layout.preferredHeight: 128
-                                            Layout.alignment: Qt.AlignHCenter
-                                            Layout.maximumWidth: 128
-                                        }
-                                        spacing: 20
+                                    MixerDial {
+                                        effect: "tape1"
+                                        param: "drive"
+                                        value: 5
+                                        to: 10
                                     }
-
-                                    Column {
-                                        GlowingLabel {
-                                            color: "#ffffff"
-                                            text: qsTr("MIX")
-                                            font.pixelSize: fontSizeMedium
-                                        }
-
-                                        Dial {
-                                            id: mixDial3
-                                            width: 30
-                                            height: 30
-                                            from: 0
-                                            Label {
-                                                color: "#ffffff"
-                                                text: mixDial3.value.toFixed(0)
-                                                font.pixelSize: Qt.application.font.pixelSize * 3
-                                                anchors.centerIn: parent
-                                            }
-                                            Layout.minimumHeight: 64
-                                            value: 42
-                                            Layout.minimumWidth: 64
-                                            Layout.maximumHeight: 128
-                                            Layout.fillHeight: true
-                                            Layout.preferredWidth: 128
-                                            to: 100
-                                            stepSize: 1
-                                            Layout.preferredHeight: 128
-                                            Layout.maximumWidth: 128
-                                            Layout.alignment: Qt.AlignHCenter
-                                        }
-                                        spacing: 8
+                                    GlowingLabel {
+                                        color: "#ffffff"
+                                        text: qsTr("Tape vs Tube")
+                                        font.pixelSize: fontSizeMedium
                                     }
-
-                                    Column {
-                                        GlowingLabel {
-                                            color: "#ffffff"
-                                            text: qsTr("MIX")
-                                            font.pixelSize: fontSizeMedium
-                                        }
-
-                                        Dial {
-                                            id: mixDial4
-                                            width: 30
-                                            height: 30
-                                            from: 0
-                                            Label {
-                                                color: "#ffffff"
-                                                text: mixDial4.value.toFixed(0)
-                                                font.pixelSize: Qt.application.font.pixelSize * 3
-                                                anchors.centerIn: parent
-                                            }
-                                            Layout.minimumHeight: 64
-                                            value: 42
-                                            Layout.minimumWidth: 64
-                                            Layout.maximumHeight: 128
-                                            Layout.fillHeight: true
-                                            Layout.preferredWidth: 128
-                                            to: 100
-                                            stepSize: 1
-                                            Layout.preferredHeight: 128
-                                            Layout.maximumWidth: 128
-                                            Layout.alignment: Qt.AlignHCenter
-                                        }
-                                        spacing: 8
+                                    MixerDial {
+                                        effect: "tape1"
+                                        param: "blend"
+                                        value: 10
+                                        from: -10
+                                        to: 10
                                     }
-
-                                    Column {
-                                        GlowingLabel {
-                                            color: "#ffffff"
-                                            text: qsTr("MIX")
-                                            font.pixelSize: fontSizeMedium
-                                        }
-
-                                        Dial {
-                                            id: mixDial5
-                                            width: 30
-                                            height: 30
-                                            from: 0
-                                            Label {
-                                                color: "#ffffff"
-                                                text: mixDial5.value.toFixed(0)
-                                                font.pixelSize: Qt.application.font.pixelSize * 3
-                                                anchors.centerIn: parent
-                                            }
-                                            Layout.minimumHeight: 64
-                                            value: 42
-                                            Layout.minimumWidth: 64
-                                            Layout.maximumHeight: 128
-                                            Layout.fillHeight: true
-                                            Layout.preferredWidth: 128
-                                            to: 100
-                                            stepSize: 1
-                                            Layout.preferredHeight: 128
-                                            Layout.maximumWidth: 128
-                                            Layout.alignment: Qt.AlignHCenter
-                                        }
-                                        spacing: 8
-                                    }
-
                                     SwitchDelegate {
-                                        text: qsTr("AC")
+                                        text: qsTr("Enabled")
+                                        bottomPadding: 0
+                                        Layout.fillWidth: true
+                                        leftPadding: 0
+                                        topPadding: 0
+                                        rightPadding: 0
+                                    }
+                                    spacing: 35
+                                }
+                            }
+                            GroupBox {
+                                width: parent.width
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                title: qsTr("Lowpass Filter")
+
+                                Row {
+                                    width: 800
+                                    height: 35
+                                    anchors.top: parent.top
+                                    // anchors.topMargin: 10
+
+                                    GlowingLabel {
+                                        color: "#ffffff"
+                                        text: qsTr("CUTOFF")
+                                        font.pixelSize: fontSizeMedium
+                                    }
+                                    MixerDial {
+                                        effect: "filter1"
+                                        param: "freq"
+                                        value: 1
+                                        from: 20
+                                        to: 20000
+                                        stepSize: 10
+                                    }
+                                    GlowingLabel {
+                                        color: "#ffffff"
+                                        text: qsTr("RESONANCE")
+                                        font.pixelSize: fontSizeMedium
+                                    }
+                                    MixerDial {
+                                        effect: "filter1"
+                                        param: "res"
+                                        value: 0
+                                        from: 0
+                                        to: 0.8
+                                    }
+                                    SwitchDelegate {
+                                        text: qsTr("Enabled")
                                         bottomPadding: 0
                                         Layout.fillWidth: true
                                         leftPadding: 0
@@ -338,7 +274,53 @@ ApplicationWindow {
                                 }
                             }
 
+                            GroupBox {
+                                width: parent.width
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                title: qsTr("Compression Boost")
 
+                                Row {
+                                    width: 800
+                                    height: 35
+                                    anchors.top: parent.top
+                                    // anchors.topMargin: 10
+
+                                    GlowingLabel {
+                                        color: "#ffffff"
+                                        text: qsTr("PRE GAIN")
+                                        font.pixelSize: fontSizeMedium
+                                    }
+                                    MixerDial {
+                                        effect: "sigmoid1"
+                                        param: "Pregain"
+                                        value: 0
+                                        from: -90
+                                        to: 20
+                                    }
+                                    GlowingLabel {
+                                        color: "#ffffff"
+                                        text: qsTr("POST GAIN")
+                                        font.pixelSize: fontSizeMedium
+                                    }
+                                    MixerDial {
+                                        effect: "sigmoid1"
+                                        param: "Postgain"
+                                        value: 0
+                                        from: -90
+                                        to: 20
+                                    }
+                                    SwitchDelegate {
+                                        text: qsTr("Enabled")
+                                        bottomPadding: 0
+                                        Layout.fillWidth: true
+                                        leftPadding: 0
+                                        topPadding: 0
+                                        rightPadding: 0
+                                    }
+                                    spacing: 35
+                                }
+                            }
                         }
                     }
 
@@ -1386,11 +1368,17 @@ ApplicationWindow {
             TabButton {
                 id: tabButton
                 text: qsTr("Delay")
+                onPressAndHold: {
+                    knobs.toggle_enabled("delay1")
+                }
             }
 
             TabButton {
                 id: tabButton1
                 text: qsTr("Reverb")
+                onPressAndHold: {
+                    knobs.toggle_enabled("reverb")
+                }
             }
 
             TabButton {
