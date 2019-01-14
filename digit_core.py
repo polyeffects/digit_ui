@@ -13,6 +13,9 @@
 #         ['playback_1', 'playback_2', 'playback_3', 'playback_4'])
 import sys
 from collections import defaultdict
+##### Hardware backend
+# --------------------------------------------------------------------------------------------------------
+import pedal_hardware
 ###### UI
 # --------------------------------------------------------------------------------------------------------
 from PySide2.QtGui import QGuiApplication
@@ -44,6 +47,7 @@ def signalHandler(sig, frame):
     if sig in (SIGINT, SIGTERM):
         gCarla.term = True
 
+pedal_hardware.add_hardware_listeners()
 # --------------------------------------------------------------------------------------------------------
 # Poly Globals
 effects = IntEnum("Effects", "delay1 reverb mixer cab")
@@ -83,6 +87,7 @@ available_port_models = dict({(k, QStringListModel()) for k in source_ports})
 used_port_models = dict({(k, QStringListModel()) for k in available_port_models.keys()})
 # XXX temp, until I fix bypassing
 plugin_state = defaultdict(bool)
+knob_value_cache = defaultdict(int)
 
 def insert_row(model, row):
     j = len(model.stringList())
@@ -321,6 +326,22 @@ qmlEngine.load(QUrl("qml/digit.qml"))
 
 mixer_is_connected = False
 
+######### UI is setup
+def map_parameter_value(effect, parameter, in_min, in_max):
+    # map UI or hardware range to effect range
+    # TODO
+    pass
+
+def check_encoder_change():
+    for knob in ["left", "right"]:
+        cur_value = 0
+        cur_value = pedal_hardware.get_encoder(knob)
+        if cur_value != knob_value_cache[knob]:
+            # print("knob value is", cur_value)
+            # knobs.ui_knob_change(self, effect_name, parameter, value):
+            # knob_mapping[knob](cur_value)
+            knob_value_cache[knob] = cur_value
+
 while host.is_engine_running() and not gCarla.term:
     # print("engine is idle")
     host.engine_idle()
@@ -329,6 +350,8 @@ while host.is_engine_running() and not gCarla.term:
     sleep(0.01)
     # wait until the last of our plugins is added, then connect them if they haven't been connected yet
     # default routing is input 1 to delay 1 to reverb to cab to out
+    # check if encoders have changed
+    check_encoder_change()
     if (not mixer_is_connected) and "mixer" in portMap:
         # mixer 1-4 to outputs
         for source_port, output_port in [("Audio Output 1", "playback_1"), ("Audio Output 2", "playback_2"),
