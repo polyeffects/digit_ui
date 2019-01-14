@@ -24,11 +24,10 @@ Row {
         title: qsTr("AVAILABLE")
         Frame {
             id: stationFrame3
-			anchors.top: parent.top
-			anchors.bottom: parent.bottom
             bottomPadding: 1
             Layout.fillWidth: true
             // contentHeight: 300
+            anchors.fill: parent
             leftPadding: 1
             ListView {
                 width: parent.width
@@ -81,12 +80,15 @@ Row {
             anchors.fill: parent
             leftPadding: 1
             ListView {
-                x: 0
-                y: 0
+                // x: 0
+                // y: 0
                 width: parent.width
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
                 clip: true
-                anchors.bottomMargin: 10
-                anchors.fill: parent
+                // anchors.bottomMargin: 10
                 delegate: ItemDelegate {
                     width: parent.width
                     height: 22
@@ -100,8 +102,8 @@ Row {
                 }
                 ScrollIndicator.vertical: ScrollIndicator {
                     anchors.top: parent.top
-                    anchors.right: parent.right
                     parent: stationFrame4
+                    anchors.right: parent.right
                     anchors.rightMargin: 1
                     anchors.bottom: parent.bottom
                 }
@@ -113,7 +115,6 @@ Row {
             rightPadding: 1
             // contentWidth: 300
         }
-        anchors.rightMargin: 0
     }
     anchors.top: parent.top
     anchors.topMargin: 10

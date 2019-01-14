@@ -49,19 +49,22 @@ effects = IntEnum("Effects", "delay1 reverb mixer cab")
 # default connections, in 1, delay 1, in 1 to cab 1
 # delay 1 to reverb 1
 # reverb 1 to cab 1
-source_port_names = {"In 1": ("system", "capture_1"),
-    "In 2": ("system", "capture_2"),
-    "In 3": ("system", "capture_3"),
-    "In 4": ("system", "capture_4"),
-    "Delay 1 Out": ("delay1", "Left Out")}
+# source_port_names = {"In 1": ("system", "capture_1"),
+#     "In 2": ("system", "capture_2"),
+#     "In 3": ("system", "capture_3"),
+#     "In 4": ("system", "capture_4"),
+#     "Delay 1 Out": ("delay1", "Left Out")}
 
 output_port_names = {"Out 1": ("system", "playback_1"),
     "Out 2": ("system", "playback_2"),
     "Out 3": ("system", "playback_3"),
     "Out 4": ("system", "playback_4"),
-    "Delay 1 In": ("delay1", "Left In") }
+    "Delay 1 In": ("delay1", "Left In"),
+    "Reverb L": ("reverb", "In"),
+    "Reverb R": ("reverb", "In1")
+    }
 default_source = {"delay1": "Left Out", "reverb": "Out" }
-inv_source_port_names = dict({(v, k) for k,v in source_port_names.items()})
+# inv_source_port_names = dict({(v, k) for k,v in source_port_names.items()})
 inv_output_port_names = dict({(v, k) for k,v in output_port_names.items()})
 
 portMap = {}
@@ -74,8 +77,10 @@ parameterMap = {}
 current_connections = {} # these are group port group port to connection id pairs #TODO remove stale
 
 # --------------------------------------------------------------------------------------------------------
-available_port_models = {"delay1:Left Out": QStringListModel(), "reverb:Out": QStringListModel()}
-used_port_models = {"delay1:Left Out": QStringListModel(), "reverb:Out": QStringListModel()}
+source_ports = ["delay1:Left Out", "reverb:Out", "reverb:Out1", "system:capture_1", "system:capture_2", "system:capture_3", "system:capture_4"]
+available_port_models = dict({(k, QStringListModel()) for k in source_ports})
+used_port_models = dict({(k, QStringListModel()) for k in available_port_models.keys()})
+
 
 def insert_row(model, row):
     j = len(model.stringList())

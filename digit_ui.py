@@ -56,8 +56,8 @@ if __name__ == "__main__":
     # Expose the object to QML.
     context = engine.rootContext()
     context.setContextProperty("knobs", knobs)
-    context.setContextProperty("delay1AvailablePorts", model)
-    context.setContextProperty("delay1UsedPorts", model2)
+    context.setContextProperty("delay1_Left_Out_AvailablePorts", model)
+    context.setContextProperty("delay1_Left_Out_UsedPorts", model2)
     # engine.load(QUrl("qrc:/qml/digit.qml"))
     engine.load(QUrl("qml/digit.qml"))
     app.exec_()

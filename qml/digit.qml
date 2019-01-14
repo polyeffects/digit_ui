@@ -507,14 +507,37 @@ ApplicationWindow {
                         id: bus2
                         width: 800
                         height: 480
-                        PolyBus {
-                            id: polyBus5
-                            width: 800
-                            height: 404
-                            availablePorts: delay1_Left_OutAvailablePorts
-                            usedPorts: delay1_Left_OutUsedPorts
-                            effect: "delay1"
-                            sourcePort: "Left Out"
+
+                        Row {
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            height: parent.height
+                            GroupBox {
+                                title: qsTr("Left")
+                                anchors.top: parent.top
+                                anchors.bottom: parent.bottom
+                                width: 0.5 * parent.width
+                                PolyBus {
+                                    id: polyBusRL
+                                    availablePorts: reverb_OutAvailablePorts
+                                    usedPorts: reverb_OutUsedPorts
+                                    effect: "reverb"
+                                    sourcePort: "Out"
+                                }
+                            }
+                            GroupBox {
+                                title: qsTr("Right")
+                                anchors.top: parent.top
+                                anchors.bottom: parent.bottom
+                                width: 0.5 * parent.width
+                                PolyBus {
+                                    id: polyBusRR
+                                    availablePorts: reverb_Out1AvailablePorts
+                                    usedPorts: reverb_Out1UsedPorts
+                                    effect: "reverb"
+                                    sourcePort: "Out1"
+                                }
+                            }
                         }
                         z: -1
                     }
@@ -798,9 +821,9 @@ ApplicationWindow {
                                     width: 0.5 * parent.width
                                     PolyBus {
                                         id: polyBus3
-                                        availablePorts: system_capture1AvailablePorts
-                                        usedPorts: system_capture1UsedPorts
-                                        sourcePort: "capture1"
+                                        availablePorts: system_capture_1AvailablePorts
+                                        usedPorts: system_capture_1UsedPorts
+                                        sourcePort: "capture_1"
                                         effect: "system"
                                     }
                                 }
@@ -812,9 +835,9 @@ ApplicationWindow {
                                     width: 0.5 * parent.width
                                     PolyBus {
                                         id: polyBus4
-                                        availablePorts: system_capture2AvailablePorts
-                                        usedPorts: system_capture2UsedPorts
-                                        sourcePort: "capture2"
+                                        availablePorts: system_capture_2AvailablePorts
+                                        usedPorts: system_capture_2UsedPorts
+                                        sourcePort: "capture_2"
                                         effect: "system"
                                     }
                                 }
@@ -830,9 +853,9 @@ ApplicationWindow {
                                     width: 0.5 * parent.width
                                     PolyBus {
                                         id: polyBusMix4
-                                        availablePorts: system_capture3AvailablePorts
-                                        usedPorts: system_capture3UsedPorts
-                                        sourcePort: "capture3"
+                                        availablePorts: system_capture_3AvailablePorts
+                                        usedPorts: system_capture_3UsedPorts
+                                        sourcePort: "capture_3"
                                         effect: "system"
                                     }
                                 }
@@ -843,9 +866,9 @@ ApplicationWindow {
                                     width: 0.5 * parent.width
                                     PolyBus {
                                         id: polyBusMix5
-                                        availablePorts: system_capture4AvailablePorts
-                                        usedPorts: system_capture4UsedPorts
-                                        sourcePort: "capture4"
+                                        availablePorts: system_capture_4AvailablePorts
+                                        usedPorts: system_capture_4UsedPorts
+                                        sourcePort: "capture_4"
                                         effect: "system"
                                     }
                                 }
