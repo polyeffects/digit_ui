@@ -115,7 +115,7 @@ class Knobs(QObject):
                 portMap[output_port_names[x][0]]["ports"][output_port_names[x][1]])
         print(x)
 
-    @Slot(str, str)
+    @Slot(str, str, str)
     def ui_remove_connection(self, effect, source_port, x):
         effect_source = effect + ":" + source_port
         remove_row(used_port_models[effect_source], x)
@@ -295,6 +295,8 @@ for k, v in used_port_models.items():
 # engine.load(QUrl("qrc:/qml/digit.qml"))
 qmlEngine.load(QUrl("qml/digit.qml"))
 
+mixer_is_connected = False
+
 while host.is_engine_running() and not gCarla.term:
     # print("engine is idle")
     host.engine_idle()
@@ -303,6 +305,22 @@ while host.is_engine_running() and not gCarla.term:
     sleep(0.01)
     # wait until the last of our plugins is added, then connect them if they haven't been connected yet
     # default routing is input 1 to delay 1 to reverb to cab to out
+    if (not mixer_is_connected) and "mixer" in portMap:
+        # mixer 1-4 to outputs
+        for source_port, output_port in [("Audio Output 1", "playback_1"), ("Audio Output 2", "playback_2"),
+                ("Audio Output 3", "playback_3"), ("Audio Output 4", "playback_4") ]:
+            host.patchbay_connect(portMap["mixer"]["group"],
+                    portMap["mixer"]["ports"][source_port],
+                    portMap["system"]["group"],
+                    portMap["system"]["ports"][output_port])
+        for source_port, output_port in [("capture_1", "Audio Input 1"),
+                ("capture_2", "Audio Input 2"), ("capture_3", "Audio Input 3"),
+                ("capture_4", "Audio Input 4")]:
+            host.patchbay_connect(portMap["system"]["group"],
+                    portMap["system"]["ports"][source_port],
+                    portMap["mixer"]["group"],
+                    portMap["mixer"]["ports"][output_port])
+        mixer_is_connected = True
 
 if not gCarla.term:
     print("Engine closed abruptely")

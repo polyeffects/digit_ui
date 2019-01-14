@@ -5,5 +5,6 @@
         <file>CustomGlow.qml</file>
         <file>digit.qml</file>
         <file>PolyBus.qml</file>
+        <file>MixerDial.qml</file>
     </qresource>
 </RCC>

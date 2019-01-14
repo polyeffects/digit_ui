@@ -16,4 +16,6 @@ target.path = D:/git_repos/polydigit/UI
 INSTALLS += target
 
 DISTFILES += \
-    qtquickcontrols2.conf
+    qtquickcontrols2.conf \
+    qml/MixerDial.qml \
+    qml/MixerDial.qml

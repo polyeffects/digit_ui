@@ -14,16 +14,16 @@ import QtQuick.Window 2.0
 
 ApplicationWindow {
     id: window
-    // width: 480
-    // height: 800
-    // minimumHeight: 800
-    // minimumWidth: 480
-    // maximumHeight: 800
-    // maximumWidth: 480
+    width: 480
+    height: 800
+    minimumHeight: 800
+    minimumWidth: 480
+    maximumHeight: 800
+    maximumWidth: 480
     visible: true
     title: "Digit"
-    width: 800//Screen.height dev settings
-    height: 480//Screen.width
+    // width: 800//Screen.height dev settings
+    // height: 480//Screen.width
 
     // Material.theme: Material.Dark
     // Material.accent: Material.Green
@@ -41,13 +41,13 @@ ApplicationWindow {
     readonly property int fontSizeExtraLarge: Qt.application.font.pixelSize * 5
 
     Item {
-        // transform: Rotation {
-        //     angle: 90
-        //     /* origin.x: Screen.height / 2 */
-        //     /* origin.x: Screen.height / 2 */
-        //     origin.x: 480 / 2
-        //     origin.y: 480 / 2
-        // }
+        transform: Rotation {
+            angle: 90
+            /* origin.x: Screen.height / 2 */
+            /* origin.x: Screen.height / 2 */
+            origin.x: 480 / 2
+            origin.y: 480 / 2
+        }
         id: root
         width: 800//Screen.height
         height: 480//Screen.width
@@ -580,10 +580,9 @@ ApplicationWindow {
                         height: 439
                         z: -1
                         Column {
-                            id: column4
-                            x: 100
+                            x: 50
                             y: 5
-                            width: 131
+                            width: 150
                             height: 405
                             spacing: 10
                             GlowingLabel {
@@ -592,211 +591,99 @@ ApplicationWindow {
                                 font.pixelSize: fontSizeMedium
                             }
 
-                            Dial {
-                                id: sizeDial2
-                                width: 75
-                                height: 75
-                                from: 0
-                                Label {
-                                    color: "#ffffff"
-                                    text: sizeDial2.value.toFixed(0)
-                                    font.pixelSize: Qt.application.font.pixelSize * 3
-                                    anchors.centerIn: parent
-                                }
-                                Layout.minimumHeight: 64
-                                value: 42
-                                Layout.minimumWidth: 64
-                                Layout.maximumHeight: 128
-                                Layout.fillHeight: true
-                                Layout.preferredWidth: 128
-                                stepSize: 1
-                                to: 100
-                                Layout.preferredHeight: 128
-                                Layout.alignment: Qt.AlignHCenter
-                                Layout.maximumWidth: 128
+                            MixerDial {
+                                param: "mix_1_1"
+                            }
+                            MixerDial {
+                                param: "mix_1_2"
+                            }
+                            MixerDial {
+                                param: "mix_1_3"
+                            }
+                            MixerDial {
+                                param: "mix_1_4"
                             }
 
-                            Dial {
-                                id: sizeDial3
-                                width: 75
-                                height: 75
-                                from: 0
-                                Label {
-                                    color: "#ffffff"
-                                    text: sizeDial3.value.toFixed(0)
-                                    font.pixelSize: Qt.application.font.pixelSize * 3
-                                    anchors.centerIn: parent
-                                }
-                                Layout.minimumHeight: 64
-                                value: 42
-                                Layout.minimumWidth: 64
-                                Layout.maximumHeight: 128
-                                Layout.fillHeight: true
-                                to: 100
-                                stepSize: 1
-                                Layout.preferredWidth: 128
-                                Layout.preferredHeight: 128
-                                Layout.maximumWidth: 128
-                                Layout.alignment: Qt.AlignHCenter
-                            }
-
-                            Dial {
-                                id: sizeDial4
-                                width: 75
-                                height: 75
-                                from: 0
-                                Label {
-                                    color: "#ffffff"
-                                    text: sizeDial4.value.toFixed(0)
-                                    font.pixelSize: Qt.application.font.pixelSize * 3
-                                    anchors.centerIn: parent
-                                }
-                                Layout.minimumHeight: 64
-                                value: 42
-                                Layout.minimumWidth: 64
-                                Layout.maximumHeight: 128
-                                Layout.fillHeight: true
-                                to: 100
-                                stepSize: 1
-                                Layout.preferredWidth: 128
-                                Layout.preferredHeight: 128
-                                Layout.maximumWidth: 128
-                                Layout.alignment: Qt.AlignHCenter
-                            }
-
-                            Dial {
-                                id: sizeDial5
-                                width: 75
-                                height: 75
-                                from: 0
-                                Label {
-                                    color: "#ffffff"
-                                    text: sizeDial5.value.toFixed(0)
-                                    font.pixelSize: Qt.application.font.pixelSize * 3
-                                    anchors.centerIn: parent
-                                }
-                                Layout.minimumHeight: 64
-                                value: 42
-                                Layout.minimumWidth: 64
-                                Layout.maximumHeight: 128
-                                Layout.fillHeight: true
-                                to: 100
-                                stepSize: 1
-                                Layout.preferredWidth: 128
-                                Layout.preferredHeight: 128
-                                Layout.maximumWidth: 128
-                                Layout.alignment: Qt.AlignHCenter
-                            }
                         }
-
                         Column {
-                            id: column5
-                            x: 295
-                            y: 36
-                            width: 131
-                            height: 409
+                            x: 200
+                            y: 5
+                            width: 150
+                            height: 405
+                            spacing: 10
                             GlowingLabel {
                                 color: "#ffffff"
-                                text: qsTr("IN 1")
+                                text: qsTr("IN 2")
                                 font.pixelSize: fontSizeMedium
                             }
 
-                            Dial {
-                                id: sizeDial6
-                                width: 100
-                                height: 100
-                                from: 0
-                                Label {
-                                    color: "#ffffff"
-                                    text: sizeDial6.value.toFixed(0)
-                                    font.pixelSize: Qt.application.font.pixelSize * 3
-                                    anchors.centerIn: parent
-                                }
-                                Layout.minimumHeight: 64
-                                value: 42
-                                Layout.minimumWidth: 64
-                                Layout.maximumHeight: 128
-                                Layout.fillHeight: true
-                                to: 100
-                                stepSize: 1
-                                Layout.preferredWidth: 128
-                                Layout.preferredHeight: 128
-                                Layout.maximumWidth: 128
-                                Layout.alignment: Qt.AlignHCenter
+                            MixerDial {
+                                param: "mix_2_1"
+                            }
+                            MixerDial {
+                                param: "mix_2_2"
+                            }
+                            MixerDial {
+                                param: "mix_2_3"
+                            }
+                            MixerDial {
+                                param: "mix_2_4"
                             }
 
-                            Dial {
-                                id: sizeDial7
-                                width: 100
-                                height: 100
-                                from: 0
-                                Label {
-                                    color: "#ffffff"
-                                    text: sizeDial7.value.toFixed(0)
-                                    font.pixelSize: Qt.application.font.pixelSize * 3
-                                    anchors.centerIn: parent
-                                }
-                                Layout.minimumHeight: 64
-                                value: 42
-                                Layout.minimumWidth: 64
-                                Layout.maximumHeight: 128
-                                Layout.fillHeight: true
-                                Layout.preferredWidth: 128
-                                stepSize: 1
-                                to: 100
-                                Layout.preferredHeight: 128
-                                Layout.alignment: Qt.AlignHCenter
-                                Layout.maximumWidth: 128
-                            }
-
-                            Dial {
-                                id: sizeDial8
-                                width: 100
-                                height: 100
-                                from: 0
-                                Label {
-                                    color: "#ffffff"
-                                    text: sizeDial8.value.toFixed(0)
-                                    font.pixelSize: Qt.application.font.pixelSize * 3
-                                    anchors.centerIn: parent
-                                }
-                                Layout.minimumHeight: 64
-                                value: 42
-                                Layout.minimumWidth: 64
-                                Layout.maximumHeight: 128
-                                Layout.fillHeight: true
-                                Layout.preferredWidth: 128
-                                stepSize: 1
-                                to: 100
-                                Layout.preferredHeight: 128
-                                Layout.alignment: Qt.AlignHCenter
-                                Layout.maximumWidth: 128
-                            }
-
-                            Dial {
-                                id: sizeDial9
-                                width: 100
-                                height: 100
-                                from: 0
-                                Label {
-                                    color: "#ffffff"
-                                    text: sizeDial9.value.toFixed(0)
-                                    font.pixelSize: Qt.application.font.pixelSize * 3
-                                    anchors.centerIn: parent
-                                }
-                                Layout.minimumHeight: 64
-                                value: 42
-                                Layout.minimumWidth: 64
-                                Layout.maximumHeight: 128
-                                Layout.fillHeight: true
-                                Layout.preferredWidth: 128
-                                stepSize: 1
-                                to: 100
-                                Layout.preferredHeight: 128
-                                Layout.alignment: Qt.AlignHCenter
-                                Layout.maximumWidth: 128
-                            }
                         }
+                        Column {
+                            x: 350
+                            y: 5
+                            width: 150
+                            height: 405
+                            spacing: 10
+                            GlowingLabel {
+                                color: "#ffffff"
+                                text: qsTr("IN 3")
+                                font.pixelSize: fontSizeMedium
+                            }
+
+                            MixerDial {
+                                param: "mix_3_1"
+                            }
+                            MixerDial {
+                                param: "mix_3_2"
+                            }
+                            MixerDial {
+                                param: "mix_3_3"
+                            }
+                            MixerDial {
+                                param: "mix_3_4"
+                            }
+
+                        }
+                        Column {
+                            x: 500
+                            y: 5
+                            width: 150
+                            height: 405
+                            spacing: 10
+                            GlowingLabel {
+                                color: "#ffffff"
+                                text: qsTr("IN 4")
+                                font.pixelSize: fontSizeMedium
+                            }
+
+                            MixerDial {
+                                param: "mix_4_1"
+                            }
+                            MixerDial {
+                                param: "mix_4_2"
+                            }
+                            MixerDial {
+                                param: "mix_4_3"
+                            }
+                            MixerDial {
+                                param: "mix_4_4"
+                            }
+
+                        }
+
                     }
 
                     Frame {
