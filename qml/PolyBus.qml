@@ -69,7 +69,7 @@ Row {
         id: groupBox5
 		width: 0.5 * parent.width
 		anchors.top: parent.top
-		// anchors.bottom: parent.bottom
+		anchors.bottom: parent.bottom
         // anchors.right: parent.right
         anchors.topMargin: 0
         title: qsTr("CONNECTED")
