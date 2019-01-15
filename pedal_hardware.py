@@ -7,6 +7,8 @@ left_encoder = RotaryEncoder(eQEP0)
 right_encoder = RotaryEncoder(eQEP2)
 
 is_on = False
+KNOB_MAX = 255
+
 GPIO.setup("P8_17", GPIO.OUT)
 GPIO.setup("P8_18", GPIO.OUT)
 
@@ -61,9 +63,9 @@ def get_encoder(knob):
         encoder = right_encoder
 
     cur_pos = encoder.position
-    if cur_pos > 254:
-        encoder.position = 254
-        cur_pos = 254
+    if cur_pos > KNOB_MAX:
+        encoder.position = KNOB_MAX
+        cur_pos = KNOB_MAX
     elif cur_pos < 0:
         encoder.position = 0
         cur_pos = 0

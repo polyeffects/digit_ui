@@ -1,11 +1,11 @@
 /* DIGIT UI ****************************************************************************/
 
-//import QtQuick 2.12
+import QtQuick 2.12
 //import QtQuick.Layouts 1.12
 //import QtQuick.Controls 2.12
 //import QtQuick.Controls.Imagine 2.12
 //import QtQuick.Window 2.0
-import QtQuick 2.9
+// import QtQuick 2.9
 import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Imagine 2.3
@@ -14,16 +14,16 @@ import QtQuick.Window 2.0
 
 ApplicationWindow {
     id: window
-    width: 480
-    height: 800
-    minimumHeight: 800
-    minimumWidth: 480
-    maximumHeight: 800
-    maximumWidth: 480
+    // width: 480
+    // height: 800
+    // minimumHeight: 800
+    // minimumWidth: 480
+    // maximumHeight: 800
+    // maximumWidth: 480
     visible: true
     title: "Digit"
-    // width: 800//Screen.height dev settings
-    // height: 480//Screen.width
+    width: 800//Screen.height dev settings
+    height: 480//Screen.width
 
     // Material.theme: Material.Dark
     // Material.accent: Material.Green
@@ -41,13 +41,13 @@ ApplicationWindow {
     readonly property int fontSizeExtraLarge: Qt.application.font.pixelSize * 5
 
     Item {
-        transform: Rotation {
-            angle: 90
-            /* origin.x: Screen.height / 2 */
-            /* origin.x: Screen.height / 2 */
-            origin.x: 480 / 2
-            origin.y: 480 / 2
-        }
+        // transform: Rotation {
+        //     angle: 90
+        //     /* origin.x: Screen.height / 2 */
+        //     /* origin.x: Screen.height / 2 */
+        //     origin.x: 480 / 2
+        //     origin.y: 480 / 2
+        // }
         id: root
         width: 800//Screen.height
         height: 480//Screen.width
@@ -64,6 +64,7 @@ ApplicationWindow {
                 z: -1
                 StackLayout {
                     id: delayStack1
+                    anchors.bottomMargin: 40
                     anchors.rightMargin: 0
                     anchors.topMargin: 27
                     currentIndex: delayTabs.currentIndex
@@ -94,37 +95,13 @@ ApplicationWindow {
                                 font.pixelSize: fontSizeMedium
                             }
 
-                            Dial {
-                                id: mixDial1
+                            MixerDial {
+                                effect: "delay1"
+                                param: "l_delay"
+                                value: 0.5
+                                to: 1
                                 width: 100
                                 height: 100
-                                Layout.preferredHeight: 128
-                                Layout.alignment: Qt.AlignHCenter
-                                onMoved: {
-                                    knobs.ui_knob_change("delay1", "l_delay", mixDial1.value)
-                                }
-                                MouseArea {
-                                    anchors.fill: parent
-                                    onClicked: {
-                                        console.warn("warn completed")
-                                    }
-                                }
-                                Label {
-                                    color: "#ffffff"
-                                    text: mixDial1.value.toFixed(0)
-                                    font.pixelSize: Qt.application.font.pixelSize * 3
-                                    anchors.centerIn: parent
-                                }
-                                Layout.maximumHeight: 128
-                                value: 0.5
-                                stepSize: 0.01
-                                to: 1
-                                Layout.preferredWidth: 128
-                                from: 0
-                                Layout.maximumWidth: 128
-                                Layout.minimumHeight: 64
-                                Layout.fillHeight: true
-                                Layout.minimumWidth: 64
                             }
 
                             GlowingLabel {
@@ -133,39 +110,14 @@ ApplicationWindow {
                                 font.pixelSize: fontSizeMedium
                             }
 
-                            Dial {
-                                id: sizeDial1
+                            MixerDial {
+                                effect: "delay1"
+                                param: "feedback"
+                                value: 0.7
+                                to: 1
                                 width: 100
                                 height: 100
-                                Layout.preferredHeight: 128
-                                Layout.alignment: Qt.AlignHCenter
-                                onMoved: {
-                                    knobs.ui_knob_change("delay1", "feedback", sizeDial1.value)
-                                }
-                                value: 0.7
-                                Layout.maximumHeight: 128
-                                Layout.preferredWidth: 128
-                                stepSize: 0.01
-                                to: 1
-                                from: 0
-                                Layout.maximumWidth: 128
-                                Layout.minimumHeight: 64
-                                Layout.fillHeight: true
-                                Layout.minimumWidth: 64
-
-                                Label {
-                                    x: 33
-                                    y: 8
-                                    color: "#ffffff"
-                                    text: sizeDial1.value.toFixed(0)
-
-                                    font.pixelSize: Qt.application.font.pixelSize * 3
-                                    anchors.centerIn: parent
-                                }
                             }
-
-
-
                         }
                     }
 
@@ -326,8 +278,7 @@ ApplicationWindow {
 
                     Frame {
                         id: bus
-                        width: 800
-                        height: 480
+                        anchors.fill: parent
                         z: -1
 
                         PolyBus {
@@ -416,31 +367,13 @@ ApplicationWindow {
                                 font.pixelSize: fontSizeMedium
                             }
 
-                            Dial {
-                                id: mixDial
+                            MixerDial {
+                                effect: "reverb"
+                                param: "dry_wet"
+                                value: 50
+                                to: 100
                                 width: 100
                                 height: 100
-                                stepSize: 1
-                                Layout.fillHeight: true
-                                from: 0
-                                Layout.maximumHeight: 128
-                                Layout.preferredHeight: 128
-                                to: 100
-                                Label {
-                                    color: "#ffffff"
-                                    text: mixDial.value.toFixed(0)
-                                    font.pixelSize: Qt.application.font.pixelSize * 3
-                                    anchors.centerIn: parent
-                                }
-                                Layout.minimumWidth: 64
-                                Layout.alignment: Qt.AlignHCenter
-                                value: 50
-                                Layout.minimumHeight: 64
-                                Layout.maximumWidth: 128
-                                Layout.preferredWidth: 128
-                                onMoved: {
-                                    knobs.ui_knob_change("reverb", "dry_wet", mixDial.value)
-                                }
                             }
 
                             GlowingLabel {
@@ -449,39 +382,14 @@ ApplicationWindow {
                                 font.pixelSize: fontSizeMedium
                             }
 
-                            Dial {
-                                id: roomSizeDial6
+                            MixerDial {
+                                effect: "reverb"
+                                param: "roomsize"
+                                value: 0.5
+                                to: 1
                                 width: 100
                                 height: 100
-                                from: 0
-                                Layout.minimumHeight: 64
-                                value: 0.5
-                                Layout.minimumWidth: 64
-                                Layout.maximumHeight: 128
-                                Layout.fillHeight: true
-                                stepSize: 0.01
-                                to: 1
-                                Layout.preferredWidth: 128
-                                Layout.preferredHeight: 128
-                                Layout.alignment: Qt.AlignHCenter
-                                Layout.maximumWidth: 128
-                                onMoved: {
-                                    knobs.ui_knob_change("reverb", "roomsize", roomSizeDial6.value)
-                                }
-
-                                Label {
-                                    x: 32
-                                    y: -33
-                                    color: "#ffffff"
-                                    text: roomSizeDial6.value.toFixed(0)
-                                    font.pixelSize: Qt.application.font.pixelSize * 3
-                                    anchors.centerIn: parent
-                                }
                             }
-
-
-
-
                         }
                     }
 
@@ -894,30 +802,6 @@ ApplicationWindow {
                                 text: qsTr("VOLUME")
                                 color: "white"
                                 font.pixelSize: fontSizeMedium
-                            }
-
-                            Dial {
-                                id: volumeDial
-                                from: 0
-                                value: 42
-                                to: 100
-                                stepSize: 1
-
-                                Layout.alignment: Qt.AlignHCenter
-                                Layout.minimumWidth: 64
-                                Layout.minimumHeight: 64
-                                Layout.preferredWidth: 128
-                                Layout.preferredHeight: 128
-                                Layout.maximumWidth: 128
-                                Layout.maximumHeight: 128
-                                Layout.fillHeight: true
-
-                                Label {
-                                    text: volumeDial.value.toFixed(0)
-                                    color: "white"
-                                    font.pixelSize: Qt.application.font.pixelSize * 3
-                                    anchors.centerIn: parent
-                                }
                             }
 
                             ButtonGroup {
@@ -1348,15 +1232,6 @@ ApplicationWindow {
 
         }
 
-        RoundButton {
-            id: roundButton
-            x: 741
-            y: 422
-            width: 74
-            height: 77
-            text: "M"
-        }
-
         TabBar {
             id: topLevelBar
             x: 94
@@ -1392,26 +1267,58 @@ ApplicationWindow {
             }
         }
 
-
-
-
-
-    }
-
-    ProgressBar {
-        id: leftEncoderVal1
-        x: -12
-        y: -12
-        width: 93
-        height: 41
-        GlowingLabel {
+        ProgressBar {
+            id: leftEncoderVal
+            x: 0
+            y: 0
             width: 93
             height: 41
-            color: "#ffffff"
-            text: qsTr("SIZE")
-            font.pixelSize: fontSizeMedium
+            GlowingLabel {
+                color: "#ffffff"
+                text: qsTr("SIZE")
+                z: 1
+                anchors.fill: parent
+                font.pixelSize: fontSizeMedium
+            }
+            TapHandler {
+                onTapped: {
+                    // set map encoder on
+                    // python variable in qml context
+                    is_waiting_knob_mapping = "left"
+                }
+            }
+            value: 0.5
         }
-        value: 0.5
+
+        ProgressBar {
+            id: rightEncoderVal
+            width: 93
+            height: 41
+            anchors.top: parent.top
+            anchors.topMargin: 0
+            anchors.right: parent.right
+            anchors.rightMargin: 0
+            value: 0.5
+            GlowingLabel {
+                color: "#ffffff"
+                text: qsTr("SIZE")
+                z: 1
+                font.pixelSize: fontSizeMedium
+                anchors.fill: parent
+            }
+            TapHandler {
+                onTapped: {
+                    // set map encoder on
+                    // python variable in qml context
+                    is_waiting_knob_mapping = "right"
+                }
+            }
+        }
+
+
+
+
+
     }
 
 }
@@ -1430,95 +1337,8 @@ ApplicationWindow {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*##^## Designer {
-    D{i:6;invisible:true}D{i:125;invisible:true}
+    D{i:213;anchors_height:41;anchors_width:93}D{i:462;anchors_height:41;anchors_width:93}
+D{i:461;anchors_y:"-6"}
 }
  ##^##*/

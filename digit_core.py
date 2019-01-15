@@ -147,6 +147,10 @@ class Knobs(QObject):
         is_active = not plugin_state[effect]
         set_active(effect, is_active)
 
+    @Slot(str, str, str)
+    def map_paramater_to_encoder(self, knob, effect_name, parameter):
+        set_knob_current_effect(knob, effect_name, parameter)
+        is_waiting_knob_mapping = ""
 
 def engineCallback(host, action, pluginId, value1, value2, value3, valueStr):
     valueStr = charPtrToString(valueStr)
@@ -312,6 +316,7 @@ app = QGuiApplication(sys.argv)
 QIcon.setThemeName("digit")
 # Instantiate the Python object.
 knobs = Knobs()
+is_waiting_knob_mapping = ""
 
 qmlEngine = QQmlApplicationEngine()
 # Expose the object to QML.
@@ -321,24 +326,71 @@ for k, v in available_port_models.items():
     context.setContextProperty(k.replace(" ", "_").replace(":", "_")+"AvailablePorts", v)
 for k, v in used_port_models.items():
     context.setContextProperty(k.replace(" ", "_").replace(":", "_")+"UsedPorts", v)
+context.setContextProperty("knobs", knobs)
+context.setContextProperty("is_waiting_knob_mapping", is_waiting_knob_mapping)
+
 # engine.load(QUrl("qrc:/qml/digit.qml"))
 qmlEngine.load(QUrl("qml/digit.qml"))
 
 mixer_is_connected = False
 
 ######### UI is setup
-def map_parameter_value(effect, parameter, in_min, in_max):
+
+
+effect_parameter_ranges = {"delay1": {"l_delay": (0,1), "feedback": (0, 1)},
+    "reverb": {"dry_wet": (0, 100), "roomsize": (0, 1)},
+    "mixer": {"mixer_1_1": (0,1),"mixer_1_2": (0,1),"mixer_1_3": (0,1),"mixer_1_4": (0,1),
+        "mixer_2_1": (0,1),"mixer_2_2": (0,1),"mixer_2_3": (0,1),"mixer_2_4": (0,1),
+        "mixer_3_1": (0,1),"mixer_3_2": (0,1),"mixer_3_3": (0,1),"mixer_3_4": (0,1),
+        "mixer_4_1": (0,1),"mixer_4_2": (0,1),"mixer_4_3": (0,1),"mixer_4_4": (0,1)
+        },
+    "tape1": {"drive": (0, 10), "blend": (-10, 10)},
+    "filter1": {"freq": (20, 15000, "log"), "res": (0, 0.8)},
+    "sigmoid1": {"Pregain": (-90, 20), "Postgain": (-90, 20)}
+    }
+
+def translate_range(value, leftMin, leftMax, rightMin, rightMax):
+    # Figure out how 'wide' each range is
+    leftSpan = leftMax - leftMin
+    rightSpan = rightMax - rightMin
+
+    # Convert the left range into a 0-1 range (float)
+    valueScaled = float(value - leftMin) / float(leftSpan)
+
+    # Convert the 0-1 range into a value in the right range.
+    return rightMin + (valueScaled * rightSpan)
+
+def map_ui_parameter_lv2_value(effect, parameter, in_min, in_max, value):
     # map UI or hardware range to effect range
-    # TODO
-    pass
+    # in_min / in_max are what the knob / ui generates
+    #   from numpy import interp
+    #  interp(256,[1,512],[5,10])
+    out_map = effect_parameter_ranges[effect][parameter]
+    return translate_range(value, in_min, in_max, out_map[0], out_map[1])
+
+def map_lv2_value_to_ui_knob(effect, parameter, in_min, in_max, value):
+    # map UI or hardware range to effect range
+    # in_min / in_max are what the knob / ui generates
+    out_map = effect_parameter_ranges[effect][parameter]
+    return translate_range(value, out_map[0], out_map[1], in_min, in_max)
+
+def set_knob_current_effect(knob, effect, parameter):
+    # get current value and update encoder / cache.
+    knob_map[knob] = (effect, parameter)
+    mapped_value = map_lv2_value_to_ui_knob(effect, parameter, 0, pedal_hardware.KNOB_MAX, value)
+    pedal_hardware.set_encoder_value(knob, mapped_value)
+    knob_value_cache[knob] = mapped_value
 
 def check_encoder_change():
     for knob in ["left", "right"]:
         cur_value = 0
+        knob_effect = knob_map[knob][0]
+        knob_parameter = knob_map[knob][1]
         cur_value = pedal_hardware.get_encoder(knob)
         if cur_value != knob_value_cache[knob]:
             # print("knob value is", cur_value)
-            # knobs.ui_knob_change(self, effect_name, parameter, value):
+            mapped_value = map_ui_parameter_lv2_value(knob_effect, knob_parameter, 0, pedal_hardware.KNOB_MAX, cur_value)
+            knobs.ui_knob_change(self, knob_effect, knob_parameter, mapped_value):
             # knob_mapping[knob](cur_value)
             knob_value_cache[knob] = cur_value
 

@@ -6,8 +6,9 @@ import QtQuick.Controls.Imagine 2.3
 import QtQuick.Window 2.0
 
 Row {
-	anchors.left: parent.left
-	anchors.right: parent.right
+	// anchors.left: parent.left
+	// anchors.right: parent.right
+    width: parent.width
 	height: parent.height
     id: control
     property var availablePorts // maybe ListModel
@@ -18,8 +19,8 @@ Row {
         id: groupBox4
 		anchors.top: parent.top
 		anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        anchors.leftMargin: 0
+        // anchors.left: parent.left
+        // anchors.leftMargin: 0
 		width: 0.5 * parent.width
         title: qsTr("AVAILABLE")
         Frame {
@@ -68,8 +69,8 @@ Row {
         id: groupBox5
 		width: 0.5 * parent.width
 		anchors.top: parent.top
-		anchors.bottom: parent.bottom
-        anchors.right: parent.right
+		// anchors.bottom: parent.bottom
+        // anchors.right: parent.right
         anchors.topMargin: 0
         title: qsTr("CONNECTED")
         Frame {
