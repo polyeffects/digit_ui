@@ -1,6 +1,6 @@
 /* DIGIT UI ****************************************************************************/
 
-import QtQuick 2.12
+import QtQuick 2.9
 //import QtQuick.Layouts 1.12
 //import QtQuick.Controls 2.12
 //import QtQuick.Controls.Imagine 2.12
@@ -8,8 +8,8 @@ import QtQuick 2.12
 // import QtQuick 2.9
 import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.3
-import QtQuick.Controls.Imagine 2.3
-// import QtQuick.Controls.Material 2.3
+// import QtQuick.Controls.Imagine 2.3
+import QtQuick.Controls.Material 2.3
 import QtQuick.Window 2.0
 
 ApplicationWindow {
@@ -25,8 +25,9 @@ ApplicationWindow {
     width: 800//Screen.height dev settings
     height: 480//Screen.width
 
-    // Material.theme: Material.Dark
-    // Material.accent: Material.Green
+    Material.theme: Material.Dark
+
+    Material.accent: Material.Pink
 
     readonly property color colorGlow: "#1d6d64"
     readonly property color colorWarning: "#d5232f"
@@ -42,11 +43,13 @@ ApplicationWindow {
 
     Item {
         // transform: Rotation {
-        //     angle: 90
+        //     angle: -90
         //     /* origin.x: Screen.height / 2 */
         //     /* origin.x: Screen.height / 2 */
-        //     origin.x: 480 / 2
-        //     origin.y: 480 / 2
+        //     // origin.x: 480 / 2
+        //     // origin.y: 480 / 2
+        //     origin.x: 800 / 2
+        //     origin.y: 800 / 2
         // }
         id: root
         width: 800//Screen.height
@@ -754,13 +757,13 @@ ApplicationWindow {
                 anchors.fill: parent
                 font.pixelSize: fontSizeMedium
             }
-            TapHandler {
-                onTapped: {
-                    // set map encoder on
-                    // python variable in qml context
-                    is_waiting_knob_mapping = "left"
-                }
-            }
+            // TapHandler {
+            //     onTapped: {
+            //         // set map encoder on
+            //         // python variable in qml context
+            //         is_waiting_knob_mapping = "left"
+            //     }
+            // }
             value: 0.5
         }
 
@@ -780,13 +783,13 @@ ApplicationWindow {
                 font.pixelSize: fontSizeMedium
                 anchors.fill: parent
             }
-            TapHandler {
-                onTapped: {
-                    // set map encoder on
-                    // python variable in qml context
-                    is_waiting_knob_mapping = "right"
-                }
-            }
+            // TapHandler {
+            //     onTapped: {
+            //         // set map encoder on
+            //         // python variable in qml context
+            //         is_waiting_knob_mapping = "right"
+            //     }
+            // }
         }
 
 

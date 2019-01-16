@@ -1,4 +1,4 @@
-import QtQuick 2.12
+import QtQuick 2.9
 import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.3
 
@@ -18,17 +18,17 @@ Dial {
     onMoved: {
         knobs.ui_knob_change(effect, param, control.value)
     }
-    TapHandler {
-        onTapped: {
-            // if we're in set control mode, then set this control
-            // python variable in qml context
-            if (is_waiting_knob_mapping != "") // left or right
-            {
-                map_parameter_to_encoder(is_waiting_knob_mapping, effect, param)    
-                console.warn("set knob mapping")
-            }
-        }
-    }
+    // TapHandler {
+    //     onTapped: {
+    //         // if we're in set control mode, then set this control
+    //         // python variable in qml context
+    //         if (is_waiting_knob_mapping != "") // left or right
+    //         {
+    //             map_parameter_to_encoder(is_waiting_knob_mapping, effect, param)    
+    //             console.warn("set knob mapping")
+    //         }
+    //     }
+    // }
     Layout.minimumHeight: 64
     value: 0
     Layout.minimumWidth: 64

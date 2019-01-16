@@ -6,7 +6,8 @@ from PySide2.QtQml import QQmlApplicationEngine
 from PySide2.QtGui import QIcon
 # compiled QML files, compile with pyside2-rcc
 import qml.qml
-import icons.icons, imagine_assets
+import icons.icons
+#, imagine_assets
 import resource_rc
 
 def insert_row(model, row):
