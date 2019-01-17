@@ -14,16 +14,16 @@ import QtQuick.Window 2.0
 
 ApplicationWindow {
     id: window
-    // width: 480
-    // height: 800
-    // minimumHeight: 800
-    // minimumWidth: 480
-    // maximumHeight: 800
-    // maximumWidth: 480
+    width: 480
+    height: 800
+    minimumHeight: 800
+    minimumWidth: 480
+    maximumHeight: 800
+    maximumWidth: 480
     visible: true
     title: "DIGIT"
-    width: 800//Screen.height dev settings
-    height: 480//Screen.width
+    // width: 800//Screen.height dev settings
+    // height: 480//Screen.width
 
     Material.theme: Material.Dark
     Material.primary: Material.Green
@@ -42,15 +42,15 @@ ApplicationWindow {
     readonly property int fontSizeExtraLarge: Qt.application.font.pixelSize * 5
 
     Item {
-        // transform: Rotation {
-        //     angle: -90
-        //     /* origin.x: Screen.height / 2 */
-        //     /* origin.x: Screen.height / 2 */
-        //     // origin.x: 480 / 2
-        //     // origin.y: 480 / 2
-        //     origin.x: 800 / 2
-        //     origin.y: 800 / 2
-        // }
+        transform: Rotation {
+            angle: 90
+            /* origin.x: Screen.height / 2 */
+            /* origin.x: Screen.height / 2 */
+            origin.x: 480 / 2
+            origin.y: 480 / 2
+            // origin.x: 800 / 2
+            // origin.y: 800 / 2
+        }
         id: root
         width: 800//Screen.height
         height: 480//Screen.width

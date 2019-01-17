@@ -78,7 +78,6 @@ invPortMap = {}
 pluginMap = {}
 #
 parameterMap = {}
-
 current_connections = {} # these are group port group port to connection id pairs #TODO remove stale
 
 # --------------------------------------------------------------------------------------------------------
@@ -88,6 +87,8 @@ used_port_models = dict({(k, QStringListModel()) for k in available_port_models.
 # XXX temp, until I fix bypassing
 plugin_state = defaultdict(bool)
 knob_value_cache = defaultdict(int)
+knob_map = {}
+
 
 def insert_row(model, row):
     j = len(model.stringList())
@@ -333,6 +334,7 @@ context.setContextProperty("is_waiting_knob_mapping", is_waiting_knob_mapping)
 qmlEngine.load(QUrl("qml/digit.qml"))
 
 mixer_is_connected = False
+knobs_are_initial_mapped  = False
 
 ######### UI is setup
 
@@ -377,6 +379,7 @@ def map_lv2_value_to_ui_knob(effect, parameter, in_min, in_max, value):
 def set_knob_current_effect(knob, effect, parameter):
     # get current value and update encoder / cache.
     knob_map[knob] = (effect, parameter)
+    value = 0 # FIXME
     mapped_value = map_lv2_value_to_ui_knob(effect, parameter, 0, pedal_hardware.KNOB_MAX, value)
     pedal_hardware.set_encoder_value(knob, mapped_value)
     knob_value_cache[knob] = mapped_value
@@ -388,9 +391,9 @@ def check_encoder_change():
         knob_parameter = knob_map[knob][1]
         cur_value = pedal_hardware.get_encoder(knob)
         if cur_value != knob_value_cache[knob]:
-            # print("knob value is", cur_value)
             mapped_value = map_ui_parameter_lv2_value(knob_effect, knob_parameter, 0, pedal_hardware.KNOB_MAX, cur_value)
-            knobs.ui_knob_change(self, knob_effect, knob_parameter, mapped_value):
+            print("knob value is", cur_value, "mapped", mapped_value)
+            knobs.ui_knob_change(knob_effect, knob_parameter, mapped_value)
             # knob_mapping[knob](cur_value)
             knob_value_cache[knob] = cur_value
 
@@ -403,7 +406,6 @@ while host.is_engine_running() and not gCarla.term:
     # wait until the last of our plugins is added, then connect them if they haven't been connected yet
     # default routing is input 1 to delay 1 to reverb to cab to out
     # check if encoders have changed
-    check_encoder_change()
     if (not mixer_is_connected) and "mixer" in portMap:
         # mixer 1-4 to outputs
         for source_port, output_port in [("Audio Output 1", "playback_1"), ("Audio Output 2", "playback_2"),
@@ -420,6 +422,14 @@ while host.is_engine_running() and not gCarla.term:
                     portMap["mixer"]["group"],
                     portMap["mixer"]["ports"][output_port])
         mixer_is_connected = True
+    if (not knobs_are_initial_mapped):
+        if "delay1" in portMap:
+            set_knob_current_effect("left", "delay1", "l_delay")
+            set_knob_current_effect("right", "delay1", "feedback")
+            knobs_are_initial_mapped = True
+    else:
+        check_encoder_change()
+
 
 if not gCarla.term:
     print("Engine closed abruptely")

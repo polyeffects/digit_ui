@@ -16,6 +16,7 @@ GPIO.setup("P9_12", GPIO.IN)
 GPIO.setup("P9_14", GPIO.IN)
 GPIO.setup("P9_16", GPIO.IN)
 
+footswitch_is_down = defaultdict(bool)
 
 def effect_on(t=0.001):
     global is_on
@@ -104,17 +105,23 @@ def set_master_tempo():
 def set_master_time_sig():
     pass
 
+footswitch_just_down(footswitch):
+    footswitch_is_down[footswitch] = not footswitch_is_down[footswitch]
+    if footswitch_is_down[footswitch]:
+        print('tap event on', footswitch)
+    return footswitch_is_down[footswitch]
+
 @debounce(0.1) #debounce to call event only after stable for 0.1s
 def tap(gpio):
-    print('tap event on', gpio)
+    footswitch_just_down("left")
 
 @debounce(0.1) #debounce to call event only after stable for 0.1s
 def toggle_reverb(gpio):
-    print('toggle reverb event on', gpio)
+    footswitch_just_down("center")
 
 @debounce(0.1) #debounce to call event only after stable for 0.1s
 def toggle_delay(gpio):
-    print('toggle delay event on', gpio)
+    footswitch_just_down("right")
 
 def add_hardware_listeners():
     GPIO.add_event_detect("P9_12", GPIO.RISING, tap)
