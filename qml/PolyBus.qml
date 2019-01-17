@@ -23,7 +23,8 @@ Row {
         // anchors.leftMargin: 0
 		width: 0.5 * parent.width
         title: qsTr("AVAILABLE")
-        Frame {
+		background: null
+        PolyFrame {
             id: stationFrame3
             bottomPadding: 1
             Layout.fillWidth: true
@@ -73,7 +74,8 @@ Row {
         // anchors.right: parent.right
         anchors.topMargin: 0
         title: qsTr("CONNECTED")
-        Frame {
+		background: null
+        PolyFrame {
             id: stationFrame4
             bottomPadding: 1
             Layout.fillWidth: true

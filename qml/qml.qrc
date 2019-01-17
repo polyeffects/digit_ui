@@ -6,5 +6,6 @@
         <file>digit.qml</file>
         <file>PolyBus.qml</file>
         <file>MixerDial.qml</file>
+        <file>PolyFrame.qml</file>
     </qresource>
 </RCC>

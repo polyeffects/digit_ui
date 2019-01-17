@@ -21,12 +21,12 @@ ApplicationWindow {
     // maximumHeight: 800
     // maximumWidth: 480
     visible: true
-    title: "Digit"
+    title: "DIGIT"
     width: 800//Screen.height dev settings
     height: 480//Screen.width
 
     Material.theme: Material.Dark
-
+    Material.primary: Material.Green
     Material.accent: Material.Pink
 
     readonly property color colorGlow: "#1d6d64"
@@ -61,7 +61,7 @@ ApplicationWindow {
             // currentIndex: topLevelTabs.currentIndex
             anchors.fill: parent
 
-            Frame {
+            PolyFrame {
                 id: delayFrame
                 Layout.fillWidth: true
                 z: -1
@@ -72,7 +72,7 @@ ApplicationWindow {
                     anchors.topMargin: 27
                     currentIndex: delayTabs.currentIndex
                     anchors.fill: parent
-                    Frame {
+                    PolyFrame {
                         id: reverbFrame3
                         width: 800
                         height: 480
@@ -124,25 +124,25 @@ ApplicationWindow {
                         }
                     }
 
-                    Frame {
+                    PolyFrame {
                         id: effects
                         width: 800
-                        height: 480
+                        height: 350
                         z: -1
 
                         Column {
-                            spacing: 8
+                            spacing: 6
                             width: parent.width
                             anchors.fill: parent
                             GroupBox {
                                 width: parent.width
                                 anchors.left: parent.left
                                 anchors.right: parent.right
-                                title: qsTr("Tape / Tube")
+                                title: qsTr("TAPE / TUBE")
 
                                 Row {
                                     width: 800
-                                    height: 35
+                                    height: parent.height
                                     anchors.top: parent.top
                                     // anchors.topMargin: 10
 
@@ -159,7 +159,7 @@ ApplicationWindow {
                                     }
                                     GlowingLabel {
                                         color: "#ffffff"
-                                        text: qsTr("Tape vs Tube")
+                                        text: qsTr("TAPE VS TUBE")
                                         font.pixelSize: fontSizeMedium
                                     }
                                     MixerDial {
@@ -170,7 +170,7 @@ ApplicationWindow {
                                         to: 10
                                     }
                                     SwitchDelegate {
-                                        text: qsTr("Enabled")
+                                        text: qsTr("ENABLED")
                                         bottomPadding: 0
                                         Layout.fillWidth: true
                                         leftPadding: 0
@@ -184,11 +184,11 @@ ApplicationWindow {
                                 width: parent.width
                                 anchors.left: parent.left
                                 anchors.right: parent.right
-                                title: qsTr("Lowpass Filter")
+                                title: qsTr("LOWPASS FILTER")
 
                                 Row {
                                     width: 800
-                                    height: 35
+                                    height: parent.height
                                     anchors.top: parent.top
                                     // anchors.topMargin: 10
 
@@ -218,7 +218,7 @@ ApplicationWindow {
                                         to: 0.8
                                     }
                                     SwitchDelegate {
-                                        text: qsTr("Enabled")
+                                        text: qsTr("ENABLED")
                                         bottomPadding: 0
                                         Layout.fillWidth: true
                                         leftPadding: 0
@@ -233,11 +233,11 @@ ApplicationWindow {
                                 width: parent.width
                                 anchors.left: parent.left
                                 anchors.right: parent.right
-                                title: qsTr("Compression Boost")
+                                title: qsTr("COMPRESSION BOOST")
 
                                 Row {
                                     width: 800
-                                    height: 35
+                                    height: parent.height
                                     anchors.top: parent.top
                                     // anchors.topMargin: 10
 
@@ -266,7 +266,7 @@ ApplicationWindow {
                                         to: 20
                                     }
                                     SwitchDelegate {
-                                        text: qsTr("Enabled")
+                                        text: qsTr("ENABLED")
                                         bottomPadding: 0
                                         Layout.fillWidth: true
                                         leftPadding: 0
@@ -279,7 +279,7 @@ ApplicationWindow {
                         }
                     }
 
-                    Frame {
+                    PolyFrame {
                         id: bus
                         width: parent.width
                         height:parent.height
@@ -302,28 +302,28 @@ ApplicationWindow {
                     width: 376
                     height: 38
                     spacing: 0
-                    currentIndex: 2
+                    currentIndex: 1
                     anchors.bottom: parent.bottom
                     TabButton {
                         id: tabButton7
-                        text: qsTr("Main")
+                        text: qsTr("MAIN")
                     }
 
                     TabButton {
                         id: tabButton8
-                        text: qsTr("Effects")
+                        text: qsTr("EFFECTS")
                     }
 
                     TabButton {
                         id: tabButton9
-                        text: qsTr("Bus")
+                        text: qsTr("BUS")
                     }
                     anchors.bottomMargin: 0
                 }
                 Layout.fillHeight: true
             }
 
-            Frame {
+            PolyFrame {
                 id: reverbFrame1
                 Layout.fillWidth: true
                 Layout.fillHeight: true
@@ -335,7 +335,7 @@ ApplicationWindow {
                     currentIndex: reverbTabs.currentIndex
 
 
-                    Frame {
+                    PolyFrame {
                         id: reverbFrame
                         width: 800
                         height: 480
@@ -397,7 +397,7 @@ ApplicationWindow {
                         }
                     }
 
-                    Frame {
+                    PolyFrame {
                         id: bus2
                         width: 800
                         height: 480
@@ -407,7 +407,7 @@ ApplicationWindow {
                             anchors.right: parent.right
                             height: parent.height
                             GroupBox {
-                                title: qsTr("Left")
+                                title: qsTr("LEFT")
                                 anchors.top: parent.top
                                 anchors.bottom: parent.bottom
                                 width: 0.5 * parent.width
@@ -420,7 +420,7 @@ ApplicationWindow {
                                 }
                             }
                             GroupBox {
-                                title: qsTr("Right")
+                                title: qsTr("RIGHT")
                                 anchors.top: parent.top
                                 anchors.bottom: parent.bottom
                                 width: 0.5 * parent.width
@@ -445,22 +445,22 @@ ApplicationWindow {
                     anchors.bottomMargin: 0
                     TabButton {
                         id: tabButton4
-                        text: qsTr("Main")
+                        text: qsTr("MAIN")
                     }
 
                     TabButton {
                         id: tabButton5
-                        text: qsTr("Effects")
+                        text: qsTr("EFFECTS")
                     }
 
                     TabButton {
                         id: tabButton6
-                        text: qsTr("Bus")
+                        text: qsTr("BUS")
                     }
                 }
             }
 
-            Frame {
+            PolyFrame {
                 id: mixerFrame
                 z: -1
                 Layout.fillWidth: true
@@ -468,50 +468,91 @@ ApplicationWindow {
                 StackLayout {
                     id: delayStack2
 
-                    Frame {
+                    PolyFrame {
                         id: reverbFrame4
                         width: 800
                         height: 439
                         z: -1
                         Column {
-                            x: 50
-                            y: 5
+                            id: column
+                            x: 109
+                            y: 12
                             width: 150
                             height: 405
                             spacing: 10
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: qsTr("IN 1")
+                                anchors.horizontalCenter: mixerDial.horizontalCenter
                                 font.pixelSize: fontSizeMedium
                             }
 
                             MixerDial {
+                                id: mixerDial
+                                GlowingLabel {
+                                    color: "#ffffff"
+                                    text: qsTr("OUT 1")
+                                    anchors.left: parent.left
+                                    anchors.leftMargin: -55
+                                    anchors.top: parent.verticalCenter
+                                    anchors.topMargin: -10
+                                    font.pixelSize: fontSizeMedium
+                                }
                                 param: "mix_1_1"
                             }
                             MixerDial {
+                                GlowingLabel {
+                                    color: "#ffffff"
+                                    text: qsTr("OUT 1")
+                                    anchors.left: parent.left
+                                    anchors.leftMargin: -55
+                                    anchors.top: parent.verticalCenter
+                                    anchors.topMargin: -10
+                                    font.pixelSize: fontSizeMedium
+                                }
                                 param: "mix_1_2"
                             }
                             MixerDial {
+                                GlowingLabel {
+                                    color: "#ffffff"
+                                    text: qsTr("OUT 1")
+                                    anchors.left: parent.left
+                                    anchors.leftMargin: -55
+                                    anchors.top: parent.verticalCenter
+                                    anchors.topMargin: -10
+                                    font.pixelSize: fontSizeMedium
+                                }
                                 param: "mix_1_3"
                             }
                             MixerDial {
+                                GlowingLabel {
+                                    color: "#ffffff"
+                                    text: qsTr("OUT 1")
+                                    anchors.left: parent.left
+                                    anchors.leftMargin: -55
+                                    anchors.top: parent.verticalCenter
+                                    anchors.topMargin: -10
+                                    font.pixelSize: fontSizeMedium
+                                }
                                 param: "mix_1_4"
                             }
 
                         }
                         Column {
-                            x: 200
-                            y: 5
+                            x: 259
+                            y: 12
                             width: 150
                             height: 405
                             spacing: 10
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: qsTr("IN 2")
+                                anchors.horizontalCenter: mixerDial2.horizontalCenter
                                 font.pixelSize: fontSizeMedium
                             }
 
                             MixerDial {
+                                id: mixerDial2
                                 param: "mix_2_1"
                             }
                             MixerDial {
@@ -526,18 +567,20 @@ ApplicationWindow {
 
                         }
                         Column {
-                            x: 350
-                            y: 5
+                            x: 409
+                            y: 12
                             width: 150
                             height: 405
                             spacing: 10
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: qsTr("IN 3")
+                                anchors.horizontalCenter: mixerDial3.horizontalCenter
                                 font.pixelSize: fontSizeMedium
                             }
 
                             MixerDial {
+                                id: mixerDial3
                                 param: "mix_3_1"
                             }
                             MixerDial {
@@ -552,18 +595,20 @@ ApplicationWindow {
 
                         }
                         Column {
-                            x: 500
-                            y: 5
+                            x: 559
+                            y: 12
                             width: 150
                             height: 405
                             spacing: 10
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: qsTr("IN 4")
+                                anchors.horizontalCenter: mixerDial4.horizontalCenter
                                 font.pixelSize: fontSizeMedium
                             }
 
                             MixerDial {
+                                id: mixerDial4
                                 param: "mix_4_1"
                             }
                             MixerDial {
@@ -580,7 +625,7 @@ ApplicationWindow {
 
                     }
 
-                    Frame {
+                    PolyFrame {
                         id: bus1
                         width: 800
                         height: 480
@@ -596,10 +641,11 @@ ApplicationWindow {
                                 height: 0.5 * parent.height
                                 GroupBox {
                                     id: groupBox3
-                                    title: qsTr("Input 1")
+                                    title: qsTr("INPUT 1")
                                     anchors.top: parent.top
                                     anchors.bottom: parent.bottom
                                     width: 0.5 * parent.width
+                                    background: null
                                     PolyBus {
                                         id: polyBus3
                                         availablePorts: system_capture_1AvailablePorts
@@ -610,10 +656,11 @@ ApplicationWindow {
                                 }
                                 GroupBox {
                                     id: groupBox4
-                                    title: qsTr("Input 2")
+                                    title: qsTr("INPUT 2")
                                     anchors.top: parent.top
                                     anchors.bottom: parent.bottom
                                     width: 0.5 * parent.width
+                                    background: null
                                     PolyBus {
                                         id: polyBus4
                                         availablePorts: system_capture_2AvailablePorts
@@ -628,10 +675,11 @@ ApplicationWindow {
                                 anchors.right: parent.right
                                 height: 0.5 * parent.height
                                 GroupBox {
-                                    title: qsTr("Input 3")
+                                    title: qsTr("INPUT 3")
                                     anchors.top: parent.top
                                     anchors.bottom: parent.bottom
                                     width: 0.5 * parent.width
+                                    background: null
                                     PolyBus {
                                         id: polyBusMix4
                                         availablePorts: system_capture_3AvailablePorts
@@ -641,10 +689,11 @@ ApplicationWindow {
                                     }
                                 }
                                 GroupBox {
-                                    title: qsTr("Input 4")
+                                    title: qsTr("INPUT 4")
                                     anchors.top: parent.top
                                     anchors.bottom: parent.bottom
                                     width: 0.5 * parent.width
+                                    background: null
                                     PolyBus {
                                         id: polyBusMix5
                                         availablePorts: system_capture_4AvailablePorts
@@ -675,12 +724,12 @@ ApplicationWindow {
                     spacing: 0
                     TabButton {
                         id: tabButton10
-                        text: qsTr("Main")
+                        text: qsTr("MAIN")
                     }
 
                     TabButton {
                         id: tabButton12
-                        text: qsTr("Bus")
+                        text: qsTr("BUS")
                     }
                     anchors.bottom: parent.bottom
                 }
@@ -688,7 +737,7 @@ ApplicationWindow {
                 Layout.fillHeight: true
             }
 
-            Frame {
+            PolyFrame {
                 id: cabFrame
                 width: 800
                 height: 480
@@ -715,11 +764,11 @@ ApplicationWindow {
             y: 0
             width: 613
             height: 41
-            currentIndex: 3
+            currentIndex: 2
 
             TabButton {
                 id: tabButton
-                text: qsTr("Delay")
+                text: qsTr("DELAY")
                 onPressAndHold: {
                     knobs.toggle_enabled("delay1")
                 }
@@ -727,7 +776,7 @@ ApplicationWindow {
 
             TabButton {
                 id: tabButton1
-                text: qsTr("Reverb")
+                text: qsTr("REVERB")
                 onPressAndHold: {
                     knobs.toggle_enabled("reverb")
                 }
@@ -735,28 +784,21 @@ ApplicationWindow {
 
             TabButton {
                 id: tabButton2
-                text: qsTr("Mixer")
+                text: qsTr("MIXER")
             }
 
             TabButton {
                 id: tabButton3
-                text: qsTr("Cab")
+                text: qsTr("CAB")
             }
         }
 
         ProgressBar {
             id: leftEncoderVal
             x: 0
-            y: 0
+            y: 15
             width: 93
             height: 41
-            GlowingLabel {
-                color: "#ffffff"
-                text: qsTr("SIZE")
-                z: 1
-                anchors.fill: parent
-                font.pixelSize: fontSizeMedium
-            }
             // TapHandler {
             //     onTapped: {
             //         // set map encoder on
@@ -766,23 +808,27 @@ ApplicationWindow {
             // }
             value: 0.5
         }
+        GlowingLabel {
+            color: "#ffffff"
+            text: qsTr("SIZE")
+            x: 5
+            y: 5
+            width: 93
+            height: 41
+            horizontalAlignment: Text.AlignLeft
+            z: 1
+            font.pixelSize: fontSizeLarge
+        }
 
         ProgressBar {
             id: rightEncoderVal
             width: 93
             height: 41
             anchors.top: parent.top
-            anchors.topMargin: 0
+            anchors.topMargin: 15
             anchors.right: parent.right
             anchors.rightMargin: 0
             value: 0.5
-            GlowingLabel {
-                color: "#ffffff"
-                text: qsTr("SIZE")
-                z: 1
-                font.pixelSize: fontSizeMedium
-                anchors.fill: parent
-            }
             // TapHandler {
             //     onTapped: {
             //         // set map encoder on
@@ -791,10 +837,41 @@ ApplicationWindow {
             //     }
             // }
         }
+        GlowingLabel {
+            color: "#ffffff"
+            text: qsTr("SIZE")
+            horizontalAlignment: Text.AlignRight
+            width: 93
+            height: 41
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.rightMargin: 5
+            anchors.topMargin: 5
+            z: 1
+            font.pixelSize: fontSizeLarge
+        }
 
+        GlowingLabel {
+			SequentialAnimation on color {
+				loops: Animation.Infinite
+				ColorAnimation { to: "white"; duration: 1000}
+				ColorAnimation { to: "green"; duration: 1000}
+			}
 
-
-
+            x: 650
+            y: -6
+            width: 145
+            height: 35
+            color: "#ffffff"
+            text: qsTr("115 BPM")
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 0
+            horizontalAlignment: Text.AlignRight
+            anchors.rightMargin: 5
+            anchors.right: parent.right
+            font.pixelSize: fontSizeLarge
+            z: 1
+        }
 
     }
 
@@ -824,8 +901,11 @@ ApplicationWindow {
 
 
 
+
+
+
+
 /*##^## Designer {
-    D{i:213;anchors_height:41;anchors_width:93}D{i:462;anchors_height:41;anchors_width:93}
-D{i:461;anchors_y:"-6"}
+    D{i:122;anchors_height:35}
 }
  ##^##*/
