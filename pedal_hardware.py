@@ -105,7 +105,7 @@ def set_master_tempo():
 def set_master_time_sig():
     pass
 
-footswitch_just_down(footswitch):
+def footswitch_just_down(footswitch):
     footswitch_is_down[footswitch] = not footswitch_is_down[footswitch]
     if footswitch_is_down[footswitch]:
         print('tap event on', footswitch)

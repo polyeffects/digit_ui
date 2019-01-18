@@ -101,7 +101,7 @@ ApplicationWindow {
                             MixerDial {
                                 effect: "delay1"
                                 param: "l_delay"
-                                value: 0.5
+                                value: polyValues.delay1.l_delay.value
                                 to: 1
                                 width: 100
                                 height: 100
@@ -116,7 +116,7 @@ ApplicationWindow {
                             MixerDial {
                                 effect: "delay1"
                                 param: "feedback"
-                                value: 0.7
+                                value: polyValues.delay1.feedback.value
                                 to: 1
                                 width: 100
                                 height: 100
@@ -154,7 +154,7 @@ ApplicationWindow {
                                     MixerDial {
                                         effect: "tape1"
                                         param: "drive"
-                                        value: 5
+                                        value: polyValues.tape1.drive.value
                                         to: 10
                                     }
                                     GlowingLabel {
@@ -165,7 +165,7 @@ ApplicationWindow {
                                     MixerDial {
                                         effect: "tape1"
                                         param: "blend"
-                                        value: 10
+                                        value: polyValues.tape1.blend.value
                                         from: -10
                                         to: 10
                                     }
@@ -200,7 +200,7 @@ ApplicationWindow {
                                     MixerDial {
                                         effect: "filter1"
                                         param: "freq"
-                                        value: 1
+                                        value: polyValues.filter1.freq.value
                                         from: 20
                                         to: 20000
                                         stepSize: 10
@@ -213,7 +213,7 @@ ApplicationWindow {
                                     MixerDial {
                                         effect: "filter1"
                                         param: "res"
-                                        value: 0
+                                        value: polyValues.filter1.res.value
                                         from: 0
                                         to: 0.8
                                     }
@@ -249,7 +249,7 @@ ApplicationWindow {
                                     MixerDial {
                                         effect: "sigmoid1"
                                         param: "Pregain"
-                                        value: 0
+                                        value: polyValues.sigmoid1.Pregain.value
                                         from: -90
                                         to: 20
                                     }
@@ -261,7 +261,7 @@ ApplicationWindow {
                                     MixerDial {
                                         effect: "sigmoid1"
                                         param: "Postgain"
-                                        value: 0
+                                        value: polyValues.sigmoid1.Postgain.value
                                         from: -90
                                         to: 20
                                     }
@@ -374,7 +374,7 @@ ApplicationWindow {
                             MixerDial {
                                 effect: "reverb"
                                 param: "dry_wet"
-                                value: 50
+                                value: polyValues.reverb.dry_wet.value
                                 to: 100
                                 width: 100
                                 height: 100
@@ -389,7 +389,7 @@ ApplicationWindow {
                             MixerDial {
                                 effect: "reverb"
                                 param: "roomsize"
-                                value: 0.5
+                                value: polyValues.reverb.roomsize.value
                                 to: 1
                                 width: 100
                                 height: 100
@@ -799,18 +799,22 @@ ApplicationWindow {
             y: 15
             width: 93
             height: 41
-            // TapHandler {
-            //     onTapped: {
-            //         // set map encoder on
-            //         // python variable in qml context
-            //         is_waiting_knob_mapping = "left"
-            //     }
-            // }
-            value: 0.5
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    // set map encoder on
+                    // python variable in qml context
+                    console.warn("waiting for knob mapping")
+                    knobs.set_waiting("left")
+                }
+            }
+            from: polyValues[knobMap.left.effect][knobMap.left.parameter].rmin
+            to: polyValues[knobMap.left.effect][knobMap.left.parameter].rmax
+            value: polyValues[knobMap.left.effect][knobMap.left.parameter].value
         }
         GlowingLabel {
             color: "#ffffff"
-            text: qsTr("SIZE")
+            text: polyValues[knobMap.left.effect][knobMap.left.parameter].name
             x: 5
             y: 5
             width: 93
@@ -828,18 +832,22 @@ ApplicationWindow {
             anchors.topMargin: 15
             anchors.right: parent.right
             anchors.rightMargin: 0
-            value: 0.5
-            // TapHandler {
-            //     onTapped: {
-            //         // set map encoder on
-            //         // python variable in qml context
-            //         is_waiting_knob_mapping = "right"
-            //     }
-            // }
+            from: polyValues[knobMap.right.effect][knobMap.right.parameter].rmin
+            to: polyValues[knobMap.right.effect][knobMap.right.parameter].rmax
+            value: polyValues[knobMap.right.effect][knobMap.right.parameter].value
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    // set map encoder on
+                    // python variable in qml context
+                    console.warn("waiting for knob mapping")
+                    knobs.set_waiting("right")
+                }
+            }
         }
         GlowingLabel {
             color: "#ffffff"
-            text: qsTr("SIZE")
+            text: polyValues[knobMap.right.effect][knobMap.right.parameter].name
             horizontalAlignment: Text.AlignRight
             width: 93
             height: 41

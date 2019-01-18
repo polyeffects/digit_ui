@@ -19,7 +19,7 @@ import pedal_hardware
 ###### UI
 # --------------------------------------------------------------------------------------------------------
 from PySide2.QtGui import QGuiApplication
-from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel
+from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal
 from PySide2.QtQml import QQmlApplicationEngine
 from PySide2.QtGui import QIcon
 # compiled QML files, compile with pyside2-rcc
@@ -87,7 +87,6 @@ used_port_models = dict({(k, QStringListModel()) for k in available_port_models.
 # XXX temp, until I fix bypassing
 plugin_state = defaultdict(bool)
 knob_value_cache = defaultdict(int)
-knob_map = {}
 
 
 def insert_row(model, row):
@@ -104,14 +103,117 @@ def set_active(effect, is_active):
     host.set_drywet(pluginMap[effect], is_active) # full wet if active else full dry
     plugin_state[effect] = is_active
 
+class PolyEncoder(QObject):
+    # name, min, max, value
+    def __init__(self, starteffect="", startparameter=""):
+        QObject.__init__(self)
+        self.effectval = starteffect
+        self.parameterval = startparameter
+
+    def readEffect(self):
+        return self.effectval
+
+    def setEffect(self,val):
+        self.effectval = val
+        self.effect_changed.emit()
+
+    @Signal
+    def effect_changed(self):
+        pass
+
+    effect = Property(str, readEffect, setEffect, notify=effect_changed)
+
+    def readParameter(self):
+        return self.parameterval
+
+    def setParameter(self,val):
+        self.parameterval = val
+        self.parameter_changed.emit()
+
+    @Signal
+    def parameter_changed(self):
+        pass
+
+    parameter = Property(str, readParameter, setParameter, notify=parameter_changed)
+
+
+
+class PolyValue(QObject):
+    # name, min, max, value
+    def __init__(self, startname="", startval=0, startmin=0, startmax=1, curve_type="lin"):
+        QObject.__init__(self)
+        self.nameval = startname
+        self.valueval = startval
+        self.rminval = startmin
+        self.rmax = startmax
+
+    def readValue(self):
+        return self.valueval
+
+    def setValue(self,val):
+        self.valueval = val
+        self.value_changed.emit()
+        print("setting value", val)
+
+    @Signal
+    def value_changed(self):
+        pass
+
+    value = Property(float, readValue, setValue, notify=value_changed)
+
+    def readName(self):
+        return self.nameval
+
+    def setName(self,val):
+        self.nameval = val
+        self.name_changed.emit()
+
+    @Signal
+    def name_changed(self):
+        pass
+
+    name = Property(str, readName, setName, notify=name_changed)
+
+    def readRMin(self):
+        return self.rminval
+
+    def setRMin(self,val):
+        self.rminval = val
+        self.rmin_changed.emit()
+
+    @Signal
+    def rmin_changed(self):
+        pass
+
+    rmin = Property(float, readRMin, setRMin, notify=rmin_changed)
+
+    def readRMax(self):
+        return self.rmaxval
+
+    def setRMax(self,val):
+        self.rmaxval = val
+        self.rmax_changed.emit()
+
+    @Signal
+    def rmax_changed(self):
+        pass
+
+    rmax = Property(float, readRMax, setRMax, notify=rmax_changed)
+
+
 class Knobs(QObject):
     """Output stuff on the console."""
+
+    def __init__(self):
+        QObject.__init__(self)
+        self.waitingval = ""
 
     @Slot(str, str, 'double')
     def ui_knob_change(self, effect_name, parameter, value):
         # print(x, y, z)
         if effect_name in pluginMap:
             host.set_parameter_value(pluginMap[effect_name], parameterMap[effect_name][parameter], value)
+            effect_parameter_data[effect_name][parameter].value = value
         else:
             print("effect not found")
 
@@ -148,10 +250,28 @@ class Knobs(QObject):
         is_active = not plugin_state[effect]
         set_active(effect, is_active)
 
-    @Slot(str, str, str)
-    def map_paramater_to_encoder(self, knob, effect_name, parameter):
-        set_knob_current_effect(knob, effect_name, parameter)
-        is_waiting_knob_mapping = ""
+    @Slot(str, str)
+    def map_parameter_to_encoder(self, effect_name, parameter):
+        set_knob_current_effect(self.waiting, effect_name, parameter)
+        self.waiting = ""
+
+    @Slot(str)
+    def set_waiting(self, knob):
+        print("waiting", knob)
+        self.waiting = knob
+
+    def readWaiting(self):
+        return self.waitingval
+
+    def setWaiting(self,val):
+        self.waitingval = val
+        self.waiting_changed.emit()
+
+    @Signal
+    def waiting_changed(self):
+        pass
+
+    waiting = Property(str, readWaiting, setWaiting, notify=waiting_changed)
 
 def engineCallback(host, action, pluginId, value1, value2, value3, valueStr):
     valueStr = charPtrToString(valueStr)
@@ -312,12 +432,28 @@ signal(SIGTERM, signalHandler)
 
 ###
 
+knob_map = {"left": PolyEncoder("delay1", "l_delay"), "right": PolyEncoder("delay1", "feedback")}
+
+effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1)},
+    "reverb": {"dry_wet": PolyValue("mix", 50, 0, 100), "roomsize": PolyValue("size", 0.5, 0, 1)},
+    "mixer": {"mixer_1_1": PolyValue("mixer 1,1", 0, 0, 1), "mixer_1_2": PolyValue("mixer 1,2", 0, 0, 1),
+        "mixer_1_3": PolyValue("mixer 1,3", 0, 0, 1),"mixer_1_4": PolyValue("mixer 1,4", 0, 0, 1),
+        "mixer_2_1": PolyValue("mixer 2,1", 0, 0, 1),"mixer_2_2": PolyValue("mixer 2,2", 0, 0, 1),
+        "mixer_2_3": PolyValue("mixer 2,3", 0, 0, 1),"mixer_2_4": PolyValue("mixer 2,4", 0, 0, 1),
+        "mixer_3_1": PolyValue("mixer 3,1", 0, 0, 1),"mixer_3_2": PolyValue("mixer 3,2", 0, 0, 1),
+        "mixer_3_3": PolyValue("mixer 3,3", 0, 0, 1),"mixer_3_4": PolyValue("mixer 3,4", 0, 0, 1),
+        "mixer_4_1": PolyValue("mixer 4,1", 0, 0, 1),"mixer_4_2": PolyValue("mixer 4,2", 0, 0, 1),
+        "mixer_4_3": PolyValue("mixer 4,3", 0, 0, 1),"mixer_4_4": PolyValue("mixer 4,4", 0, 0, 1)
+        },
+    "tape1": {"drive": PolyValue("drive", 5, 0, 10), "blend": PolyValue("tape vs tube", 10, -10, 10)},
+    "filter1": {"freq": PolyValue("cutoff", 440, 20, 15000, "log"), "res": PolyValue("resonance", 0, 0, 0.8)},
+    "sigmoid1": {"Pregain": PolyValue("pre gain", 0, -90, 20), "Postgain": PolyValue("post gain", 0, -90, 20)}
+    }
 
 app = QGuiApplication(sys.argv)
 QIcon.setThemeName("digit")
 # Instantiate the Python object.
 knobs = Knobs()
-is_waiting_knob_mapping = ""
 
 qmlEngine = QQmlApplicationEngine()
 # Expose the object to QML.
@@ -328,7 +464,9 @@ for k, v in available_port_models.items():
 for k, v in used_port_models.items():
     context.setContextProperty(k.replace(" ", "_").replace(":", "_")+"UsedPorts", v)
 context.setContextProperty("knobs", knobs)
-context.setContextProperty("is_waiting_knob_mapping", is_waiting_knob_mapping)
+context.setContextProperty("polyValues", effect_parameter_data)
+context.setContextProperty("knobMap", knob_map)
+
 
 # engine.load(QUrl("qrc:/qml/digit.qml"))
 qmlEngine.load(QUrl("qml/digit.qml"))
@@ -339,17 +477,6 @@ knobs_are_initial_mapped  = False
 ######### UI is setup
 
 
-effect_parameter_ranges = {"delay1": {"l_delay": (0,1), "feedback": (0, 1)},
-    "reverb": {"dry_wet": (0, 100), "roomsize": (0, 1)},
-    "mixer": {"mixer_1_1": (0,1),"mixer_1_2": (0,1),"mixer_1_3": (0,1),"mixer_1_4": (0,1),
-        "mixer_2_1": (0,1),"mixer_2_2": (0,1),"mixer_2_3": (0,1),"mixer_2_4": (0,1),
-        "mixer_3_1": (0,1),"mixer_3_2": (0,1),"mixer_3_3": (0,1),"mixer_3_4": (0,1),
-        "mixer_4_1": (0,1),"mixer_4_2": (0,1),"mixer_4_3": (0,1),"mixer_4_4": (0,1)
-        },
-    "tape1": {"drive": (0, 10), "blend": (-10, 10)},
-    "filter1": {"freq": (20, 15000, "log"), "res": (0, 0.8)},
-    "sigmoid1": {"Pregain": (-90, 20), "Postgain": (-90, 20)}
-    }
 
 def translate_range(value, leftMin, leftMax, rightMin, rightMax):
     # Figure out how 'wide' each range is
@@ -367,19 +494,22 @@ def map_ui_parameter_lv2_value(effect, parameter, in_min, in_max, value):
     # in_min / in_max are what the knob / ui generates
     #   from numpy import interp
     #  interp(256,[1,512],[5,10])
-    out_map = effect_parameter_ranges[effect][parameter]
-    return translate_range(value, in_min, in_max, out_map[0], out_map[1])
+    out_min = effect_parameter_data[effect][parameter].rmin
+    out_max = effect_parameter_data[effect][parameter].rmax
+    return translate_range(value, in_min, in_max, out_min, out_max)
 
 def map_lv2_value_to_ui_knob(effect, parameter, in_min, in_max, value):
     # map UI or hardware range to effect range
     # in_min / in_max are what the knob / ui generates
-    out_map = effect_parameter_ranges[effect][parameter]
-    return translate_range(value, out_map[0], out_map[1], in_min, in_max)
+    out_min = effect_parameter_data[effect][parameter].rmin
+    out_max = effect_parameter_data[effect][parameter].rmax
+    return translate_range(value, out_min, out_max, in_min, in_max)
 
 def set_knob_current_effect(knob, effect, parameter):
     # get current value and update encoder / cache.
-    knob_map[knob] = (effect, parameter)
-    value = 0 # FIXME
+    knob_map[knob].effect = effect
+    knob_map[knob].parameter = parameter
+    value = effect_parameter_data[effect][parameter].value
     mapped_value = map_lv2_value_to_ui_knob(effect, parameter, 0, pedal_hardware.KNOB_MAX, value)
     pedal_hardware.set_encoder_value(knob, mapped_value)
     knob_value_cache[knob] = mapped_value
@@ -387,8 +517,8 @@ def set_knob_current_effect(knob, effect, parameter):
 def check_encoder_change():
     for knob in ["left", "right"]:
         cur_value = 0
-        knob_effect = knob_map[knob][0]
-        knob_parameter = knob_map[knob][1]
+        knob_effect = knob_map[knob].effect
+        knob_parameter = knob_map[knob].parameter
         cur_value = pedal_hardware.get_encoder(knob)
         if cur_value != knob_value_cache[knob]:
             mapped_value = map_ui_parameter_lv2_value(knob_effect, knob_parameter, 0, pedal_hardware.KNOB_MAX, cur_value)

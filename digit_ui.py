@@ -1,7 +1,7 @@
 import sys
 # import random
 from PySide2.QtGui import QGuiApplication
-from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel
+from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer
 from PySide2.QtQml import QQmlApplicationEngine
 from PySide2.QtGui import QIcon
 # compiled QML files, compile with pyside2-rcc
@@ -20,6 +20,7 @@ class Knobs(QObject):
 
     @Slot(str, str, 'double')
     def ui_knob_change(self, x, y, z):
+        obj["delay1"].value = z
         print(x, y, z)
 
     @Slot(str)
@@ -41,8 +42,84 @@ class Knobs(QObject):
     def toggle_enabled(self, x):
         print(x)
 
+
+class PolyValue(QObject):
+    # name, min, max, value
+    def __init__(self, startname="", startval=0, startmin=0, startmax=1, curve_type="lin"):
+        QObject.__init__(self)
+        self.nameval = startname
+        self.valueval = startval
+        self.rminval = startmin
+        self.rmax = startmax
+
+    def readValue(self):
+        return self.valueval
+
+    def setValue(self,val):
+        self.valueval = val
+        self.value_changed.emit()
+        print("setting value", val)
+
+    @Signal
+    def value_changed(self):
+        pass
+
+    value = Property(int, readValue, setValue, notify=value_changed)
+
+    def readName(self):
+        return self.nameval
+
+    def setName(self,val):
+        self.nameval = val
+        self.name_changed.emit()
+
+    @Signal
+    def name_changed(self):
+        pass
+
+    name = Property(str, readName, setName, notify=name_changed)
+
+    def readRMin(self):
+        return self.rminval
+
+    def setRMin(self,val):
+        self.rminval = val
+        self.rmin_changed.emit()
+
+    @Signal
+    def rmin_changed(self):
+        pass
+
+    rmin = Property(int, readRMin, setRMin, notify=rmin_changed)
+
+    def readRMax(self):
+        return self.rmaxval
+
+    def setRMax(self,val):
+        self.rmaxval = val
+        self.rmax_changed.emit()
+
+    @Signal
+    def rmax_changed(self):
+        pass
+
+    rmax = Property(int, readRMax, setRMax, notify=rmax_changed)
+
+obj = {"delay1": PolyValue()}
+obj["delay1"].value = 47
+
+print(obj["delay1"].value)
+
 model = QStringListModel()
 model2 = QStringListModel()
+
+def tick():
+    print("tick")
+    if obj["delay1"].value < 100:
+        obj["delay1"].value += 1
+    else:
+        obj["delay1"].value = 0
+
 if __name__ == "__main__":
 
     app = QGuiApplication(sys.argv)
@@ -61,8 +138,14 @@ if __name__ == "__main__":
     # Expose the object to QML.
     context = engine.rootContext()
     context.setContextProperty("knobs", knobs)
+    context.setContextProperty("param_vals", obj)
     context.setContextProperty("delay1_Left_Out_AvailablePorts", model)
     context.setContextProperty("delay1_Left_Out_UsedPorts", model2)
     # engine.load(QUrl("qrc:/qml/digit.qml"))
     engine.load(QUrl("qml/digit.qml"))
+
+    timer = QTimer()
+    timer.timeout.connect(tick)
+    timer.start(1000)
+
     app.exec_()

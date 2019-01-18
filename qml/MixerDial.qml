@@ -16,21 +16,23 @@ Dial {
         anchors.centerIn: parent
     }
     onMoved: {
-        knobs.ui_knob_change(effect, param, control.value)
+        if (pressed === true)
+        {
+            knobs.ui_knob_change(effect, param, control.value)
+        }
     }
-    // TapHandler {
-    //     onTapped: {
-    //         // if we're in set control mode, then set this control
-    //         // python variable in qml context
-    //         if (is_waiting_knob_mapping != "") // left or right
-    //         {
-    //             map_parameter_to_encoder(is_waiting_knob_mapping, effect, param)    
-    //             console.warn("set knob mapping")
-    //         }
-    //     }
-    // }
+    onPressedChanged: {
+        // console.warn("set knob mapping")
+        // if we're in set control mode, then set this control
+        // python variable in qml context
+        if (knobs.waiting != "") // left or right
+        {
+            knobs.map_parameter_to_encoder(effect, param)    
+            console.warn("set knob mapping")
+        }
+    }
     Layout.minimumHeight: 64
-    value: 0
+    value: polyValues[effect][param].value
     Layout.minimumWidth: 64
     Layout.maximumHeight: 128
     Layout.fillHeight: true
