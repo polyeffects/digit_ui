@@ -14,7 +14,7 @@
 # client = JackClient()
 # sys_effect = SystemEffect('system', ['capture_1', 'capture_2', "capture_3, capture_4"],
 #         ['playback_1', 'playback_2', 'playback_3', 'playback_4'])
-import sys
+import sys, time
 from collections import defaultdict
 ##### Hardware backend
 # --------------------------------------------------------------------------------------------------------
@@ -459,6 +459,7 @@ app = QGuiApplication(sys.argv)
 QIcon.setThemeName("digit")
 # Instantiate the Python object.
 knobs = Knobs()
+current_bpm = PolyValue("BPM", 120, 30, 250) # bit of a hack
 
 qmlEngine = QQmlApplicationEngine()
 # Expose the object to QML.
@@ -471,6 +472,7 @@ for k, v in used_port_models.items():
 context.setContextProperty("knobs", knobs)
 context.setContextProperty("polyValues", effect_parameter_data)
 context.setContextProperty("knobMap", knob_map)
+context.setContextProperty("currentBPM", current_bpm)
 
 
 # engine.load(QUrl("qrc:/qml/digit.qml"))
@@ -533,6 +535,27 @@ def check_encoder_change():
             # knob_mapping[knob](cur_value)
             knob_value_cache[knob] = cur_value
 
+start_tap_time = None
+## tap callback is called by hardware button from the GPIO checking thread
+def handle_tap():
+    global start_tap_time
+    current_tap = time.perf_counter()
+    if start_tap_time is not None:
+        # just use this and previous to calculate BPM
+        # BPM must be in range 30-250
+        d = current_tap - start_tap_time
+        # 120 bpm, 0.5 seconds per tap
+        bpm = 60 / d
+        if bpm > 30 and bpm < 250:
+            # set host BPM
+            host.transport_bpm(bpm)
+            print("setting tempo", bpm)
+            current_bpm.value = bpm
+
+    # record start time
+    start_tap_time = current_tap
+
+pedal_hardware.tap_callback = handle_tap
 
 while host.is_engine_running() and not gCarla.term:
     # print("engine is idle")

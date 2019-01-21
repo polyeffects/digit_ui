@@ -112,16 +112,17 @@ def footswitch_just_down(footswitch):
         print('tap event on', footswitch)
     return footswitch_is_down[footswitch]
 
-@debounce(0.1) #debounce to call event only after stable for 0.1s
+@debounce(0.01) #debounce to call event only after stable for 0.01s
 def tap(gpio):
     if footswitch_just_down("left"):
+        print('calling tap')
         tap_callback()
 
-@debounce(0.1) #debounce to call event only after stable for 0.1s
+@debounce(0.01)
 def toggle_reverb(gpio):
     footswitch_just_down("center")
 
-@debounce(0.1) #debounce to call event only after stable for 0.1s
+@debounce(0.01)
 def toggle_delay(gpio):
     footswitch_just_down("right")
 

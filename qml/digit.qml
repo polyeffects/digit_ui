@@ -964,17 +964,32 @@ ApplicationWindow {
 
         GlowingLabel {
 			SequentialAnimation on color {
-				loops: Animation.Infinite
-				ColorAnimation { to: "white"; duration: 1000}
-				ColorAnimation { to: "green"; duration: 1000}
+                id: anim
+				// loops: Animation.Infinite
+                ColorAnimation { to: "white"; 
+                    duration: (60.0 / currentBPM.value) * 500.0
+                    // onDurationChanged: {
+                    //     anim.restart()
+                    // }
+                }
+                ColorAnimation { to: "green"; 
+                    duration: (60.0 / currentBPM.value) * 500.0
+                    // onDurationChanged: {
+                    //     anim.restart()
+                    // }
+                }
+                onStopped: { anim.restart (); }
 			}
+            // onTextChanged: {
+            //     anim.restart()
+            // }
 
             x: 650
             y: -6
             width: 145
             height: 35
             color: "#ffffff"
-            text: qsTr("115 BPM")
+            text: currentBPM.value.toFixed(0) + " BPM"
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 0
             horizontalAlignment: Text.AlignRight
