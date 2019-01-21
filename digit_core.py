@@ -1,3 +1,6 @@
+##################### DIGIT #######
+##################### DIGIT #######
+##################### DIGIT #######
 # 26 total effect slots? 
 # delay 1-4
 # reverb
@@ -65,6 +68,7 @@ output_port_names = {"Out 1": ("system", "playback_1"),
     "Out 3": ("system", "playback_3"),
     "Out 4": ("system", "playback_4"),
     "Delay 1 In": ("delay1", "Left In"),
+    "Cab": ("cab", "in"),
     "Reverb L": ("reverb", "In"),
     "Reverb R": ("reverb", "In1")
     }
@@ -81,7 +85,7 @@ parameterMap = {}
 current_connections = {} # these are group port group port to connection id pairs #TODO remove stale
 
 # --------------------------------------------------------------------------------------------------------
-source_ports = ["delay1:Left Out", "reverb:Out", "reverb:Out1", "system:capture_1", "system:capture_2", "system:capture_3", "system:capture_4"]
+source_ports = ["delay1:Left Out", "reverb:Out", "reverb:Out1", "system:capture_1", "system:capture_2", "system:capture_3", "system:capture_4", "cab:Out"]
 available_port_models = dict({(k, QStringListModel()) for k in source_ports})
 used_port_models = dict({(k, QStringListModel()) for k in available_port_models.keys()})
 # XXX temp, until I fix bypassing
@@ -419,6 +423,7 @@ host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "filter1", "http://drobilla.net
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "sigmoid1", "http://moddevices.com/plugins/tap/sigmoid", 0, None, 0)
 # bitcrusher 
 # eq 
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "cab", "http://guitarix.sourceforge.net/plugins/gx_cabinet#CABINET", 0, None, 0)
 
 signal(SIGINT,  signalHandler)
 signal(SIGTERM, signalHandler)
@@ -447,7 +452,9 @@ effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "fe
         },
     "tape1": {"drive": PolyValue("drive", 5, 0, 10), "blend": PolyValue("tape vs tube", 10, -10, 10)},
     "filter1": {"freq": PolyValue("cutoff", 440, 20, 15000, "log"), "res": PolyValue("resonance", 0, 0, 0.8)},
-    "sigmoid1": {"Pregain": PolyValue("pre gain", 0, -90, 20), "Postgain": PolyValue("post gain", 0, -90, 20)}
+    "sigmoid1": {"Pregain": PolyValue("pre gain", 0, -90, 20), "Postgain": PolyValue("post gain", 0, -90, 20)},
+    "cab": {"CBass": PolyValue("bass", 0, -10, 10), "CTreble": PolyValue("treble", 0, -10, 10),
+        "c_model": PolyValue("Cab Model", 0, 0, 18)}
     }
 
 app = QGuiApplication(sys.argv)

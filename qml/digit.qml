@@ -330,9 +330,8 @@ ApplicationWindow {
                 z: -1
 
                 StackLayout {
-                    id: reverbStack
                     anchors.fill: parent
-                    currentIndex: reverbTabs.currentIndex
+                    currentIndex: cabTabs.currentIndex
 
 
                     PolyFrame {
@@ -739,20 +738,113 @@ ApplicationWindow {
 
             PolyFrame {
                 id: cabFrame
-                width: 800
-                height: 480
-                anchors.rightMargin: 0
-                anchors.bottomMargin: 0
-                anchors.leftMargin: 0
-                anchors.topMargin: 0
-                contentHeight: 480
-                contentWidth: 800
-                Label {
-                    color: "#ffffff"
-                    text: qsTr("CAB")
-                    z: 1
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                z: -1
+
+                StackLayout {
                     anchors.fill: parent
-                    font.pixelSize: fontSizeMedium * 5
+                    currentIndex: cabTabs.currentIndex
+
+
+                    PolyFrame {
+                        width: 800
+                        height: 480
+                        z: -1
+
+
+                        // ColumnLayout {
+                        //     x: 191
+                        //     y: 66
+                        //     Layout.fillHeight: true
+                        //     Layout.fillWidth: true
+
+                        //     Image {
+                        //         x: 0
+                        //         Layout.fillHeight: false
+                        //         source: "qrc:/icons/reverb_cube.png"
+                        //         fillMode: Image.PreserveAspectFit
+                        //     }
+                        //     Layout.preferredWidth: 350
+                        // }
+
+
+                        Column {
+                            id: column1
+                            x: 625
+                            y: 66
+                            width: 102
+                            height: 271
+                            spacing: 10
+                            GlowingLabel {
+                                color: "#ffffff"
+                                text: qsTr("TREBLE")
+                                font.pixelSize: fontSizeMedium
+                            }
+
+                            MixerDial {
+                                effect: "cab"
+                                param: "CTreble"
+                                value: polyValues.cab.treble.value
+                                from: -10
+                                to: 10
+                                width: 100
+                                height: 100
+                            }
+
+                            GlowingLabel {
+                                color: "#ffffff"
+                                text: qsTr("BASS")
+                                font.pixelSize: fontSizeMedium
+                            }
+
+                            MixerDial {
+                                effect: "cab"
+                                param: "CBass"
+                                value: polyValues.cab.bass.value
+                                from: -10
+                                to: 10
+                                width: 100
+                                height: 100
+                            }
+                        }
+                    }
+
+                    PolyFrame {
+                        width: 800
+                        height: 480
+
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        height: parent.height
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: parent.width
+                        PolyBus {
+                            availablePorts: cab_OutAvailablePorts
+                            usedPorts: cab_OutUsedPorts
+                            effect: "cab"
+                            sourcePort: "Out"
+                        }
+                        z: -1
+                    }
+                }
+
+                TabBar {
+                    id: cabTabs
+                    width: 376
+                    height: 38
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 0
+                    TabButton {
+                        id: tabButton4
+                        text: qsTr("MAIN")
+                    }
+
+                    TabButton {
+                        id: tabButton6
+                        text: qsTr("BUS")
+                    }
                 }
             }
 
