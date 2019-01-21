@@ -749,7 +749,8 @@ ApplicationWindow {
 
                     PolyFrame {
                         width: 800
-                        height: 480
+                        // height: 480
+                        height: 439
                         z: -1
 
 
@@ -770,7 +771,6 @@ ApplicationWindow {
 
 
                         Column {
-                            id: column1
                             x: 625
                             y: 66
                             width: 102
@@ -785,7 +785,7 @@ ApplicationWindow {
                             MixerDial {
                                 effect: "cab"
                                 param: "CTreble"
-                                value: polyValues.cab.treble.value
+                                value: polyValues.cab.CTreble.value
                                 from: -10
                                 to: 10
                                 width: 100
@@ -801,7 +801,7 @@ ApplicationWindow {
                             MixerDial {
                                 effect: "cab"
                                 param: "CBass"
-                                value: polyValues.cab.bass.value
+                                value: polyValues.cab.CBass.value
                                 from: -10
                                 to: 10
                                 width: 100
@@ -812,14 +812,14 @@ ApplicationWindow {
 
                     PolyFrame {
                         width: 800
-                        height: 480
+                        height: 439
 
                         anchors.left: parent.left
                         anchors.right: parent.right
-                        height: parent.height
+                        // height: parent.height
                         anchors.top: parent.top
                         anchors.bottom: parent.bottom
-                        width: parent.width
+                        // width: parent.width
                         PolyBus {
                             availablePorts: cab_OutAvailablePorts
                             usedPorts: cab_OutUsedPorts
@@ -837,12 +837,10 @@ ApplicationWindow {
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 0
                     TabButton {
-                        id: tabButton4
                         text: qsTr("MAIN")
                     }
 
                     TabButton {
-                        id: tabButton6
                         text: qsTr("BUS")
                     }
                 }

@@ -441,14 +441,14 @@ knob_map = {"left": PolyEncoder("delay1", "l_delay"), "right": PolyEncoder("dela
 
 effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1)},
     "reverb": {"dry_wet": PolyValue("mix", 50, 0, 100), "roomsize": PolyValue("size", 0.5, 0, 1)},
-    "mixer": {"mixer_1_1": PolyValue("mixer 1,1", 0, 0, 1), "mixer_1_2": PolyValue("mixer 1,2", 0, 0, 1),
-        "mixer_1_3": PolyValue("mixer 1,3", 0, 0, 1),"mixer_1_4": PolyValue("mixer 1,4", 0, 0, 1),
-        "mixer_2_1": PolyValue("mixer 2,1", 0, 0, 1),"mixer_2_2": PolyValue("mixer 2,2", 0, 0, 1),
-        "mixer_2_3": PolyValue("mixer 2,3", 0, 0, 1),"mixer_2_4": PolyValue("mixer 2,4", 0, 0, 1),
-        "mixer_3_1": PolyValue("mixer 3,1", 0, 0, 1),"mixer_3_2": PolyValue("mixer 3,2", 0, 0, 1),
-        "mixer_3_3": PolyValue("mixer 3,3", 0, 0, 1),"mixer_3_4": PolyValue("mixer 3,4", 0, 0, 1),
-        "mixer_4_1": PolyValue("mixer 4,1", 0, 0, 1),"mixer_4_2": PolyValue("mixer 4,2", 0, 0, 1),
-        "mixer_4_3": PolyValue("mixer 4,3", 0, 0, 1),"mixer_4_4": PolyValue("mixer 4,4", 0, 0, 1)
+    "mixer": {"mixr_1_1": PolyValue("mix 1,1", 0, 0, 1), "mix_1_2": PolyValue("mix 1,2", 0, 0, 1),
+        "mix_1_3": PolyValue("mix 1,3", 0, 0, 1),"mix_1_4": PolyValue("mix 1,4", 0, 0, 1),
+        "mix_2_1": PolyValue("mix 2,1", 0, 0, 1),"mix_2_2": PolyValue("mix 2,2", 0, 0, 1),
+        "mix_2_3": PolyValue("mix 2,3", 0, 0, 1),"mix_2_4": PolyValue("mix 2,4", 0, 0, 1),
+        "mix_3_1": PolyValue("mix 3,1", 0, 0, 1),"mix_3_2": PolyValue("mix 3,2", 0, 0, 1),
+        "mix_3_3": PolyValue("mix 3,3", 0, 0, 1),"mix_3_4": PolyValue("mix 3,4", 0, 0, 1),
+        "mix_4_1": PolyValue("mix 4,1", 0, 0, 1),"mix_4_2": PolyValue("mix 4,2", 0, 0, 1),
+        "mix_4_3": PolyValue("mix 4,3", 0, 0, 1),"mix_4_4": PolyValue("mix 4,4", 0, 0, 1)
         },
     "tape1": {"drive": PolyValue("drive", 5, 0, 10), "blend": PolyValue("tape vs tube", 10, -10, 10)},
     "filter1": {"freq": PolyValue("cutoff", 440, 20, 15000, "log"), "res": PolyValue("resonance", 0, 0, 0.8)},
