@@ -169,13 +169,16 @@ ApplicationWindow {
                                         from: -10
                                         to: 10
                                     }
-                                    SwitchDelegate {
+                                    Switch {
                                         text: qsTr("ENABLED")
                                         bottomPadding: 0
                                         Layout.fillWidth: true
                                         leftPadding: 0
                                         topPadding: 0
                                         rightPadding: 0
+                                        onClicked: {
+                                            knobs.toggle_enabled("tape1")
+                                        }
                                     }
                                     spacing: 35
                                 }
@@ -217,8 +220,11 @@ ApplicationWindow {
                                         from: 0
                                         to: 0.8
                                     }
-                                    SwitchDelegate {
+                                    Switch {
                                         text: qsTr("ENABLED")
+                                        onClicked: {
+                                            knobs.toggle_enabled("filter1")
+                                        }
                                         bottomPadding: 0
                                         Layout.fillWidth: true
                                         leftPadding: 0
@@ -265,8 +271,11 @@ ApplicationWindow {
                                         from: -90
                                         to: 20
                                     }
-                                    SwitchDelegate {
+                                    Switch {
                                         text: qsTr("ENABLED")
+                                        onClicked: {
+                                            knobs.toggle_enabled("sigmoid1")
+                                        }
                                         bottomPadding: 0
                                         Layout.fillWidth: true
                                         leftPadding: 0
@@ -289,10 +298,14 @@ ApplicationWindow {
                             id: polyBus
                             width: 800
                             height: 394
-                            availablePorts: delay1_Left_OutAvailablePorts
-                            usedPorts: delay1_Left_OutUsedPorts
-                            effect: "delay1"
-                            sourcePort: "Left Out"
+                            availablePorts: sigmoid1_OutputAvailablePorts
+                            usedPorts: sigmoid1_OutputUsedPorts
+                            effect: "sigmoid1"
+                            sourcePort: "Output"
+                            // availablePorts: delay1_Left_OutAvailablePorts
+                            // usedPorts: delay1_Left_OutUsedPorts
+                            // effect: "delay1"
+                            // sourcePort: "Left Out"
                         }
                     }
                 }

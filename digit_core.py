@@ -53,7 +53,6 @@ def signalHandler(sig, frame):
 pedal_hardware.add_hardware_listeners()
 # --------------------------------------------------------------------------------------------------------
 # Poly Globals
-effects = IntEnum("Effects", "delay1 reverb mixer cab")
 # default connections, in 1, delay 1, in 1 to cab 1
 # delay 1 to reverb 1
 # reverb 1 to cab 1
@@ -72,7 +71,6 @@ output_port_names = {"Out 1": ("system", "playback_1"),
     "Reverb L": ("reverb", "In"),
     "Reverb R": ("reverb", "In1")
     }
-default_source = {"delay1": "Left Out", "reverb": "Out" }
 # inv_source_port_names = dict({(v, k) for k,v in source_port_names.items()})
 inv_output_port_names = dict({(v, k) for k,v in output_port_names.items()})
 
@@ -85,7 +83,7 @@ parameterMap = {}
 current_connections = {} # these are group port group port to connection id pairs #TODO remove stale
 
 # --------------------------------------------------------------------------------------------------------
-source_ports = ["delay1:Left Out", "reverb:Out", "reverb:Out1", "system:capture_1", "system:capture_2", "system:capture_3", "system:capture_4", "cab:Out"]
+source_ports = ["sigmoid1:Output", "reverb:Out", "reverb:Out1", "system:capture_1", "system:capture_2", "system:capture_3", "system:capture_4", "cab:Out"]
 available_port_models = dict({(k, QStringListModel()) for k in source_ports})
 used_port_models = dict({(k, QStringListModel()) for k in available_port_models.keys()})
 # XXX temp, until I fix bypassing
@@ -479,6 +477,7 @@ context.setContextProperty("knobMap", knob_map)
 qmlEngine.load(QUrl("qml/digit.qml"))
 
 mixer_is_connected = False
+effects_are_connected = False
 knobs_are_initial_mapped  = False
 
 ######### UI is setup
@@ -534,6 +533,7 @@ def check_encoder_change():
             # knob_mapping[knob](cur_value)
             knob_value_cache[knob] = cur_value
 
+
 while host.is_engine_running() and not gCarla.term:
     # print("engine is idle")
     host.engine_idle()
@@ -559,6 +559,21 @@ while host.is_engine_running() and not gCarla.term:
                     portMap["mixer"]["group"],
                     portMap["mixer"]["ports"][output_port])
         mixer_is_connected = True
+    if (not effects_are_connected) and "sigmoid1" in portMap:
+        for source_pair, output_pair in [(("delay1", "Left Out"), ("tape1","Input")),
+                (("tape1", "Output"), ("filter1", "Input")),
+                (("filter1", "Output"), ("sigmoid1", "Input"))]:
+            source_effect, source_port = source_pair
+            output_effect, output_port = output_pair
+            host.patchbay_connect(portMap[source_effect]["group"],
+                    portMap[source_effect]["ports"][source_port],
+                    portMap[output_effect]["group"],
+                    portMap[output_effect]["ports"][output_port])
+        for effect in ["tape1", "filter1", "sigmoid1"]:
+            # set to all dry at start
+            set_active(effect, False)
+        effects_are_connected = True
+
     if (not knobs_are_initial_mapped):
         if "delay1" in portMap:
             set_knob_current_effect("left", "delay1", "l_delay")

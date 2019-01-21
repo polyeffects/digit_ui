@@ -17,6 +17,7 @@ GPIO.setup("P9_14", GPIO.IN)
 GPIO.setup("P9_16", GPIO.IN)
 
 footswitch_is_down = defaultdict(bool)
+tap_callback = None
 
 def effect_on(t=0.001):
     global is_on
@@ -113,7 +114,8 @@ def footswitch_just_down(footswitch):
 
 @debounce(0.1) #debounce to call event only after stable for 0.1s
 def tap(gpio):
-    footswitch_just_down("left")
+    if footswitch_just_down("left"):
+        tap_callback()
 
 @debounce(0.1) #debounce to call event only after stable for 0.1s
 def toggle_reverb(gpio):
