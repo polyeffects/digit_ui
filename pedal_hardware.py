@@ -18,6 +18,8 @@ GPIO.setup("P9_16", GPIO.IN)
 
 footswitch_is_down = defaultdict(bool)
 tap_callback = None
+next_callback = None
+bypass_callback = None
 
 def effect_on(t=0.001):
     global is_on
@@ -120,16 +122,19 @@ def tap(gpio):
 
 @debounce(0.01)
 def toggle_reverb(gpio):
-    footswitch_just_down("center")
+    if footswitch_just_down("center"):
+        next_callback()
 
 @debounce(0.01)
 def toggle_delay(gpio):
-    footswitch_just_down("right")
+    if footswitch_just_down("right"):
+        bypass_callback()
+
 
 def add_hardware_listeners():
     GPIO.add_event_detect("P9_12", GPIO.RISING, tap)
-    GPIO.add_event_detect("P9_14", GPIO.RISING, toggle_reverb)
-    GPIO.add_event_detect("P9_16", GPIO.RISING, toggle_delay)
+    GPIO.add_event_detect("P9_14", GPIO.RISING, toggle_delay)
+    GPIO.add_event_detect("P9_16", GPIO.RISING, toggle_reverb)
 
 
         # # check if switches or pots have changed

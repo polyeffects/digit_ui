@@ -87,7 +87,6 @@ source_ports = ["sigmoid1:Output", "reverb:Out", "reverb:Out1", "system:capture_
 available_port_models = dict({(k, QStringListModel()) for k in source_ports})
 used_port_models = dict({(k, QStringListModel()) for k in available_port_models.keys()})
 # XXX temp, until I fix bypassing
-plugin_state = defaultdict(bool)
 knob_value_cache = defaultdict(int)
 
 
@@ -103,7 +102,7 @@ def remove_row(model, row):
 def set_active(effect, is_active):
     print(effect, " active state is ", bool(is_active))
     host.set_drywet(pluginMap[effect], is_active) # full wet if active else full dry
-    plugin_state[effect] = is_active
+    plugin_state[effect].value = is_active
 
 class PolyEncoder(QObject):
     # name, min, max, value
@@ -138,7 +137,24 @@ class PolyEncoder(QObject):
 
     parameter = Property(str, readParameter, setParameter, notify=parameter_changed)
 
+class PolyBool(QObject):
+    # name, min, max, value
+    def __init__(self, startval=False):
+        QObject.__init__(self)
+        self.valueval = startval
 
+    def readValue(self):
+        return self.valueval
+
+    def setValue(self,val):
+        self.valueval = val
+        self.value_changed.emit()
+
+    @Signal
+    def value_changed(self):
+        pass
+
+    value = Property(bool, readValue, setValue, notify=value_changed)
 
 class PolyValue(QObject):
     # name, min, max, value
@@ -202,6 +218,44 @@ class PolyValue(QObject):
 
     rmax = Property(float, readRMax, setRMax, notify=rmax_changed)
 
+def time_to_tempo_text(v):
+    if v >= 1:
+        return (1, "1")
+    elif v > 0.75:
+        return (0.75, "1/2.")
+    elif v > 0.5:
+        return (0.5, "1/2")
+    elif v > 0.33:
+        return (0.33, "1/2t")
+    elif v > 0.25:
+        return (0.25, "1/4")
+    elif v > 0.125:
+        return (0.125, "1/8")
+    elif v > 1/16.0:
+        return (1/16.0, "1/16")
+    elif v > 1/32.0:
+        return (1/32.0, "1/32")
+    else: #hif v > 1/64.0:
+        return (1/64.0, "1/64")
+    # lv2:scalePoint [rdfs:label "Dotted1/2note"; rdf:value 1];
+    # lv2:scalePoint [rdfs:label "1/2note"; rdf:value 2];
+    # lv2:scalePoint [rdfs:label "1/2notetriplets"; rdf:value 3];
+    # lv2:scalePoint [rdfs:label "Dotted1/4note"; rdf:value 4];
+    # lv2:scalePoint [rdfs:label "1/4note"; rdf:value 5];
+    # lv2:scalePoint [rdfs:label "1/4notetriplets"; rdf:value 6];
+    # lv2:scalePoint [rdfs:label "Dotted1/8note"; rdf:value 7];
+    # lv2:scalePoint [rdfs:label "1/8note"; rdf:value 8];
+    # lv2:scalePoint [rdfs:label "1/8notetriplets"; rdf:value 9];
+    # lv2:scalePoint [rdfs:label "Dotted1/16note"; rdf:value 10];
+    # lv2:scalePoint [rdfs:label "1/16note"; rdf:value 11];
+    # lv2:scalePoint [rdfs:label "1/16notetriplets"; rdf:value 12];
+    # lv2:scalePoint [rdfs:label "Dotted1/32note"; rdf:value 13];
+    # lv2:scalePoint [rdfs:label "1/32note"; rdf:value 14];
+    # lv2:scalePoint [rdfs:label "1/32notetriplets"; rdf:value 15];
+    # lv2:scalePoint [rdfs:label "Dotted1/64note"; rdf:value 16];
+    # lv2:scalePoint [rdfs:label "1/64note"; rdf:value 17];
+    # lv2:scalePoint [rdfs:label "1/64notetriplets"; rdf:value 18];
+
 
 class Knobs(QObject):
     """Output stuff on the console."""
@@ -214,8 +268,19 @@ class Knobs(QObject):
     def ui_knob_change(self, effect_name, parameter, value):
         # print(x, y, z)
         if effect_name in pluginMap:
-            host.set_parameter_value(pluginMap[effect_name], parameterMap[effect_name][parameter], value)
             effect_parameter_data[effect_name][parameter].value = value
+            if effect_name in tempo_synced and tempo_synced[effect_name].value == True and \
+                    parameter == "l_delay": ## FIXME
+                rounded_value, tempo_text = time_to_tempo_text(value)
+                tempo_synced[effect_name].name  = tempo_text
+                host.set_parameter_value(pluginMap[effect_name],
+                        parameterMap[effect_name][parameter], (60 / current_bpm.value) * rounded_value)
+            else:
+                if parameter == "carla_level":
+                    host.set_volume(pluginMap[effect_name], value)
+                else:
+                    host.set_parameter_value(pluginMap[effect_name],
+                            parameterMap[effect_name][parameter], value)
         else:
             print("effect not found")
 
@@ -249,8 +314,13 @@ class Knobs(QObject):
         print("toggling", effect)
         # host.set_active(pluginMap[effect], not bool(host.get_internal_parameter_value(pluginMap[effect], PARAMETER_ACTIVE)))
         # active = host.get_internal_parameter_value(pluginMap[effect], PARAMETER_ACTIVE))
-        is_active = not plugin_state[effect]
+        is_active = not plugin_state[effect].value
         set_active(effect, is_active)
+
+    @Slot(str)
+    def toggle_synced(self, effect):
+        print("toggling sync", effect)
+        tempo_synced[effect].value = not tempo_synced[effect].value
 
     @Slot(str, str)
     def map_parameter_to_encoder(self, effect_name, parameter):
@@ -437,9 +507,9 @@ signal(SIGTERM, signalHandler)
 
 knob_map = {"left": PolyEncoder("delay1", "l_delay"), "right": PolyEncoder("delay1", "feedback")}
 
-effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1)},
-    "reverb": {"dry_wet": PolyValue("mix", 50, 0, 100), "roomsize": PolyValue("size", 0.5, 0, 1)},
-    "mixer": {"mixr_1_1": PolyValue("mix 1,1", 0, 0, 1), "mix_1_2": PolyValue("mix 1,2", 0, 0, 1),
+effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1), "carla_level": PolyValue("level", 1, 0, 1)},
+    "reverb": {"dry_wet": PolyValue("mix", 50, 0, 100), "roomsize": PolyValue("size", 0.5, 0, 1), "carla_level": PolyValue("level", 1, 0, 1)},
+    "mixer": {"mix_1_1": PolyValue("mix 1,1", 0, 0, 1), "mix_1_2": PolyValue("mix 1,2", 0, 0, 1),
         "mix_1_3": PolyValue("mix 1,3", 0, 0, 1),"mix_1_4": PolyValue("mix 1,4", 0, 0, 1),
         "mix_2_1": PolyValue("mix 2,1", 0, 0, 1),"mix_2_2": PolyValue("mix 2,2", 0, 0, 1),
         "mix_2_3": PolyValue("mix 2,3", 0, 0, 1),"mix_2_4": PolyValue("mix 2,4", 0, 0, 1),
@@ -455,11 +525,17 @@ effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "fe
         "c_model": PolyValue("Cab Model", 0, 0, 18)}
     }
 
+tempo_synced = {"delay1": PolyValue("1/4", 0, 0, 1)}
+all_effects = [("delay1", True), ("reverb", True), ("mixer", True), ("tape1", False), ("filter1", False), ("sigmoid1", False), ("cab", True)]
+plugin_state = dict({(k, PolyBool(initial)) for k, initial in all_effects})
+plugin_state["global"] = PolyBool(True)
+
 app = QGuiApplication(sys.argv)
 QIcon.setThemeName("digit")
 # Instantiate the Python object.
 knobs = Knobs()
 current_bpm = PolyValue("BPM", 120, 30, 250) # bit of a hack
+global_bypass = PolyValue("BPM", 120, 30, 250) # bit of a hack
 
 qmlEngine = QQmlApplicationEngine()
 # Expose the object to QML.
@@ -473,6 +549,8 @@ context.setContextProperty("knobs", knobs)
 context.setContextProperty("polyValues", effect_parameter_data)
 context.setContextProperty("knobMap", knob_map)
 context.setContextProperty("currentBPM", current_bpm)
+context.setContextProperty("tempoSynced", tempo_synced)
+context.setContextProperty("pluginState", plugin_state)
 
 
 # engine.load(QUrl("qrc:/qml/digit.qml"))
@@ -552,10 +630,34 @@ def handle_tap():
             print("setting tempo", bpm)
             current_bpm.value = bpm
 
+            for effect_name, parameter in [("delay1", "l_delay")]:
+                if effect_name in tempo_synced and tempo_synced[effect_name].value == True and \
+                        parameter == "l_delay": ## FIXME
+
+                    value = effect_parameter_data[effect_name][parameter].value
+                    rounded_value = time_to_tempo_text(value)[0]
+                    host.set_parameter_value(pluginMap[effect_name],
+                            parameterMap[effect_name][parameter], (60 / current_bpm.value) * rounded_value)
+
     # record start time
     start_tap_time = current_tap
 
+def handle_next():
+    # disable delay
+    # plugin_state["global"].value = not plugin_state["global"].value
+    knobs.toggle_enabled("delay1")
+
+def handle_bypass():
+    # global bypass
+    plugin_state["global"].value = not plugin_state["global"].value
+    if plugin_state["global"].value:
+        pedal_hardware.effect_on()
+    else:
+        pedal_hardware.effect_off()
+
 pedal_hardware.tap_callback = handle_tap
+pedal_hardware.next_callback = handle_next
+pedal_hardware.bypass_callback = handle_bypass
 
 while host.is_engine_running() and not gCarla.term:
     # print("engine is idle")

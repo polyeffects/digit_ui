@@ -6,12 +6,13 @@ Dial {
     id: control
     property string param
     property string effect: "mixer"
+    property string textOverride: control.value.toFixed(1)
     width: 75
     height: 75
     from: 0
     Label {
         color: "#ffffff"
-        text: control.value.toFixed(1)
+        text: textOverride
         font.pixelSize: Qt.application.font.pixelSize * 3
         anchors.centerIn: parent
     }

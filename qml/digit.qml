@@ -54,6 +54,18 @@ ApplicationWindow {
         id: root
         width: 800//Screen.height
         height: 480//Screen.width
+        Label {
+            // width: 800
+            // height: 480
+            text: "BYPASSED"
+            font.pixelSize: 64
+            opacity: 0.3
+            color: "grey" 
+            visible: !(pluginState.global.value)
+            z: 1
+            anchors.centerIn: parent
+        }
+
 
         StackLayout {
             id: stackLayout
@@ -79,15 +91,30 @@ ApplicationWindow {
                         z: -1
                         Column {
                             id: column2
-                            x: 0
-                            y: 42
-                            width: 120
-                            height: 258
+                            x: 500
+                            y: 58
+                            width: 102
+                            height: 271
+                            spacing: 10
+                            GlowingLabel {
+                                color: "#ffffff"
+                                text: "LEVEL"
+                                font.pixelSize: fontSizeMedium
+                            }
+
+                            MixerDial {
+                                effect: "delay1"
+                                param: "carla_level"
+                                value: polyValues.delay1.carla_level.value
+                                to: 1
+                                width: 100
+                                height: 100
+                            }
                         }
 
                         Column {
                             id: column3
-                            x: 650
+                            x: 625
                             y: 58
                             width: 102
                             height: 271
@@ -102,9 +129,32 @@ ApplicationWindow {
                                 effect: "delay1"
                                 param: "l_delay"
                                 value: polyValues.delay1.l_delay.value
+                                textOverride: {
+                                    if (tempoSynced.delay1.value == 1)
+                                    {
+                                        return tempoSynced.delay1.name         
+                                    }
+                                    else
+                                    {
+                                        return polyValues.delay1.l_delay.value.toFixed(1)
+                                    }
+
+                                }
                                 to: 1
                                 width: 100
                                 height: 100
+                            }
+
+                            Switch {
+                                text: qsTr("SYNC")
+                                bottomPadding: 0
+                                width: 100
+                                leftPadding: 0
+                                topPadding: 0
+                                rightPadding: 0
+                                onClicked: {
+                                    knobs.toggle_synced("delay1")
+                                }
                             }
 
                             GlowingLabel {
@@ -121,6 +171,7 @@ ApplicationWindow {
                                 width: 100
                                 height: 100
                             }
+
                         }
                     }
 
@@ -870,29 +921,44 @@ ApplicationWindow {
             currentIndex: 2
 
             TabButton {
+                Material.foreground: pluginState.delay1.value ? Material.LightGreen : Material.Grey
+                Material.accent: pluginState.delay1.value ? Material.lightGreen : Material.Grey
                 id: tabButton
                 text: qsTr("DELAY")
+                // color: 
                 onPressAndHold: {
                     knobs.toggle_enabled("delay1")
                 }
             }
 
             TabButton {
+                Material.foreground: pluginState.reverb.value ? Material.LightGreen : Material.Grey
+                Material.accent: pluginState.reverb.value ? Material.lightGreen : Material.Grey
                 id: tabButton1
                 text: qsTr("REVERB")
+                // color: pluginState.reverb ? Material.Green : Material.Grey
                 onPressAndHold: {
                     knobs.toggle_enabled("reverb")
                 }
             }
 
             TabButton {
+                Material.foreground: pluginState.mixer.value ? Material.LightGreen : Material.Grey
+                Material.accent: pluginState.mixer.value ? Material.lightGreen : Material.Grey
                 id: tabButton2
+                // color: pluginState.mixer ? Material.Green : Material.Grey
                 text: qsTr("MIXER")
             }
 
             TabButton {
+                Material.foreground: pluginState.cab.value ? Material.LightGreen : Material.Grey
+                Material.accent: pluginState.cab.value ? Material.lightGreen : Material.Grey
                 id: tabButton3
+                // color: pluginState.cab ? Material.Green : Material.Grey
                 text: qsTr("CAB")
+                onPressAndHold: {
+                    knobs.toggle_enabled("cab")
+                }
             }
         }
 
