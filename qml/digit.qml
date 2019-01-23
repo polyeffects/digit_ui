@@ -99,7 +99,6 @@ ApplicationWindow {
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: "LEVEL"
-                                font.pixelSize: fontSizeMedium
                             }
 
                             MixerDial {
@@ -122,7 +121,6 @@ ApplicationWindow {
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: qsTr("TIME")
-                                font.pixelSize: fontSizeMedium
                             }
 
                             MixerDial {
@@ -160,7 +158,6 @@ ApplicationWindow {
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: "FEEDBACK"
-                                font.pixelSize: fontSizeMedium
                             }
 
                             MixerDial {
@@ -200,7 +197,6 @@ ApplicationWindow {
                                     GlowingLabel {
                                         color: "#ffffff"
                                         text: qsTr("DRIVE")
-                                        font.pixelSize: fontSizeMedium
                                     }
                                     MixerDial {
                                         effect: "tape1"
@@ -211,7 +207,6 @@ ApplicationWindow {
                                     GlowingLabel {
                                         color: "#ffffff"
                                         text: qsTr("TAPE VS TUBE")
-                                        font.pixelSize: fontSizeMedium
                                     }
                                     MixerDial {
                                         effect: "tape1"
@@ -249,7 +244,6 @@ ApplicationWindow {
                                     GlowingLabel {
                                         color: "#ffffff"
                                         text: qsTr("CUTOFF")
-                                        font.pixelSize: fontSizeMedium
                                     }
                                     MixerDial {
                                         effect: "filter1"
@@ -262,7 +256,6 @@ ApplicationWindow {
                                     GlowingLabel {
                                         color: "#ffffff"
                                         text: qsTr("RESONANCE")
-                                        font.pixelSize: fontSizeMedium
                                     }
                                     MixerDial {
                                         effect: "filter1"
@@ -301,7 +294,6 @@ ApplicationWindow {
                                     GlowingLabel {
                                         color: "#ffffff"
                                         text: qsTr("PRE GAIN")
-                                        font.pixelSize: fontSizeMedium
                                     }
                                     MixerDial {
                                         effect: "sigmoid1"
@@ -313,7 +305,6 @@ ApplicationWindow {
                                     GlowingLabel {
                                         color: "#ffffff"
                                         text: qsTr("POST GAIN")
-                                        font.pixelSize: fontSizeMedium
                                     }
                                     MixerDial {
                                         effect: "sigmoid1"
@@ -395,7 +386,10 @@ ApplicationWindow {
 
                 StackLayout {
                     anchors.fill: parent
-                    currentIndex: cabTabs.currentIndex
+                    currentIndex: reverbTabs.currentIndex
+                    anchors.bottomMargin: 40
+                    anchors.rightMargin: 0
+                    anchors.topMargin: 27
 
 
                     PolyFrame {
@@ -431,7 +425,6 @@ ApplicationWindow {
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: qsTr("MIX")
-                                font.pixelSize: fontSizeMedium
                             }
 
                             MixerDial {
@@ -446,7 +439,6 @@ ApplicationWindow {
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: qsTr("SIZE")
-                                font.pixelSize: fontSizeMedium
                             }
 
                             MixerDial {
@@ -512,11 +504,6 @@ ApplicationWindow {
                     }
 
                     TabButton {
-                        id: tabButton5
-                        text: qsTr("EFFECTS")
-                    }
-
-                    TabButton {
                         id: tabButton6
                         text: qsTr("BUS")
                     }
@@ -530,6 +517,10 @@ ApplicationWindow {
 
                 StackLayout {
                     id: delayStack2
+                    anchors.bottomMargin: 40
+                    anchors.rightMargin: 0
+                    anchors.topMargin: 27
+                    anchors.fill: parent
 
                     PolyFrame {
                         id: reverbFrame4
@@ -547,7 +538,7 @@ ApplicationWindow {
                                 color: "#ffffff"
                                 text: qsTr("IN 1")
                                 anchors.horizontalCenter: mixerDial.horizontalCenter
-                                font.pixelSize: fontSizeMedium
+
                             }
 
                             MixerDial {
@@ -559,7 +550,6 @@ ApplicationWindow {
                                     anchors.leftMargin: -55
                                     anchors.top: parent.verticalCenter
                                     anchors.topMargin: -10
-                                    font.pixelSize: fontSizeMedium
                                 }
                                 param: "mix_1_1"
                             }
@@ -571,7 +561,6 @@ ApplicationWindow {
                                     anchors.leftMargin: -55
                                     anchors.top: parent.verticalCenter
                                     anchors.topMargin: -10
-                                    font.pixelSize: fontSizeMedium
                                 }
                                 param: "mix_1_2"
                             }
@@ -583,7 +572,6 @@ ApplicationWindow {
                                     anchors.leftMargin: -55
                                     anchors.top: parent.verticalCenter
                                     anchors.topMargin: -10
-                                    font.pixelSize: fontSizeMedium
                                 }
                                 param: "mix_1_3"
                             }
@@ -595,7 +583,6 @@ ApplicationWindow {
                                     anchors.leftMargin: -55
                                     anchors.top: parent.verticalCenter
                                     anchors.topMargin: -10
-                                    font.pixelSize: fontSizeMedium
                                 }
                                 param: "mix_1_4"
                             }
@@ -611,7 +598,6 @@ ApplicationWindow {
                                 color: "#ffffff"
                                 text: qsTr("IN 2")
                                 anchors.horizontalCenter: mixerDial2.horizontalCenter
-                                font.pixelSize: fontSizeMedium
                             }
 
                             MixerDial {
@@ -639,7 +625,6 @@ ApplicationWindow {
                                 color: "#ffffff"
                                 text: qsTr("IN 3")
                                 anchors.horizontalCenter: mixerDial3.horizontalCenter
-                                font.pixelSize: fontSizeMedium
                             }
 
                             MixerDial {
@@ -667,7 +652,6 @@ ApplicationWindow {
                                 color: "#ffffff"
                                 text: qsTr("IN 4")
                                 anchors.horizontalCenter: mixerDial4.horizontalCenter
-                                font.pixelSize: fontSizeMedium
                             }
 
                             MixerDial {
@@ -771,9 +755,6 @@ ApplicationWindow {
                     }
 
                     currentIndex: delayTabs1.currentIndex
-                    anchors.topMargin: 27
-                    anchors.fill: parent
-                    anchors.rightMargin: 0
                 }
 
                 TabBar {
@@ -807,8 +788,11 @@ ApplicationWindow {
                 z: -1
 
                 StackLayout {
-                    anchors.fill: parent
                     currentIndex: cabTabs.currentIndex
+                    anchors.bottomMargin: 40
+                    anchors.rightMargin: 0
+                    anchors.topMargin: 27
+                    anchors.fill: parent
 
 
                     PolyFrame {
@@ -843,7 +827,6 @@ ApplicationWindow {
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: qsTr("TREBLE")
-                                font.pixelSize: fontSizeMedium
                             }
 
                             MixerDial {
@@ -859,7 +842,6 @@ ApplicationWindow {
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: qsTr("BASS")
-                                font.pixelSize: fontSizeMedium
                             }
 
                             MixerDial {
@@ -875,14 +857,8 @@ ApplicationWindow {
                     }
 
                     PolyFrame {
-                        width: 800
-                        height: 439
-
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        // height: parent.height
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
+                        width: parent.width
+                        height:parent.height
                         // width: parent.width
                         PolyBus {
                             availablePorts: cab_OutAvailablePorts
@@ -990,7 +966,9 @@ ApplicationWindow {
             height: 41
             horizontalAlignment: Text.AlignLeft
             z: 1
-            font.pixelSize: fontSizeLarge
+			font {
+				pixelSize: fontSizeLarge
+			}
         }
 
         ProgressBar {
@@ -1025,7 +1003,9 @@ ApplicationWindow {
             anchors.rightMargin: 5
             anchors.topMargin: 5
             z: 1
-            font.pixelSize: fontSizeLarge
+			font {
+				pixelSize: fontSizeLarge
+			}
         }
 
         GlowingLabel {
@@ -1061,7 +1041,9 @@ ApplicationWindow {
             horizontalAlignment: Text.AlignRight
             anchors.rightMargin: 5
             anchors.right: parent.right
-            font.pixelSize: fontSizeLarge
+			font {
+				pixelSize: fontSizeLarge
+			}
             z: 1
         }
 

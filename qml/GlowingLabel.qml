@@ -62,7 +62,12 @@ Label {
 	property alias verticalAlignment: label.verticalAlignment
 	property bool glowEnabled: true
 	property color glowColor: colorGlow
+	font {
+		pixelSize: fontSizeMedium
+	}
+
 	id: label
+	color: "#ffffff"
 	// anchors.baseline: root.baseline
 	// color: root.color
 
