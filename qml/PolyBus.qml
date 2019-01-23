@@ -40,10 +40,10 @@ Row {
                 clip: true
                 delegate: ItemDelegate {
                     width: parent.width
-                    height: 22
+                    height: 40
                     text: edit
                     bottomPadding: 0
-                    font.pixelSize: fontSizeExtraSmall
+                    font.pixelSize: fontSizeMedium
                     topPadding: 0
                     onClicked: {
                         knobs.ui_add_connection(effect, sourcePort, edit)
@@ -94,10 +94,10 @@ Row {
                 // anchors.bottomMargin: 10
                 delegate: ItemDelegate {
                     width: parent.width
-                    height: 22
-                    text: "section "+edit
+                    height: 40
+                    text: edit
                     bottomPadding: 0
-                    font.pixelSize: fontSizeExtraSmall
+                    font.pixelSize: fontSizeMedium
                     topPadding: 0
                     onClicked: {
                         knobs.ui_remove_connection(effect, sourcePort, edit)

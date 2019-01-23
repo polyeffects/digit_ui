@@ -802,59 +802,103 @@ ApplicationWindow {
                         height: 439
                         z: -1
 
+						ButtonGroup { id: buttonGroup }
 
-                        // ColumnLayout {
-                        //     x: 191
+
+
+							ListView {
+								id: cabListFrame
+								x: 191
+								y: 66
+								width: 250
+								height: 271
+								// width: parent.width
+								// anchors.left: parent.left
+								// anchors.right: parent.right
+								// anchors.top: parent.top
+								// anchors.bottom: parent.bottom
+								clip: true
+								delegate: RadioDelegate {
+									checked: index == 0
+									width: parent.width
+									height: 40
+									text: description
+									ButtonGroup.group: buttonGroup
+									bottomPadding: 0
+									font.pixelSize: fontSizeMedium
+									topPadding: 0
+									onClicked: {
+										knobs.ui_knob_change("cab", "c_model", num)
+									}
+								}
+								ScrollIndicator.vertical: ScrollIndicator {
+									anchors.top: parent.top
+									parent: cabListFrame
+									anchors.right: parent.right
+									anchors.rightMargin: 1
+									anchors.bottom: parent.bottom
+								}
+								model: ListModel {
+									id: cabs
+									ListElement {description: "4x12"; num: 0}
+									ListElement {description: "2x12"; num: 1}
+									ListElement {description: "1x12"; num: 2}
+									ListElement {description: "4x10"; num: 3}
+									ListElement {description: "2x10"; num: 4}
+									ListElement {description: "High Gain"; num: 5}
+									ListElement {description: "Twin Style"; num: 6}
+									ListElement {description: "Bassman Style"; num: 7}
+									ListElement {description: "M Style"; num: 8}
+									ListElement {description: "AC Style"; num: 9}
+									ListElement {description: "Princeton Style"; num: 10}
+									ListElement {description: "A2 Style"; num: 11}
+									ListElement {description: "1x15"; num: 12}
+									ListElement {description: "Mes Style"; num: 13}
+									ListElement {description: "Brilliant"; num: 14}
+									ListElement {description: "British 2x10"; num: 15}
+									ListElement {description: "Australian 1x12"; num: 16}
+									ListElement {description: "1x8"; num: 17}
+									ListElement {description: "Off"; num: 18}
+								}
+								// onCurrentIndexChanged: console.debug(cabs.get(currentIndex).text + ", " + cabs.get(currentIndex).color)
+							}
+
+                        // Column {
+                        //     x: 625
                         //     y: 66
-                        //     Layout.fillHeight: true
-                        //     Layout.fillWidth: true
-
-                        //     Image {
-                        //         x: 0
-                        //         Layout.fillHeight: false
-                        //         source: "qrc:/icons/reverb_cube.png"
-                        //         fillMode: Image.PreserveAspectFit
+                        //     width: 102
+                        //     height: 271
+                        //     spacing: 10
+                        //     GlowingLabel {
+                        //         color: "#ffffff"
+                        //         text: qsTr("TREBLE")
                         //     }
-                        //     Layout.preferredWidth: 350
+
+                        //     MixerDial {
+                        //         effect: "cab"
+                        //         param: "CTreble"
+                        //         value: polyValues.cab.CTreble.value
+                        //         from: -10
+                        //         to: 10
+                        //         width: 100
+                        //         height: 100
+                        //     }
+
+                        //     GlowingLabel {
+                        //         color: "#ffffff"
+                        //         text: qsTr("BASS")
+                        //     }
+
+                        //     MixerDial {
+                        //         effect: "cab"
+                        //         param: "CBass"
+                        //         value: polyValues.cab.CBass.value
+                        //         from: -10
+                        //         to: 10
+                        //         width: 100
+                        //         height: 100
+                        //     }
                         // }
-
-
-                        Column {
-                            x: 625
-                            y: 66
-                            width: 102
-                            height: 271
-                            spacing: 10
-                            GlowingLabel {
-                                color: "#ffffff"
-                                text: qsTr("TREBLE")
-                            }
-
-                            MixerDial {
-                                effect: "cab"
-                                param: "CTreble"
-                                value: polyValues.cab.CTreble.value
-                                from: -10
-                                to: 10
-                                width: 100
-                                height: 100
-                            }
-
-                            GlowingLabel {
-                                color: "#ffffff"
-                                text: qsTr("BASS")
-                            }
-
-                            MixerDial {
-                                effect: "cab"
-                                param: "CBass"
-                                value: polyValues.cab.CBass.value
-                                from: -10
-                                to: 10
-                                width: 100
-                                height: 100
-                            }
-                        }
                     }
 
                     PolyFrame {
