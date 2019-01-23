@@ -58,9 +58,9 @@ ApplicationWindow {
             // width: 800
             // height: 480
             text: "BYPASSED"
-            font.pixelSize: 64
-            opacity: 0.3
-            color: "grey" 
+            font.pixelSize: 95
+            opacity: 0.4
+            color: "grey"
             visible: !(pluginState.global.value)
             z: 1
             anchors.centerIn: parent
@@ -130,7 +130,7 @@ ApplicationWindow {
                                 textOverride: {
                                     if (tempoSynced.delay1.value == 1)
                                     {
-                                        return tempoSynced.delay1.name         
+                                        return tempoSynced.delay1.name
                                     }
                                     else
                                     {
@@ -517,8 +517,8 @@ ApplicationWindow {
 
                 StackLayout {
                     id: delayStack2
-                    anchors.bottomMargin: 40
-                    anchors.rightMargin: 0
+                    anchors.bottomMargin: 36
+                    anchors.rightMargin: -12
                     anchors.topMargin: 27
                     anchors.fill: parent
 
@@ -675,11 +675,12 @@ ApplicationWindow {
                     PolyFrame {
                         id: bus1
                         width: 800
-                        height: 480
+                        height: 474
                         z: -1
 
                         Column {
                             id: columnMixer1
+                            height: 360
                             anchors.fill: parent
 
                             Row {
@@ -901,7 +902,7 @@ ApplicationWindow {
                 Material.accent: pluginState.delay1.value ? Material.lightGreen : Material.Grey
                 id: tabButton
                 text: qsTr("DELAY")
-                // color: 
+                // color:
                 onPressAndHold: {
                     knobs.toggle_enabled("delay1")
                 }
@@ -966,9 +967,9 @@ ApplicationWindow {
             height: 41
             horizontalAlignment: Text.AlignLeft
             z: 1
-			font {
-				pixelSize: fontSizeLarge
-			}
+            font {
+                pixelSize: fontSizeLarge
+            }
         }
 
         ProgressBar {
@@ -1003,29 +1004,29 @@ ApplicationWindow {
             anchors.rightMargin: 5
             anchors.topMargin: 5
             z: 1
-			font {
-				pixelSize: fontSizeLarge
-			}
+            font {
+                pixelSize: fontSizeLarge
+            }
         }
 
         GlowingLabel {
-			SequentialAnimation on color {
+            SequentialAnimation on color {
                 id: anim
-				// loops: Animation.Infinite
-                ColorAnimation { to: "white"; 
+                // loops: Animation.Infinite
+                ColorAnimation { to: "white";
                     duration: (60.0 / currentBPM.value) * 500.0
                     // onDurationChanged: {
                     //     anim.restart()
                     // }
                 }
-                ColorAnimation { to: "green"; 
+                ColorAnimation { to: "green";
                     duration: (60.0 / currentBPM.value) * 500.0
                     // onDurationChanged: {
                     //     anim.restart()
                     // }
                 }
                 onStopped: { anim.restart (); }
-			}
+            }
             // onTextChanged: {
             //     anim.restart()
             // }
@@ -1041,9 +1042,9 @@ ApplicationWindow {
             horizontalAlignment: Text.AlignRight
             anchors.rightMargin: 5
             anchors.right: parent.right
-			font {
-				pixelSize: fontSizeLarge
-			}
+            font {
+                pixelSize: fontSizeLarge
+            }
             z: 1
         }
 
@@ -1079,7 +1080,9 @@ ApplicationWindow {
 
 
 
+
+
 /*##^## Designer {
-    D{i:122;anchors_height:35}
+    D{i:0;autoSize:true;height:480;width:640}
 }
  ##^##*/

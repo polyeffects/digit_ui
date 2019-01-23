@@ -21,6 +21,9 @@ tap_callback = None
 next_callback = None
 bypass_callback = None
 
+knob_prev={"left":127, "right":127}
+max_knob_speed = 20
+
 def effect_on(t=0.001):
     global is_on
     GPIO.output("P8_17", GPIO.HIGH)
@@ -67,12 +70,16 @@ def get_encoder(knob):
         encoder = right_encoder
 
     cur_pos = encoder.position
+    if (cur_pos > (knob_prev[knob] + max_knob_speed)) or (cur_pos < (knob_prev[knob] - max_knob_speed)):
+        cur_pos = knob_prev[knob]
+        encoder.position = knob_prev[knob] # set hardware position as well
     if cur_pos > KNOB_MAX:
         encoder.position = KNOB_MAX
         cur_pos = KNOB_MAX
     elif cur_pos < 0:
         encoder.position = 0
         cur_pos = 0
+    knob_prev[knob] = cur_pos
     return cur_pos
 
 def set_encoder_value(knob, value):
@@ -82,6 +89,7 @@ def set_encoder_value(knob, value):
     else:
         encoder = right_encoder
     encoder.position = value
+    knob_prev[knob] = value
 
 # store all values as floats and then multiply all things acting on it
 # multiply by 255 before sending
