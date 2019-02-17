@@ -353,8 +353,14 @@ def engineCallback(host, action, pluginId, value1, value2, value3, valueStr):
             portMap[invPortMap[pluginId]]["ports"][valueStr] = value1
             for k, model in available_port_models.items():
                 if (invPortMap[pluginId], valueStr) in inv_output_port_names:
-                    insert_row(model, inv_output_port_names[(invPortMap[pluginId], valueStr)])
-
+                    if (((k.split(":")[0] == invPortMap[pluginId]) and
+                            (invPortMap[pluginId] != "system"))) or \
+                                    ((k.split(":")[0] == "sigmoid1") and \
+                                    (invPortMap[pluginId] == "delay1")):
+                        pass # don't allow effect to self connect
+                    else:
+                        # print("adding port:", invPortMap[pluginId], k)
+                        insert_row(model, inv_output_port_names[(invPortMap[pluginId], valueStr)])
         else:
             print("got port without client")
     elif action == ENGINE_CALLBACK_PATCHBAY_CLIENT_ADDED:
