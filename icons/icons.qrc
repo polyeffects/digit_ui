@@ -27,5 +27,7 @@
         <file>digit/44x44@2/windows.png</file>
         <file>reverb_cube.png</file>
         <file>reverb_cube@2x.png</file>
+        <file>reverb_plate.png</file>
+        <file>reverb_spring.png</file>
     </qresource>
 </RCC>

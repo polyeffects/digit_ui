@@ -408,7 +408,9 @@ ApplicationWindow {
                             Image {
                                 x: 0
                                 Layout.fillHeight: false
-                                source: "qrc:/icons/reverb_cube.png"
+                                // source: "qrc:/icons/reverb_cube.png"
+                                // source: "qrc:/icons/reverb_plate.png"
+                                source: "qrc:/icons/reverb_spring.png"
                                 fillMode: Image.PreserveAspectFit
                             }
                             Layout.preferredWidth: 350
@@ -438,7 +440,7 @@ ApplicationWindow {
 
                             GlowingLabel {
                                 color: "#ffffff"
-                                text: qsTr("SIZE")
+                                text: qsTr("TONE")
                             }
 
                             MixerDial {
