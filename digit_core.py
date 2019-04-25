@@ -493,6 +493,8 @@ host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "mixer", "http://gareus.org/oss
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "tape1", "http://moddevices.com/plugins/tap/tubewarmth", 0, None, 0)
 # filter http://drobilla.net/plugins/fomp/mvclpf4
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "filter1", "http://drobilla.net/plugins/fomp/mvclpf1", 0, None, 0)
+
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverse1", "http://moddevices.com/plugins/tap/reflector", 0, None, 0)
 # sigmoid  http://moddevices.com/plugins/tap/sigmoid
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "sigmoid1", "http://moddevices.com/plugins/tap/sigmoid", 0, None, 0)
 # bitcrusher 
@@ -527,12 +529,15 @@ effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "fe
     "tape1": {"drive": PolyValue("drive", 5, 0, 10), "blend": PolyValue("tape vs tube", 10, -10, 10)},
     "filter1": {"freq": PolyValue("cutoff", 440, 20, 15000, "log"), "res": PolyValue("resonance", 0, 0, 0.8)},
     "sigmoid1": {"Pregain": PolyValue("pre gain", 0, -90, 20), "Postgain": PolyValue("post gain", 0, -90, 20)},
+    "reverse1": {"fragment": PolyValue("fragment", 1000, 100, 1600),
+        "wet": PolyValue("wet", 0, -90, 20),
+        "dry": PolyValue("dry", 0, -90, 20)},
     "cab": {"CBass": PolyValue("bass", 0, -10, 10), "CTreble": PolyValue("treble", 0, -10, 10),
         "c_model": PolyValue("Cab Model", 0, 0, 18)}
     }
 
 tempo_synced = {"delay1": PolyValue("1/4", 0, 0, 1)}
-all_effects = [("delay1", True), ("reverb", True), ("mixer", True), ("tape1", False), ("filter1", False), ("sigmoid1", False), ("cab", True)]
+all_effects = [("delay1", True), ("reverb", True), ("mixer", True), ("tape1", False), ("filter1", False), ("reverse1", False), ("sigmoid1", False), ("cab", True)]
 plugin_state = dict({(k, PolyBool(initial)) for k, initial in all_effects})
 plugin_state["global"] = PolyBool(True)
 
@@ -693,14 +698,16 @@ while host.is_engine_running() and not gCarla.term:
     if (not effects_are_connected) and "sigmoid1" in portMap:
         for source_pair, output_pair in [(("delay1", "Left Out"), ("tape1","Input")),
                 (("tape1", "Output"), ("filter1", "Input")),
-                (("filter1", "Output"), ("sigmoid1", "Input"))]:
+                (("filter1", "Output"), ("reverse1", "Input")),
+                (("reverse1", "Output"), ("sigmoid1", "Input")),
+                ]:
             source_effect, source_port = source_pair
             output_effect, output_port = output_pair
             host.patchbay_connect(portMap[source_effect]["group"],
                     portMap[source_effect]["ports"][source_port],
                     portMap[output_effect]["group"],
                     portMap[output_effect]["ports"][output_port])
-        for effect in ["tape1", "filter1", "sigmoid1"]:
+        for effect in ["tape1", "filter1", "reverse1", "sigmoid1"]:
             # set to all dry at start
             set_active(effect, False)
         effects_are_connected = True

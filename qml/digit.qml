@@ -178,155 +178,222 @@ ApplicationWindow {
                         height: 350
                         z: -1
 
-                        Column {
-                            spacing: 6
-                            width: parent.width
-                            anchors.fill: parent
-                            GroupBox {
+                            Column {
+                                spacing: 6
                                 width: parent.width
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                title: qsTr("TAPE / TUBE")
+                                anchors.fill: parent
+                        // ScrollView { 
+                        //     // width: parent.width
+                            // anchors.fill: parent
+                            // clip: true
+                            // Layout.fillHeight: true
+                            // Layout.alignment: Qt.AlignLeft | Qt.AlignTop
+                            // Layout.fillWidth: true
+                                GroupBox {
+                                    width: parent.width
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    title: qsTr("TAPE / TUBE")
 
-                                Row {
-                                    width: 800
-                                    height: parent.height
-                                    anchors.top: parent.top
-                                    // anchors.topMargin: 10
+                                    Row {
+                                        width: 800
+                                        height: parent.height
+                                        anchors.top: parent.top
+                                        // anchors.topMargin: 10
 
-                                    GlowingLabel {
-                                        color: "#ffffff"
-                                        text: qsTr("DRIVE")
-                                    }
-                                    MixerDial {
-                                        effect: "tape1"
-                                        param: "drive"
-                                        value: polyValues.tape1.drive.value
-                                        to: 10
-                                    }
-                                    GlowingLabel {
-                                        color: "#ffffff"
-                                        text: qsTr("TAPE VS TUBE")
-                                    }
-                                    MixerDial {
-                                        effect: "tape1"
-                                        param: "blend"
-                                        value: polyValues.tape1.blend.value
-                                        from: -10
-                                        to: 10
-                                    }
-                                    Switch {
-                                        text: qsTr("ENABLED")
-                                        bottomPadding: 0
-                                        Layout.fillWidth: true
-                                        leftPadding: 0
-                                        topPadding: 0
-                                        rightPadding: 0
-                                        onClicked: {
-                                            knobs.toggle_enabled("tape1")
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("DRIVE")
                                         }
-                                    }
-                                    spacing: 35
-                                }
-                            }
-                            GroupBox {
-                                width: parent.width
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                title: qsTr("LOWPASS FILTER")
-
-                                Row {
-                                    width: 800
-                                    height: parent.height
-                                    anchors.top: parent.top
-                                    // anchors.topMargin: 10
-
-                                    GlowingLabel {
-                                        color: "#ffffff"
-                                        text: qsTr("CUTOFF")
-                                    }
-                                    MixerDial {
-                                        effect: "filter1"
-                                        param: "freq"
-                                        value: polyValues.filter1.freq.value
-                                        from: 20
-                                        to: 20000
-                                        stepSize: 10
-                                    }
-                                    GlowingLabel {
-                                        color: "#ffffff"
-                                        text: qsTr("RESONANCE")
-                                    }
-                                    MixerDial {
-                                        effect: "filter1"
-                                        param: "res"
-                                        value: polyValues.filter1.res.value
-                                        from: 0
-                                        to: 0.8
-                                    }
-                                    Switch {
-                                        text: qsTr("ENABLED")
-                                        onClicked: {
-                                            knobs.toggle_enabled("filter1")
+                                        MixerDial {
+                                            effect: "tape1"
+                                            param: "drive"
+                                            value: polyValues.tape1.drive.value
+                                            to: 10
                                         }
-                                        bottomPadding: 0
-                                        Layout.fillWidth: true
-                                        leftPadding: 0
-                                        topPadding: 0
-                                        rightPadding: 0
-                                    }
-                                    spacing: 35
-                                }
-                            }
-
-                            GroupBox {
-                                width: parent.width
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                title: qsTr("COMPRESSION BOOST")
-
-                                Row {
-                                    width: 800
-                                    height: parent.height
-                                    anchors.top: parent.top
-                                    // anchors.topMargin: 10
-
-                                    GlowingLabel {
-                                        color: "#ffffff"
-                                        text: qsTr("PRE GAIN")
-                                    }
-                                    MixerDial {
-                                        effect: "sigmoid1"
-                                        param: "Pregain"
-                                        value: polyValues.sigmoid1.Pregain.value
-                                        from: -90
-                                        to: 20
-                                    }
-                                    GlowingLabel {
-                                        color: "#ffffff"
-                                        text: qsTr("POST GAIN")
-                                    }
-                                    MixerDial {
-                                        effect: "sigmoid1"
-                                        param: "Postgain"
-                                        value: polyValues.sigmoid1.Postgain.value
-                                        from: -90
-                                        to: 20
-                                    }
-                                    Switch {
-                                        text: qsTr("ENABLED")
-                                        onClicked: {
-                                            knobs.toggle_enabled("sigmoid1")
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("TAPE VS TUBE")
                                         }
-                                        bottomPadding: 0
-                                        Layout.fillWidth: true
-                                        leftPadding: 0
-                                        topPadding: 0
-                                        rightPadding: 0
+                                        MixerDial {
+                                            effect: "tape1"
+                                            param: "blend"
+                                            value: polyValues.tape1.blend.value
+                                            from: -10
+                                            to: 10
+                                        }
+                                        Switch {
+                                            text: qsTr("ENABLED")
+                                            bottomPadding: 0
+                                            Layout.fillWidth: true
+                                            leftPadding: 0
+                                            topPadding: 0
+                                            rightPadding: 0
+                                            onClicked: {
+                                                knobs.toggle_enabled("tape1")
+                                            }
+                                        }
+                                        spacing: 35
                                     }
-                                    spacing: 35
                                 }
-                            }
+                                // GroupBox {
+                                //     width: parent.width
+                                //     anchors.left: parent.left
+                                //     anchors.right: parent.right
+                                //     title: qsTr("LOWPASS FILTER")
+
+                                //     Row {
+                                //         width: 800
+                                //         height: parent.height
+                                //         anchors.top: parent.top
+                                //         // anchors.topMargin: 10
+
+                                //         GlowingLabel {
+                                //             color: "#ffffff"
+                                //             text: qsTr("CUTOFF")
+                                //         }
+                                //         MixerDial {
+                                //             effect: "filter1"
+                                //             param: "freq"
+                                //             value: polyValues.filter1.freq.value
+                                //             from: 20
+                                //             to: 20000
+                                //             stepSize: 10
+                                //         }
+                                //         GlowingLabel {
+                                //             color: "#ffffff"
+                                //             text: qsTr("RESONANCE")
+                                //         }
+                                //         MixerDial {
+                                //             effect: "filter1"
+                                //             param: "res"
+                                //             value: polyValues.filter1.res.value
+                                //             from: 0
+                                //             to: 0.8
+                                //         }
+                                //         Switch {
+                                //             text: qsTr("ENABLED")
+                                //             onClicked: {
+                                //                 knobs.toggle_enabled("filter1")
+                                //             }
+                                //             bottomPadding: 0
+                                //             Layout.fillWidth: true
+                                //             leftPadding: 0
+                                //             topPadding: 0
+                                //             rightPadding: 0
+                                //         }
+                                //         spacing: 35
+                                //     }
+                                // }
+
+                                GroupBox {
+                                    width: parent.width
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    title: qsTr("COMPRESSION BOOST")
+
+                                    Row {
+                                        width: 800
+                                        height: parent.height
+                                        anchors.top: parent.top
+                                        // anchors.topMargin: 10
+
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("PRE GAIN")
+                                        }
+                                        MixerDial {
+                                            effect: "sigmoid1"
+                                            param: "Pregain"
+                                            value: polyValues.sigmoid1.Pregain.value
+                                            from: -90
+                                            to: 20
+                                        }
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("POST GAIN")
+                                        }
+                                        MixerDial {
+                                            effect: "sigmoid1"
+                                            param: "Postgain"
+                                            value: polyValues.sigmoid1.Postgain.value
+                                            from: -90
+                                            to: 20
+                                        }
+                                        Switch {
+                                            text: qsTr("ENABLED")
+                                            onClicked: {
+                                                knobs.toggle_enabled("sigmoid1")
+                                            }
+                                            bottomPadding: 0
+                                            Layout.fillWidth: true
+                                            leftPadding: 0
+                                            topPadding: 0
+                                            rightPadding: 0
+                                        }
+                                        spacing: 35
+                                    }
+                                }
+                                GroupBox {
+                                    width: parent.width
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    title: qsTr("REVERSE")
+
+                                    Row {
+                                        width: 800
+                                        height: parent.height
+                                        anchors.top: parent.top
+                                        // anchors.topMargin: 10
+
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("FRAGMENT")
+                                        }
+                                        MixerDial {
+                                            effect: "reverse1"
+                                            param: "fragment"
+                                            value: polyValues.reverse1.fragment.value
+                                            from: 100
+                                            to: 1600
+                                        }
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("WET")
+                                        }
+                                        MixerDial {
+                                            effect: "reverse1"
+                                            param: "wet"
+                                            value: polyValues.reverse1.wet.value
+                                            from: -90
+                                            to: 20
+                                        }
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("DRY")
+                                        }
+                                        MixerDial {
+                                            effect: "reverse1"
+                                            param: "dry"
+                                            value: polyValues.reverse1.dry.value
+                                            from: -90
+                                            to: 20
+                                        }
+                                        Switch {
+                                            text: qsTr("ENABLED")
+                                            bottomPadding: 0
+                                            Layout.fillWidth: true
+                                            leftPadding: 0
+                                            topPadding: 0
+                                            rightPadding: 0
+                                            onClicked: {
+                                                knobs.toggle_enabled("reverse1")
+                                            }
+                                        }
+                                        spacing: 35
+                                    }
+                                }
+                            // }
                         }
                     }
 
