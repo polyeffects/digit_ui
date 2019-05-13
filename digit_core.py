@@ -291,7 +291,7 @@ class Knobs(QObject):
         insert_row(used_port_models[effect_source], x)
         # print("portMap is", portMap)
 
-        host.patchbay_connect(portMap[effect]["group"],
+        host.patchbay_connect(patchbay_external, portMap[effect]["group"],
                 portMap[effect]["ports"][source_port],
                 portMap[output_port_names[x][0]]["group"],
                 portMap[output_port_names[x][0]]["ports"][output_port_names[x][1]])
@@ -345,7 +345,7 @@ class Knobs(QObject):
 
     waiting = Property(str, readWaiting, setWaiting, notify=waiting_changed)
 
-def engineCallback(host, action, pluginId, value1, value2, value3, valueStr):
+def engineCallback(host, action, pluginId, value1, value2, value3, valuef, valueStr):
     valueStr = charPtrToString(valueStr)
     if action == ENGINE_CALLBACK_PATCHBAY_PORT_ADDED:
         print("patchbay port added", pluginId, value1, value2, valueStr)
@@ -476,7 +476,8 @@ def engineCallback(host, action, pluginId, value1, value2, value3, valueStr):
 binaryDir = "/git_repos/Carla/bin"
 host = CarlaHostDLL("/git_repos/Carla/bin/libcarla_standalone2.so", False)
 host.set_engine_option(ENGINE_OPTION_PATH_BINARIES, 0, binaryDir)
-host.set_engine_callback(lambda h,a,p,v1,v2,v3,vs: engineCallback(host,a,p,v1,v2,v3,vs))
+# host.set_engine_callback(lambda h,a,p,v1,v2,v3,vs: engineCallback(host,a,p,v1,v2,v3,vs))
+host.set_engine_callback(lambda h,a,p,v1,v2,v3,vf,vs: engineCallback(host,a,p,v1,v2,v3,vf,vs))
 
 if not host.engine_init("JACK", "PolyCarla"):
     print("Engine failed to initialize, possible reasons:\n%s" % host.get_last_error())
@@ -491,13 +492,15 @@ host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "mixer", "http://gareus.org/oss
 ##### ---- Effects
 # tape/tube http://moddevices.com/plugins/tap/tubewarmth
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "tape1", "http://moddevices.com/plugins/tap/tubewarmth", 0, None, 0)
-# filter http://drobilla.net/plugins/fomp/mvclpf4
-host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "filter1", "http://drobilla.net/plugins/fomp/mvclpf1", 0, None, 0)
 
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverse1", "http://moddevices.com/plugins/tap/reflector", 0, None, 0)
 # sigmoid  http://moddevices.com/plugins/tap/sigmoid
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "sigmoid1", "http://moddevices.com/plugins/tap/sigmoid", 0, None, 0)
 # bitcrusher 
+# plugins for reverb
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverse2", "http://moddevices.com/plugins/tap/reflector", 0, None, 0)
+# filter http://drobilla.net/plugins/fomp/mvclpf4
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "filter1", "http://drobilla.net/plugins/fomp/mvclpf1", 0, None, 0)
 # eq 
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "cab", "http://guitarix.sourceforge.net/plugins/gx_cabinet#CABINET", 0, None, 0)
 
@@ -532,12 +535,15 @@ effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "fe
     "reverse1": {"fragment": PolyValue("fragment", 1000, 100, 1600),
         "wet": PolyValue("wet", 0, -90, 20),
         "dry": PolyValue("dry", 0, -90, 20)},
+    "reverse2": {"fragment": PolyValue("fragment", 1000, 100, 1600),
+        "wet": PolyValue("wet", 0, -90, 20),
+        "dry": PolyValue("dry", 0, -90, 20)},
     "cab": {"CBass": PolyValue("bass", 0, -10, 10), "CTreble": PolyValue("treble", 0, -10, 10),
         "c_model": PolyValue("Cab Model", 0, 0, 18)}
     }
 
 tempo_synced = {"delay1": PolyValue("1/4", 0, 0, 1)}
-all_effects = [("delay1", True), ("reverb", True), ("mixer", True), ("tape1", False), ("filter1", False), ("reverse1", False), ("sigmoid1", False), ("cab", True)]
+all_effects = [("delay1", True), ("reverb", True), ("mixer", True), ("tape1", False), ("filter1", False), ("reverse1", False), ("sigmoid1", False), ("reverse2", False), ("cab", True)]
 plugin_state = dict({(k, PolyBool(initial)) for k, initial in all_effects})
 plugin_state["global"] = PolyBool(True)
 
@@ -669,6 +675,7 @@ def handle_bypass():
 pedal_hardware.tap_callback = handle_tap
 pedal_hardware.next_callback = handle_next
 pedal_hardware.bypass_callback = handle_bypass
+patchbay_external = False
 
 while host.is_engine_running() and not gCarla.term:
     # print("engine is idle")
@@ -683,14 +690,14 @@ while host.is_engine_running() and not gCarla.term:
         # mixer 1-4 to outputs
         for source_port, output_port in [("Audio Output 1", "playback_1"), ("Audio Output 2", "playback_2"),
                 ("Audio Output 3", "playback_3"), ("Audio Output 4", "playback_4") ]:
-            host.patchbay_connect(portMap["mixer"]["group"],
+            host.patchbay_connect(patchbay_external, portMap["mixer"]["group"],
                     portMap["mixer"]["ports"][source_port],
                     portMap["system"]["group"],
                     portMap["system"]["ports"][output_port])
         for source_port, output_port in [("capture_1", "Audio Input 1"),
                 ("capture_2", "Audio Input 2"), ("capture_3", "Audio Input 3"),
                 ("capture_4", "Audio Input 4")]:
-            host.patchbay_connect(portMap["system"]["group"],
+            host.patchbay_connect(patchbay_external, portMap["system"]["group"],
                     portMap["system"]["ports"][source_port],
                     portMap["mixer"]["group"],
                     portMap["mixer"]["ports"][output_port])
@@ -703,11 +710,11 @@ while host.is_engine_running() and not gCarla.term:
                 ]:
             source_effect, source_port = source_pair
             output_effect, output_port = output_pair
-            host.patchbay_connect(portMap[source_effect]["group"],
+            host.patchbay_connect(patchbay_external, portMap[source_effect]["group"],
                     portMap[source_effect]["ports"][source_port],
                     portMap[output_effect]["group"],
                     portMap[output_effect]["ports"][output_port])
-        for effect in ["tape1", "filter1", "reverse1", "sigmoid1"]:
+        for effect in ["tape1", "filter1", "reverse1", "sigmoid1", "reverse2"]:
             # set to all dry at start
             set_active(effect, False)
         effects_are_connected = True

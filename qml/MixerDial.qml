@@ -13,7 +13,7 @@ Dial {
     Label {
         color: "#ffffff"
         text: textOverride
-        font.pixelSize: Qt.application.font.pixelSize * 3
+        font.pixelSize: 20 * 2
         anchors.centerIn: parent
     }
     onMoved: {

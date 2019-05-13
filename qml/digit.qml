@@ -14,16 +14,16 @@ import QtQuick.Window 2.0
 
 ApplicationWindow {
     id: window
-    width: 480
-    height: 800
-    minimumHeight: 800
-    minimumWidth: 480
-    maximumHeight: 800
-    maximumWidth: 480
+    width: 720
+    height: 1280
+    minimumHeight: 1280
+    minimumWidth: 720
+    maximumHeight: 1280
+    maximumWidth: 720
     visible: true
     title: "DIGIT"
-    // width: 800//Screen.height dev settings
-    // height: 480//Screen.width
+    // width: 1280//Screen.height dev settings
+    // height: 720//Screen.width
 
     Material.theme: Material.Dark
     Material.primary: Material.Green
@@ -36,27 +36,29 @@ ApplicationWindow {
     readonly property color colorLightGrey: "#888"
     readonly property color colorDarkGrey: "#333"
 
-    readonly property int fontSizeExtraSmall: Qt.application.font.pixelSize * 0.8
-    readonly property int fontSizeMedium: Qt.application.font.pixelSize * 1.5
-    readonly property int fontSizeLarge: Qt.application.font.pixelSize * 2
-    readonly property int fontSizeExtraLarge: Qt.application.font.pixelSize * 5
+    readonly property int baseFontSize: 20 
+    readonly property int tabHeight: 60 
+    readonly property int fontSizeExtraSmall: baseFontSize * 0.8
+    readonly property int fontSizeMedium: baseFontSize * 1.5
+    readonly property int fontSizeLarge: baseFontSize * 2
+    readonly property int fontSizeExtraLarge: baseFontSize * 5
 
     Item {
         transform: Rotation {
-            angle: 90
-            /* origin.x: Screen.height / 2 */
-            /* origin.x: Screen.height / 2 */
-            origin.x: 480 / 2
-            origin.y: 480 / 2
-            // origin.x: 800 / 2
-            // origin.y: 800 / 2
+            angle: -90
+            // origin.x: Screen.height / 2
+            // origin.x: Screen.height / 2
+            // origin.x: 720 / 2
+            // origin.y: 720 / 2
+            origin.x: 1280 / 2
+            origin.y: 1280 / 2
         }
         id: root
-        width: 800//Screen.height
-        height: 480//Screen.width
+        width: 1280//Screen.height
+        height: 720//Screen.width
         Label {
-            // width: 800
-            // height: 480
+            // width: 1280
+            // height: 720
             text: "BYPASSED"
             font.pixelSize: 95
             opacity: 0.4
@@ -81,13 +83,13 @@ ApplicationWindow {
                     id: delayStack1
                     anchors.bottomMargin: 40
                     anchors.rightMargin: 0
-                    anchors.topMargin: 27
+                    anchors.topMargin: tabHeight  
                     currentIndex: delayTabs.currentIndex
                     anchors.fill: parent
                     PolyFrame {
                         id: reverbFrame3
-                        width: 800
-                        height: 480
+                        width: 1280
+                        height: 720
                         z: -1
                         Column {
                             id: column2
@@ -174,7 +176,7 @@ ApplicationWindow {
 
                     PolyFrame {
                         id: effects
-                        width: 800
+                        width: 1280
                         height: 350
                         z: -1
 
@@ -196,7 +198,7 @@ ApplicationWindow {
                                     title: qsTr("TAPE / TUBE")
 
                                     Row {
-                                        width: 800
+                                        width: 1280
                                         height: parent.height
                                         anchors.top: parent.top
                                         // anchors.topMargin: 10
@@ -243,7 +245,7 @@ ApplicationWindow {
                                 //     title: qsTr("LOWPASS FILTER")
 
                                 //     Row {
-                                //         width: 800
+                                //         width: 1280
                                 //         height: parent.height
                                 //         anchors.top: parent.top
                                 //         // anchors.topMargin: 10
@@ -293,7 +295,7 @@ ApplicationWindow {
                                     title: qsTr("COMPRESSION BOOST")
 
                                     Row {
-                                        width: 800
+                                        width: 1280
                                         height: parent.height
                                         anchors.top: parent.top
                                         // anchors.topMargin: 10
@@ -341,7 +343,7 @@ ApplicationWindow {
                                     title: qsTr("REVERSE")
 
                                     Row {
-                                        width: 800
+                                        width: 1280
                                         height: parent.height
                                         anchors.top: parent.top
                                         // anchors.topMargin: 10
@@ -405,7 +407,7 @@ ApplicationWindow {
 
                         PolyBus {
                             id: polyBus
-                            width: 800
+                            width: 1280
                             height: 394
                             availablePorts: sigmoid1_OutputAvailablePorts
                             usedPorts: sigmoid1_OutputUsedPorts
@@ -422,7 +424,7 @@ ApplicationWindow {
                 TabBar {
                     id: delayTabs
                     width: 376
-                    height: 38
+                    height: tabHeight
                     spacing: 0
                     currentIndex: 1
                     anchors.bottom: parent.bottom
@@ -456,18 +458,18 @@ ApplicationWindow {
                     currentIndex: reverbTabs.currentIndex
                     anchors.bottomMargin: 40
                     anchors.rightMargin: 0
-                    anchors.topMargin: 27
+                    anchors.topMargin: tabHeight 
 
 
                     PolyFrame {
                         id: reverbFrame
-                        width: 800
-                        height: 480
+                        width: 1280
+                        height: 720
                         z: -1
 
 
                         ColumnLayout {
-                            x: 191
+                            x: 450
                             y: 66
                             Layout.fillHeight: true
                             Layout.fillWidth: true
@@ -476,8 +478,8 @@ ApplicationWindow {
                                 x: 0
                                 Layout.fillHeight: false
                                 // source: "qrc:/icons/reverb_cube.png"
-                                // source: "qrc:/icons/reverb_plate.png"
-                                source: "qrc:/icons/reverb_spring.png"
+                                source: "qrc:/icons/reverb_plate.png"
+                                // source: "qrc:/icons/reverb_spring.png"
                                 fillMode: Image.PreserveAspectFit
                             }
                             Layout.preferredWidth: 350
@@ -486,7 +488,7 @@ ApplicationWindow {
 
                         Column {
                             id: column1
-                            x: 625
+                            x: 1000
                             y: 66
                             width: 102
                             height: 271
@@ -522,9 +524,144 @@ ApplicationWindow {
                     }
 
                     PolyFrame {
+                        id: reverb_effects
+                        width: 1280
+                        height: 350
+                        z: -1
+
+                            Column {
+                                spacing: 6
+                                width: parent.width
+                                anchors.fill: parent
+                        // ScrollView { 
+                        //     // width: parent.width
+                            // anchors.fill: parent
+                            // clip: true
+                            // Layout.fillHeight: true
+                            // Layout.alignment: Qt.AlignLeft | Qt.AlignTop
+                            // Layout.fillWidth: true
+                                GroupBox {
+                                    width: parent.width
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    title: qsTr("LOWPASS FILTER")
+
+                                    Row {
+                                        width: 1280
+                                        height: parent.height
+                                        anchors.top: parent.top
+                                        // anchors.topMargin: 10
+
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("CUTOFF")
+                                        }
+                                        MixerDial {
+                                            effect: "filter1"
+                                            param: "freq"
+                                            value: polyValues.filter1.freq.value
+                                            from: 20
+                                            to: 20000
+                                            stepSize: 10
+                                        }
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("RESONANCE")
+                                        }
+                                        MixerDial {
+                                            effect: "filter1"
+                                            param: "res"
+                                            value: polyValues.filter1.res.value
+                                            from: 0
+                                            to: 0.8
+                                        }
+                                        Switch {
+                                            text: qsTr("ENABLED")
+                                            onClicked: {
+                                                knobs.toggle_enabled("filter1")
+                                            }
+                                            bottomPadding: 0
+                                            Layout.fillWidth: true
+                                            leftPadding: 0
+                                            topPadding: 0
+                                            rightPadding: 0
+                                            font {
+                                                pixelSize: fontSizeMedium
+                                            }
+                                        }
+                                        spacing: 35
+                                    }
+                                }
+
+                                GroupBox {
+                                    width: parent.width
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    title: qsTr("REVERSE")
+
+                                    Row {
+                                        width: 1280
+                                        height: parent.height
+                                        anchors.top: parent.top
+                                        // anchors.topMargin: 10
+
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("FRAGMENT")
+                                        }
+                                        MixerDial {
+                                            effect: "reverse2"
+                                            param: "fragment"
+                                            value: polyValues.reverse2.fragment.value
+                                            from: 100
+                                            to: 1600
+                                        }
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("WET")
+                                        }
+                                        MixerDial {
+                                            effect: "reverse2"
+                                            param: "wet"
+                                            value: polyValues.reverse2.wet.value
+                                            from: -90
+                                            to: 20
+                                        }
+                                        GlowingLabel {
+                                            color: "#ffffff"
+                                            text: qsTr("DRY")
+                                        }
+                                        MixerDial {
+                                            effect: "reverse2"
+                                            param: "dry"
+                                            value: polyValues.reverse2.dry.value
+                                            from: -90
+                                            to: 20
+                                        }
+                                        Switch {
+                                            text: qsTr("ENABLED")
+                                            bottomPadding: 0
+                                            Layout.fillWidth: true
+                                            leftPadding: 0
+                                            topPadding: 0
+                                            rightPadding: 0
+                                            onClicked: {
+                                                knobs.toggle_enabled("reverse2")
+                                            }
+                                            font {
+                                                pixelSize: fontSizeMedium
+                                            }
+                                        }
+                                        spacing: 35
+                                    }
+                                }
+                            // }
+                        }
+                    }
+                    PolyFrame {
                         id: bus2
-                        width: 800
-                        height: 480
+                        width: 1280
+                        height: 720
 
                         Row {
                             anchors.left: parent.left
@@ -564,12 +701,17 @@ ApplicationWindow {
                 TabBar {
                     id: reverbTabs
                     width: 376
-                    height: 38
+                    height: tabHeight
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 0
                     TabButton {
                         id: tabButton4
                         text: qsTr("MAIN")
+                    }
+
+                    TabButton {
+                        id: tabButton5
+                        text: qsTr("EFFECTS")
                     }
 
                     TabButton {
@@ -588,12 +730,12 @@ ApplicationWindow {
                     id: delayStack2
                     anchors.bottomMargin: 36
                     anchors.rightMargin: -12
-                    anchors.topMargin: 27
+                    anchors.topMargin: tabHeight
                     anchors.fill: parent
 
                     PolyFrame {
                         id: reverbFrame4
-                        width: 800
+                        width: 1280
                         height: 439
                         z: -1
                         Column {
@@ -743,7 +885,7 @@ ApplicationWindow {
 
                     PolyFrame {
                         id: bus1
-                        width: 800
+                        width: 1280
                         height: 474
                         z: -1
 
@@ -832,7 +974,7 @@ ApplicationWindow {
                     x: -5
                     y: -5
                     width: 376
-                    height: 38
+                    height: tabHeight
                     currentIndex: 1
                     anchors.bottomMargin: 0
                     spacing: 0
@@ -861,14 +1003,14 @@ ApplicationWindow {
                     currentIndex: cabTabs.currentIndex
                     anchors.bottomMargin: 40
                     anchors.rightMargin: 0
-                    anchors.topMargin: 27
+                    anchors.topMargin: tabHeight
                     anchors.fill: parent
 
 
                     PolyFrame {
-                        width: 800
-                        // height: 480
-                        height: 439
+                        width: 1280
+                        // height: 720
+                        height: 720
                         z: -1
 
 						ButtonGroup { id: buttonGroup }
@@ -987,7 +1129,7 @@ ApplicationWindow {
                 TabBar {
                     id: cabTabs
                     width: 376
-                    height: 38
+                    height: tabHeight
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 0
                     TabButton {
@@ -1007,7 +1149,7 @@ ApplicationWindow {
             x: 94
             y: 0
             width: 613
-            height: 41
+            height: tabHeight
             currentIndex: 2
 
             TabButton {
