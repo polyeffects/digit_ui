@@ -1,7 +1,7 @@
 import QtQuick 2.11
 // import QtQuick.Templates 2.4 as T
-// import QtQuick.Controls.Material 2.4
-// import QtQuick.Controls.Material.impl 2.4
+import QtQuick.Controls.Material 2.4
+import QtQuick.Controls.Material.impl 2.4
 import QtQuick.Controls 2.4
 
 
@@ -15,17 +15,17 @@ Frame {
     contentHeight: contentItem.implicitHeight || (contentChildren.length === 1 ? contentChildren[0].implicitHeight : 0)
 
     padding: 12
-    background: null
+    // background: null
 
-    // background: Rectangle {
-    //     radius: 2
-    //     color: control.Material.elevation > 0 ? control.Material.backgroundColor : "transparent"
-    //     border.color: control.Material.frameColor
+    background: Rectangle {
+        // radius: 2
+        color: control.Material.elevation > 0 ? control.Material.backgroundColor : "transparent"
+        // border.color: control.Material.frameColor
 
-    //     layer.enabled: control.enabled && control.Material.elevation > 0
-    //     layer.effect: ElevationEffect {
-    //         elevation: control.Material.elevation
-    //     }
-    // }
+        layer.enabled: control.enabled && control.Material.elevation > 0
+        layer.effect: ElevationEffect {
+            elevation: control.Material.elevation
+        }
+    }
 }
    

@@ -14,7 +14,6 @@ Window {
     visible: true
 
     Item {
-    
         id: time_scale
         width: 1000
         height: 600
@@ -85,6 +84,12 @@ Window {
         }
 
         // Row {
+        PolyFrame {
+            // background: Material.background
+            width:200
+            height:parent.height
+            Material.elevation: 2
+
             Column {
                 width:200
                 spacing: 10
@@ -112,7 +117,7 @@ Window {
                     }
                 }
                 Switch {
-                    text: qsTr("BEATS/SEC")
+                    text: qsTr("TEMPO SYNC")
                     bottomPadding: 0
                     width: 200
                     leftPadding: 0
@@ -121,6 +126,7 @@ Window {
                     checked: true
                     onClicked: {
                         time_scale.synced = checked
+                        mycanvas.requestPaint();
                     }
                 }
                 ComboBox {
@@ -146,6 +152,7 @@ Window {
                     }
                 }
             }
+        }
         
         Item {
             x: 200
@@ -223,8 +230,8 @@ Window {
                     if (time_scale.synced){
                         ctx.fillStyle = Material.accent;//Qt.rgba(0.1, 0.1, 0.1, 1);
 
-                        for (var i = 1; i < time_scale.division; i++) {
-                            ctx.fillRect(width/time_scale.division*i, 0, 2, height);
+                        for (var i = 0; i < time_scale.division; i++) {
+                            ctx.fillRect(width/time_scale.division*i, 0, 1, height);
                         }
                     }
                     else
@@ -232,8 +239,15 @@ Window {
                         // every second
                         ctx.fillStyle = Material.accent;//Qt.rgba(0.1, 0.1, 0.1, 1);
 
-                        for (var i = 1; i < time_scale.max_delay_length; i++) {
-                            ctx.fillRect(width/Math.log(time_scale.max_delay_length)*Math.log(i), 0, 2, height);
+                        // ctx.fillRect(0, 0, 1, height);
+
+                        for (var i = 1; i < time_scale.max_delay_length+1; i++) {
+                            var x = width/Math.log(time_scale.max_delay_length+1)*Math.log(i)
+                            ctx.fillRect(x, 0, 1, height);
+                            if (i < 4)
+                            {
+                                ctx.fillText(i-1, x+2, height - 10);
+                            }
                         }
                     }
 
@@ -259,7 +273,7 @@ Window {
             //     }
             // }
             Label {
-                text: "TIME"
+                text: time_scale.synced ? "BEAT" : "TIME (S)"
                 font.pixelSize: 20
                 z: 2
                 anchors.horizontalCenter: mycanvas.horizontalCenter
