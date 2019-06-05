@@ -88,91 +88,97 @@ ApplicationWindow {
                     anchors.fill: parent
                     PolyFrame {
                         id: reverbFrame3
-                        width: 1280
-                        height: 720
-                        z: -1
-                        Column {
-                            id: column2
-                            x: 500
-                            y: 58
-                            width: 102
-                            height: 271
-                            spacing: 10
-                            GlowingLabel {
-                                color: "#ffffff"
-                                text: "LEVEL"
-                            }
-
-                            MixerDial {
-                                effect: "delay1"
-                                param: "carla_level"
-                                value: polyValues.delay1.carla_level.value
-                                to: 1
-                                width: 100
-                                height: 100
-                            }
-                        }
-
-                        Column {
-                            id: column3
-                            x: 625
-                            y: 58
-                            width: 102
-                            height: 271
-                            spacing: 10
-                            GlowingLabel {
-                                color: "#ffffff"
-                                text: qsTr("TIME")
-                            }
-
-                            MixerDial {
-                                effect: "delay1"
-                                param: "l_delay"
-                                value: polyValues.delay1.l_delay.value
-                                textOverride: {
-                                    if (tempoSynced.delay1.value == 1)
-                                    {
-                                        return tempoSynced.delay1.name
-                                    }
-                                    else
-                                    {
-                                        return polyValues.delay1.l_delay.value.toFixed(1)
-                                    }
-
-                                }
-                                to: 1
-                                width: 100
-                                height: 100
-                            }
-
-                            Switch {
-                                text: qsTr("SYNC")
-                                bottomPadding: 0
-                                width: 100
-                                leftPadding: 0
-                                topPadding: 0
-                                rightPadding: 0
-                                onClicked: {
-                                    knobs.toggle_synced("delay1")
-                                }
-                            }
-
-                            GlowingLabel {
-                                color: "#ffffff"
-                                text: "FEEDBACK"
-                            }
-
-                            MixerDial {
-                                effect: "delay1"
-                                param: "feedback"
-                                value: polyValues.delay1.feedback.value
-                                to: 1
-                                width: 100
-                                height: 100
-                            }
-
+                        DelayControl {
+                            id: delayControl1
                         }
                     }
+                    // PolyFrame {
+                    //     id: reverbFrame3
+                    //     width: 1280
+                    //     height: 720
+                    //     z: -1
+                    //     Column {
+                    //         id: column2
+                    //         x: 500
+                    //         y: 58
+                    //         width: 102
+                    //         height: 271
+                    //         spacing: 10
+                    //         GlowingLabel {
+                    //             color: "#ffffff"
+                    //             text: "LEVEL"
+                    //         }
+
+                    //         MixerDial {
+                    //             effect: "delay1"
+                    //             param: "carla_level"
+                    //             value: polyValues.delay1.carla_level.value
+                    //             to: 1
+                    //             width: 100
+                    //             height: 100
+                    //         }
+                    //     }
+
+                    //     Column {
+                    //         id: column3
+                    //         x: 625
+                    //         y: 58
+                    //         width: 102
+                    //         height: 271
+                    //         spacing: 10
+                    //         GlowingLabel {
+                    //             color: "#ffffff"
+                    //             text: qsTr("TIME")
+                    //         }
+
+                    //         MixerDial {
+                    //             effect: "delay1"
+                    //             param: "l_delay"
+                    //             value: polyValues.delay1.l_delay.value
+                    //             textOverride: {
+                    //                 if (tempoSynced.delay1.value == 1)
+                    //                 {
+                    //                     return tempoSynced.delay1.name
+                    //                 }
+                    //                 else
+                    //                 {
+                    //                     return polyValues.delay1.l_delay.value.toFixed(1)
+                    //                 }
+
+                    //             }
+                    //             to: 1
+                    //             width: 100
+                    //             height: 100
+                    //         }
+
+                    //         Switch {
+                    //             text: qsTr("SYNC")
+                    //             bottomPadding: 0
+                    //             width: 100
+                    //             leftPadding: 0
+                    //             topPadding: 0
+                    //             rightPadding: 0
+                    //             onClicked: {
+                    //                 knobs.toggle_synced("delay1")
+                    //             }
+                    //         }
+
+                    //         GlowingLabel {
+                    //             color: "#ffffff"
+                    //             text: "FEEDBACK"
+                    //         }
+
+                    //         MixerDial {
+                    //             effect: "delay1"
+                    //             param: "feedback"
+                    //             value: polyValues.delay1.feedback.value
+                    //             to: 1
+                    //             width: 100
+                    //             height: 100
+                    //         }
+
+                    //     }
+                    // }
 
                     PolyFrame {
                         id: effects
@@ -469,19 +475,24 @@ ApplicationWindow {
 
 
                         ColumnLayout {
-                            x: 450
-                            y: 66
+                            x: 50
+                            y: 25
                             Layout.fillHeight: true
                             Layout.fillWidth: true
-
-                            Image {
-                                x: 0
-                                Layout.fillHeight: false
-                                // source: "qrc:/icons/reverb_cube.png"
-                                source: "qrc:/icons/reverb_plate.png"
-                                // source: "qrc:/icons/reverb_spring.png"
-                                fillMode: Image.PreserveAspectFit
-                            }
+							FolderBrowser {
+								x: 0
+                                // Layout.fillHeight: true
+								height: 400
+								width: 300
+							}
+                            // Image {
+                            //     x: 0
+                            //     Layout.fillHeight: false
+                            //     // source: "qrc:/icons/reverb_cube.png"
+                            //     source: "qrc:/icons/reverb_plate.png"
+                            //     // source: "qrc:/icons/reverb_spring.png"
+                            //     fillMode: Image.PreserveAspectFit
+                            // }
                             Layout.preferredWidth: 350
                         }
 
@@ -1264,38 +1275,54 @@ ApplicationWindow {
             }
         }
 
-        GlowingLabel {
-            SequentialAnimation on color {
-                id: anim
-                // loops: Animation.Infinite
-                ColorAnimation { to: "white";
-                    duration: (60.0 / currentBPM.value) * 500.0
-                    // onDurationChanged: {
-                    //     anim.restart()
-                    // }
-                }
-                ColorAnimation { to: "green";
-                    duration: (60.0 / currentBPM.value) * 500.0
-                    // onDurationChanged: {
-                    //     anim.restart()
-                    // }
-                }
-                onStopped: { anim.restart (); }
-            }
-            // onTextChanged: {
-            //     anim.restart()
-            // }
-
+        RectangleLoader { 
+            width:70
+            height: 70
             x: 650
             y: -6
-            width: 145
-            height: 35
-            color: "#ffffff"
-            text: currentBPM.value.toFixed(0) + " BPM"
+            // width: 145
+            // height: 35
+            // text: currentBPM.value.toFixed(0) + " BPM"
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 0
-            horizontalAlignment: Text.AlignRight
+            // horizontalAlignment: Text.AlignRight
             anchors.rightMargin: 5
+            anchors.right: parent.right
+            beat_msec: 60 / currentBPM.value * 1000
+            // color: Material.color(Material.accent, Material.Shade200)
+        }
+        GlowingLabel {
+        //     SequentialAnimation on color {
+        //         id: anim
+        //         // loops: Animation.Infinite
+        //         ColorAnimation { to: "white";
+        //             duration: (60.0 / currentBPM.value) * 500.0
+        //             // onDurationChanged: {
+        //             //     anim.restart()
+        //             // }
+        //         }
+        //         ColorAnimation { to: "green";
+        //             duration: (60.0 / currentBPM.value) * 500.0
+        //             // onDurationChanged: {
+        //             //     anim.restart()
+        //             // }
+        //         }
+        //         onStopped: { anim.restart (); }
+        //     }
+        //     // onTextChanged: {
+        //     //     anim.restart()
+        //     // }
+
+            // x: 600
+            // y: -28
+            width: 145
+            height: 35
+            color: "#EEEEEE"//..Material.color(Material.Grey)
+            text: currentBPM.value.toFixed(0) // + " BPM"
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 30 
+            horizontalAlignment: Text.AlignRight
+            anchors.rightMargin: 15
             anchors.right: parent.right
             font {
                 pixelSize: fontSizeLarge

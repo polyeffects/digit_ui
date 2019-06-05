@@ -518,8 +518,11 @@ signal(SIGTERM, signalHandler)
 
 knob_map = {"left": PolyEncoder("delay1", "l_delay"), "right": PolyEncoder("delay1", "feedback")}
 
-effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1), "carla_level": PolyValue("level", 1, 0, 1)},
-    "reverb": {"dry_wet": PolyValue("mix", 50, 0, 100), "roomsize": PolyValue("size", 0.5, 0, 1), "carla_level": PolyValue("level", 1, 0, 1)},
+effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
+        "tone": PolyValue("tone", 1, 0, 1)},
+        "carla_level": PolyValue("level", 1, 0, 1)},
+    "reverb": {"dry_wet": PolyValue("mix", 50, 0, 100), "roomsize": PolyValue("size", 0.5, 0, 1),
+        "carla_level": PolyValue("level", 1, 0, 1)},
     "mixer": {"mix_1_1": PolyValue("mix 1,1", 0, 0, 1), "mix_1_2": PolyValue("mix 1,2", 0, 0, 1),
         "mix_1_3": PolyValue("mix 1,3", 0, 0, 1),"mix_1_4": PolyValue("mix 1,4", 0, 0, 1),
         "mix_2_1": PolyValue("mix 2,1", 0, 0, 1),"mix_2_2": PolyValue("mix 2,2", 0, 0, 1),

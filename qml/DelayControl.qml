@@ -3,25 +3,25 @@ import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
 
-Window {
+// Window {
 
-    Material.theme: Material.Dark
-    Material.primary: Material.Green
-    Material.accent: Material.Pink
-    width: 1000
-    height: 600
-    title: "Drag & drop example"
-    visible: true
+//     Material.theme: Material.Dark
+//     Material.primary: Material.Green
+//     Material.accent: Material.Pink
+//     width: 1000
+//     height: 600
+//     title: "Drag & drop example"
+//     visible: true
 
     Item {
         id: time_scale
-        width: 1000
-        height: 600
+        width: 1200
+        height: 550
         property bool snapping: true
         property bool synced: true
         property int division: 4
         property int bars: 1
-        property int active_width: 800
+        property int active_width: 900
         property int num_delays: 1
         property string current_parameter: "LEVEL"
         property int max_delay_length: 30
@@ -88,7 +88,7 @@ Window {
             // background: Material.background
             width:200
             height:parent.height
-            Material.elevation: 2
+            // Material.elevation: 2
 
             Column {
                 width:200
@@ -112,6 +112,7 @@ Window {
                     topPadding: 0
                     rightPadding: 0
                     checked: true
+                    enabled: time_scale.synced
                     onClicked: {
                         time_scale.snapping = checked
                     }
@@ -130,6 +131,8 @@ Window {
                     }
                 }
                 ComboBox {
+                    width: 140
+                    enabled: time_scale.synced
                     textRole: "key"
                     model: ListModel {
                         ListElement { key: "1/4"; value: 4 }
@@ -145,6 +148,7 @@ Window {
                 }
 
                 ComboBox {
+                    width: 140
                     model: ["LEVEL", "TONE", "FEEDBACK"]
                     onActivated: {
                         console.debug(model[index]);
@@ -155,8 +159,8 @@ Window {
         }
         
         Item {
-            x: 200
-            width: 800
+            x: 300
+            width: 900
             height: parent.height
 
             Repeater {
@@ -197,7 +201,7 @@ Window {
                             }
                             else 
                             {
-                                if(time_scale.snapping) {
+                                if(time_scale.snapping && time_scale.synced) {
                                     rect.x = time_scale.nearestDivision(rect.x);
                                 }
                                 time_scale.delay_data[index]["time"] = time_scale.pixelToTime(rect.x);
@@ -242,8 +246,10 @@ Window {
                         // ctx.fillRect(0, 0, 1, height);
 
                         for (var i = 1; i < time_scale.max_delay_length+1; i++) {
-                            var x = width/Math.log(time_scale.max_delay_length+1)*Math.log(i)
+                            var x = (width/time_scale.max_delay_length)*i
                             ctx.fillRect(x, 0, 1, height);
+                            // var x = width/Math.log(time_scale.max_delay_length+1)*Math.log(i)
+                            // ctx.fillRect(x, 0, 1, height);
                             if (i < 4)
                             {
                                 ctx.fillText(i-1, x+2, height - 10);
@@ -277,13 +283,16 @@ Window {
                 font.pixelSize: 20
                 z: 2
                 anchors.horizontalCenter: mycanvas.horizontalCenter
-                anchors.bottom: mycanvas.bottom
+                anchors.top: mycanvas.bottom
                 color: "grey"
             }
 
             Label {
                 text: time_scale.current_parameter
                 font.pixelSize: 20
+                height:30
+                width: 30
+                // x: 200
                 z: 2
                 anchors.verticalCenter: mycanvas.verticalCenter
                 anchors.right: mycanvas.left
@@ -294,5 +303,5 @@ Window {
 
         // }
     }
-}
+// }
 

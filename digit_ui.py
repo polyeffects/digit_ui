@@ -126,6 +126,7 @@ if __name__ == "__main__":
     QIcon.setThemeName("digit")
     # Instantiate the Python object.
     knobs = Knobs()
+    current_bpm = PolyValue("BPM", 120, 30, 250) # bit of a hack
 
     # t_list = QStringList()
     # t_list.append("a")
@@ -141,6 +142,7 @@ if __name__ == "__main__":
     context.setContextProperty("param_vals", obj)
     context.setContextProperty("delay1_Left_Out_AvailablePorts", model)
     context.setContextProperty("delay1_Left_Out_UsedPorts", model2)
+    context.setContextProperty("currentBPM", current_bpm)
     # engine.load(QUrl("qrc:/qml/digit.qml"))
     engine.load(QUrl("qml/digit.qml"))
 
