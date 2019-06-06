@@ -23,48 +23,50 @@ ApplicationWindow {
         property int bars: 1
         property int active_width: 900
         property int num_delays: 1
-        property string current_parameter: "LEVEL"
+        property string current_parameter: "gain"
         property int max_delay_length: 30
-        property var delay_data: [{"time": 0.25, "LEVEL": 0.5, "TONE": 0.8, "FEEDBACK":0.2},
-            {"time": 0.5, "LEVEL": 0.4, "TONE": 0.8, "FEEDBACK":0.2},
-            {"time": 0.75, "LEVEL": 0.3, "TONE": 0.8, "FEEDBACK":0.2},
-            {"time": 0.85, "LEVEL": 0.2, "TONE": 0.8, "FEEDBACK":0.2}]
+
+        // mycanvas.filterFreqs = [ new filterFreq(25,   400,    80,  16), // LS
+        // new filterFreq(  20,  2000,   160, 100),
+        // new filterFreq(  40,  4000,   397, 100),
+        // new filterFreq( 100, 10000,  1250, 100),
+        // new filterFreq( 200, 20000,  2500, 100),
+        // new filterFreq(1000, 16000,  8000,  16) // HS
+
+        // q is 0-4 gain is +-18 db
+        property var eq_data: [{"frequency": 80, "gain": 0.0, "q": 0.8},
+            {"frequency": 160, "gain": 0.4, "q": 0.8},
+            {"frequency": 397, "gain": 0.3, "q": 0.8},
+            {"frequency": 1250, "gain": 0.2, "q": 0.8},
+            {"frequency": 2500, "gain": 0.2, "q": 0.8},
+            {"frequency": 8000, "gain": 0.0, "q": 0.8}]
+        
         property var delay_colors: [Material.Pink, Material.Purple, Material.LightBlue, Material.Amber]
         // PPQN * bars
         //
-        function nearestDivision(x) {
-            // given pixel find nearest pixel for division
-            var grid_width = active_width/time_scale.division;
-            return Math.round(x / grid_width) * grid_width;
-        }
+        // function nearestDivision(x) {
+        //     // given pixel find nearest pixel for division
+        //     var grid_width = active_width/time_scale.division;
+        //     return Math.round(x / grid_width) * grid_width;
+        // }
 
-        function beatToPixel(beat) {
-            // given factional beat find pixel 
-            return beat * active_width / time_scale.bars;
-        }
-
-        function pixelToBeat(x) {
-            // given factional beat find pixel 
-            return x * time_scale.bars / active_width;
-        }
 
         function valueToPixel(index) {
             // work out a y pixel from level / tone / feedback value
-            return (1 - delay_data[index][current_parameter]) * height; // TODO values scaling?
+            return (1 - eq_data[index][current_parameter]) * height; // TODO values scaling?
         }
 
         function pixelToValue(index, y) {
             // given a y pixel set level / tone / feedback value
-            delay_data[index][current_parameter] = 1 - (y / height);
+            return eq_data[index][current_parameter] = 1 - (y / height);
         }
 
-        function hzToPixel(t) {
-            // log / inv log 0-max delay length seconds TODO
-            return t * active_width / max_delay_length;
+        function hzToPixel(f) {
+            return mycanvas.x_at_freq (f, active_width);
         }
 
         function pixelToHz(x) {
-            return x * max_delay_length / active_width;
+            return mycanvas.freq_at_x (x, active_width);
         }
 
 
@@ -134,7 +136,7 @@ ApplicationWindow {
 
                 ComboBox {
                     width: 140
-                    model: ["LEVEL", "TONE", "FEEDBACK"]
+                    model: ["gain", "q"]
                     onActivated: {
                         console.debug(model[index]);
                         time_scale.current_parameter = model[index];
@@ -149,19 +151,19 @@ ApplicationWindow {
             height: parent.height
 
             Repeater {
-                model: 4
+                model: 6
                 Rectangle {
                     id: rect
-                    width: 50
-                    height: 50
+                    width: 20
+                    height: 20
                     z: mouseArea.drag.active ||  mouseArea.pressed ? 2 : 1
                     color: Material.color(time_scale.delay_colors[index])
-                    x: time_scale.hzToPixel(time_scale.delay_data[index]["time"])
-                    y: time_scale.valueToPixel(index)
+                    x: time_scale.hzToPixel(time_scale.eq_data[index]["frequency"])
+                    y: mycanvas.y_at_gain(time_scale.eq_data[index]["gain"])
                     property point beginDrag
                     property bool caught: false
                     // border { width:1; color: Material.color(Material.Grey, Material.Shade100)}
-                    radius: 5
+                    radius: width * 0.5
                     Drag.active: mouseArea.drag.active
 
                     Text {
@@ -186,11 +188,15 @@ ApplicationWindow {
                             }
                             else 
                             {
-                                if(time_scale.snapping && time_scale.synced) {
-                                    rect.x = time_scale.nearestDivision(rect.x);
-                                }
-                                time_scale.delay_data[index]["time"] = time_scale.pixelToHz(rect.x);
-                                time_scale.pixelToValue(index, rect.y);
+                                // if(time_scale.snapping && time_scale.synced) {
+                                //     rect.x = time_scale.nearestDivision(rect.x);
+                                // }
+                                time_scale.eq_data[index]["frequency"] = time_scale.pixelToHz(rect.x);
+                                time_scale.eq_data[index]["gain"] = mycanvas.gain_at_y(rect.y);
+                                // update cache and redraw
+                                mycanvas.update_filter_external (index, time_scale.eq_data[index]["frequency"], 
+                                    time_scale.eq_data[index]["q"], time_scale.eq_data[index]["gain"]);
+                                mycanvas.requestPaint();
                             }
                         }
 
@@ -207,6 +213,8 @@ ApplicationWindow {
                 id: mycanvas
                 property var filterSections: []
                 property var filterFreqs: []
+                property bool initDone: false
+                property int dbRange: 20 // XXX
 
                 /* cached filter state */
                 function filterSection (rate) {
@@ -241,6 +249,19 @@ ApplicationWindow {
                     return Math.round(m0_width * Math.log (f / 20.0) / Math.log (1000.0));
                 }
 
+
+                function gain_at_y (y){
+                    var zero_db = height / 2.0;
+                    var pixel_per_db = (height /  Math.ceil(2 * dbRange));
+                    return (y - zero_db) / pixel_per_db;
+                }
+
+                function y_at_gain (gain){
+                    var zero_db = height / 2.0;
+                    var pixel_per_db = (height /  Math.ceil(2 * dbRange));
+                    return zero_db + (pixel_per_db * gain);
+                }
+
                 function grid_freq(ctx, fq, hz) { 
                     // x offset
                     var xx = 0 + x_at_freq(fq, width) - 0.5; 
@@ -268,6 +289,22 @@ ApplicationWindow {
                     ctx.lineTo(width, yy); 
                     ctx.stroke(); 
                     ctx.fillText(tx, 0, yy-5); 
+                }
+
+
+                function update_filter_external (i, freq, q, gain)
+                {
+                    if (i == 0)
+                    {
+                        update_iir(mycanvas.filterSections[i], false, freq, q, gain);
+                    }
+                    else if (i == mycanvas.filterFreqs.length - 1){
+                        update_iir(mycanvas.filterSections[i], true, freq, q, gain);
+                    }
+                    else
+                    {
+                        update_filter(mycanvas.filterSections[i], freq, q, gain);
+                    }
                 }
 
                 function update_filter (flt, freq, bw, gain) {
@@ -418,7 +455,7 @@ ApplicationWindow {
                     // shade based on enabled TODO
                     var NCTRL = 6;
                     var shade = 1.0;
-                    var dbRange = 20; // XXX put this somewhere else
+                    // var dbRange = 20; 
                     // cairo_set_line_cap(cr, CAIRO_LINE_CAP_BUTT);
                     // cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND);
                     var g_gain = 0;
@@ -655,8 +692,9 @@ ApplicationWindow {
                             ctx.moveTo(i, ym - y);
                             console.log("move to", i, ym - y, height);
                         } else {
-                            ctx.moveTo(i, ym - y);
-                            console.log("move to", i, ym - y, height);
+                            // ctx.moveTo(i, ym - y);
+                            ctx.lineTo(i, ym - y);
+                            console.log("line to", i, ym - y, height);
                         }
                     }
                     // cairo_set_operator (cr, CAIRO_OPERATOR_ADD);
@@ -675,7 +713,7 @@ ApplicationWindow {
                 }
                 width: time_scale.active_width
                 onPaint: {
-                    if (!mycanvas.filter_inited) {
+                    if (!mycanvas.initDone) {
                         // init filters
                         Math.log10 = Math.log10 || function(x) {
                             return Math.log(x) * Math.LOG10E;
@@ -706,16 +744,17 @@ ApplicationWindow {
                         for (var i = 0; i < mycanvas.filterFreqs.length; i++) {
                             if (i == 0)
                             {
-                                update_iir(mycanvas.filterSections[i], false, mycanvas.filterFreqs[i].dflt, 1, 0.0)
+                                update_iir(mycanvas.filterSections[i], false, mycanvas.filterFreqs[i].dflt, 1, 0.0);
                             }
                             else if (i == mycanvas.filterFreqs.length - 1){
-                                update_iir(mycanvas.filterSections[i], true, mycanvas.filterFreqs[i].dflt, 1, 1.2)
+                                update_iir(mycanvas.filterSections[i], true, mycanvas.filterFreqs[i].dflt, 1, 0.0);
                             }
                             else
                             {
-                                update_filter(mycanvas.filterSections[i], mycanvas.filterFreqs[i].dflt, 1, 0.0)
+                                update_filter(mycanvas.filterSections[i], mycanvas.filterFreqs[i].dflt, 0.1, 2.0);
                             }
                         }
+                        mycanvas.initDone = true;
                     
                     }
                     var ctx = getContext("2d");
