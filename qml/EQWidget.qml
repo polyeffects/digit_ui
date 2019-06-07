@@ -3,28 +3,37 @@ import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
 
-ApplicationWindow {
+// ApplicationWindow {
 
-    Material.theme: Material.Dark
-    Material.primary: Material.Green
-    Material.accent: Material.Pink
-    width: 1200
-    height: 700
-    title: "Drag & drop example"
-    visible: true
+//     Material.theme: Material.Dark
+//     Material.primary: Material.Green
+//     Material.accent: Material.Pink
+
+//     readonly property int baseFontSize: 20 
+//     readonly property int tabHeight: 60 
+//     readonly property int fontSizeExtraSmall: baseFontSize * 0.8
+//     readonly property int fontSizeMedium: baseFontSize * 1.5
+//     readonly property int fontSizeLarge: baseFontSize * 2
+//     readonly property int fontSizeExtraLarge: baseFontSize * 5
+//     width: 800
+//     height: 580
+//     title: "Drag & drop example"
+//     visible: true
 
     Item {
         id: time_scale
-        width: 1200
+        width: 800
         height: 550
-        property bool snapping: true
+        property bool eq_enabled: true
         property bool synced: true
         property int division: 4
         property int bars: 1
-        property int active_width: 900
+        property int active_width: 675
         property int num_delays: 1
         property string current_parameter: "gain"
         property int max_delay_length: 30
+        property int selected_point: 1
+        property int point_updated: 1
 
         // mycanvas.filterFreqs = [ new filterFreq(25,   400,    80,  16), // LS
         // new filterFreq(  20,  2000,   160, 100),
@@ -34,12 +43,12 @@ ApplicationWindow {
         // new filterFreq(1000, 16000,  8000,  16) // HS
 
         // q is 0-4 gain is +-18 db
-        property var eq_data: [{"frequency": 80, "gain": 0.0, "q": 0.8},
-            {"frequency": 160, "gain": 0.4, "q": 0.8},
-            {"frequency": 397, "gain": 0.3, "q": 0.8},
-            {"frequency": 1250, "gain": 0.2, "q": 0.8},
-            {"frequency": 2500, "gain": 0.2, "q": 0.8},
-            {"frequency": 8000, "gain": 0.0, "q": 0.8}]
+        property var eq_data: [{"frequency": 80, "gain": 0.0, "q": 0.8, "enabled":true},
+            {"frequency": 160, "gain": 0.4, "q": 0.1, "enabled":true},
+            {"frequency": 397, "gain": 0.3, "q": 0.1, "enabled":true},
+            {"frequency": 1250, "gain": 0.2, "q": 0.1, "enabled":true},
+            {"frequency": 2500, "gain": 0.2, "q": 0.1, "enabled":true},
+            {"frequency": 8000, "gain": 0.0, "q": 0.1, "enabled":true}]
         
         property var delay_colors: [Material.Pink, Material.Purple, Material.LightBlue, Material.Amber]
         // PPQN * bars
@@ -71,105 +80,38 @@ ApplicationWindow {
 
 
         // Row {
-        PolyFrame {
-            // background: Material.background
-            width:200
-            height:parent.height
-            // Material.elevation: 2
-
-            Column {
-                width:200
-                spacing: 10
-                height:parent.height
-
-                SpinBox {
-                    from: 1
-                    value: 1
-                    to: 4
-                    onValueModified: {
-                        time_scale.num_delays = value;
-                    }
-                }
-
-                Switch {
-                    text: qsTr("SNAPPING")
-                    bottomPadding: 0
-                    width: 200
-                    leftPadding: 0
-                    topPadding: 0
-                    rightPadding: 0
-                    checked: true
-                    enabled: time_scale.synced
-                    onClicked: {
-                        time_scale.snapping = checked
-                    }
-                }
-                Switch {
-                    text: qsTr("TEMPO SYNC")
-                    bottomPadding: 0
-                    width: 200
-                    leftPadding: 0
-                    topPadding: 0
-                    rightPadding: 0
-                    checked: true
-                    onClicked: {
-                        time_scale.synced = checked
-                        mycanvas.requestPaint();
-                    }
-                }
-                ComboBox {
-                    width: 140
-                    enabled: time_scale.synced
-                    textRole: "key"
-                    model: ListModel {
-                        ListElement { key: "1/4"; value: 4 }
-                        ListElement { key: "1/3"; value: 3 }
-                        ListElement { key: "1/8"; value: 8 }
-                        ListElement { key: "1/16"; value: 16 }
-                        ListElement { key: "1/32"; value: 32 }
-                    }
-                    onActivated: {
-                        time_scale.division = model.get(index).value;
-                        mycanvas.requestPaint();
-                    }
-                }
-
-                ComboBox {
-                    width: 140
-                    model: ["gain", "q"]
-                    onActivated: {
-                        console.debug(model[index]);
-                        time_scale.current_parameter = model[index];
-                    }
-                }
-            }
-        }
         
         Item {
-            x: 300
-            width: 900
+            x: 25
+            width: 675
             height: parent.height
 
             Repeater {
                 model: 6
                 Rectangle {
                     id: rect
-                    width: 20
-                    height: 20
+                    width: 30
+                    height: 30
                     z: mouseArea.drag.active ||  mouseArea.pressed ? 2 : 1
-                    color: Material.color(time_scale.delay_colors[index])
-                    x: time_scale.hzToPixel(time_scale.eq_data[index]["frequency"])
-                    y: mycanvas.y_at_gain(time_scale.eq_data[index]["gain"])
+                    border { 
+                        width:1; 
+                        color: time_scale.point_updated, time_scale.eq_data[index]["enabled"] ? Material.color(Material.Indigo, Material.Shade200) : Material.color(Material.Grey, Material.Shade200)  
+                    }
+                    // color: time_scale.eq_data[index]["enabled"] ? Material.color(Material.Indigo, Material.Shade200) : Material.color(Material.Grey, Material.Shade200)  
+                    color: Qt.rgba(0, 0, 0, 0)
+                    x: time_scale.hzToPixel(time_scale.eq_data[index]["frequency"]) - (width / 2) // offset for square size
+                    y: mycanvas.y_at_gain(time_scale.eq_data[index]["gain"]) - (width / 2)
                     property point beginDrag
                     property bool caught: false
                     // border { width:1; color: Material.color(Material.Grey, Material.Shade100)}
-                    radius: width * 0.5
+                    radius: index == 0 || index == 5 ? width * 0.1 : width * 0.5
                     Drag.active: mouseArea.drag.active
 
                     Text {
                         anchors.centerIn: parent
-                        text: index
+                        text: index+1
                         color: "white"
+                        font.pixelSize: fontSizeMedium
                     }
                     MouseArea {
                         id: mouseArea
@@ -177,6 +119,7 @@ ApplicationWindow {
                         drag.target: parent
                         onPressed: {
                             rect.beginDrag = Qt.point(rect.x, rect.y);
+                            time_scale.selected_point = index;
                         }
                         onReleased: {
                             if(!rect.caught) {
@@ -188,11 +131,9 @@ ApplicationWindow {
                             }
                             else 
                             {
-                                // if(time_scale.snapping && time_scale.synced) {
-                                //     rect.x = time_scale.nearestDivision(rect.x);
-                                // }
-                                time_scale.eq_data[index]["frequency"] = time_scale.pixelToHz(rect.x);
-                                time_scale.eq_data[index]["gain"] = mycanvas.gain_at_y(rect.y);
+                                time_scale.eq_data[index]["frequency"] = time_scale.pixelToHz(rect.x + (width / 2)); // offset for square size
+                                console.log("frequency", time_scale.eq_data[index]["frequency"]);
+                                time_scale.eq_data[index]["gain"] = mycanvas.gain_at_y(rect.y + (width / 2));
                                 // update cache and redraw
                                 mycanvas.update_filter_external (index, time_scale.eq_data[index]["frequency"], 
                                     time_scale.eq_data[index]["q"], time_scale.eq_data[index]["gain"]);
@@ -226,6 +167,10 @@ ApplicationWindow {
                     // float x0, y0; // mouse position
                 } 
 
+                function setColorAlpha(color, alpha) {
+                    return Qt.hsla(color.hslHue, color.hslSaturation, color.hslLightness, alpha)
+                }
+
                 // function HoLoFilter (f) {
                 //     this.f = f;
                 //     // this.q = q;
@@ -253,13 +198,13 @@ ApplicationWindow {
                 function gain_at_y (y){
                     var zero_db = height / 2.0;
                     var pixel_per_db = (height /  Math.ceil(2 * dbRange));
-                    return (y - zero_db) / pixel_per_db;
+                    return (zero_db - y) / pixel_per_db;
                 }
 
                 function y_at_gain (gain){
                     var zero_db = height / 2.0;
                     var pixel_per_db = (height /  Math.ceil(2 * dbRange));
-                    return zero_db + (pixel_per_db * gain);
+                    return zero_db - (pixel_per_db * gain);
                 }
 
                 function grid_freq(ctx, fq, hz) { 
@@ -267,7 +212,7 @@ ApplicationWindow {
                     var xx = 0 + x_at_freq(fq, width) - 0.5; 
                     ctx.moveTo(xx, 0); 
                     ctx.lineTo(xx, height - 5); 
-                    ctx.stroke(); 
+                    // ctx.stroke(); 
                     ctx.fillText(hz, xx, height - 5); 
                 }
 
@@ -287,7 +232,7 @@ ApplicationWindow {
                     var yy = Math.round(height/2.0 - (height/(max_db*2) * db)); 
                     ctx.moveTo(0, yy) 
                     ctx.lineTo(width, yy); 
-                    ctx.stroke(); 
+                    // ctx.stroke(); 
                     ctx.fillText(tx, 0, yy-5); 
                 }
 
@@ -452,7 +397,6 @@ ApplicationWindow {
 
                 function draw_filters (ctx) {
 
-                    // shade based on enabled TODO
                     var NCTRL = 6;
                     var shade = 1.0;
                     // var dbRange = 20; 
@@ -475,7 +419,8 @@ ApplicationWindow {
                     var ym = height / 2.0;
                     var yr = height /  Math.ceil(2 * dbRange);
                     var x0 = 0;
-                    var ny = x_at_freq(.5 * 20000, xw);
+                    // var ny = x_at_freq(.5 * 20000, xw);
+                    var ny = x_at_freq(.5 * 48000, xw);
 
                     /* draw dots for peaking EQ, boxes for shelves */
                     // cairo_set_operator (cr, CAIRO_OPERATOR_ADD);
@@ -662,23 +607,25 @@ ApplicationWindow {
                     // cairo_stroke(cr);
 
                     /* draw total */
-                    ctx.lineWidth = 2.0 * shade;
+                    ctx.lineWidth = 2 * shade;
                     // XXX
                     ctx.beginPath();
                     // cairo_set_source_rgba (cr, 1.0, 1.0, 1.0, shade);
-                    // ctx.strokeStyle
                     for (var i = 0 ; i < xw && i < ny; ++i) {
                         var xf = freq_at_x(i, xw);
                         var y = yr * g_gain;
                         for (var j = 0 ; j < NCTRL; ++j) {
                             // if (!robtk_cbtn_get_active(ui->btn_enable[j])) continue;
                             // TODO check if enabled
-                            if (j == 0) {
-                                y += yr * get_shelf_response (mycanvas.filterSections[j], xf);
-                            } else if (j == NCTRL -1) {
-                                y += yr * get_shelf_response (mycanvas.filterSections[j], xf);
-                            } else {
-                                y += yr * get_filter_response (mycanvas.filterSections[j], xf);
+                            if (time_scale.eq_data[j]["enabled"])
+                            {
+                                if (j == 0) {
+                                    y += yr * get_shelf_response (mycanvas.filterSections[j], xf);
+                                } else if (j == NCTRL -1) {
+                                    y += yr * get_shelf_response (mycanvas.filterSections[j], xf);
+                                } else {
+                                    y += yr * get_filter_response (mycanvas.filterSections[j], xf);
+                                }
                             }
                         }
                         // if (robtk_ibtn_get_active(ui->btn_g_hipass)) {
@@ -690,16 +637,19 @@ ApplicationWindow {
                         if (i == 0) {
                             // TODO optimize '0'/moveto out of the loop
                             ctx.moveTo(i, ym - y);
-                            console.log("move to", i, ym - y, height);
+                            // console.log("move to", i, ym - y, height);
                         } else {
                             // ctx.moveTo(i, ym - y);
                             ctx.lineTo(i, ym - y);
-                            console.log("line to", i, ym - y, height);
+                            // console.log("line to", i, ym - y, height);
                         }
                     }
                     // cairo_set_operator (cr, CAIRO_OPERATOR_ADD);
                     // cairo_stroke_preserve(cr);
                     // cairo_set_operator (cr, CAIRO_OPERATOR_ADD);
+                    //
+                    // ctx.strokeStyle = Qt.rgba(0.1,0.1,0.1,0.1);
+                    ctx.stroke();
                     ctx.lineTo(xw, ym - yr * g_gain);
                     ctx.lineTo(0, ym - yr * g_gain);
                     ctx.fileStyle = Qt.rgba(0.5, 0.5, 0.5, 0.33 * shade);
@@ -760,15 +710,20 @@ ApplicationWindow {
                     var ctx = getContext("2d");
                     // draw the grid
                     ctx.fillStyle = Material.background; //Qt.rgba(1, 1, 0, 1);
+                    // ctx.clearRect(0, 0, width, height);
                     ctx.fillRect(0, 0, width, height);
                     // draw beat snap lines  
                     // every second
-                    ctx.fillStyle = Material.accent;//Qt.rgba(0.1, 0.1, 0.1, 1);
-
+                    ctx.fillStyle = Material.accent; //, 0.3);//Qt.rgba(0.1, 0.1, 0.1, 1);
+                    // ctx.strokeStyle = '#000000';
+                    ctx.strokeStyle = Qt.rgba(0.1,0.1,0.1,1);//setColorAlpha(Material.accent, 0.8);//Qt.rgba(0.1, 0.1, 0.1, 1);
                     // ctx.fillRect(0, 0, 1, height);
                     //
                     // vertical lines, showing frequency
                     // grid_freq(ctx, 20, "20");
+                    ctx.beginPath();
+                    ctx.font = "14px sans-serif"
+                    ctx.lineWidth = 1.0;
                     grid_line(ctx, 25);
                     grid_line(ctx, 31.5);
                     grid_freq(ctx, 40, "40");
@@ -804,6 +759,7 @@ ApplicationWindow {
                     for (var i = -18; i < 19; i=i+6) {
                         grid_db(ctx, i, i.toString());
                     }
+                    ctx.stroke(); 
 
 
                     // for (var i = 1; i < time_scale.max_delay_length+1; i++) {
@@ -819,6 +775,16 @@ ApplicationWindow {
 
                     // draw the curve given the control points
                     // iterate over control points?
+
+                    if (time_scale.eq_enabled){
+                        ctx.strokeStyle = Material.accent;//setColorAlpha(Material.accent, 0.8);//Qt.rgba(0.1, 0.1, 0.1, 1);
+                        ctx.fillStyle = setColorAlpha(Material.accent, 0.3);//Qt.rgba(0.1, 0.1, 0.1, 1);
+                    }
+                    else {
+                        ctx.strokeStyle = Qt.rgba(0.6, 0.6, 0.6, 0.5);//setColorAlpha(Material.accent, 0.8);//Qt.rgba(0.1, 0.1, 0.1, 1);
+                        ctx.fillStyle = Qt.rgba(0.6, 0.6, 0.6, 0.3); //setColorAlpha(Material.BlueGrey, 0.3);
+                    }
+                    // ctx.strokeStyle
                     draw_filters(ctx)
 
                 }
@@ -852,7 +818,7 @@ ApplicationWindow {
             }
 
             Label {
-                text: time_scale.current_parameter
+                text: "GAIN (dB)"
                 font.pixelSize: 20
                 height:30
                 width: 30
@@ -864,8 +830,125 @@ ApplicationWindow {
                 color: "grey"
             }
         }
+        PolyFrame {
+            // background: Material.background
+            x: 710
+            width:1220
+            height:parent.height
+            // Material.elevation: 2
+
+            Column {
+                width:120
+                spacing: 20
+                height:parent.height
+
+                Switch {
+                    text: qsTr("ON")
+                    bottomPadding: 0
+                    // implicitWidth: 100
+                    width: 100
+                    leftPadding: 0
+                    topPadding: 0
+                    rightPadding: 0
+                    checked: true
+                    onClicked: {
+                        time_scale.eq_enabled = checked
+                        mycanvas.requestPaint();
+                    }
+                }
+
+                GlowingLabel {
+                    color: "#ffffff"
+                    text: qsTr("MIX")
+                }
+
+                MixerDial {
+                    effect: "reverb"
+                    param: "mix"
+                    value: 5
+                    from: 0
+                    to: 10
+                }
+
+                Switch {
+                    text: time_scale.selected_point + 1
+                    bottomPadding: 0
+                    width: 100
+                    leftPadding: 0
+                    topPadding: 0
+                    rightPadding: 0
+                    checked: time_scale.eq_data[time_scale.selected_point]["enabled"]
+                    onClicked: {
+                        time_scale.eq_data[time_scale.selected_point]["enabled"] = checked;
+                        time_scale.point_updated++; 
+                        mycanvas.requestPaint();
+                    }
+                }
+
+                GlowingLabel {
+                    color: "#ffffff"
+                    text: qsTr("Q")
+                }
+
+                // MixerDial {
+                //     effect: "reverb"
+                //     param: "q"
+                //     value: 0.5
+                //     from: 0
+                //     to: 4
+                // }
+                Dial {
+                    id: control
+                    // property string param
+                    // property string effect: "mixer"
+                    // property string textOverride: control.value.toFixed(1)
+                    width: 75
+                    height: 75
+                    from: 0.1
+                    Label {
+                        color: "#ffffff"
+                        text: control.value.toFixed(1)
+                        font.pixelSize: 20 * 2
+                        anchors.centerIn: parent
+                    }
+                    onMoved: {
+                        if (pressed === true)
+                        {
+                            // knobs.ui_knob_change(effect, param, control.value)
+                            time_scale.eq_data[time_scale.selected_point]["q"] = control.value
+                            console.log("setting q", control.value);
+                            mycanvas.update_filter_external (time_scale.selected_point, 
+                                time_scale.eq_data[time_scale.selected_point]["frequency"], 
+                                time_scale.eq_data[time_scale.selected_point]["q"], time_scale.eq_data[time_scale.selected_point]["gain"]);
+                            mycanvas.requestPaint();
+                        }
+                    }
+                    // onPressedChanged: {
+                        // console.warn("set knob mapping")
+                        // if we're in set control mode, then set this control
+                        // python variable in qml context
+                        // if (knobs.waiting != "") // left or right
+                        // {
+                        //     knobs.map_parameter_to_encoder(effect, param)    
+                        //     console.warn("set knob mapping")
+                        // }
+                    // }
+                    // Layout.minimumHeight: 64
+                    value: time_scale.eq_data[time_scale.selected_point]["q"]
+                    // Layout.minimumWidth: 64
+                    // Layout.maximumHeight: 128
+                    // Layout.fillHeight: true
+                    // Layout.preferredWidth: 128
+                    stepSize: 0.01
+                    to: 4
+                    // Layout.preferredHeight: 128
+                    // Layout.alignment: Qt.AlignHCenter
+                    // Layout.maximumWidth: 128
+                }
+            }
+        }
 
         // }
     }
-}
+// }
 

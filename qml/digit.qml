@@ -37,7 +37,7 @@ ApplicationWindow {
     readonly property color colorDarkGrey: "#333"
 
     readonly property int baseFontSize: 20 
-    readonly property int tabHeight: 60 
+    readonly property int tabHeight: 90 
     readonly property int fontSizeExtraSmall: baseFontSize * 0.8
     readonly property int fontSizeMedium: baseFontSize * 1.5
     readonly property int fontSizeLarge: baseFontSize * 2
@@ -63,7 +63,7 @@ ApplicationWindow {
             font.pixelSize: 95
             opacity: 0.4
             color: "grey"
-            visible: !(pluginState.global.value)
+            visible: false // XXX !(pluginState.global.value)
             z: 1
             anchors.centerIn: parent
         }
@@ -496,42 +496,46 @@ ApplicationWindow {
                             Layout.preferredWidth: 350
                         }
 
+						EQWidget {
+							x: 350
+						}
 
-                        Column {
-                            id: column1
-                            x: 1000
-                            y: 66
-                            width: 102
-                            height: 271
-                            spacing: 10
-                            GlowingLabel {
-                                color: "#ffffff"
-                                text: qsTr("MIX")
-                            }
 
-                            MixerDial {
-                                effect: "reverb"
-                                param: "dry_wet"
-                                value: polyValues.reverb.dry_wet.value
-                                to: 100
-                                width: 100
-                                height: 100
-                            }
+                        // Column {
+                        //     id: column1
+                        //     x: 1000
+                        //     y: 66
+                        //     width: 102
+                        //     height: 271
+                        //     spacing: 10
+                        //     GlowingLabel {
+                        //         color: "#ffffff"
+                        //         text: qsTr("MIX")
+                        //     }
 
-                            GlowingLabel {
-                                color: "#ffffff"
-                                text: qsTr("TONE")
-                            }
+                        //     MixerDial {
+                        //         effect: "reverb"
+                        //         param: "dry_wet"
+                        //         value: polyValues.reverb.dry_wet.value
+                        //         to: 100
+                        //         width: 100
+                        //         height: 100
+                        //     }
 
-                            MixerDial {
-                                effect: "reverb"
-                                param: "roomsize"
-                                value: polyValues.reverb.roomsize.value
-                                to: 1
-                                width: 100
-                                height: 100
-                            }
-                        }
+                        //     GlowingLabel {
+                        //         color: "#ffffff"
+                        //         text: qsTr("TONE")
+                        //     }
+
+                        //     MixerDial {
+                        //         effect: "reverb"
+                        //         param: "roomsize"
+                        //         value: polyValues.reverb.roomsize.value
+                        //         to: 1
+                        //         width: 100
+                        //         height: 100
+                        //     }
+                        // }
                     }
 
                     PolyFrame {
