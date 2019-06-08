@@ -14,15 +14,17 @@ Item {
     property bool repeat: true
     property bool plus_minus: true
     property real global_glide: 1.0
+    property real speed_multiplier: 1.0
     property int division: 4
     property int bars: 1
     property int active_width: 900
     property int num_lfos: 4
     property string current_parameter: "level"
+    property string segment_type: "linear"
     property int max_lfo_length: 30
-    property var lfo_data: [{"time": 0.0, "level": 0.5, "TONE": 0.8, "FEEDBACK":0.2},
-    {"time": 0.5, "level": 0.4, "TONE": 0.8, "FEEDBACK":0.2},
-    {"time": 0.75, "level": 0.3, "TONE": 0.8, "FEEDBACK":0.2},
+    property var lfo_data: [{"time": 0.0, "level": 0.5},
+    {"time": 0.5, "level": 0.4},
+    {"time": 0.75, "level": 0.3},
     {"time": 0.85, "level": 0.2, "TONE": 0.8, "FEEDBACK":0.2}]
     property var lfo_colors: [Material.Pink, Material.Purple, Material.LightBlue, Material.Amber]
     // PPQN * bars
@@ -93,9 +95,20 @@ Item {
             SpinBox {
                 from: 1
                 value: lfo_control.num_lfos
-                to: 16
+                to: 64
                 onValueModified: {
+                    if (lfo_control.num_lfos > value){
+                        // pop
+                        lfo_control.lfo_data.pop();
+                    } else {
+                        // push
+                        var t = lfo_control.lfo_data[lfo_control.lfo_data.length - 1]["time"]
+                        lfo_control.lfo_data.push({"time": Math.min(t + 0.05, bars),
+                            "level": lfo_control.lfo_data[lfo_control.lfo_data.length - 1]["level"]});
+                    }
                     lfo_control.num_lfos = value;
+                    // push or pop from array, putting the new value after the previous one
+                    mycanvas.requestPaint();
                 }
             }
 
@@ -162,6 +175,16 @@ Item {
                     lfo_control.current_parameter = model[index];
                 }
             }
+
+            ComboBox {
+                width: 140
+                model: ["linear", "sin", "squared", "square root"]
+                onActivated: {
+                    // console.debug(model[index]);
+                    lfo_control.segment_type = model[index];
+                    mycanvas.requestPaint();
+                }
+            }
         }
     }
 
@@ -204,21 +227,34 @@ Item {
                     }
                     onReleased: {
                         if(!rect.caught) {
-                            backAnimX.from = rect.x;
-                            backAnimX.to = beginDrag.x;
-                            backAnimY.from = rect.y;
-                            backAnimY.to = beginDrag.y;
-                            backAnim.start()
+                            // backAnimX.from = rect.x;
+                            // backAnimX.to = beginDrag.x;
+                            // backAnimY.from = rect.y;
+                            // backAnimY.to = beginDrag.y;
+                            // backAnim.start()
+                            // clamp to bounds
+                            rect.x = Math.min(Math.max(0, rect.x), mycanvas.width);
+                            rect.y = Math.min(Math.max(0, rect.y), mycanvas.height);
                         }
-                        else 
-                        {
-                            if(lfo_control.snapping && lfo_control.synced) {
-                                rect.x = lfo_control.nearestDivision(rect.x);
+                        if(lfo_control.snapping && lfo_control.synced) {
+                            rect.x = lfo_control.nearestDivision(rect.x);
+                        }
+                        if (index == 0){ // first point, fix to zero
+                            rect.x = 0;
+                        }
+                        else {
+                            // if this points x is less than the previous x make equal (monotonic)
+                            if (lfo_control.lfo_data[index-1]["time"] > lfo_control.pixelToTime(rect.x)){
+                                rect.x = lfo_control.timeToPixel(lfo_control.lfo_data[index-1]["time"]);
                             }
-                            lfo_control.lfo_data[index]["time"] = lfo_control.pixelToTime(rect.x);
-                            lfo_control.lfo_data[index]["level"] = mycanvas.level_at_y(rect.y);
-                            mycanvas.requestPaint();
+                            // if this points x is > than the next x make equal (monotonic)
+                            if (lfo_control.num_lfos > index+1 && (lfo_control.lfo_data[index+1]["time"] < lfo_control.pixelToTime(rect.x))){
+                                rect.x = lfo_control.timeToPixel(lfo_control.lfo_data[index+1]["time"]);
+                            }
                         }
+                        lfo_control.lfo_data[index]["time"] = lfo_control.pixelToTime(rect.x);
+                        lfo_control.lfo_data[index]["level"] = mycanvas.level_at_y(rect.y);
+                        mycanvas.requestPaint();
                     }
 
                 }
@@ -318,18 +354,41 @@ Item {
                 ctx.strokeStyle = Material.accent;//setColorAlpha(Material.accent, 0.8);//Qt.rgba(0.1, 0.1, 0.1, 1);
                 ctx.fillStyle = setColorAlpha(Material.accent, 0.3);//Qt.rgba(0.1, 0.1, 0.1, 1);
                 ctx.moveTo(0, y_at_level(lfo_control.lfo_data[0]["level"]));
-                var a;
+                var seg_x1;
+                var seg_x2;
+                    // draw from current point to next point based on segment type
                 for (var i = 1; i < lfo_control.lfo_data.length; i++) {
-                    // linear
-                    a = lfo_control.timeToPixel(lfo_control.lfo_data[i]["time"])
-                    var b = y_at_level(lfo_control.lfo_data[i]["level"])
-                    ctx.lineTo(a, b);
-                    console.log("drawing line", a, b, width, mid_y, ctx.lineWidth);    
-                }
-                if (lfo_control.repeat){
-                    ctx.lineTo(width, y_at_level(lfo_control.lfo_data[0]["level"])); // if repeating
-                } else {
-                    ctx.lineTo(a, mid_y); // if repeating
+                    var seg_y1;
+                    var seg_y2;
+                    seg_x1 = lfo_control.timeToPixel(lfo_control.lfo_data[i]["time"])
+                    seg_y1 = y_at_level(lfo_control.lfo_data[i]["level"])
+
+                    if (i == lfo_control.lfo_data.length - 1 && lfo_control.repeat){
+                        if (!lfo_control.repeat){
+                            break; // don't need to draw to end
+                        }
+                        seg_x2 = width;
+                        seg_y2 = y_at_level(lfo_control.lfo_data[0]["level"])
+                    } else {
+                        seg_x2 = lfo_control.timeToPixel(lfo_control.lfo_data[i+1]["time"])
+                        seg_y2 = y_at_level(lfo_control.lfo_data[i+1]["level"])
+                    }
+
+
+                    if (lfo_control.segment_type == "linear") {
+                        // linear
+                        var m = (seg_y2 - seg_y1) / (seg_x2 - seg_x1);
+                        for (var j = seg_x1; j < seg_x2; j++) {
+                            var cur_y = (m * (j - seg_x1)) + seg_y1;
+                            ctx.lineTo(j, cur_y);
+                        }
+                        // console.log("drawing line", a, b, width, mid_y, ctx.lineWidth);    
+                    }
+                } 
+                if (!lfo_control.repeat){
+                    // ctx.lineTo(width, y_at_level(lfo_control.lfo_data[0]["level"])); // if repeating
+                // } else {
+                    ctx.lineTo(seg_x2, mid_y); 
                 }
 
                 ctx.stroke();
