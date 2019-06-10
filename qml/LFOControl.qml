@@ -290,6 +290,25 @@ Item {
                 }
             }
 
+            function bend1(x, a){
+                x += 0.25;
+                x += a * math.sin(x * 2.0 * Math.PI) / (2.0 * Math.PI);
+                x -= 0.25;
+                return x;
+            }
+
+            function bend2(x, a){
+                x += a * Math.sin(x * 2.0 * Math.PI) / (2.0 * Math.PI);
+                return x;
+            }
+
+            function bend3(x, a){
+                a = 0.5 * a;
+                x = x - a * x * x + a;
+                x = x - a * x * x + a;
+                return x;
+            }
+
             anchors {
                 top: parent.top
                 right:  parent.right
@@ -378,11 +397,17 @@ Item {
                     if (lfo_control.segment_type == "linear") {
                         // linear
                         var m = (seg_y2 - seg_y1) / (seg_x2 - seg_x1);
+                        var diff_x;
+                        var cur_y;
+                        var bend_factor;
+
                         for (var j = seg_x1; j < seg_x2; j++) {
-                            var cur_y = (m * (j - seg_x1)) + seg_y1;
+                            diff_x = (j - seg_x1) / (seg_x2 - seg_x1); // 0-1 how far through seg
+                            cur_y = (m * (j - seg_x1)) + seg_y1;
+                            bend_factor = bend2(diff_x, 0.5);
                             ctx.lineTo(j, cur_y);
                         }
-                        // console.log("drawing line", a, b, width, mid_y, ctx.lineWidth);    
+                        console.log("drawing line", j, bend_factor, diff_x, seg_x1, seg_x2, cur_y);    
                     }
                 } 
                 if (!lfo_control.repeat){
