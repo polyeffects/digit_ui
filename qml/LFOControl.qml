@@ -25,7 +25,7 @@ Item {
     property var lfo_data: [{"time": 0.0, "level": 0.5},
     {"time": 0.5, "level": 0.4},
     {"time": 0.75, "level": 0.3},
-    {"time": 0.85, "level": 0.2, "TONE": 0.8, "FEEDBACK":0.2}]
+    {"time": 0.85, "level": 0.2}]
     property var lfo_colors: [Material.Pink, Material.Purple, Material.LightBlue, Material.Amber]
     // PPQN * bars
     //
@@ -169,22 +169,30 @@ Item {
 
             ComboBox {
                 width: 140
-                model: ["level", "TONE", "FEEDBACK"]
-                onActivated: {
-                    console.debug(model[index]);
-                    lfo_control.current_parameter = model[index];
-                }
-            }
-
-            ComboBox {
-                width: 140
-                model: ["linear", "sin", "squared", "square root"]
+                model: ["linear", "smooth", "accell", "decell", "step", "random"]
                 onActivated: {
                     // console.debug(model[index]);
                     lfo_control.segment_type = model[index];
                     mycanvas.requestPaint();
                 }
             }
+
+            GlowingLabel {
+                color: "#ffffff"
+                text: qsTr("SPEED")
+                font {
+                    pixelSize: baseFontSize
+                }
+            }
+
+            MixerDial {
+                effect: "LFO"
+                param: "Speed"
+                value: 1
+                from: 0.0625
+                to: 16
+            }
+            
         }
     }
 
@@ -309,6 +317,46 @@ Item {
                 return x;
             }
 
+            function clamp(x, lowerlimit, upperlimit) {
+                if (x < lowerlimit){
+                    x = lowerlimit;
+                }
+                if (x > upperlimit){
+                    x = upperlimit;
+                }
+                return x;
+            }
+            
+            function smoothstep(x) {
+                // Scale, bias and saturate x to 0..1 range
+                // x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0); 
+                // Evaluate polynomialv
+                //
+                return x * x * (3 - 2 * x);
+            }
+
+            function accell(x){
+                return x * x;
+            }
+
+            function decell(v){
+                return 1 - (1 - v) * (1 - v); 
+            }
+
+            function random(v){
+                return Math.random() * v;
+            }
+
+            function linear_interpolate(y1, y2, mu){
+                return (y1*(1-mu)+y2*mu);
+            }
+
+            function cosine_interpolate(y1, y2, mu) {
+                var mu2;
+                mu2 = (1-Math.cos(mu*Math.PI))/2;
+                return (y1*(1-mu2)+y2*mu2);
+            }
+
             anchors {
                 top: parent.top
                 right:  parent.right
@@ -376,13 +424,13 @@ Item {
                 var seg_x1;
                 var seg_x2;
                     // draw from current point to next point based on segment type
-                for (var i = 1; i < lfo_control.lfo_data.length; i++) {
+                for (var i = 0; i < lfo_control.lfo_data.length; i++) {
                     var seg_y1;
                     var seg_y2;
                     seg_x1 = lfo_control.timeToPixel(lfo_control.lfo_data[i]["time"])
                     seg_y1 = y_at_level(lfo_control.lfo_data[i]["level"])
 
-                    if (i == lfo_control.lfo_data.length - 1 && lfo_control.repeat){
+                    if (i == lfo_control.lfo_data.length - 1){
                         if (!lfo_control.repeat){
                             break; // don't need to draw to end
                         }
@@ -394,21 +442,36 @@ Item {
                     }
 
 
-                    if (lfo_control.segment_type == "linear") {
-                        // linear
-                        var m = (seg_y2 - seg_y1) / (seg_x2 - seg_x1);
-                        var diff_x;
-                        var cur_y;
-                        var bend_factor;
+                    // linear
+                    // var m = (seg_y2 - seg_y1) / (seg_x2 - seg_x1);
+                    var mu; // diff x
+                    var cur_y;
+                    var bend_factor;
 
-                        for (var j = seg_x1; j < seg_x2; j++) {
-                            diff_x = (j - seg_x1) / (seg_x2 - seg_x1); // 0-1 how far through seg
-                            cur_y = (m * (j - seg_x1)) + seg_y1;
-                            bend_factor = bend2(diff_x, 0.5);
-                            ctx.lineTo(j, cur_y);
+// for (var j = seg_x1; j < seg_x2; j++) {
+// {
+
+                    for (var j = seg_x1; j < seg_x2; j++) {
+                        // var v = j - seg_x21 / seg_x2;
+                        var mu = (j - seg_x1) / (seg_x2 - seg_x1); // 0-1 how far through seg
+                        // v = v; // linear
+                        if (lfo_control.segment_type == "smooth") {
+                            mu = smoothstep(mu);
+                        } else if (lfo_control.segment_type == "accell") {
+                            mu = accell(mu);
+                        } else if (lfo_control.segment_type == "decell") {
+                            mu = decell(mu);
+                        } else if (lfo_control.segment_type == "step") {
+                            mu = 0;
+                        } else if (lfo_control.segment_type == "random") {
+                            mu = random(mu);
                         }
-                        console.log("drawing line", j, bend_factor, diff_x, seg_x1, seg_x2, cur_y);    
+                        //if linear do nothing
+                        // cur_y = cosine_interpolate(seg_y1, seg_y2, mu);
+                        cur_y = (seg_y1 * (1-mu)+seg_y2*mu);
+                        ctx.lineTo(j, cur_y);
                     }
+                    // console.log("drawing line", j, bend_factor, diff_x, seg_x1, seg_x2, cur_y);    
                 } 
                 if (!lfo_control.repeat){
                     // ctx.lineTo(width, y_at_level(lfo_control.lfo_data[0]["level"])); // if repeating

@@ -20,8 +20,10 @@ ApplicationWindow {
     height: 580
     title: "Drag & drop example"
     visible: true
-    LFOControl {
-    // EQWidget {
+    // LFOControl {
+    // // EQWidget {
     
+    // }
+    PresetSave {
     }
 }

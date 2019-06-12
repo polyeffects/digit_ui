@@ -1,4 +1,4 @@
-import sys
+import sys, os
 # import random
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer
@@ -6,6 +6,7 @@ from PySide2.QtQml import QQmlApplicationEngine
 from PySide2.QtGui import QIcon
 # # compiled QML files, compile with pyside2-rcc
 # import qml.qml
+os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
 import icons.icons
 # #, imagine_assets
 import resource_rc
