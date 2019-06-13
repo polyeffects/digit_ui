@@ -755,11 +755,11 @@ ApplicationWindow {
                         z: -1
                         Column {
                             id: column
-                            x: 109
+                            x: 400
                             y: 12
                             width: 150
                             height: 405
-                            spacing: 10
+                            spacing: 30
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: qsTr("IN 1")
@@ -773,9 +773,9 @@ ApplicationWindow {
                                     color: "#ffffff"
                                     text: qsTr("OUT 1")
                                     anchors.left: parent.left
-                                    anchors.leftMargin: -55
+                                    anchors.leftMargin: -115
                                     anchors.top: parent.verticalCenter
-                                    anchors.topMargin: -10
+                                    anchors.topMargin: -25
                                 }
                                 param: "mix_1_1"
                             }
@@ -784,9 +784,9 @@ ApplicationWindow {
                                     color: "#ffffff"
                                     text: qsTr("OUT 1")
                                     anchors.left: parent.left
-                                    anchors.leftMargin: -55
+                                    anchors.leftMargin: -115
                                     anchors.top: parent.verticalCenter
-                                    anchors.topMargin: -10
+                                    anchors.topMargin: -25
                                 }
                                 param: "mix_1_2"
                             }
@@ -795,9 +795,9 @@ ApplicationWindow {
                                     color: "#ffffff"
                                     text: qsTr("OUT 1")
                                     anchors.left: parent.left
-                                    anchors.leftMargin: -55
+                                    anchors.leftMargin: -115
                                     anchors.top: parent.verticalCenter
-                                    anchors.topMargin: -10
+                                    anchors.topMargin: -25
                                 }
                                 param: "mix_1_3"
                             }
@@ -806,20 +806,20 @@ ApplicationWindow {
                                     color: "#ffffff"
                                     text: qsTr("OUT 1")
                                     anchors.left: parent.left
-                                    anchors.leftMargin: -55
+                                    anchors.leftMargin: -115
                                     anchors.top: parent.verticalCenter
-                                    anchors.topMargin: -10
+                                    anchors.topMargin: -25
                                 }
                                 param: "mix_1_4"
                             }
 
                         }
                         Column {
-                            x: 259
+                            x: 550
                             y: 12
                             width: 150
                             height: 405
-                            spacing: 10
+                            spacing: 30
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: qsTr("IN 2")
@@ -842,11 +842,11 @@ ApplicationWindow {
 
                         }
                         Column {
-                            x: 409
+                            x: 700
                             y: 12
                             width: 150
                             height: 405
-                            spacing: 10
+                            spacing: 30
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: qsTr("IN 3")
@@ -869,11 +869,11 @@ ApplicationWindow {
 
                         }
                         Column {
-                            x: 559
+                            x: 850
                             y: 12
                             width: 150
                             height: 405
-                            spacing: 10
+                            spacing: 30
                             GlowingLabel {
                                 color: "#ffffff"
                                 text: qsTr("IN 4")

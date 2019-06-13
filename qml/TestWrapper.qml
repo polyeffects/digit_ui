@@ -24,6 +24,9 @@ ApplicationWindow {
     // // EQWidget {
     
     // }
-    PresetSave {
+    // PresetSave {
+    // }
+    Settings {
+    
     }
 }
