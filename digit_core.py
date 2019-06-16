@@ -105,6 +105,9 @@ def set_active(effect, is_active):
     host.set_drywet(pluginMap[effect], is_active) # full wet if active else full dry
     plugin_state[effect].value = is_active
 
+def clamp(v, min_value, max_value):
+    return max(min(v, max_value), min_value)
+
 class PolyEncoder(QObject):
     # name, min, max, value
     def __init__(self, starteffect="", startparameter=""):
@@ -170,7 +173,8 @@ class PolyValue(QObject):
         return self.valueval
 
     def setValue(self,val):
-        self.valueval = val
+        # clamp values
+        self.valueval = clamp(val, self.rmin, self.rmax)
         self.value_changed.emit()
         print("setting value", val)
 
@@ -617,8 +621,7 @@ effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "fe
         "HSsec": PolyValue("Highshelf", 1.000000, 0.000000, 1.000000),
         "HSfreq": PolyValue("Highshelf Frequency", 8000.000000, 1000.000000, 16000.000000),
         "HSq": PolyValue("Highshelf Bandwidth", 1.000000, 0.062500, 4.000000),
-        "HSgain": PolyValue("Highshelf Gain", 0.000000, -18.000000, 18.000000)
-        }
+        "HSgain": PolyValue("Highshelf Gain", 0.000000, -18.000000, 18.000000)},
     "cab": {"CBass": PolyValue("bass", 0, -10, 10), "CTreble": PolyValue("treble", 0, -10, 10),
         "c_model": PolyValue("Cab Model", 0, 0, 18)}
     }

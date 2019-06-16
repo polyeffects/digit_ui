@@ -25,7 +25,7 @@ import QtQuick.Controls.Material 2.3
         width: 800
         height: 550
         property string effect: "eq2"
-        property bool eq_enabled: polyValues[effect]["enabled"].value
+        property bool eq_enabled: polyValues[effect]["enable"].value
         property int active_width: 675
         property int selected_point: 1
         property int point_updated: 1
@@ -66,8 +66,8 @@ import QtQuick.Controls.Material 2.3
                 model: 6
                 Rectangle {
                     id: rect
-                    width: 30
-                    height: 30
+                    width: 40
+                    height: 40
                     z: mouseArea.drag.active ||  mouseArea.pressed ? 2 : 1
                     border { 
                         width:1; 
@@ -107,24 +107,27 @@ import QtQuick.Controls.Material 2.3
                             }
                             else 
                             {
-                                time_scale.eq_data[index]["frequency"] = time_scale.pixelToHz(rect.x + (width / 2)); // offset for square size
-                                console.log("frequency", time_scale.eq_data[index]["frequency"]);
-                                time_scale.eq_data[index]["gain"] = mycanvas.gain_at_y(rect.y + (width / 2));
+                                var f = time_scale.pixelToHz(rect.x + (width / 2)); // offset for square size
+                                console.log("frequency before", time_scale.eq_data[index]["frequency"]);
+                                var g = mycanvas.gain_at_y(rect.y + (width / 2));
                                 // update cache and redraw
-                                mycanvas.update_filter_external (index, time_scale.eq_data[index]["frequency"], 
-                                    time_scale.eq_data[index]["q"], time_scale.eq_data[index]["gain"]);
                                 if (index == 0){
                                     // low shelf
-                                    knobs.ui_knob_change(effect, "LSfreq", time_scale.eq_data[index]["frequency"]);
-                                    knobs.ui_knob_change(effect, "LSgain", time_scale.eq_data[index]["gain"]);
+                                    knobs.ui_knob_change(effect, "LSfreq", f);
+                                    knobs.ui_knob_change(effect, "LSgain", g);
                                 }
                                 else if (index == 5){
                                     // high shelf
-                                    knobs.ui_knob_change(effect, "HSfreq", time_scale.eq_data[index]["frequency"]);
-                                    knobs.ui_knob_change(effect, "HSgain", time_scale.eq_data[index]["gain"]);
+                                    knobs.ui_knob_change(effect, "HSfreq", f);
+                                    knobs.ui_knob_change(effect, "HSgain", g);
                                 }
-                                knobs.ui_knob_change(effect, "freq"+str(index), time_scale.eq_data[index]["frequency"]);
-                                knobs.ui_knob_change(effect, "gain"+str(index), time_scale.eq_data[index]["gain"]);
+                                else {
+                                    knobs.ui_knob_change(effect, "freq"+index, f);
+                                    knobs.ui_knob_change(effect, "gain"+index, g);
+                                }
+                                console.log("frequency after", time_scale.eq_data[index]["frequency"]);
+                                mycanvas.update_filter_external (index, time_scale.eq_data[index]["frequency"], 
+                                    time_scale.eq_data[index]["q"], time_scale.eq_data[index]["gain"]);
                                 mycanvas.requestPaint();
                             }
                         }
@@ -857,13 +860,13 @@ import QtQuick.Controls.Material 2.3
                     rightPadding: 0
                     checked: time_scale.eq_data[time_scale.selected_point]["enabled"]
                     onClicked: {
-                        time_scale.eq_data[time_scale.selected_point]["enabled"] = checked;
+                        // time_scale.eq_data[time_scale.selected_point]["enabled"] = checked;
                         if (time_scale.selected_point == 0){
                             knobs.ui_knob_change(effect, "LSsec", checked | 0); // force to int
                         } else if (time_scale.selected_point == 5){
                             knobs.ui_knob_change(effect, "HSsec", checked | 0); // force to int
                         } else {
-                            knobs.ui_knob_change(effect, "sec"+str(time_scale.selected_point), checked | 0); // force to int
+                            knobs.ui_knob_change(effect, "sec"+time_scale.selected_point, checked | 0); // force to int
                         }
                         time_scale.point_updated++; 
                         mycanvas.requestPaint();
@@ -890,26 +893,26 @@ import QtQuick.Controls.Material 2.3
                         font.pixelSize: 20 * 2
                         anchors.centerIn: parent
                     }
-                    onValueChanged: {
-                        if (pressed === true)
+                    onPressedChanged: {
+                        if (pressed === false)
                         {
                             // knobs.ui_knob_change(effect, param, control.value)
-                            time_scale.eq_data[time_scale.selected_point]["q"] = control.value
+                            // time_scale.eq_data[time_scale.selected_point]["q"] = control.value
                             console.log("setting q", control.value);
+                            if (time_scale.selected_point == 0){
+                                knobs.ui_knob_change(effect, "LSq", 
+                                        control.value);
+                            } else if (time_scale.selected_point == 5){
+                                knobs.ui_knob_change(effect, "HSq", 
+                                        control.value);
+                            } else {
+                                knobs.ui_knob_change(effect, "q"+time_scale.selected_point, 
+                                        control.value);
+                            }
                             mycanvas.update_filter_external (time_scale.selected_point, 
                                 time_scale.eq_data[time_scale.selected_point]["frequency"], 
                                 time_scale.eq_data[time_scale.selected_point]["q"], 
                                 time_scale.eq_data[time_scale.selected_point]["gain"]);
-                            if (time_scale.selected_point == 0){
-                                knobs.ui_knob_change(effect, "LSq", 
-                                        time_scale.eq_data[time_scale.selected_point]["q"]);
-                            } else if (time_scale.selected_point == 5){
-                                knobs.ui_knob_change(effect, "HSq", 
-                                        time_scale.eq_data[time_scale.selected_point]["q"]);
-                            } else {
-                                knobs.ui_knob_change(effect, "q"+str(time_scale.selected_point), 
-                                        time_scale.eq_data[time_scale.selected_point]["q"]);
-                            }
                             mycanvas.requestPaint();
                         }
                     }
