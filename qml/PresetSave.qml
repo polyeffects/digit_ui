@@ -20,7 +20,6 @@ import Qt.labs.folderlistmodel 2.2
         property url current_selected: "file:///none.wav"
         property bool is_system_preset: false
 
-
 		// save or load
         Component {
             id: loadOrSave

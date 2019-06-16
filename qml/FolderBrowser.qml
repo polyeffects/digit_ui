@@ -16,7 +16,10 @@ import Qt.labs.folderlistmodel 2.2
 
 
     Item {
+        id: mainRect
         property url current_selected: "file:///none.wav"
+        property url top_folder: "file:///audio/reverbs/"
+        property var after_file_selected: (function(name) { return null; })
 
         function basename(ustr)
         {
@@ -34,7 +37,6 @@ import Qt.labs.folderlistmodel 2.2
            return x.replace(/\.[^/.]+$/, "") 
         }
 
-        id: mainRect
         width: parent.width
         height: parent.height
         GlowingLabel {
@@ -53,7 +55,11 @@ import Qt.labs.folderlistmodel 2.2
             anchors.right: mainRect.right
             anchors.rightMargin: 5
             text: "UP"
-            onClicked: folderListModel.folder = folderListModel.parentFolder
+            visible: folderListModel.folder != top_folder
+            onClicked: {
+                folderListModel.folder = folderListModel.parentFolder
+                console.log(folderListModel.folder, top_folder);
+            } 
             height: 60
         }
         Rectangle {
@@ -71,6 +77,7 @@ import Qt.labs.folderlistmodel 2.2
             model: FolderListModel {
                 id: folderListModel
                 showDirsFirst: true
+                folder: top_folder
 //                nameFilters: ["*.mp3", "*.flac"]
             }
 
@@ -89,6 +96,7 @@ import Qt.labs.folderlistmodel 2.2
                     {
                         console.log(mainRect.basename(fileURL.toString()))
                         mainRect.current_selected = fileURL
+                        mainRect.after_file_selected(fileURL)
                     }
                 }
                 // background: Rectangle {

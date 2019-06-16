@@ -24,51 +24,27 @@ import QtQuick.Controls.Material 2.3
         id: time_scale
         width: 800
         height: 550
-        property bool eq_enabled: true
-        property bool synced: true
-        property int division: 4
-        property int bars: 1
+        property string effect: "eq2"
+        property bool eq_enabled: polyValues[effect]["enabled"].value
         property int active_width: 675
-        property int num_delays: 1
-        property string current_parameter: "gain"
-        property int max_delay_length: 30
         property int selected_point: 1
         property int point_updated: 1
 
-        // mycanvas.filterFreqs = [ new filterFreq(25,   400,    80,  16), // LS
-        // new filterFreq(  20,  2000,   160, 100),
-        // new filterFreq(  40,  4000,   397, 100),
-        // new filterFreq( 100, 10000,  1250, 100),
-        // new filterFreq( 200, 20000,  2500, 100),
-        // new filterFreq(1000, 16000,  8000,  16) // HS
-
         // q is 0-4 gain is +-18 db
-        property var eq_data: [{"frequency": 80, "gain": 0.0, "q": 0.8, "enabled":true},
-            {"frequency": 160, "gain": 0.4, "q": 0.1, "enabled":true},
-            {"frequency": 397, "gain": 0.3, "q": 0.1, "enabled":true},
-            {"frequency": 1250, "gain": 0.2, "q": 0.1, "enabled":true},
-            {"frequency": 2500, "gain": 0.2, "q": 0.1, "enabled":true},
-            {"frequency": 8000, "gain": 0.0, "q": 0.1, "enabled":true}]
+        property var eq_data: [{"frequency": polyValues[effect]["LSfreq"].value, 
+            "gain": polyValues[effect]["LSgain"].value, "q": polyValues[effect]["LSq"].value,
+            "enabled":polyValues[effect]["LSsec"].value},
+            {"frequency": polyValues[effect]["freq1"].value, "gain": polyValues[effect]["gain1"].value, 
+            "q": polyValues[effect]["q1"].value, "enabled":polyValues[effect]["sec1"].value},
+            {"frequency": polyValues[effect]["freq2"].value, "gain": polyValues[effect]["gain2"].value, 
+            "q": polyValues[effect]["q2"].value, "enabled":polyValues[effect]["sec2"].value},
+            {"frequency": polyValues[effect]["freq3"].value, "gain": polyValues[effect]["gain3"].value,
+            "q": polyValues[effect]["q3"].value, "enabled":polyValues[effect]["sec3"].value},
+            {"frequency": polyValues[effect]["freq4"].value, "gain": polyValues[effect]["gain4"].value,
+            "q": polyValues[effect]["q4"].value, "enabled":polyValues[effect]["sec4"].value},
+            {"frequency": polyValues[effect]["HSfreq"].value, "gain": polyValues[effect]["HSgain"].value,
+            "q": polyValues[effect]["HSq"].value, "enabled":polyValues[effect]["HSsec"].value}]
         
-        property var delay_colors: [Material.Pink, Material.Purple, Material.LightBlue, Material.Amber]
-        // PPQN * bars
-        //
-        // function nearestDivision(x) {
-        //     // given pixel find nearest pixel for division
-        //     var grid_width = active_width/time_scale.division;
-        //     return Math.round(x / grid_width) * grid_width;
-        // }
-
-
-        function valueToPixel(index) {
-            // work out a y pixel from level / tone / feedback value
-            return (1 - eq_data[index][current_parameter]) * height; // TODO values scaling?
-        }
-
-        function pixelToValue(index, y) {
-            // given a y pixel set level / tone / feedback value
-            return eq_data[index][current_parameter] = 1 - (y / height);
-        }
 
         function hzToPixel(f) {
             return mycanvas.x_at_freq (f, active_width);
@@ -137,6 +113,18 @@ import QtQuick.Controls.Material 2.3
                                 // update cache and redraw
                                 mycanvas.update_filter_external (index, time_scale.eq_data[index]["frequency"], 
                                     time_scale.eq_data[index]["q"], time_scale.eq_data[index]["gain"]);
+                                if (index == 0){
+                                    // low shelf
+                                    knobs.ui_knob_change(effect, "LSfreq", time_scale.eq_data[index]["frequency"]);
+                                    knobs.ui_knob_change(effect, "LSgain", time_scale.eq_data[index]["gain"]);
+                                }
+                                else if (index == 5){
+                                    // high shelf
+                                    knobs.ui_knob_change(effect, "HSfreq", time_scale.eq_data[index]["frequency"]);
+                                    knobs.ui_knob_change(effect, "HSgain", time_scale.eq_data[index]["gain"]);
+                                }
+                                knobs.ui_knob_change(effect, "freq"+str(index), time_scale.eq_data[index]["frequency"]);
+                                knobs.ui_knob_change(effect, "gain"+str(index), time_scale.eq_data[index]["gain"]);
                                 mycanvas.requestPaint();
                             }
                         }
@@ -762,17 +750,6 @@ import QtQuick.Controls.Material 2.3
                     ctx.stroke(); 
 
 
-                    // for (var i = 1; i < time_scale.max_delay_length+1; i++) {
-                    //     var x = (width/time_scale.max_delay_length)*i
-                    //     ctx.fillRect(x, 0, 1, height);
-                    //     // var x = width/Math.log(time_scale.max_delay_length+1)*Math.log(i)
-                    //     // ctx.fillRect(x, 0, 1, height);
-                    //     if (i < 4)
-                    //     {
-                    //         ctx.fillText(i-1, x+2, height - 10);
-                    //     }
-                    // }
-
                     // draw the curve given the control points
                     // iterate over control points?
 
@@ -853,6 +830,7 @@ import QtQuick.Controls.Material 2.3
                     checked: true
                     onClicked: {
                         time_scale.eq_enabled = checked
+                        knobs.ui_knob_change(effect, "enable", checked | 0); // force to int
                         mycanvas.requestPaint();
                     }
                 }
@@ -880,6 +858,13 @@ import QtQuick.Controls.Material 2.3
                     checked: time_scale.eq_data[time_scale.selected_point]["enabled"]
                     onClicked: {
                         time_scale.eq_data[time_scale.selected_point]["enabled"] = checked;
+                        if (time_scale.selected_point == 0){
+                            knobs.ui_knob_change(effect, "LSsec", checked | 0); // force to int
+                        } else if (time_scale.selected_point == 5){
+                            knobs.ui_knob_change(effect, "HSsec", checked | 0); // force to int
+                        } else {
+                            knobs.ui_knob_change(effect, "sec"+str(time_scale.selected_point), checked | 0); // force to int
+                        }
                         time_scale.point_updated++; 
                         mycanvas.requestPaint();
                     }
@@ -890,13 +875,6 @@ import QtQuick.Controls.Material 2.3
                     text: qsTr("Q")
                 }
 
-                // MixerDial {
-                //     effect: "reverb"
-                //     param: "q"
-                //     value: 0.5
-                //     from: 0
-                //     to: 4
-                // }
                 Dial {
                     id: control
                     // property string param
@@ -905,13 +883,14 @@ import QtQuick.Controls.Material 2.3
                     width: 75
                     height: 75
                     from: 0.1
+                    live: false
                     Label {
                         color: "#ffffff"
                         text: control.value.toFixed(1)
                         font.pixelSize: 20 * 2
                         anchors.centerIn: parent
                     }
-                    onMoved: {
+                    onValueChanged: {
                         if (pressed === true)
                         {
                             // knobs.ui_knob_change(effect, param, control.value)
@@ -919,7 +898,18 @@ import QtQuick.Controls.Material 2.3
                             console.log("setting q", control.value);
                             mycanvas.update_filter_external (time_scale.selected_point, 
                                 time_scale.eq_data[time_scale.selected_point]["frequency"], 
-                                time_scale.eq_data[time_scale.selected_point]["q"], time_scale.eq_data[time_scale.selected_point]["gain"]);
+                                time_scale.eq_data[time_scale.selected_point]["q"], 
+                                time_scale.eq_data[time_scale.selected_point]["gain"]);
+                            if (time_scale.selected_point == 0){
+                                knobs.ui_knob_change(effect, "LSq", 
+                                        time_scale.eq_data[time_scale.selected_point]["q"]);
+                            } else if (time_scale.selected_point == 5){
+                                knobs.ui_knob_change(effect, "HSq", 
+                                        time_scale.eq_data[time_scale.selected_point]["q"]);
+                            } else {
+                                knobs.ui_knob_change(effect, "q"+str(time_scale.selected_point), 
+                                        time_scale.eq_data[time_scale.selected_point]["q"]);
+                            }
                             mycanvas.requestPaint();
                         }
                     }

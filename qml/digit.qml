@@ -484,6 +484,16 @@ ApplicationWindow {
                                 // Layout.fillHeight: true
 								height: 400
 								width: 300
+                                current_selected: polyValues.reverb.ir.name
+                                top_folder: "file:///audio/reverbs/"
+                                after_file_selected: (function(name) { 
+                                    console.log("got new reveb file");
+                                    // update that we're setting reverb
+                                    // cause file callback
+                                    console.log("file  is", name.toString());
+                                    knobs.update_ir(true, name.toString());
+                                    // some way to handle errors also needed
+                                })
 							}
                             // Image {
                             //     x: 0

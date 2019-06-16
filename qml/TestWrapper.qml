@@ -26,7 +26,18 @@ ApplicationWindow {
     // }
     // PresetSave {
     // }
-    Settings {
+    // Settings {
     
+    // }
+    FolderBrowser {
+   		height: 400
+        width: 300 
+        top_folder: "file:///c:/git_repos/PolyDigit/UI" 
+        after_file_selected: (function(name) { 
+            console.log("in test wrapper call");
+            console.log("file  is", name.toString());
+            
+        })
+
     }
 }

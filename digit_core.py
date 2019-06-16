@@ -81,6 +81,7 @@ pluginMap = {}
 #
 parameterMap = {}
 current_connections = {} # these are group port group port to connection id pairs #TODO remove stale
+current_ir_file = None
 
 # --------------------------------------------------------------------------------------------------------
 source_ports = ["sigmoid1:Output", "reverb:Out", "reverb:Out1", "system:capture_1", "system:capture_2", "system:capture_3", "system:capture_4", "cab:Out"]
@@ -258,7 +259,7 @@ def time_to_tempo_text(v):
 
 
 class Knobs(QObject):
-    """Output stuff on the console."""
+    """Basically all functions for QML to call"""
 
     def __init__(self):
         QObject.__init__(self)
@@ -321,6 +322,22 @@ class Knobs(QObject):
     def toggle_synced(self, effect):
         print("toggling sync", effect)
         tempo_synced[effect].value = not tempo_synced[effect].value
+
+    @Slot(str, str)
+    def update_ir(self, is_reverb, ir_file):
+        print("updating ir", ir_file)
+        global current_ir_file
+        current_ir_file = ir_file[7:] # strip file:// prefix
+        # cause call file callback
+        # by calling show GUI
+        if is_reverb:
+            effect_parameter_data["reverb"]["ir"].name = ir_file
+            host.show_custom_ui(pluginMap["reverb"], True)
+        else:
+            effect_parameter_data["cab"]["ir"].name = ir_file
+            host.show_custom_ui(pluginMap["ir"], True)
+
+
 
     @Slot(str, str)
     def map_parameter_to_encoder(self, effect_name, parameter):
@@ -473,11 +490,35 @@ def engineCallback(host, action, pluginId, value1, value2, value3, valuef, value
     # elif action == ENGINE_CALLBACK_QUIT:
     #     host.QuitCallback.emit()
 
+def fileCallback(ptr, action, isDir, title, filter):
+    title  = charPtrToString(title)
+    filter = charPtrToString(filter)
+    global current_ir_file
+    global fileRet
+
+    # if action == FILE_CALLBACK_OPEN:
+    #     ret, ok = QFileDialog.getOpenFileName(gCarla.gui, title, "", filter) #, QFileDialog.ShowDirsOnly if isD ir else 0x0)
+    # elif action == FILE_CALLBACK_SAVE:
+    #     ret, ok = QFileDialog.getSaveFileName(gCarla.gui, title, "", filter, QFileDialog.ShowDirsOnly if isDir else 0x0)
+    # else:
+    #     ret, ok = ("", "")
+    # check if a file is selected, and if we're setting reverb or cab IR
+
+    if not current_ir_file:
+        return None
+
+    # FIXME
+    fileRet = c_char_p(current_ir_file.encode("utf-8"))
+    retval  = cast(byref(fileRet), POINTER(c_uintptr))
+    return retval.contents.value
+
+
 binaryDir = "/git_repos/Carla/bin"
 host = CarlaHostDLL("/git_repos/Carla/bin/libcarla_standalone2.so", False)
 host.set_engine_option(ENGINE_OPTION_PATH_BINARIES, 0, binaryDir)
 # host.set_engine_callback(lambda h,a,p,v1,v2,v3,vs: engineCallback(host,a,p,v1,v2,v3,vs))
 host.set_engine_callback(lambda h,a,p,v1,v2,v3,vf,vs: engineCallback(host,a,p,v1,v2,v3,vf,vs))
+host.set_file_callback(fileCallback)
 
 if not host.engine_init("JACK", "PolyCarla"):
     print("Engine failed to initialize, possible reasons:\n%s" % host.get_last_error())
@@ -486,7 +527,7 @@ if not host.engine_init("JACK", "PolyCarla"):
 
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay1", "http://drobilla.net/plugins/mda/Delay",  0, None, 0)
 # host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverb", "http://drobilla.net/plugins/fomp/reverb", 0, None, 0)
-host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverb", "http://guitarix.sourceforge.net/plugins/gx_reverb_stereo#_reverb_stereo", 0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverb", "http://gareus.org/oss/lv2/convoLV2#MonoToStereo", 0, None, 0)
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "mixer", "http://gareus.org/oss/lv2/matrixmixer#i4o4", 0, None, 0)
 # host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "", "http://gareus.org/oss/lv2/matrixmixer#i4o4", effects.cab, None, 0)
 ##### ---- Effects
@@ -499,6 +540,8 @@ host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "sigmoid1", "http://moddevices.
 # bitcrusher 
 # plugins for reverb
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverse2", "http://moddevices.com/plugins/tap/reflector", 0, None, 0)
+
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "eq2", "http://gareus.org/oss/lv2/fil4#stereo", 0, None, 0)
 # filter http://drobilla.net/plugins/fomp/mvclpf4
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "filter1", "http://drobilla.net/plugins/fomp/mvclpf1", 0, None, 0)
 # eq 
@@ -519,9 +562,9 @@ signal(SIGTERM, signalHandler)
 knob_map = {"left": PolyEncoder("delay1", "l_delay"), "right": PolyEncoder("delay1", "feedback")}
 
 effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
-        "tone": PolyValue("tone", 1, 0, 1)},
+        "tone": PolyValue("tone", 1, 0, 1),
         "carla_level": PolyValue("level", 1, 0, 1)},
-    "reverb": {"dry_wet": PolyValue("mix", 50, 0, 100), "roomsize": PolyValue("size", 0.5, 0, 1),
+    "reverb": {"gain": PolyValue("mix", 0, -24, 24), "ir": PolyValue("/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1),
         "carla_level": PolyValue("level", 1, 0, 1)},
     "mixer": {"mix_1_1": PolyValue("mix 1,1", 0, 0, 1), "mix_1_2": PolyValue("mix 1,2", 0, 0, 1),
         "mix_1_3": PolyValue("mix 1,3", 0, 0, 1),"mix_1_4": PolyValue("mix 1,4", 0, 0, 1),
@@ -541,12 +584,47 @@ effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "fe
     "reverse2": {"fragment": PolyValue("fragment", 1000, 100, 1600),
         "wet": PolyValue("wet", 0, -90, 20),
         "dry": PolyValue("dry", 0, -90, 20)},
+    "eq2": {
+        "wet": PolyValue("wet", 0, -90, 20),
+        "enable": PolyValue("Enable", 1.000000, 0.000000, 1.0),
+        "gain": PolyValue("Gain", 0.000000, -18.000000, 18.000000),
+        "HighPass": PolyValue("Highpass", 0.000000, 0.000000, 1.000000),
+        "HPfreq": PolyValue("Highpass Frequency", 20.000000, 5.000000, 1250.000000),
+        "HPQ": PolyValue("HighPass Resonance", 0.700000, 0.000000, 1.400000),
+        "LowPass": PolyValue("Lowpass", 0.000000, 0.000000, 1.000000),
+        "LPfreq": PolyValue("Lowpass Frequency", 20000.000000, 500.000000, 20000.000000),
+        "LPQ": PolyValue("LowPass Resonance", 1.000000, 0.000000, 1.400000),
+        "LSsec": PolyValue("Lowshelf", 1.000000, 0.000000, 1.000000),
+        "LSfreq": PolyValue("Lowshelf Frequency", 80.000000, 25.000000, 400.000000),
+        "LSq": PolyValue("Lowshelf Bandwidth", 1.000000, 0.062500, 4.000000),
+        "LSgain": PolyValue("Lowshelf Gain", 0.000000, -18.000000, 18.000000),
+        "sec1": PolyValue("Section 1", 1.000000, 0.000000, 1.000000),
+        "freq1": PolyValue("Frequency 1", 160.000000, 20.000000, 2000.000000),
+        "q1": PolyValue("Bandwidth 1", 0.600000, 0.062500, 4.000000),
+        "gain1": PolyValue("Gain 1", 0.000000, -18.000000, 18.000000),
+        "sec2": PolyValue("Section 2", 1.000000, 0.000000, 1.000000),
+        "freq2": PolyValue("Frequency 2", 397.000000, 40.000000, 4000.000000),
+        "q2": PolyValue("Bandwidth 2", 0.600000, 0.062500, 4.000000),
+        "gain2": PolyValue("Gain 2", 0.000000, -18.000000, 18.000000),
+        "sec3": PolyValue("Section 3", 1.000000, 0.000000, 1.000000),
+        "freq3": PolyValue("Frequency 3", 1250.000000, 100.000000, 10000.000000),
+        "q3": PolyValue("Bandwidth 3", 0.600000, 0.062500, 4.000000),
+        "gain3": PolyValue("Gain 3", 0.000000, -18.000000, 18.000000),
+        "sec4": PolyValue("Section 4", 1.000000, 0.000000, 1.000000),
+        "freq4": PolyValue("Frequency 4", 2500.000000, 200.000000, 20000.000000),
+        "q4": PolyValue("Bandwidth 4", 0.600000, 0.062500, 4.000000),
+        "gain4": PolyValue("Gain 4", 0.000000, -18.000000, 18.000000),
+        "HSsec": PolyValue("Highshelf", 1.000000, 0.000000, 1.000000),
+        "HSfreq": PolyValue("Highshelf Frequency", 8000.000000, 1000.000000, 16000.000000),
+        "HSq": PolyValue("Highshelf Bandwidth", 1.000000, 0.062500, 4.000000),
+        "HSgain": PolyValue("Highshelf Gain", 0.000000, -18.000000, 18.000000)
+        }
     "cab": {"CBass": PolyValue("bass", 0, -10, 10), "CTreble": PolyValue("treble", 0, -10, 10),
         "c_model": PolyValue("Cab Model", 0, 0, 18)}
     }
 
 tempo_synced = {"delay1": PolyValue("1/4", 0, 0, 1)}
-all_effects = [("delay1", True), ("reverb", True), ("mixer", True), ("tape1", False), ("filter1", False), ("reverse1", False), ("sigmoid1", False), ("reverse2", False), ("cab", True)]
+all_effects = [("delay1", True), ("reverb", True), ("mixer", True), ("tape1", False), ("filter1", False), ("reverse1", False), ("sigmoid1", False), ("eq2", False), ("reverse2", False), ("cab", True)]
 plugin_state = dict({(k, PolyBool(initial)) for k, initial in all_effects})
 plugin_state["global"] = PolyBool(True)
 
@@ -717,7 +795,7 @@ while host.is_engine_running() and not gCarla.term:
                     portMap[source_effect]["ports"][source_port],
                     portMap[output_effect]["group"],
                     portMap[output_effect]["ports"][output_port])
-        for effect in ["tape1", "filter1", "reverse1", "sigmoid1", "reverse2"]:
+        for effect in ["tape1", "filter1", "reverse1", "sigmoid1", "reverse2", "eq2"]:
             # set to all dry at start
             set_active(effect, False)
         effects_are_connected = True
