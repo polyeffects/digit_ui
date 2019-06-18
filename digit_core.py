@@ -529,6 +529,9 @@ if not host.engine_init("JACK", "PolyCarla"):
 
 
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay1", "http://drobilla.net/plugins/mda/Delay",  0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay2", "http://drobilla.net/plugins/mda/Delay",  0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay3", "http://drobilla.net/plugins/mda/Delay",  0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay4", "http://drobilla.net/plugins/mda/Delay",  0, None, 0)
 # host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverb", "http://drobilla.net/plugins/fomp/reverb", 0, None, 0)
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverb", "http://gareus.org/oss/lv2/convoLV2#MonoToStereo", 0, None, 0)
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "mixer", "http://gareus.org/oss/lv2/matrixmixer#i4o4", 0, None, 0)
@@ -566,6 +569,15 @@ signal(SIGTERM, signalHandler)
 knob_map = {"left": PolyEncoder("delay1", "l_delay"), "right": PolyEncoder("delay1", "feedback")}
 
 effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
+        "tone": PolyValue("tone", 1, 0, 1),
+        "carla_level": PolyValue("level", 1, 0, 1)},
+    "delay2": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
+        "tone": PolyValue("tone", 1, 0, 1),
+        "carla_level": PolyValue("level", 1, 0, 1)},
+    "delay3": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
+        "tone": PolyValue("tone", 1, 0, 1),
+        "carla_level": PolyValue("level", 1, 0, 1)},
+    "delay4": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
         "tone": PolyValue("tone", 1, 0, 1),
         "carla_level": PolyValue("level", 1, 0, 1)},
     "reverb": {"gain": PolyValue("mix", 0, -24, 24), "ir": PolyValue("/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1),
@@ -627,7 +639,7 @@ effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "fe
     }
 
 tempo_synced = {"delay1": PolyValue("1/4", 0, 0, 1)}
-all_effects = [("delay1", True), ("reverb", True), ("mixer", True), ("tape1", False), ("filter1", False), ("reverse1", False), ("sigmoid1", False), ("eq2", False), ("reverse2", False), ("cab", True)]
+all_effects = [("delay1", True), ("delay2", False), ("delay3", False), ("delay4", False), ("reverb", True), ("mixer", True), ("tape1", False), ("filter1", False), ("reverse1", False), ("sigmoid1", False), ("eq2", False), ("reverse2", False), ("cab", True)]
 plugin_state = dict({(k, PolyBool(initial)) for k, initial in all_effects})
 plugin_state["global"] = PolyBool(True)
 

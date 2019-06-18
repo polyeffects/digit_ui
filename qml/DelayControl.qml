@@ -25,11 +25,24 @@ import QtQuick.Controls.Material 2.3
         property int num_delays: 1
         property string current_parameter: "LEVEL"
         property int max_delay_length: 30
-        property var delay_data: [{"time": 0.25, "LEVEL": 0.5, "TONE": 0.8, "FEEDBACK":0.2},
-            {"time": 0.5, "LEVEL": 0.4, "TONE": 0.8, "FEEDBACK":0.2},
-            {"time": 0.75, "LEVEL": 0.3, "TONE": 0.8, "FEEDBACK":0.2},
-            {"time": 0.85, "LEVEL": 0.2, "TONE": 0.8, "FEEDBACK":0.2}]
+		property var delay_data: [{"time": polyValues["delay1"]["l_delay"].value, 
+			"LEVEL": polyValues["delay1"]["carla_level"].value, 
+			"TONE": polyValues["delay1"]["tone"].value, 
+			"FEEDBACK": polyValues["delay1"]["feedback"].value},
+			{"time": polyValues["delay2"]["l_delay"].value, 
+			"LEVEL": polyValues["delay2"]["carla_level"].value, 
+			"TONE": polyValues["delay2"]["tone"].value, 
+			"FEEDBACK": polyValues["delay2"]["feedback"].value},
+			{"time": polyValues["delay3"]["l_delay"].value, 
+			"LEVEL": polyValues["delay3"]["carla_level"].value, 
+			"TONE": polyValues["delay3"]["tone"].value, 
+			"FEEDBACK": polyValues["delay3"]["feedback"].value},
+			{"time": polyValues["delay4"]["l_delay"].value, 
+			"LEVEL": polyValues["delay4"]["carla_level"].value, 
+			"TONE": polyValues["delay4"]["tone"].value, 
+			"FEEDBACK": polyValues["delay4"]["feedback"].value}]
         property var delay_colors: [Material.Pink, Material.Purple, Material.LightBlue, Material.Amber]
+        property var parameter_map: {"LEVEL":"carla_level", "TONE":"tone", "FEEDBACK": "feedback"}
         // PPQN * bars
         //
         function nearestDivision(x) {
@@ -48,14 +61,14 @@ import QtQuick.Controls.Material 2.3
             return x * time_scale.bars / active_width;
         }
 
-        function valueToPixel(index) {
+        function valueToPixel(v) {
             // work out a y pixel from level / tone / feedback value
-            return (1 - delay_data[index][current_parameter]) * height; // TODO values scaling?
+            return (1 - v) * height; // TODO values scaling?
         }
 
-        function pixelToValue(index, y) {
+        function pixelToValue(y) {
             // given a y pixel set level / tone / feedback value
-            delay_data[index][current_parameter] = 1 - (y / height);
+            return 1 - (y / height);
         }
 
         function secondsToPixel(t) {
@@ -172,7 +185,7 @@ import QtQuick.Controls.Material 2.3
                     z: mouseArea.drag.active ||  mouseArea.pressed ? 2 : 1
                     color: Material.color(time_scale.delay_colors[index])
                     x: time_scale.timeToPixel(time_scale.delay_data[index]["time"])
-                    y: time_scale.valueToPixel(index)
+                    y: time_scale.valueToPixel(time_scale.delay_data[index][time_scale.current_parameter])
                     property point beginDrag
                     property bool caught: false
                     // border { width:1; color: Material.color(Material.Grey, Material.Shade100)}
@@ -204,8 +217,9 @@ import QtQuick.Controls.Material 2.3
                                 if(time_scale.snapping && time_scale.synced) {
                                     rect.x = time_scale.nearestDivision(rect.x);
                                 }
-                                time_scale.delay_data[index]["time"] = time_scale.pixelToTime(rect.x);
-                                time_scale.pixelToValue(index, rect.y);
+								knobs.ui_knob_change("delay"+(index+1), "l_delay", time_scale.pixelToTime(rect.x));
+								knobs.ui_knob_change("delay"+(index+1), time_scale.parameter_map[time_scale.current_parameter], 
+									time_scale.pixelToValue(rect.y));
                             }
                         }
 
