@@ -67,9 +67,8 @@ output_port_names = {"Out 1": ("system", "playback_1"),
     "Out 3": ("system", "playback_3"),
     "Out 4": ("system", "playback_4"),
     "Delay 1 In": ("delay1", "Left In"),
-    "Cab": ("cab", "in"),
-    "Reverb L": ("reverb", "In"),
-    "Reverb R": ("reverb", "In1")
+    "Cab": ("cab", "In"),
+    "Reverb": ("reverb", "In"),
     }
 # inv_source_port_names = dict({(v, k) for k,v in source_port_names.items()})
 inv_output_port_names = dict({(v, k) for k,v in output_port_names.items()})
@@ -84,7 +83,7 @@ current_connections = {} # these are group port group port to connection id pair
 current_ir_file = None
 
 # --------------------------------------------------------------------------------------------------------
-source_ports = ["sigmoid1:Output", "reverb:Out", "reverb:Out1", "system:capture_1", "system:capture_2", "system:capture_3", "system:capture_4", "cab:Out"]
+source_ports = ["sigmoid1:Output", "reverb:OutL", "reverb:OutR", "system:capture_1", "system:capture_2", "system:capture_3", "system:capture_4", "cab:Out"]
 available_port_models = dict({(k, QStringListModel()) for k in source_ports})
 used_port_models = dict({(k, QStringListModel()) for k in available_port_models.keys()})
 # XXX temp, until I fix bypassing
@@ -327,7 +326,7 @@ class Knobs(QObject):
         print("toggling sync", effect)
         tempo_synced[effect].value = not tempo_synced[effect].value
 
-    @Slot(str, str)
+    @Slot(bool, str)
     def update_ir(self, is_reverb, ir_file):
         print("updating ir", ir_file)
         global current_ir_file
@@ -339,7 +338,7 @@ class Knobs(QObject):
             host.show_custom_ui(pluginMap["reverb"], True)
         else:
             effect_parameter_data["cab"]["ir"].name = ir_file
-            host.show_custom_ui(pluginMap["ir"], True)
+            host.show_custom_ui(pluginMap["cab"], True)
 
 
 
@@ -549,7 +548,8 @@ host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "eq2", "http://gareus.org/oss/l
 # filter http://drobilla.net/plugins/fomp/mvclpf4
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "filter1", "http://drobilla.net/plugins/fomp/mvclpf1", 0, None, 0)
 # eq 
-host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "cab", "http://guitarix.sourceforge.net/plugins/gx_cabinet#CABINET", 0, None, 0)
+# host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "cab", "http://guitarix.sourceforge.net/plugins/gx_cabinet#CABINET", 0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "cab", "http://gareus.org/oss/lv2/convoLV2#Mono", 0, None, 0)
 
 signal(SIGINT,  signalHandler)
 signal(SIGTERM, signalHandler)
@@ -622,8 +622,8 @@ effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "fe
         "HSfreq": PolyValue("Highshelf Frequency", 8000.000000, 1000.000000, 16000.000000),
         "HSq": PolyValue("Highshelf Bandwidth", 1.000000, 0.062500, 4.000000),
         "HSgain": PolyValue("Highshelf Gain", 0.000000, -18.000000, 18.000000)},
-    "cab": {"CBass": PolyValue("bass", 0, -10, 10), "CTreble": PolyValue("treble", 0, -10, 10),
-        "c_model": PolyValue("Cab Model", 0, 0, 18)}
+    "cab": {"gain": PolyValue("gain", 0, -24, 24), "ir": PolyValue("/audio/cabs/1x12cab.wav", 0, 0, 1),
+        "carla_level": PolyValue("level", 1, 0, 1)}
     }
 
 tempo_synced = {"delay1": PolyValue("1/4", 0, 0, 1)}
