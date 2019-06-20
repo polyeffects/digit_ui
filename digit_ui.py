@@ -17,6 +17,9 @@ def insert_row(model, row):
 
 class Knobs(QObject):
     """Output stuff on the console."""
+    def __init__(self):
+        QObject.__init__(self)
+        self.waitingval = ""
 
     @Slot(str, str, 'double')
     def ui_knob_change(self, x, y, z):
@@ -41,6 +44,29 @@ class Knobs(QObject):
     @Slot(str)
     def toggle_enabled(self, x):
         print(x)
+
+    @Slot(str, str)
+    def map_parameter(self, effect_name, parameter):
+        # set_knob_current_effect(self.waiting, effect_name, parameter)
+        self.waiting = ""
+
+    @Slot(str)
+    def set_waiting(self, knob):
+        print("waiting", knob)
+        self.waiting = knob
+
+    def readWaiting(self):
+        return self.waitingval
+
+    def setWaiting(self,val):
+        self.waitingval = val
+        self.waiting_changed.emit()
+
+    @Signal
+    def waiting_changed(self):
+        pass
+
+    waiting = Property(str, readWaiting, setWaiting, notify=waiting_changed)
 
 
 class PolyValue(QObject):

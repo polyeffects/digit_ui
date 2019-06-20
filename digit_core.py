@@ -167,6 +167,7 @@ class PolyValue(QObject):
         self.valueval = startval
         self.rminval = startmin
         self.rmax = startmax
+        self.assigned_cc = None
 
     def readValue(self):
         return self.valueval
@@ -343,8 +344,16 @@ class Knobs(QObject):
 
 
     @Slot(str, str)
-    def map_parameter_to_encoder(self, effect_name, parameter):
-        set_knob_current_effect(self.waiting, effect_name, parameter)
+    def map_parameter(self, effect_name, parameter):
+        if self.waiting == "left" or self.waiting == "right":
+            # mapping and encoder
+            set_knob_current_effect(self.waiting, effect_name, parameter)
+        else:
+            # we're mapping to MIDI
+            host.set_parameter_midi_cc(pluginMap[self.waiting], parameterMap[effect_name][parameter],
+                    effect_parameter_data[self.waiting]["cc_num"].value)
+
+            effect_parameter_data[effect_name][parameter].assigned_cc = effect_parameter_data[self.waiting]["cc_num"].value
         self.waiting = ""
 
     @Slot(str)
@@ -553,6 +562,10 @@ host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "filter1", "http://drobilla.net
 # eq 
 # host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "cab", "http://guitarix.sourceforge.net/plugins/gx_cabinet#CABINET", 0, None, 0)
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "cab", "http://gareus.org/oss/lv2/convoLV2#Mono", 0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "lfo1", "http://polyeffects.com/lv2/polylfo", 0, None, 0)
+# host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "lfo2", "http://polyeffects.com/lv2/polylfo", 0, None, 0)
+# host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "lfo3", "http://polyeffects.com/lv2/polylfo", 0, None, 0)
+# host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "lfo4", "http://polyeffects.com/lv2/polylfo", 0, None, 0)
 
 signal(SIGINT,  signalHandler)
 signal(SIGTERM, signalHandler)
@@ -567,7 +580,19 @@ signal(SIGTERM, signalHandler)
 ###
 
 knob_map = {"left": PolyEncoder("delay1", "l_delay"), "right": PolyEncoder("delay1", "feedback")}
+lfos = []
 
+
+for n in range(3):
+    lfos[n]["num_points"] = PolyValue("num_points", 1, 1, 16)
+    lfos[n]["channel"] = PolyValue("channel", 1, 1, 16)
+    lfos[n]["cc_num"] = PolyValue("cc_num", 102+n, 0, 127)
+    for i in range(1,17):
+        lfos[n]["time"+str(i)] = PolyValue("time"+i, 0, 0, 1)
+        lfos[n]["value"+str(i)] = PolyValue("value"+i, 0, 0, 1)
+        lfos[n]["style"+str(i)] = PolyValue("style"+i, 0, 0, 5)
+
+# this is not great
 effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
         "tone": PolyValue("tone", 1, 0, 1),
         "carla_level": PolyValue("level", 1, 0, 1)},
@@ -636,6 +661,10 @@ effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "fe
         "HSgain": PolyValue("Highshelf Gain", 0.000000, -18.000000, 18.000000)},
     "cab": {"gain": PolyValue("gain", 0, -24, 24), "ir": PolyValue("/audio/cabs/1x12cab.wav", 0, 0, 1),
         "carla_level": PolyValue("level", 1, 0, 1)}
+    "lfo1": lfos[0],
+    "lfo2": lfos[1],
+    "lfo3": lfos[2],
+    "lfo4": lfos[3]
     }
 
 tempo_synced = {"delay1": PolyValue("1/4", 0, 0, 1)}
@@ -653,7 +682,6 @@ global_bypass = PolyValue("BPM", 120, 30, 250) # bit of a hack
 qmlEngine = QQmlApplicationEngine()
 # Expose the object to QML.
 context = qmlEngine.rootContext()
-context.setContextProperty("knobs", knobs)
 for k, v in available_port_models.items():
     context.setContextProperty(k.replace(" ", "_").replace(":", "_")+"AvailablePorts", v)
 for k, v in used_port_models.items():
@@ -664,7 +692,6 @@ context.setContextProperty("knobMap", knob_map)
 context.setContextProperty("currentBPM", current_bpm)
 context.setContextProperty("tempoSynced", tempo_synced)
 context.setContextProperty("pluginState", plugin_state)
-
 
 # engine.load(QUrl("qrc:/qml/digit.qml"))
 qmlEngine.load(QUrl("qml/digit.qml"))

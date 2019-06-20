@@ -9,6 +9,7 @@ Item {
     id: lfo_control
     width: 1200
     height: 550
+    property string effect: "lfo1"
     property bool snapping: true
     property bool synced: true
     property bool repeat: true
@@ -18,14 +19,27 @@ Item {
     property int division: 4
     property int bars: 1
     property int active_width: 900
-    property int num_lfos: 4
+    property int num_lfos: polyValues[effect]["num_points"].value
     property string current_parameter: "level"
     property string segment_type: "linear"
+    property int selected_point: 1
     property int max_lfo_length: 30
-    property var lfo_data: [{"time": 0.0, "level": 0.5},
-    {"time": 0.5, "level": 0.4},
-    {"time": 0.75, "level": 0.3},
-    {"time": 0.85, "level": 0.2}]
+    property var lfo_data: [{"time": polyValues[effect]["time1"].value, "level": polyValues[effect]["value1"].value, "style": polyValues[effect]["style1"].value},
+        {"time": polyValues[effect]["time2"].value, "level": polyValues[effect]["value2"].value, "style": polyValues[effect]["style2"].value},
+        {"time": polyValues[effect]["time3"].value, "level": polyValues[effect]["value3"].value, "style": polyValues[effect]["style3"].value},
+        {"time": polyValues[effect]["time4"].value, "level": polyValues[effect]["value4"].value, "style": polyValues[effect]["style4"].value},
+        {"time": polyValues[effect]["time5"].value, "level": polyValues[effect]["value5"].value, "style": polyValues[effect]["style5"].value},
+        {"time": polyValues[effect]["time6"].value, "level": polyValues[effect]["value6"].value, "style": polyValues[effect]["style6"].value},
+        {"time": polyValues[effect]["time7"].value, "level": polyValues[effect]["value7"].value, "style": polyValues[effect]["style7"].value},
+        {"time": polyValues[effect]["time8"].value, "level": polyValues[effect]["value8"].value, "style": polyValues[effect]["style8"].value},
+        {"time": polyValues[effect]["time9"].value, "level": polyValues[effect]["value9"].value, "style": polyValues[effect]["style9"].value},
+        {"time": polyValues[effect]["time10"].value, "level": polyValues[effect]["value10"].value, "style": polyValues[effect]["style10"].value},
+        {"time": polyValues[effect]["time11"].value, "level": polyValues[effect]["value11"].value, "style": polyValues[effect]["style11"].value},
+        {"time": polyValues[effect]["time12"].value, "level": polyValues[effect]["value12"].value, "style": polyValues[effect]["style12"].value},
+        {"time": polyValues[effect]["time13"].value, "level": polyValues[effect]["value13"].value, "style": polyValues[effect]["style13"].value},
+        {"time": polyValues[effect]["time14"].value, "level": polyValues[effect]["value14"].value, "style": polyValues[effect]["style14"].value},
+        {"time": polyValues[effect]["time15"].value, "level": polyValues[effect]["value15"].value, "style": polyValues[effect]["style15"].value},
+        {"time": polyValues[effect]["time16"].value, "level": polyValues[effect]["value16"].value, "style": polyValues[effect]["style16"].value}]
     property var lfo_colors: [Material.Pink, Material.Purple, Material.LightBlue, Material.Amber]
     // PPQN * bars
     //
@@ -97,16 +111,14 @@ Item {
                 value: lfo_control.num_lfos
                 to: 64
                 onValueModified: {
-                    if (lfo_control.num_lfos > value){
-                        // pop
-                        lfo_control.lfo_data.pop();
-                    } else {
+                    if (lfo_control.num_lfos < value){
                         // push
-                        var t = lfo_control.lfo_data[lfo_control.lfo_data.length - 1]["time"]
-                        lfo_control.lfo_data.push({"time": Math.min(t + 0.05, bars),
-                            "level": lfo_control.lfo_data[lfo_control.lfo_data.length - 1]["level"]});
+                        // time of last point
+                        var t = lfo_control.lfo_data[lfo_control.num_lfos - 1]["time"]
+                        lfo_control.lfo_data[lfo_control.num_lfos]["time"] = Math.min(t + 0.05, bars) 
+                        lfo_control.lfo_data[lfo_control.num_lfos]["level"] = lfo_control.lfo_data[lfo_control.num_lfos - 1]["time"] // same level as previous
                     }
-                    lfo_control.num_lfos = value;
+                    knobs.ui_knob_change(effect, "num_points", value);
                     // push or pop from array, putting the new value after the previous one
                     mycanvas.requestPaint();
                 }
@@ -124,19 +136,19 @@ Item {
                     lfo_control.snapping = checked
                 }
             }
-            Switch {
-                text: qsTr("REPEAT")
-                bottomPadding: 0
-                width: 200
-                leftPadding: 0
-                topPadding: 0
-                rightPadding: 0
-                checked: true
-                onClicked: {
-                    lfo_control.repeat = checked
-                    mycanvas.requestPaint();
-                }
-            }
+            // Switch {
+            //     text: qsTr("REPEAT")
+            //     bottomPadding: 0
+            //     width: 200
+            //     leftPadding: 0
+            //     topPadding: 0
+            //     rightPadding: 0
+            //     checked: true
+            //     onClicked: {
+            //         lfo_control.repeat = checked
+            //         mycanvas.requestPaint();
+            //     }
+            // }
             Switch {
                 text: qsTr("+-")
                 bottomPadding: 0
@@ -170,28 +182,38 @@ Item {
             ComboBox {
                 width: 140
                 model: ["linear", "smooth", "accell", "decell", "step", "random"]
+                currentIndex: lfo_control.lfo_data[selected_point]["style"]
                 onActivated: {
                     // console.debug(model[index]);
-                    lfo_control.segment_type = model[index];
+                    knobs.ui_knob_change(effect, "style"+selected_point, index);
                     mycanvas.requestPaint();
                 }
             }
 
-            GlowingLabel {
-                color: "#ffffff"
-                text: qsTr("SPEED")
-                font {
-                    pixelSize: baseFontSize
+            Button {
+                text: "ASSIGN"
+                width: 140
+                onClicked: {
+                    // set learn
+                    knobs.set_waiting(effect)
                 }
             }
 
-            MixerDial {
-                effect: "LFO"
-                param: "Speed"
-                value: 1
-                from: 0.0625
-                to: 16
-            }
+            // GlowingLabel {
+            //     color: "#ffffff"
+            //     text: qsTr("SPEED")
+            //     font {
+            //         pixelSize: baseFontSize
+            //     }
+            // }
+
+            // MixerDial {
+            //     effect: "LFO"
+            //     param: "Speed"
+            //     value: 1
+            //     from: 0.0625
+            //     to: 16
+            // }
             
         }
     }
@@ -232,6 +254,7 @@ Item {
                     drag.target: parent
                     onPressed: {
                         rect.beginDrag = Qt.point(rect.x, rect.y);
+                        lfo_control.selected_point = index;
                     }
                     onReleased: {
                         if(!rect.caught) {
@@ -427,6 +450,7 @@ Item {
                 for (var i = 0; i < lfo_control.lfo_data.length; i++) {
                     var seg_y1;
                     var seg_y2;
+                    var seg_type = lfo_control.lfo_data[i]["style"]
                     seg_x1 = lfo_control.timeToPixel(lfo_control.lfo_data[i]["time"])
                     seg_y1 = y_at_level(lfo_control.lfo_data[i]["level"])
 
@@ -455,15 +479,15 @@ Item {
                         // var v = j - seg_x21 / seg_x2;
                         var mu = (j - seg_x1) / (seg_x2 - seg_x1); // 0-1 how far through seg
                         // v = v; // linear
-                        if (lfo_control.segment_type == "smooth") {
+                        if (seg_type == "smooth") {
                             mu = smoothstep(mu);
-                        } else if (lfo_control.segment_type == "accell") {
+                        } else if (seg_type == "accell") {
                             mu = accell(mu);
-                        } else if (lfo_control.segment_type == "decell") {
+                        } else if (seg_type == "decell") {
                             mu = decell(mu);
-                        } else if (lfo_control.segment_type == "step") {
+                        } else if (seg_type == "step") {
                             mu = 0;
-                        } else if (lfo_control.segment_type == "random") {
+                        } else if (seg_type == "random") {
                             mu = random(mu);
                         }
                         //if linear do nothing

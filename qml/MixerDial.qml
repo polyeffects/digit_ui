@@ -1,15 +1,25 @@
 import QtQuick 2.9
 import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.3
+import QtQuick.Controls.Material 2.3
 
 Dial {
     id: control
     property string param
     property string effect: "mixer"
     property string textOverride: control.value.toFixed(1)
+    property bool canMap: true 
     width: 75
     height: 75
     from: 0
+    Rectangle {
+        width: parent.width
+        height: parent.height
+        radius: parent.width / 2
+        color: Material.color(Material.Cyan, Material.Shade400)
+        visible: knobs.waiting != ""
+        z:-2
+    }
     Label {
         color: "#ffffff"
         text: textOverride
@@ -28,7 +38,8 @@ Dial {
         // python variable in qml context
         if (knobs.waiting != "") // left or right
         {
-            knobs.map_parameter_to_encoder(effect, param)    
+            console.warn("knob waiting", knobs.waiting)
+            knobs.map_parameter(effect, param)    
             console.warn("set knob mapping")
         }
     }

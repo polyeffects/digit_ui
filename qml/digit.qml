@@ -76,7 +76,6 @@ ApplicationWindow {
             anchors.fill: parent
 
             PolyFrame {
-                id: delayFrame
                 Layout.fillWidth: true
                 z: -1
                 StackLayout {
@@ -1019,7 +1018,6 @@ ApplicationWindow {
             }
 
             PolyFrame {
-                id: cabFrame
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 z: -1
@@ -1124,6 +1122,105 @@ ApplicationWindow {
                 }
             }
 
+            PolyFrame {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                z: -1
+
+                StackLayout {
+                    currentIndex: modTabs.currentIndex
+                    anchors.bottomMargin: 40
+                    anchors.rightMargin: 0
+                    anchors.topMargin: tabHeight
+                    anchors.fill: parent
+
+
+                    PolyFrame {
+                        width: 1280
+                        // height: 720
+                        height: 720
+                        z: -1
+
+
+                        LFOControl {
+                            x: 10
+                            y: -10
+                            effect: "lfo1"
+                        }
+                    }
+                    PolyFrame {
+                        width: 1280
+                        // height: 720
+                        height: 720
+                        z: -1
+
+
+                        LFOControl {
+                            x: 10
+                            y: -10
+                            effect: "lfo2"
+                        }
+                    }
+                    PolyFrame {
+                        width: 1280
+                        // height: 720
+                        height: 720
+                        z: -1
+
+
+                        LFOControl {
+                            x: 10
+                            y: -10
+                            effect: "lfo3"
+                        }
+                    }
+                    PolyFrame {
+                        width: 1280
+                        // height: 720
+                        height: 720
+                        z: -1
+
+
+                        LFOControl {
+                            x: 10
+                            y: -10
+                            effect: "lfo4"
+                        }
+                    }
+                    PolyFrame {
+                    }
+                    PolyFrame {
+                    }
+
+                }
+
+                TabBar {
+                    id: modTabs
+                    width: 476
+                    height: tabHeight
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 0
+                    TabButton {
+                        text: qsTr("LFO1")
+                    }
+                    TabButton {
+                        text: qsTr("LFO2")
+                    }
+                    TabButton {
+                        text: qsTr("LFO3")
+                    }
+                    TabButton {
+                        text: qsTr("LFO4")
+                    }
+                    TabButton {
+                        text: qsTr("ENV1")
+                    }
+                    TabButton {
+                        text: qsTr("ENV2")
+                    }
+                }
+            }
+
         }
 
         TabBar {
@@ -1173,6 +1270,15 @@ ApplicationWindow {
                 onPressAndHold: {
                     knobs.toggle_enabled("cab")
                 }
+            }
+            TabButton {
+                // Material.foreground: pluginState.cab.value ? Material.LightGreen : Material.Grey
+                // Material.accent: pluginState.cab.value ? Material.lightGreen : Material.Grey
+                // color: pluginState.cab ? Material.Green : Material.Grey
+                text: qsTr("MODIFIERS")
+                // onPressAndHold: {
+                //     knobs.toggle_enabled("cab")
+                // }
             }
         }
 
