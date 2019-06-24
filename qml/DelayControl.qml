@@ -96,6 +96,10 @@ import QtQuick.Controls.Material 2.3
             } 
         }
 
+		function setColorAlpha(color, alpha) {
+			return Qt.hsla(color.hslHue, color.hslSaturation, color.hslLightness, alpha)
+		}
+
         // Row {
         PolyFrame {
             // background: Material.background
@@ -119,6 +123,7 @@ import QtQuick.Controls.Material 2.3
 
                 Switch {
                     text: qsTr("SNAPPING")
+					font.pixelSize: baseFontSize
                     bottomPadding: 0
                     width: 200
                     leftPadding: 0
@@ -132,6 +137,7 @@ import QtQuick.Controls.Material 2.3
                 }
                 Switch {
                     text: qsTr("TEMPO SYNC")
+					font.pixelSize: baseFontSize
                     bottomPadding: 0
                     width: 200
                     leftPadding: 0
@@ -183,12 +189,16 @@ import QtQuick.Controls.Material 2.3
                     width: 50
                     height: 50
                     z: mouseArea.drag.active ||  mouseArea.pressed ? 2 : 1
-                    color: Material.color(time_scale.delay_colors[index])
+                    // color: Material.color(time_scale.delay_colors[index])
+					// color: Qt.rgba(0, 0, 0, 0)
+					// color: setColorAlpha(Material.Pink, 0.1);//Qt.rgba(0.1, 0.1, 0.1, 1);
+					color: Material.color(Material.Pink, Material.Shade200)
                     x: time_scale.timeToPixel(time_scale.delay_data[index]["time"])
                     y: time_scale.valueToPixel(time_scale.delay_data[index][time_scale.current_parameter])
                     property point beginDrag
                     property bool caught: false
-                    // border { width:1; color: Material.color(Material.Grey, Material.Shade100)}
+                    // border { width:1; color: Material.color(Material.Cyan, Material.Shade100)}
+					// border { width:2; color: Material.color(Material.Pink, Material.Shade200)}
                     radius: 5
                     Drag.active: mouseArea.drag.active
 
@@ -196,6 +206,9 @@ import QtQuick.Controls.Material 2.3
                         anchors.centerIn: parent
                         text: index
                         color: "white"
+						font {
+							pixelSize: fontSizeMedium
+						}
                     }
                     MouseArea {
                         id: mouseArea
@@ -205,22 +218,25 @@ import QtQuick.Controls.Material 2.3
                             rect.beginDrag = Qt.point(rect.x, rect.y);
                         }
                         onReleased: {
-                            if(!rect.caught) {
-                                backAnimX.from = rect.x;
-                                backAnimX.to = beginDrag.x;
-                                backAnimY.from = rect.y;
-                                backAnimY.to = beginDrag.y;
-                                backAnim.start()
-                            }
-                            else 
-                            {
-                                if(time_scale.snapping && time_scale.synced) {
-                                    rect.x = time_scale.nearestDivision(rect.x);
-                                }
-								knobs.ui_knob_change("delay"+(index+1), "l_delay", time_scale.pixelToTime(rect.x));
-								knobs.ui_knob_change("delay"+(index+1), time_scale.parameter_map[time_scale.current_parameter], 
-									time_scale.pixelToValue(rect.y));
-                            }
+							var in_x = rect.x;
+							var in_y = rect.y;
+
+                  			if(!rect.caught) {
+								// clamp to bounds
+								in_x = Math.min(Math.max(0, in_x), mycanvas.width);
+								in_y = Math.min(Math.max(0, in_y), mycanvas.height);
+							}
+							if(time_scale.snapping && time_scale.synced) {
+								in_x = time_scale.nearestDivision(in_x);
+							}
+							knobs.ui_knob_change("delay"+(index+1), "l_delay", time_scale.pixelToTime(in_x));
+							knobs.ui_knob_change("delay"+(index+1), 
+								time_scale.parameter_map[time_scale.current_parameter], 
+								time_scale.pixelToValue(in_y));
+							console.log("parameter map", 
+								time_scale.parameter_map[time_scale.current_parameter], "value", 
+								time_scale.pixelToValue(in_y),
+								"rect.y", rect.y, "in_y", in_y);
                         }
 
                     }

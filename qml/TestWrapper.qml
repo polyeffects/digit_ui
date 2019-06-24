@@ -9,6 +9,7 @@ ApplicationWindow {
     Material.theme: Material.Dark
     Material.primary: Material.Green
     Material.accent: Material.Pink
+    contentOrientation: Qt.LandscapeOrientation
 
     readonly property int baseFontSize: 20 
     readonly property int tabHeight: 60 
@@ -17,10 +18,11 @@ ApplicationWindow {
     readonly property int fontSizeLarge: baseFontSize * 2
     readonly property int fontSizeExtraLarge: baseFontSize * 5
     width: 1280
-    height: 580
+    height: 720
     title: "Drag & drop example"
     visible: true
-    // LFOControl {
+    LFOControl {
+    }
     // // EQWidget {
     
     // }
@@ -29,15 +31,15 @@ ApplicationWindow {
     // Settings {
     
     // }
-    FolderBrowser {
-   		height: 400
-        width: 300 
-        top_folder: "file:///c:/git_repos/PolyDigit/UI" 
-        after_file_selected: (function(name) { 
-            console.log("in test wrapper call");
-            console.log("file  is", name.toString());
+    // FolderBrowser {
+   		// height: 400
+    //     width: 300 
+    //     top_folder: "file:///c:/git_repos/PolyDigit/UI" 
+    //     after_file_selected: (function(name) { 
+    //         console.log("in test wrapper call");
+    //         console.log("file  is", name.toString());
             
-        })
+    //     })
 
-    }
+    // }
 }

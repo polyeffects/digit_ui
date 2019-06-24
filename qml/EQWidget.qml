@@ -98,38 +98,37 @@ import QtQuick.Controls.Material 2.3
                             time_scale.selected_point = index;
                         }
                         onReleased: {
+
+                            var in_x = rect.x;
+                            var in_y = rect.y;
+
                             if(!rect.caught) {
-                                backAnimX.from = rect.x;
-                                backAnimX.to = beginDrag.x;
-                                backAnimY.from = rect.y;
-                                backAnimY.to = beginDrag.y;
-                                backAnim.start()
+                                // clamp to bounds
+                                in_x = Math.min(Math.max(0, in_x), mycanvas.width);
+                                in_y = Math.min(Math.max(0, in_y), mycanvas.height);
                             }
-                            else 
-                            {
-                                var f = time_scale.pixelToHz(rect.x + (width / 2)); // offset for square size
-                                console.log("frequency before", time_scale.eq_data[index]["frequency"]);
-                                var g = mycanvas.gain_at_y(rect.y + (width / 2));
-                                // update cache and redraw
-                                if (index == 0){
-                                    // low shelf
-                                    knobs.ui_knob_change(effect, "LSfreq", f);
-                                    knobs.ui_knob_change(effect, "LSgain", g);
-                                }
-                                else if (index == 5){
-                                    // high shelf
-                                    knobs.ui_knob_change(effect, "HSfreq", f);
-                                    knobs.ui_knob_change(effect, "HSgain", g);
-                                }
-                                else {
-                                    knobs.ui_knob_change(effect, "freq"+index, f);
-                                    knobs.ui_knob_change(effect, "gain"+index, g);
-                                }
-                                console.log("frequency after", time_scale.eq_data[index]["frequency"]);
-                                mycanvas.update_filter_external (index, time_scale.eq_data[index]["frequency"], 
-                                    time_scale.eq_data[index]["q"], time_scale.eq_data[index]["gain"]);
-                                mycanvas.requestPaint();
+                            var f = time_scale.pixelToHz(in_x + (width / 2)); // offset for square size
+                            console.log("frequency before", time_scale.eq_data[index]["frequency"]);
+                            var g = mycanvas.gain_at_y(in_y + (width / 2));
+                            // update cache and redraw
+                            if (index == 0){
+                                // low shelf
+                                knobs.ui_knob_change(effect, "LSfreq", f);
+                                knobs.ui_knob_change(effect, "LSgain", g);
                             }
+                            else if (index == 5){
+                                // high shelf
+                                knobs.ui_knob_change(effect, "HSfreq", f);
+                                knobs.ui_knob_change(effect, "HSgain", g);
+                            }
+                            else {
+                                knobs.ui_knob_change(effect, "freq"+index, f);
+                                knobs.ui_knob_change(effect, "gain"+index, g);
+                            }
+                            console.log("frequency after", time_scale.eq_data[index]["frequency"]);
+                            mycanvas.update_filter_external (index, time_scale.eq_data[index]["frequency"], 
+                                time_scale.eq_data[index]["q"], time_scale.eq_data[index]["gain"]);
+                            mycanvas.requestPaint();
                         }
 
                     }
@@ -822,22 +821,6 @@ import QtQuick.Controls.Material 2.3
                 spacing: 20
                 height:parent.height
 
-                Switch {
-                    text: qsTr("ON")
-                    bottomPadding: 0
-                    // implicitWidth: 100
-                    width: 100
-                    leftPadding: 0
-                    topPadding: 0
-                    rightPadding: 0
-                    checked: true
-                    onClicked: {
-                        time_scale.eq_enabled = checked
-                        knobs.ui_knob_change(effect, "enable", checked | 0); // force to int
-                        mycanvas.requestPaint();
-                    }
-                }
-
                 GlowingLabel {
                     color: "#ffffff"
                     text: qsTr("MIX")
@@ -852,7 +835,32 @@ import QtQuick.Controls.Material 2.3
                 }
 
                 Switch {
+                    text: qsTr("EQ ON")
+					font.pixelSize: baseFontSize
+                    bottomPadding: 0
+                    // implicitWidth: 100
+                    width: 150
+                    leftPadding: 0
+                    topPadding: 0
+                    rightPadding: 0
+                    checked: true
+                    onClicked: {
+                        knobs.ui_knob_change(effect, "enable", checked | 0); // force to int
+                        mycanvas.requestPaint();
+                    }
+                }
+
+                Label {
+                    width: parent.width
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    text: qsTr("BAND")
+                    font.pixelSize: baseFontSize
+                }
+
+                Switch {
                     text: time_scale.selected_point + 1
+					font.pixelSize: baseFontSize
                     bottomPadding: 0
                     width: 100
                     leftPadding: 0

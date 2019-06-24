@@ -114,10 +114,12 @@ Item {
                     if (lfo_control.num_lfos < value){
                         // push
                         // time of last point
-                        var t = lfo_control.lfo_data[lfo_control.num_lfos - 1]["time"]
-                        lfo_control.lfo_data[lfo_control.num_lfos]["time"] = Math.min(t + 0.05, bars) 
-                        lfo_control.lfo_data[lfo_control.num_lfos]["level"] = lfo_control.lfo_data[lfo_control.num_lfos - 1]["time"] // same level as previous
+                        var t = lfo_control.lfo_data[lfo_control.num_lfos-1]["time"]
+                        var v = lfo_control.lfo_data[lfo_control.num_lfos-1]["level"] // same level as previous
+                        knobs.ui_knob_change(effect, "time"+(lfo_control.num_lfos+1), Math.min(t + 0.05, bars)) 
+                        knobs.ui_knob_change(effect, "value"+(lfo_control.num_lfos+1), v) 
                     }
+                    console.log("value is ", value, "num_lfos", lfo_control.num_lfos);
                     knobs.ui_knob_change(effect, "num_points", value);
                     // push or pop from array, putting the new value after the previous one
                     mycanvas.requestPaint();
@@ -126,6 +128,7 @@ Item {
 
             Switch {
                 text: qsTr("SNAPPING")
+                font.pixelSize: baseFontSize
                 bottomPadding: 0
                 width: 200
                 leftPadding: 0
@@ -151,6 +154,7 @@ Item {
             // }
             Switch {
                 text: qsTr("+-")
+                font.pixelSize: baseFontSize
                 bottomPadding: 0
                 width: 200
                 leftPadding: 0
@@ -185,13 +189,16 @@ Item {
                 currentIndex: lfo_control.lfo_data[selected_point]["style"]
                 onActivated: {
                     // console.debug(model[index]);
-                    knobs.ui_knob_change(effect, "style"+selected_point, index);
+                    knobs.ui_knob_change(effect, "style"+(selected_point+1), index);
+                    // lfo_control.lfo_data[selected_point]["style"] = index
+                    console.log("setting style", selected_point, index);
                     mycanvas.requestPaint();
                 }
             }
 
             Button {
                 text: "ASSIGN"
+                font.pixelSize: baseFontSize
                 width: 140
                 onClicked: {
                     // set learn
@@ -227,8 +234,8 @@ Item {
             model: lfo_control.num_lfos 
             Rectangle {
                 id: rect
-                width: 30
-                height: 30
+                width: 40
+                height: 40
                 z: mouseArea.drag.active ||  mouseArea.pressed ? 2 : 1
                 color: Qt.rgba(0, 0, 0, 0)
                 x: lfo_control.timeToPixel(lfo_control.lfo_data[index]["time"])
@@ -247,6 +254,7 @@ Item {
                     anchors.centerIn: parent
                     text: index
                     color: "white"
+                    font.pixelSize: fontSizeMedium
                 }
                 MouseArea {
                     id: mouseArea
@@ -257,34 +265,32 @@ Item {
                         lfo_control.selected_point = index;
                     }
                     onReleased: {
+                        var in_x = rect.x;
+                        var in_y = rect.y;
+
                         if(!rect.caught) {
-                            // backAnimX.from = rect.x;
-                            // backAnimX.to = beginDrag.x;
-                            // backAnimY.from = rect.y;
-                            // backAnimY.to = beginDrag.y;
-                            // backAnim.start()
                             // clamp to bounds
-                            rect.x = Math.min(Math.max(0, rect.x), mycanvas.width);
-                            rect.y = Math.min(Math.max(0, rect.y), mycanvas.height);
+                            in_x = Math.min(Math.max(0, in_x), mycanvas.width);
+                            in_y = Math.min(Math.max(0, in_y), mycanvas.height);
                         }
                         if(lfo_control.snapping && lfo_control.synced) {
-                            rect.x = lfo_control.nearestDivision(rect.x);
+                            in_x = lfo_control.nearestDivision(in_x);
                         }
                         if (index == 0){ // first point, fix to zero
-                            rect.x = 0;
+                            in_x = 0;
                         }
                         else {
                             // if this points x is less than the previous x make equal (monotonic)
-                            if (lfo_control.lfo_data[index-1]["time"] > lfo_control.pixelToTime(rect.x)){
-                                rect.x = lfo_control.timeToPixel(lfo_control.lfo_data[index-1]["time"]);
+                            if (lfo_control.lfo_data[index-1]["time"] > lfo_control.pixelToTime(in_x)){
+                                in_x = lfo_control.timeToPixel(lfo_control.lfo_data[index-1]["time"]);
                             }
                             // if this points x is > than the next x make equal (monotonic)
-                            if (lfo_control.num_lfos > index+1 && (lfo_control.lfo_data[index+1]["time"] < lfo_control.pixelToTime(rect.x))){
-                                rect.x = lfo_control.timeToPixel(lfo_control.lfo_data[index+1]["time"]);
+                            if (lfo_control.num_lfos > index+1 && (lfo_control.lfo_data[index+1]["time"] < lfo_control.pixelToTime(in_x))){
+                                in_x = lfo_control.timeToPixel(lfo_control.lfo_data[index+1]["time"]);
                             }
                         }
-                        lfo_control.lfo_data[index]["time"] = lfo_control.pixelToTime(rect.x);
-                        lfo_control.lfo_data[index]["level"] = mycanvas.level_at_y(rect.y);
+                        knobs.ui_knob_change(effect, "time"+(index+1), lfo_control.pixelToTime(in_x)); 
+                        knobs.ui_knob_change(effect, "value"+(index+1), mycanvas.level_at_y(in_y));
                         mycanvas.requestPaint();
                     }
 
@@ -447,14 +453,14 @@ Item {
                 var seg_x1;
                 var seg_x2;
                     // draw from current point to next point based on segment type
-                for (var i = 0; i < lfo_control.lfo_data.length; i++) {
+                for (var i = 0; i < lfo_control.num_lfos; i++) {
                     var seg_y1;
                     var seg_y2;
                     var seg_type = lfo_control.lfo_data[i]["style"]
                     seg_x1 = lfo_control.timeToPixel(lfo_control.lfo_data[i]["time"])
                     seg_y1 = y_at_level(lfo_control.lfo_data[i]["level"])
 
-                    if (i == lfo_control.lfo_data.length - 1){
+                    if (i == lfo_control.num_lfos - 1){
                         if (!lfo_control.repeat){
                             break; // don't need to draw to end
                         }
@@ -479,15 +485,18 @@ Item {
                         // var v = j - seg_x21 / seg_x2;
                         var mu = (j - seg_x1) / (seg_x2 - seg_x1); // 0-1 how far through seg
                         // v = v; // linear
-                        if (seg_type == "smooth") {
+                        if (seg_type < 0.5) {
+                            // do nothing 
+                        }
+                        else if (seg_type <= 1) {
                             mu = smoothstep(mu);
-                        } else if (seg_type == "accell") {
+                        } else if (seg_type <= 2) {
                             mu = accell(mu);
-                        } else if (seg_type == "decell") {
+                        } else if (seg_type <= 3) {
                             mu = decell(mu);
-                        } else if (seg_type == "step") {
+                        } else if (seg_type <= 4) {
                             mu = 0;
-                        } else if (seg_type == "random") {
+                        } else if (seg_type <= 5) {
                             mu = random(mu);
                         }
                         //if linear do nothing
@@ -495,7 +504,7 @@ Item {
                         cur_y = (seg_y1 * (1-mu)+seg_y2*mu);
                         ctx.lineTo(j, cur_y);
                     }
-                    // console.log("drawing line", j, bend_factor, diff_x, seg_x1, seg_x2, cur_y);    
+                    console.log("drawing line", j, "seg_type", seg_type, "mu", mu, seg_x1, seg_x2, cur_y);    
                 } 
                 if (!lfo_control.repeat){
                     // ctx.lineTo(width, y_at_level(lfo_control.lfo_data[0]["level"])); // if repeating

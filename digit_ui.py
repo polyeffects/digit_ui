@@ -1,4 +1,4 @@
-import sys
+import sys, os
 # import random
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer
@@ -9,6 +9,7 @@ import qml.qml
 import icons.icons
 #, imagine_assets
 import resource_rc
+os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
 
 def insert_row(model, row):
     j = len(model.stringList())
@@ -22,9 +23,9 @@ class Knobs(QObject):
         self.waitingval = ""
 
     @Slot(str, str, 'double')
-    def ui_knob_change(self, x, y, z):
-        obj["delay1"].value = z
-        print(x, y, z)
+    def ui_knob_change(self, effect_name, parameter, value):
+        print("knob change")
+        effect_parameter_data[effect_name][parameter].value = value
 
     @Slot(str)
     def ui_add_connection(self, x):
@@ -90,7 +91,7 @@ class PolyValue(QObject):
     def value_changed(self):
         pass
 
-    value = Property(int, readValue, setValue, notify=value_changed)
+    value = Property(float, readValue, setValue, notify=value_changed)
 
     def readName(self):
         return self.nameval
@@ -116,7 +117,7 @@ class PolyValue(QObject):
     def rmin_changed(self):
         pass
 
-    rmin = Property(int, readRMin, setRMin, notify=rmin_changed)
+    rmin = Property(float, readRMin, setRMin, notify=rmin_changed)
 
     def readRMax(self):
         return self.rmaxval
@@ -129,7 +130,7 @@ class PolyValue(QObject):
     def rmax_changed(self):
         pass
 
-    rmax = Property(int, readRMax, setRMax, notify=rmax_changed)
+    rmax = Property(float, readRMax, setRMax, notify=rmax_changed)
 
 obj = {"delay1": PolyValue()}
 obj["delay1"].value = 47
@@ -146,6 +147,92 @@ def tick():
     else:
         obj["delay1"].value = 0
 
+lfos = []
+
+for n in range(4):
+    lfos.append({})
+    lfos[n]["num_points"] = PolyValue("num_points", 1, 1, 16)
+    lfos[n]["channel"] = PolyValue("channel", 1, 1, 16)
+    lfos[n]["cc_num"] = PolyValue("cc_num", 102+n, 0, 127)
+    for i in range(1,17):
+        lfos[n]["time"+str(i)] = PolyValue("time"+str(i), 0, 0, 1)
+        lfos[n]["value"+str(i)] = PolyValue("value"+str(i), 0, 0, 1)
+        lfos[n]["style"+str(i)] = PolyValue("style"+str(i), 0, 0, 5)
+
+effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
+        "tone": PolyValue("tone", 1, 0, 1),
+        "carla_level": PolyValue("level", 1, 0, 1)},
+    "delay2": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
+        "tone": PolyValue("tone", 1, 0, 1),
+        "carla_level": PolyValue("level", 1, 0, 1)},
+    "delay3": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
+        "tone": PolyValue("tone", 1, 0, 1),
+        "carla_level": PolyValue("level", 1, 0, 1)},
+    "delay4": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
+        "tone": PolyValue("tone", 1, 0, 1),
+        "carla_level": PolyValue("level", 1, 0, 1)},
+    "reverb": {"gain": PolyValue("mix", 0, -24, 24), "ir": PolyValue("/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1),
+        "carla_level": PolyValue("level", 1, 0, 1)},
+    "mixer": {"mix_1_1": PolyValue("mix 1,1", 0, 0, 1), "mix_1_2": PolyValue("mix 1,2", 0, 0, 1),
+        "mix_1_3": PolyValue("mix 1,3", 0, 0, 1),"mix_1_4": PolyValue("mix 1,4", 0, 0, 1),
+        "mix_2_1": PolyValue("mix 2,1", 0, 0, 1),"mix_2_2": PolyValue("mix 2,2", 0, 0, 1),
+        "mix_2_3": PolyValue("mix 2,3", 0, 0, 1),"mix_2_4": PolyValue("mix 2,4", 0, 0, 1),
+        "mix_3_1": PolyValue("mix 3,1", 0, 0, 1),"mix_3_2": PolyValue("mix 3,2", 0, 0, 1),
+        "mix_3_3": PolyValue("mix 3,3", 0, 0, 1),"mix_3_4": PolyValue("mix 3,4", 0, 0, 1),
+        "mix_4_1": PolyValue("mix 4,1", 0, 0, 1),"mix_4_2": PolyValue("mix 4,2", 0, 0, 1),
+        "mix_4_3": PolyValue("mix 4,3", 0, 0, 1),"mix_4_4": PolyValue("mix 4,4", 0, 0, 1)
+        },
+    "tape1": {"drive": PolyValue("drive", 5, 0, 10), "blend": PolyValue("tape vs tube", 10, -10, 10)},
+    "filter1": {"freq": PolyValue("cutoff", 440, 20, 15000, "log"), "res": PolyValue("resonance", 0, 0, 0.8)},
+    "sigmoid1": {"Pregain": PolyValue("pre gain", 0, -90, 20), "Postgain": PolyValue("post gain", 0, -90, 20)},
+    "reverse1": {"fragment": PolyValue("fragment", 1000, 100, 1600),
+        "wet": PolyValue("wet", 0, -90, 20),
+        "dry": PolyValue("dry", 0, -90, 20)},
+    "reverse2": {"fragment": PolyValue("fragment", 1000, 100, 1600),
+        "wet": PolyValue("wet", 0, -90, 20),
+        "dry": PolyValue("dry", 0, -90, 20)},
+    "eq2": {
+        "wet": PolyValue("wet", 0, -90, 20),
+        "enable": PolyValue("Enable", 1.000000, 0.000000, 1.0),
+        "gain": PolyValue("Gain", 0.000000, -18.000000, 18.000000),
+        "HighPass": PolyValue("Highpass", 0.000000, 0.000000, 1.000000),
+        "HPfreq": PolyValue("Highpass Frequency", 20.000000, 5.000000, 1250.000000),
+        "HPQ": PolyValue("HighPass Resonance", 0.700000, 0.000000, 1.400000),
+        "LowPass": PolyValue("Lowpass", 0.000000, 0.000000, 1.000000),
+        "LPfreq": PolyValue("Lowpass Frequency", 20000.000000, 500.000000, 20000.000000),
+        "LPQ": PolyValue("LowPass Resonance", 1.000000, 0.000000, 1.400000),
+        "LSsec": PolyValue("Lowshelf", 1.000000, 0.000000, 1.000000),
+        "LSfreq": PolyValue("Lowshelf Frequency", 80.000000, 25.000000, 400.000000),
+        "LSq": PolyValue("Lowshelf Bandwidth", 1.000000, 0.062500, 4.000000),
+        "LSgain": PolyValue("Lowshelf Gain", 0.000000, -18.000000, 18.000000),
+        "sec1": PolyValue("Section 1", 1.000000, 0.000000, 1.000000),
+        "freq1": PolyValue("Frequency 1", 160.000000, 20.000000, 2000.000000),
+        "q1": PolyValue("Bandwidth 1", 0.600000, 0.062500, 4.000000),
+        "gain1": PolyValue("Gain 1", 0.000000, -18.000000, 18.000000),
+        "sec2": PolyValue("Section 2", 1.000000, 0.000000, 1.000000),
+        "freq2": PolyValue("Frequency 2", 397.000000, 40.000000, 4000.000000),
+        "q2": PolyValue("Bandwidth 2", 0.600000, 0.062500, 4.000000),
+        "gain2": PolyValue("Gain 2", 0.000000, -18.000000, 18.000000),
+        "sec3": PolyValue("Section 3", 1.000000, 0.000000, 1.000000),
+        "freq3": PolyValue("Frequency 3", 1250.000000, 100.000000, 10000.000000),
+        "q3": PolyValue("Bandwidth 3", 0.600000, 0.062500, 4.000000),
+        "gain3": PolyValue("Gain 3", 0.000000, -18.000000, 18.000000),
+        "sec4": PolyValue("Section 4", 1.000000, 0.000000, 1.000000),
+        "freq4": PolyValue("Frequency 4", 2500.000000, 200.000000, 20000.000000),
+        "q4": PolyValue("Bandwidth 4", 0.600000, 0.062500, 4.000000),
+        "gain4": PolyValue("Gain 4", 0.000000, -18.000000, 18.000000),
+        "HSsec": PolyValue("Highshelf", 1.000000, 0.000000, 1.000000),
+        "HSfreq": PolyValue("Highshelf Frequency", 8000.000000, 1000.000000, 16000.000000),
+        "HSq": PolyValue("Highshelf Bandwidth", 1.000000, 0.062500, 4.000000),
+        "HSgain": PolyValue("Highshelf Gain", 0.000000, -18.000000, 18.000000)},
+    "cab": {"gain": PolyValue("gain", 0, -24, 24), "ir": PolyValue("/audio/cabs/1x12cab.wav", 0, 0, 1),
+        "carla_level": PolyValue("level", 1, 0, 1)},
+    "lfo1": lfos[0],
+    "lfo2": lfos[1],
+    "lfo3": lfos[2],
+    "lfo4": lfos[3]
+    }
+
 if __name__ == "__main__":
 
     app = QGuiApplication(sys.argv)
@@ -153,6 +240,7 @@ if __name__ == "__main__":
     # Instantiate the Python object.
     knobs = Knobs()
     current_bpm = PolyValue("BPM", 120, 30, 250) # bit of a hack
+    current_preset = PolyValue("Default Preset", 0, 0, 1)
 
     # t_list = QStringList()
     # t_list.append("a")
@@ -169,6 +257,8 @@ if __name__ == "__main__":
     context.setContextProperty("delay1_Left_Out_AvailablePorts", model)
     context.setContextProperty("delay1_Left_Out_UsedPorts", model2)
     context.setContextProperty("currentBPM", current_bpm)
+    context.setContextProperty("currentPreset", current_preset)
+    context.setContextProperty("polyValues", effect_parameter_data)
     # engine.load(QUrl("qrc:/qml/digit.qml"))
     engine.load(QUrl("qml/digit.qml"))
 
