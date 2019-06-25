@@ -24,6 +24,7 @@ Item {
     property string segment_type: "linear"
     property int selected_point: 1
     property int max_lfo_length: 30
+    property int updateCount: updateCounter, externalRefresh()
     property var lfo_data: [{"time": polyValues[effect]["time1"].value, "level": polyValues[effect]["value1"].value, "style": polyValues[effect]["style1"].value},
         {"time": polyValues[effect]["time2"].value, "level": polyValues[effect]["value2"].value, "style": polyValues[effect]["style2"].value},
         {"time": polyValues[effect]["time3"].value, "level": polyValues[effect]["value3"].value, "style": polyValues[effect]["style3"].value},
@@ -92,6 +93,12 @@ Item {
         } else {
             return secondsToPixel(t);
         } 
+    }
+
+    function externalRefresh() {
+        console.log("external refresh");
+        mycanvas.requestPaint();
+        return updateCounter.value;
     }
 
     // Row {
@@ -245,7 +252,8 @@ Item {
                 border { width:1; color: Material.color(Material.Indigo, Material.Shade200)}
                 // border { 
                 //     width:1; 
-                    // color: lfo_control.point_updated, lfo_control.eq_data[index]["enabled"] ? Material.color(Material.Indigo, Material.Shade200) : Material.color(Material.Grey, Material.Shade200)  
+                // color: lfo_control.point_updated, lfo_control.eq_data[index]["enabled"] ?
+                // Material.color(Material.Indigo, Material.Shade200) : Material.color(Material.Grey, Material.Shade200)  
                 // }
                 radius: width * 0.5
                 Drag.active: mouseArea.drag.active

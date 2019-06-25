@@ -82,6 +82,7 @@ pluginMap = {}
 parameterMap = {}
 current_connections = {} # these are group port group port to connection id pairs #TODO remove stale
 current_connection_pairs_poly = set()
+current_midi_connection_pairs_poly = set()
 current_ir_file = None
 
 # --------------------------------------------------------------------------------------------------------
@@ -263,7 +264,6 @@ def time_to_tempo_text(v):
     # lv2:scalePoint [rdfs:label "1/64note"; rdf:value 17];
     # lv2:scalePoint [rdfs:label "1/64notetriplets"; rdf:value 18];
 
-
 class Knobs(QObject):
     """Basically all functions for QML to call"""
 
@@ -292,11 +292,12 @@ class Knobs(QObject):
             print("effect not found")
 
     @Slot(str, str, str)
-    def ui_add_connection(self, effect, source_port, x):
+    def ui_add_connection(self, effect, source_port, x, midi=False):
         effect_source = effect + ":" + source_port
-        remove_row(available_port_models[effect_source], x)
-        insert_row(used_port_models[effect_source], x)
-        current_connection_pairs_poly.add((effects_source, x))
+        if not midi:
+            remove_row(available_port_models[effect_source], x)
+            insert_row(used_port_models[effect_source], x)
+        current_connection_pairs_poly.add((effect_source, x))
         # print("portMap is", portMap)
 
         host.patchbay_connect(patchbay_external, portMap[effect]["group"],
@@ -353,11 +354,16 @@ class Knobs(QObject):
             # mapping and encoder
             set_knob_current_effect(self.waiting, effect_name, parameter)
         else:
-            # we're mapping to MIDI
-            host.set_parameter_midi_cc(pluginMap[self.waiting], parameterMap[effect_name][parameter],
+            # we're mapping to LFO
+            host.set_parameter_midi_cc(pluginMap[effect_name], parameterMap[effect_name][parameter],
                     effect_parameter_data[self.waiting]["cc_num"].value)
-
+            # connect ports
+            host.patchbay_connect(patchbay_external, portMap[self.waiting]["group"],
+                    portMap[self.waiting]["ports"]["events-out"],
+                    portMap[effect_name]["group"],
+                    portMap[effect_name]["ports"]["events-in"])
             effect_parameter_data[effect_name][parameter].assigned_cc = effect_parameter_data[self.waiting]["cc_num"].value
+            current_midi_connection_pairs_poly.add(((self.waiting, "events-out"), (effect_name, "events-in")))
         self.waiting = ""
 
     @Slot(str)
@@ -391,6 +397,7 @@ class Knobs(QObject):
         print("loading", preset_file)
         outfile = preset_file[7:] # strip file:// prefix
         load_preset(outfile)
+        update_counter.value+=1
 
 def engineCallback(host, action, pluginId, value1, value2, value3, valuef, valueStr):
     valueStr = charPtrToString(valueStr)
@@ -545,22 +552,28 @@ def fileCallback(ptr, action, isDir, title, filter):
 def save_preset(filename):
     # write all effect parameters
     output = {"effects":{}}
+    output["midi_map"] = {}
     for effect, parameters in effect_parameter_data.items():
         output["effects"][effect] = {}
         # output["midi_map"][effect] = {}
         for param_name, p_value in parameters.items():
             if param_name == "ir":
-                output["effects"][effect][parameter_name] = p_value.name
+                output["effects"][effect][param_name] = p_value.name
             else:
-                output["effects"][effect][parameter_name] = p_value.value
+                output["effects"][effect][param_name] = p_value.value
+            if p_value.assigned_cc is not None:
+                if effect not in output["midi_map"]:
+                    output["midi_map"][effect] = {}
+                output["midi_map"][effect][param_name] = p_value.assigned_cc
     # write enabled state
-    output["state"] = {(k,v.value) for k,v in plugin_state.items()}
+    output["state"] = {k:v.value for k,v in plugin_state.items()}
     # write connections
     output["connections"] = tuple(current_connection_pairs_poly)
+    output["midi_connections"] = tuple(current_midi_connection_pairs_poly)
     # write knob / midi mapping XXX
     output["knobs"] = {k:[v.effect, v.parameter] for k,v in knob_map.items()}
     # write bpm
-    output["bpm"] = current_bpm
+    output["bpm"] = current_bpm.value
     with open(filename, "w") as f:
         json.dump(output, f)
 
@@ -572,13 +585,25 @@ def load_preset(filename):
     # read all effect parameters
     for effect_name, effect_value in preset["effects"].items():
         for parameter_name, parameter_value in effect_value.items():
+            # update changed
             if parameter_name == "ir":
-                knobs.update_ir(effect_name == "reverb", parameter_value)
+                if effect_parameter_data[effect_name][parameter_name].name != parameter_value:
+                    knobs.update_ir(effect_name == "reverb", parameter_value)
             else:
-                knobs.ui_knob_change(effect_name, parameter_name, parameter_value)
+                if effect_parameter_data[effect_name][parameter_name].value != parameter_value:
+                    print("loading parameter", effect_name, parameter_name, parameter_value)
+                    knobs.ui_knob_change(effect_name, parameter_name, parameter_value)
+    for effect_name, effect_value in preset["midi_map"].items():
+        for parameter_name, parameter_value in effect_value.items():
+            host.set_parameter_midi_cc(pluginMap[effect_name],
+                    parameterMap[effect_name][parameter_name], value)
+            effect_parameter_data[effect_name][parameter_name].assigned_cc = value
     # read enabled state
     for effect, is_active in preset["state"].items():
-        set_active(effect, is_active)
+        if effect == "global":
+            pass
+        else:
+            set_active(effect, is_active)
     # read connections
     preset_connections = set(preset["connections"])
     # remove connections that aren't in the new preset
@@ -589,12 +614,21 @@ def load_preset(filename):
     for source_port, target_port in (preset_connections - current_connection_pairs_poly):
         effect, source_p = source_port.split(":")
         knobs.ui_add_connection(effect, source_p, target_port)
-    # read knob / midi mapping
-    for knob, mapping in preset["knobs"]:
+    midi_connections = set(preset["midi_connections"])
+    for source_pair, target_pair in midi_connections:
+        host.patchbay_connect(patchbay_external, portMap[source_pair[0]]["group"],
+                portMap[source_pair[0]]["ports"][source_pair[1]],
+                portMap[target_pair[0]]["group"],
+                portMap[target_pair[0]]["ports"][target_pair[1]])
+    global current_midi_connection_pairs_poly
+    current_midi_connection_pairs_poly = midi_connections
+    # read knob mapping
+    for knob, mapping in preset["knobs"].items():
         set_knob_current_effect(knob, mapping[0], mapping[1])
     # read bpm
-    current_bpm.value = preset["bpm"]
-    host.transport_bpm(preset["bpm"])
+    if current_bpm.value != preset["bpm"]:
+        current_bpm.value = preset["bpm"]
+        host.transport_bpm(preset["bpm"])
 
 def next_preset():
     # need to have some kind of mapping for all presets so you can assign numbers to them
@@ -671,16 +705,16 @@ for n in range(4):
 
 # this is not great
 effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
-        "tone": PolyValue("tone", 1, 0, 1),
+        "fb_tone": PolyValue("fb_tone", 1, 0, 1),
         "carla_level": PolyValue("level", 1, 0, 1)},
     "delay2": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
-        "tone": PolyValue("tone", 1, 0, 1),
+        "fb_tone": PolyValue("fb_tone", 1, 0, 1),
         "carla_level": PolyValue("level", 1, 0, 1)},
     "delay3": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
-        "tone": PolyValue("tone", 1, 0, 1),
+        "fb_tone": PolyValue("fb_tone", 1, 0, 1),
         "carla_level": PolyValue("level", 1, 0, 1)},
     "delay4": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
-        "tone": PolyValue("tone", 1, 0, 1),
+        "fb_tone": PolyValue("fb_tone", 1, 0, 1),
         "carla_level": PolyValue("level", 1, 0, 1)},
     "reverb": {"gain": PolyValue("mix", 0, -24, 24), "ir": PolyValue("/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1),
         "carla_level": PolyValue("level", 1, 0, 1)},
@@ -703,7 +737,6 @@ effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "fe
         "wet": PolyValue("wet", 0, -90, 20),
         "dry": PolyValue("dry", 0, -90, 20)},
     "eq2": {
-        "wet": PolyValue("wet", 0, -90, 20),
         "enable": PolyValue("Enable", 1.000000, 0.000000, 1.0),
         "gain": PolyValue("Gain", 0.000000, -18.000000, 18.000000),
         "HighPass": PolyValue("Highpass", 0.000000, 0.000000, 1.000000),
@@ -756,6 +789,7 @@ knobs = Knobs()
 current_bpm = PolyValue("BPM", 120, 30, 250) # bit of a hack
 global_bypass = PolyValue("BPM", 120, 30, 250) # bit of a hack
 current_preset = PolyValue("Default Preset", 0, 0, 1)
+update_counter = PolyValue("update counter", 0, 0, 100000)
 
 qmlEngine = QQmlApplicationEngine()
 # Expose the object to QML.
@@ -771,6 +805,7 @@ context.setContextProperty("currentBPM", current_bpm)
 context.setContextProperty("tempoSynced", tempo_synced)
 context.setContextProperty("pluginState", plugin_state)
 context.setContextProperty("currentPreset", current_preset)
+context.setContextProperty("updateCounter", update_counter)
 
 # engine.load(QUrl("qrc:/qml/digit.qml"))
 qmlEngine.load(QUrl("qml/digit.qml"))

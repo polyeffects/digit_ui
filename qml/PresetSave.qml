@@ -96,7 +96,7 @@ import QtQuick.VirtualKeyboard 2.1
 						after_file_selected: (function(name) { 
 							console.log("loading preset file");
 							console.log("file  is", name.toString());
-							knobs.load_preset_by_name(name.toString());
+							knobs.ui_load_preset_by_name(name.toString());
 							mainStack.pop()
 							// some way to handle errors also needed
 						})
@@ -199,7 +199,7 @@ import QtQuick.VirtualKeyboard 2.1
                         // Layout.fillHeight: true
                         height: 400
                         width: 500
-						top_folder: "file:///presets/"
+						top_folder: "file:///presets"
                     }
                     // create new folder
 

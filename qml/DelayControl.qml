@@ -16,33 +16,33 @@ import QtQuick.Controls.Material 2.3
     Item {
         id: time_scale
         width: 1200
-        height: 550
+        height: 530
         property bool snapping: true
         property bool synced: true
         property int division: 4
         property int bars: 1
         property int active_width: 900
-        property int num_delays: 1
+        property int num_delays: 4
         property string current_parameter: "LEVEL"
         property int max_delay_length: 30
 		property var delay_data: [{"time": polyValues["delay1"]["l_delay"].value, 
 			"LEVEL": polyValues["delay1"]["carla_level"].value, 
-			"TONE": polyValues["delay1"]["tone"].value, 
+			"TONE": polyValues["delay1"]["fb_tone"].value, 
 			"FEEDBACK": polyValues["delay1"]["feedback"].value},
 			{"time": polyValues["delay2"]["l_delay"].value, 
 			"LEVEL": polyValues["delay2"]["carla_level"].value, 
-			"TONE": polyValues["delay2"]["tone"].value, 
+			"TONE": polyValues["delay2"]["fb_tone"].value, 
 			"FEEDBACK": polyValues["delay2"]["feedback"].value},
 			{"time": polyValues["delay3"]["l_delay"].value, 
 			"LEVEL": polyValues["delay3"]["carla_level"].value, 
-			"TONE": polyValues["delay3"]["tone"].value, 
+			"TONE": polyValues["delay3"]["fb_tone"].value, 
 			"FEEDBACK": polyValues["delay3"]["feedback"].value},
 			{"time": polyValues["delay4"]["l_delay"].value, 
 			"LEVEL": polyValues["delay4"]["carla_level"].value, 
-			"TONE": polyValues["delay4"]["tone"].value, 
+			"TONE": polyValues["delay4"]["fb_tone"].value, 
 			"FEEDBACK": polyValues["delay4"]["feedback"].value}]
         property var delay_colors: [Material.Pink, Material.Purple, Material.LightBlue, Material.Amber]
-        property var parameter_map: {"LEVEL":"carla_level", "TONE":"tone", "FEEDBACK": "feedback"}
+        property var parameter_map: {"LEVEL":"carla_level", "TONE":"fb_tone", "FEEDBACK": "feedback"}
         // PPQN * bars
         //
         function nearestDivision(x) {
@@ -100,6 +100,7 @@ import QtQuick.Controls.Material 2.3
 			return Qt.hsla(color.hslHue, color.hslSaturation, color.hslLightness, alpha)
 		}
 
+
         // Row {
         PolyFrame {
             // background: Material.background
@@ -112,14 +113,14 @@ import QtQuick.Controls.Material 2.3
                 spacing: 10
                 height:parent.height
 
-                SpinBox {
-                    from: 1
-                    value: 1
-                    to: 4
-                    onValueModified: {
-                        time_scale.num_delays = value;
-                    }
-                }
+                // SpinBox {
+                //     from: 1
+                //     value: 1
+                //     to: 4
+                //     onValueModified: {
+                //         time_scale.num_delays = value;
+                //     }
+                // }
 
                 Switch {
                     text: qsTr("SNAPPING")
@@ -135,20 +136,20 @@ import QtQuick.Controls.Material 2.3
                         time_scale.snapping = checked
                     }
                 }
-                Switch {
-                    text: qsTr("TEMPO SYNC")
-					font.pixelSize: baseFontSize
-                    bottomPadding: 0
-                    width: 200
-                    leftPadding: 0
-                    topPadding: 0
-                    rightPadding: 0
-                    checked: true
-                    onClicked: {
-                        time_scale.synced = checked
-                        mycanvas.requestPaint();
-                    }
-                }
+                // Switch {
+                //     text: qsTr("TEMPO SYNC")
+					// font.pixelSize: baseFontSize
+                //     bottomPadding: 0
+                //     width: 200
+                //     leftPadding: 0
+                //     topPadding: 0
+                //     rightPadding: 0
+                //     checked: true
+                //     onClicked: {
+                //         time_scale.synced = checked
+                //         mycanvas.requestPaint();
+                //     }
+                // }
                 ComboBox {
                     width: 140
                     enabled: time_scale.synced
@@ -192,9 +193,9 @@ import QtQuick.Controls.Material 2.3
                     // color: Material.color(time_scale.delay_colors[index])
 					// color: Qt.rgba(0, 0, 0, 0)
 					// color: setColorAlpha(Material.Pink, 0.1);//Qt.rgba(0.1, 0.1, 0.1, 1);
-					color: Material.color(Material.Pink, Material.Shade200)
-                    x: time_scale.timeToPixel(time_scale.delay_data[index]["time"])
-                    y: time_scale.valueToPixel(time_scale.delay_data[index][time_scale.current_parameter])
+					color: time_scale.delay_data[index]["LEVEL"] > 0 ? Material.color(Material.Pink, Material.Shade200) : Material.color(Material.Grey, Material.Shade200)  
+                    x: time_scale.timeToPixel(time_scale.delay_data[index]["time"]) - (width / 2)
+                    y: time_scale.valueToPixel(time_scale.delay_data[index][time_scale.current_parameter]) - (width / 2)
                     property point beginDrag
                     property bool caught: false
                     // border { width:1; color: Material.color(Material.Cyan, Material.Shade100)}
@@ -223,12 +224,14 @@ import QtQuick.Controls.Material 2.3
 
                   			if(!rect.caught) {
 								// clamp to bounds
-								in_x = Math.min(Math.max(0, in_x), mycanvas.width);
-								in_y = Math.min(Math.max(0, in_y), mycanvas.height);
+								in_x = Math.min(Math.max(-(width / 2), in_x), mycanvas.width - (width / 2));
+								in_y = Math.min(Math.max(-(width / 2), in_y), mycanvas.height - (width / 2));
 							}
 							if(time_scale.snapping && time_scale.synced) {
-								in_x = time_scale.nearestDivision(in_x);
+								in_x = time_scale.nearestDivision(in_x) - (width / 2);
 							}
+							in_x = in_x + (width / 2);
+							in_y = in_y + (width / 2);
 							knobs.ui_knob_change("delay"+(index+1), "l_delay", time_scale.pixelToTime(in_x));
 							knobs.ui_knob_change("delay"+(index+1), 
 								time_scale.parameter_map[time_scale.current_parameter], 

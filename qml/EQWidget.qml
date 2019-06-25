@@ -29,6 +29,7 @@ import QtQuick.Controls.Material 2.3
         property int active_width: 675
         property int selected_point: 1
         property int point_updated: 1
+        property int updateCount: updateCounter, externalRefresh()
 
         // q is 0-4 gain is +-18 db
         property var eq_data: [{"frequency": polyValues[effect]["LSfreq"].value, 
@@ -52,6 +53,18 @@ import QtQuick.Controls.Material 2.3
 
         function pixelToHz(x) {
             return mycanvas.freq_at_x (x, active_width);
+        }
+
+        function externalRefresh() {
+            console.log("external refresh");
+            for (var i = 0; i < time_scale.eq_data.length; i++) {
+                mycanvas.update_filter_external (i, 
+                    time_scale.eq_data[i]["frequency"], 
+                    time_scale.eq_data[i]["q"], 
+                    time_scale.eq_data[i]["gain"]);
+            }
+            mycanvas.requestPaint();
+            return updateCounter.value;
         }
 
 
@@ -681,19 +694,26 @@ import QtQuick.Controls.Material 2.3
                                         new filterFreq( 200, 20000,  2500, 100),
                                         new filterFreq(1000, 16000,  8000,  16) // HS
                                     ]; /*min    max   dflt*/
-                        for (var i = 0; i < mycanvas.filterFreqs.length; i++) {
-                            if (i == 0)
-                            {
-                                update_iir(mycanvas.filterSections[i], false, mycanvas.filterFreqs[i].dflt, 1, 0.0);
-                            }
-                            else if (i == mycanvas.filterFreqs.length - 1){
-                                update_iir(mycanvas.filterSections[i], true, mycanvas.filterFreqs[i].dflt, 1, 0.0);
-                            }
-                            else
-                            {
-                                update_filter(mycanvas.filterSections[i], mycanvas.filterFreqs[i].dflt, 0.1, 2.0);
-                            }
+
+                        for (var i = 0; i < time_scale.eq_data.length; i++) {
+                            mycanvas.update_filter_external (i, 
+                            time_scale.eq_data[i]["frequency"], 
+                            time_scale.eq_data[i]["q"], 
+                            time_scale.eq_data[i]["gain"]);
                         }
+                                    // for (var i = 0; i < mycanvas.filterFreqs.length; i++) {
+                        //     if (i == 0)
+                        //     {
+                        //         update_iir(mycanvas.filterSections[i], false, mycanvas.filterFreqs[i].dflt, 1, 0.0);
+                        //     }
+                        //     else if (i == mycanvas.filterFreqs.length - 1){
+                        //         update_iir(mycanvas.filterSections[i], true, mycanvas.filterFreqs[i].dflt, 1, 0.0);
+                        //     }
+                        //     else
+                        //     {
+                        //         update_filter(mycanvas.filterSections[i], mycanvas.filterFreqs[i].dflt, 0.1, 2.0);
+                        //     }
+                        // }
                         mycanvas.initDone = true;
                     
                     }

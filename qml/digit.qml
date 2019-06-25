@@ -502,7 +502,7 @@ ApplicationWindow {
                                     height: 400
                                     width: 300
                                     current_selected: polyValues.reverb.ir.name
-                                    top_folder: "file:///audio/reverbs/"
+                                    top_folder: "file:///audio/reverbs"
                                     after_file_selected: (function(name) { 
                                         console.log("got new reveb file");
                                         // update that we're setting reverb
@@ -1075,7 +1075,7 @@ ApplicationWindow {
                                 height: 500
                                 width: 500
                                 current_selected: polyValues.cab.ir.name
-                                top_folder: "file:///audio/cabs/"
+                                top_folder: "file:///audio/cabs"
                                 after_file_selected: (function(name) { 
                                     console.log("got new cab file");
                                     // update that we're setting reverb
@@ -1276,7 +1276,10 @@ ApplicationWindow {
                     font.pixelSize: fontSizeMedium
                     // color:
                     onPressAndHold: {
-                        knobs.toggle_enabled("delay1")
+                        knobs.toggle_enabled("delay1");
+                        knobs.toggle_enabled("delay2");
+                        knobs.toggle_enabled("delay3");
+                        knobs.toggle_enabled("delay4");
                     }
                 }
 
