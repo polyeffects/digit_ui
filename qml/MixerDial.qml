@@ -11,7 +11,8 @@ Dial {
     property bool canMap: true 
     width: 75
     height: 75
-    from: 0
+    from: polyValues[effect][param].rmin
+    to: polyValues[effect][param].rmax
     Rectangle {
         width: parent.width
         height: parent.height
@@ -43,6 +44,9 @@ Dial {
             console.warn("set knob mapping")
         }
     }
+    // onDoubleClick: {
+    //     midiAssignPopup.set_mapping_choice(effect, param);
+    // }
     Layout.minimumHeight: 64
     value: polyValues[effect][param].value
     Layout.minimumWidth: 64
@@ -50,8 +54,15 @@ Dial {
     Layout.fillHeight: true
     Layout.preferredWidth: 128
     stepSize: 0.01
-    to: 1
     Layout.preferredHeight: 128
     Layout.alignment: Qt.AlignHCenter
     Layout.maximumWidth: 128
+    // MouseArea {
+    //     anchors.fill: parent
+    //     propagateComposedEvents: true
+    //     onDoubleClicked: {
+    //         console.log("clicked blue")
+    //         mouse.accepted = false
+    //     }
+    // }
 }

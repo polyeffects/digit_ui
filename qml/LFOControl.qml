@@ -241,21 +241,29 @@ Item {
             model: lfo_control.num_lfos 
             Rectangle {
                 id: rect
-                width: 40
-                height: 40
+                width: 100
+                height: 100
+                radius: width * 0.5
+                Rectangle {
+                    x: 25
+                    y: 25
+                    width: 50
+                    height: 50
+                    color: Qt.rgba(0, 0, 0, 0)
+                    border { width:1; color: Material.color(Material.Indigo, Material.Shade200)}
+                    radius: width * 0.5
+                }
+                color: Qt.rgba(0,0,0,0.05)
                 z: mouseArea.drag.active ||  mouseArea.pressed ? 2 : 1
-                color: Qt.rgba(0, 0, 0, 0)
-                x: lfo_control.timeToPixel(lfo_control.lfo_data[index]["time"])
-                y: mycanvas.y_at_level(lfo_control.lfo_data[index]["level"]);
+                x: lfo_control.timeToPixel(lfo_control.lfo_data[index]["time"]) - (width / 2)
+                y: mycanvas.y_at_level(lfo_control.lfo_data[index]["level"]) - (width / 2)
                 property point beginDrag
                 property bool caught: false
-                border { width:1; color: Material.color(Material.Indigo, Material.Shade200)}
                 // border { 
                 //     width:1; 
                 // color: lfo_control.point_updated, lfo_control.eq_data[index]["enabled"] ?
                 // Material.color(Material.Indigo, Material.Shade200) : Material.color(Material.Grey, Material.Shade200)  
                 // }
-                radius: width * 0.5
                 Drag.active: mouseArea.drag.active
 
                 Text {
@@ -278,16 +286,18 @@ Item {
 
                         if(!rect.caught) {
                             // clamp to bounds
-                            in_x = Math.min(Math.max(0, in_x), mycanvas.width);
-                            in_y = Math.min(Math.max(0, in_y), mycanvas.height);
+                            in_x = Math.min(Math.max(-(width / 2), in_x), mycanvas.width - (width / 2));
+                            in_y = Math.min(Math.max(-(width / 2), in_y), mycanvas.height - (width / 2));
                         }
                         if(lfo_control.snapping && lfo_control.synced) {
-                            in_x = lfo_control.nearestDivision(in_x);
+                            in_x = lfo_control.nearestDivision(in_x) - (width / 2);
                         }
                         if (index == 0){ // first point, fix to zero
                             in_x = 0;
                         }
                         else {
+							in_x = in_x + (width / 2);
+							in_y = in_y + (width / 2);
                             // if this points x is less than the previous x make equal (monotonic)
                             if (lfo_control.lfo_data[index-1]["time"] > lfo_control.pixelToTime(in_x)){
                                 in_x = lfo_control.timeToPixel(lfo_control.lfo_data[index-1]["time"]);

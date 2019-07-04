@@ -44,7 +44,7 @@ import Qt.labs.folderlistmodel 2.2
             anchors.leftMargin: 5
             text: remove_suffix(mainRect.basename(mainRect.current_selected))
             height: 60
-            width: 250
+            width: 300
             font {
                 pixelSize: fontSizeLarge
             }
@@ -53,7 +53,11 @@ import Qt.labs.folderlistmodel 2.2
 
         Button {
             anchors.right: mainRect.right
-            anchors.rightMargin: 5
+            anchors.rightMargin: 0
+            font {
+                pixelSize: fontSizeMedium
+            }
+            flat: true
             text: "UP"
             visible: folderListModel.folder != top_folder
             onClicked: {

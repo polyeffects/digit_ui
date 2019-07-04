@@ -159,18 +159,42 @@ for n in range(4):
         lfos[n]["value"+str(i)] = PolyValue("value"+str(i), 0, 0, 1)
         lfos[n]["style"+str(i)] = PolyValue("style"+str(i), 0, 0, 5)
 
-effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
-        "fb_tone": PolyValue("fb_tone", 1, 0, 1),
+effect_parameter_data = {"delay1": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.000000, 300.000000),
+        "Delay_1" : PolyValue("Delay_1", 0.500000, 0.001000, 16.000000),
+        "Warp_2" : PolyValue("Warp_2", 0.000000, -1.000000, 1.000000),
+        "DelayT60_3" : PolyValue("DelayT60_3", 0.500000, 0.000000, 100.000000),
+        "Feedback_4" : PolyValue("Feedback_4", 0.300000, 0.000000, 1.000000),
+        "Amp_5" : PolyValue("Amp_5", 0.500000, 0.000000, 1.000000),
+        "FeedbackSm_6" : PolyValue("FeedbackSm_6", 0.000000, 0.000000, 1.000000),
+        "EnableEcho_7" : PolyValue("EnableEcho_7", 1.000000, 0.000000, 1.000000),
         "carla_level": PolyValue("level", 1, 0, 1)},
-    "delay2": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
-        "fb_tone": PolyValue("fb_tone", 1, 0, 1),
-        "carla_level": PolyValue("level", 1, 0, 1)},
-    "delay3": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
-        "fb_tone": PolyValue("fb_tone", 1, 0, 1),
-        "carla_level": PolyValue("level", 1, 0, 1)},
-    "delay4": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
-        "fb_tone": PolyValue("fb_tone", 1, 0, 1),
-        "carla_level": PolyValue("level", 1, 0, 1)},
+    "delay2": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.000000, 300.000000),
+            "Delay_1" : PolyValue("Delay_1", 0.500000, 0.001000, 16.000000),
+            "Warp_2" : PolyValue("Warp_2", 0.000000, -1.000000, 1.000000),
+            "DelayT60_3" : PolyValue("DelayT60_3", 0.500000, 0.000000, 100.000000),
+            "Feedback_4" : PolyValue("Feedback_4", 0.300000, 0.000000, 1.000000),
+            "Amp_5" : PolyValue("Amp_5", 0.500000, 0.000000, 1.000000),
+            "FeedbackSm_6" : PolyValue("FeedbackSm_6", 0.000000, 0.000000, 1.000000),
+            "EnableEcho_7" : PolyValue("EnableEcho_7", 1.000000, 0.000000, 1.000000),
+            "carla_level": PolyValue("level", 1, 0, 1)},
+    "delay3": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.000000, 300.000000),
+            "Delay_1" : PolyValue("Delay_1", 0.500000, 0.001000, 16.000000),
+            "Warp_2" : PolyValue("Warp_2", 0.000000, -1.000000, 1.000000),
+            "DelayT60_3" : PolyValue("DelayT60_3", 0.500000, 0.000000, 100.000000),
+            "Feedback_4" : PolyValue("Feedback_4", 0.300000, 0.000000, 1.000000),
+            "Amp_5" : PolyValue("Amp_5", 0.500000, 0.000000, 1.000000),
+            "FeedbackSm_6" : PolyValue("FeedbackSm_6", 0.000000, 0.000000, 1.000000),
+            "EnableEcho_7" : PolyValue("EnableEcho_7", 1.000000, 0.000000, 1.000000),
+            "carla_level": PolyValue("level", 1, 0, 1)},
+    "delay4": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.000000, 300.000000),
+            "Delay_1" : PolyValue("Delay_1", 0.500000, 0.001000, 16.000000),
+            "Warp_2" : PolyValue("Warp_2", 0.000000, -1.000000, 1.000000),
+            "DelayT60_3" : PolyValue("DelayT60_3", 0.500000, 0.000000, 100.000000),
+            "Feedback_4" : PolyValue("Feedback_4", 0.300000, 0.000000, 1.000000),
+            "Amp_5" : PolyValue("Amp_5", 0.500000, 0.000000, 1.000000),
+            "FeedbackSm_6" : PolyValue("FeedbackSm_6", 0.000000, 0.000000, 1.000000),
+            "EnableEcho_7" : PolyValue("EnableEcho_7", 1.000000, 0.000000, 1.000000),
+            "carla_level": PolyValue("level", 1, 0, 1)},
     "reverb": {"gain": PolyValue("mix", 0, -24, 24), "ir": PolyValue("/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1),
         "carla_level": PolyValue("level", 1, 0, 1)},
     "mixer": {"mix_1_1": PolyValue("mix 1,1", 0, 0, 1), "mix_1_2": PolyValue("mix 1,2", 0, 0, 1),
@@ -192,7 +216,6 @@ effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "fe
         "wet": PolyValue("wet", 0, -90, 20),
         "dry": PolyValue("dry", 0, -90, 20)},
     "eq2": {
-        "wet": PolyValue("wet", 0, -90, 20),
         "enable": PolyValue("Enable", 1.000000, 0.000000, 1.0),
         "gain": PolyValue("Gain", 0.000000, -18.000000, 18.000000),
         "HighPass": PolyValue("Highpass", 0.000000, 0.000000, 1.000000),
@@ -241,6 +264,8 @@ if __name__ == "__main__":
     knobs = Knobs()
     current_bpm = PolyValue("BPM", 120, 30, 250) # bit of a hack
     current_preset = PolyValue("Default Preset", 0, 0, 1)
+    update_counter = PolyValue("update counter", 0, 0, 100000)
+    delay_num_bars = PolyValue("Num bars", 1, 1, 16)
 
     # t_list = QStringList()
     # t_list.append("a")
@@ -259,6 +284,8 @@ if __name__ == "__main__":
     context.setContextProperty("currentBPM", current_bpm)
     context.setContextProperty("currentPreset", current_preset)
     context.setContextProperty("polyValues", effect_parameter_data)
+    context.setContextProperty("updateCounter", update_counter)
+    context.setContextProperty("delayNumBars", delay_num_bars)
     # engine.load(QUrl("qrc:/qml/digit.qml"))
     engine.load(QUrl("qml/digit.qml"))
 

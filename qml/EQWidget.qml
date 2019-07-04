@@ -79,21 +79,29 @@ import QtQuick.Controls.Material 2.3
                 model: 6
                 Rectangle {
                     id: rect
-                    width: 40
-                    height: 40
+                    width: 100
+                    height: 100
+                    radius: width * 0.5
+                    color: Qt.rgba(0,0,0,0.05)
                     z: mouseArea.drag.active ||  mouseArea.pressed ? 2 : 1
-                    border { 
-                        width:1; 
-                        color: time_scale.point_updated, time_scale.eq_data[index]["enabled"] ? Material.color(Material.Indigo, Material.Shade200) : Material.color(Material.Grey, Material.Shade200)  
+                    Rectangle {
+                        x: 25
+                        y: 25
+                        width: 50
+                        height: 50
+                        color: Qt.rgba(0, 0, 0, 0)
+                        radius: index == 0 || index == 5 ? width * 0.1 : width * 0.5
+                        border { 
+                            width:1; 
+                            color: time_scale.point_updated, time_scale.eq_data[index]["enabled"] ? Material.color(Material.Indigo, Material.Shade200) : Material.color(Material.Grey, Material.Shade200)  
+                        }
                     }
                     // color: time_scale.eq_data[index]["enabled"] ? Material.color(Material.Indigo, Material.Shade200) : Material.color(Material.Grey, Material.Shade200)  
-                    color: Qt.rgba(0, 0, 0, 0)
                     x: time_scale.hzToPixel(time_scale.eq_data[index]["frequency"]) - (width / 2) // offset for square size
                     y: mycanvas.y_at_gain(time_scale.eq_data[index]["gain"]) - (width / 2)
                     property point beginDrag
                     property bool caught: false
                     // border { width:1; color: Material.color(Material.Grey, Material.Shade100)}
-                    radius: index == 0 || index == 5 ? width * 0.1 : width * 0.5
                     Drag.active: mouseArea.drag.active
 
                     Text {
@@ -109,6 +117,40 @@ import QtQuick.Controls.Material 2.3
                         onPressed: {
                             rect.beginDrag = Qt.point(rect.x, rect.y);
                             time_scale.selected_point = index;
+                            if (knobs.waiting != "") // mapping on
+                            {
+                                // pop up knob mapping selector
+                                if (index == 0){
+                                    // low shelf
+                                    mappingPopup.set_mapping_choice(effect, "LSfreq", "FREQUENCY", 
+                                        effect, "LSgain", "GAIN", true);
+                                }
+                                else if (index == 5){
+                                    // high shelf
+                                    mappingPopup.set_mapping_choice(effect, "HSfreq", "FREQUENCY", 
+                                        effect, "HSgain", "GAIN", true);
+                                }
+                                else {
+                                    mappingPopup.set_mapping_choice(effect, "freq"+index, "FREQUENCY", 
+                                        effect, "gain"+index, "GAIN", true);
+                                }
+                            }
+                        }
+                        onDoubleClicked: {
+                            if (index == 0){
+                                // low shelf
+                                mappingPopup.set_mapping_choice(effect, "LSfreq", "FREQUENCY", 
+                                    effect, "LSgain", "GAIN", false);    
+                            }
+                            else if (index == 5){
+                                // high shelf
+                                mappingPopup.set_mapping_choice(effect, "HSfreq", "FREQUENCY", 
+                                    effect, "HSgain", "GAIN", false);    
+                            }
+                            else {
+                                mappingPopup.set_mapping_choice(effect, "freq"+index, "FREQUENCY", 
+                                    effect, "gain"+index, "GAIN", false);
+                            }
                         }
                         onReleased: {
 
@@ -117,8 +159,8 @@ import QtQuick.Controls.Material 2.3
 
                             if(!rect.caught) {
                                 // clamp to bounds
-                                in_x = Math.min(Math.max(0, in_x), mycanvas.width);
-                                in_y = Math.min(Math.max(0, in_y), mycanvas.height);
+								in_x = Math.min(Math.max(-(width / 2), in_x), mycanvas.width - (width / 2));
+								in_y = Math.min(Math.max(-(width / 2), in_y), mycanvas.height - (width / 2));
                             }
                             var f = time_scale.pixelToHz(in_x + (width / 2)); // offset for square size
                             console.log("frequency before", time_scale.eq_data[index]["frequency"]);
@@ -843,15 +885,12 @@ import QtQuick.Controls.Material 2.3
 
                 GlowingLabel {
                     color: "#ffffff"
-                    text: qsTr("MIX")
+                    text: qsTr("GAIN")
                 }
 
                 MixerDial {
                     effect: "reverb"
-                    param: "mix"
-                    value: 5
-                    from: 0
-                    to: 10
+                    param: "gain"
                 }
 
                 Switch {
@@ -863,7 +902,7 @@ import QtQuick.Controls.Material 2.3
                     leftPadding: 0
                     topPadding: 0
                     rightPadding: 0
-                    checked: true
+                    checked: eq_enabled
                     onClicked: {
                         knobs.ui_knob_change(effect, "enable", checked | 0); // force to int
                         mycanvas.requestPaint();

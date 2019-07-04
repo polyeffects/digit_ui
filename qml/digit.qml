@@ -68,11 +68,190 @@ ApplicationWindow {
             font.pixelSize: 95
             opacity: 0.4
             color: "grey"
-            visible: false // XXX !(pluginState.global.value)
+            visible: !(pluginState.global.value)
             z: 1
             anchors.centerIn: parent
         }
+
+        Popup {
+            id: midiAssignPopup
+            property string effect
+            property string param
+            // x: 500
+            // y: 200
+            width: 400
+            height: 200
+            modal: true
+            focus: true
+            closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
+
+            parent: Overlay.overlay
+            Overlay.modal: Rectangle {
+                // x: 500
+                y: -560
+                width: 1280
+                height: 1280
+                color: "#AA333333"
+                transform: Rotation {
+                    angle: -90
+                    // origin.x: Screen.height / 2
+                    // origin.x: Screen.height / 2
+                    // origin.x: 720 / 2
+                    // origin.y: 720 / 2
+                    origin.x: 1280 / 2
+                    origin.y: 1280 / 2
+                }
+            }
+
+            x: Math.round((parent.width - width) / 2)
+            y: Math.round((parent.height - height) / 2)
+
+            function set_mapping_choice(e1, p1){
+                effect = e1;
+                param = p1;
+                midiAssignPopup.open()
+            }
+
+            Row {
+                anchors.centerIn: parent
+                spacing: 40
+                // Label {
+                //     text: "Which parameter?"
+                //     font.pixelSize: baseFontSize 
+                // }
+                Button {
+                    text: "Remove Mapping"
+                    font.pixelSize: baseFontSize
+                    width: 140
+                    onClicked: {
+                        knobs.unmap_parameter(midiAssignPopup.effect, midiAssignPopup.param)
+                        midiAssignPopup.close()
+                    }
+                    // flat: true
+                }
+                Column {
+                    spacing: 20
+                    Label {
+                        text: "Map MIDI CC"
+                        font.pixelSize: baseFontSize 
+                    }
+
+                    SpinBox {
+                        id: selectedCC
+                        value: 0
+                        from: 0 
+                        to: 100
+                    }
+
+                    Button {
+                        text: "Assign"
+                        font.pixelSize: baseFontSize
+                        // width: 140
+                        onClicked: {
+                            knobs.map_parameter_cc(midiAssignPopup.effect, midiAssignPopup.param, selectedCC.value)    
+                            midiAssignPopup.close()
+                        }
+                        flat: true
+                    }
+                }
+            }
+            
+        } 
         
+        Popup {
+            id: mappingPopup
+            property string effect1
+            property string effect2
+            property string param1
+            property string param2
+            property string param1Name
+            property string param2Name
+            property bool is_map
+            // x: 500
+            // y: 200
+            width: 600
+            height: 200
+            modal: true
+            focus: true
+            closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
+
+            parent: Overlay.overlay
+            Overlay.modal: Rectangle {
+                // x: 500
+                y: -560
+                width: 1280
+                height: 1280
+                color: "#AA333333"
+                transform: Rotation {
+                    angle: -90
+                    // origin.x: Screen.height / 2
+                    // origin.x: Screen.height / 2
+                    // origin.x: 720 / 2
+                    // origin.y: 720 / 2
+                    origin.x: 1280 / 2
+                    origin.y: 1280 / 2
+                }
+            }
+
+            x: Math.round((parent.width - width) / 2)
+            y: Math.round((parent.height - height) / 2)
+
+            function set_mapping_choice(e1, p1, p1_name, e2, p2, p2_name, m){
+                effect1 = e1;
+                effect2 = e2;
+                param1 = p1;
+                param2 = p2;
+                param1Name = p1_name;
+                param2Name = p2_name;
+                is_map = m;
+                mappingPopup.open()
+            }
+
+            Row {
+                anchors.centerIn: parent
+                spacing: 40
+                // Label {
+                //     text: "Which parameter?"
+                //     font.pixelSize: baseFontSize 
+                // }
+                Button {
+                    text: mappingPopup.param1Name
+                    font.pixelSize: baseFontSize
+                    width: 140
+                    onClicked: {
+                        // set learn
+                        if (mappingPopup.is_map){
+                            knobs.map_parameter(mappingPopup.effect1, mappingPopup.param1)    
+                            mappingPopup.close()
+                        }
+                        else
+                        { // open the MIDI mapping pop up / unlearn
+                            mappingPopup.close()
+                            midiAssignPopup.set_mapping_choice(mappingPopup.effect1, mappingPopup.param1)
+                        }
+                    }
+                    // flat: true
+                }
+                Button {
+                    text: mappingPopup.param2Name
+                    font.pixelSize: baseFontSize
+                    // width: 140
+                    onClicked: {
+                        // set learn
+                        if (mappingPopup.is_map){
+                            knobs.map_parameter(mappingPopup.effect2, mappingPopup.param2)    
+                            mappingPopup.close()
+                        }
+                        else {
+                            mappingPopup.close()
+                            midiAssignPopup.set_mapping_choice(mappingPopup.effect2, mappingPopup.param2);
+                        }
+                    }
+                    flat: true
+                }
+            }
+            
+        } 
         
         Component {
             id: mainView
@@ -101,100 +280,12 @@ ApplicationWindow {
                                 id: delayControl1
                             }
                         }
-                        // PolyFrame {
-                        //     id: reverbFrame3
-                        //     width: 1280
-                        //     height: 720
-                        //     z: -1
-                        //     Column {
-                        //         id: column2
-                        //         x: 500
-                        //         y: 58
-                        //         width: 102
-                        //         height: 271
-                        //         spacing: 10
-                        //         GlowingLabel {
-                        //             color: "#ffffff"
-                        //             text: "LEVEL"
-                        //         }
-
-                        //         MixerDial {
-                        //             effect: "delay1"
-                        //             param: "carla_level"
-                        //             value: polyValues.delay1.carla_level.value
-                        //             to: 1
-                        //             width: 100
-                        //             height: 100
-                        //         }
-                        //     }
-
-                        //     Column {
-                        //         id: column3
-                        //         x: 625
-                        //         y: 58
-                        //         width: 102
-                        //         height: 271
-                        //         spacing: 10
-                        //         GlowingLabel {
-                        //             color: "#ffffff"
-                        //             text: qsTr("TIME")
-                        //         }
-
-                        //         MixerDial {
-                        //             effect: "delay1"
-                        //             param: "l_delay"
-                        //             value: polyValues.delay1.l_delay.value
-                        //             textOverride: {
-                        //                 if (tempoSynced.delay1.value == 1)
-                        //                 {
-                        //                     return tempoSynced.delay1.name
-                        //                 }
-                        //                 else
-                        //                 {
-                        //                     return polyValues.delay1.l_delay.value.toFixed(1)
-                        //                 }
-
-                        //             }
-                        //             to: 1
-                        //             width: 100
-                        //             height: 100
-                        //         }
-
-                        //         Switch {
-                        //             text: qsTr("SYNC")
-                        //             bottomPadding: 0
-                        //             width: 100
-                        //             leftPadding: 0
-                        //             topPadding: 0
-                        //             rightPadding: 0
-                        //             onClicked: {
-                        //                 knobs.toggle_synced("delay1")
-                        //             }
-                        //         }
-
-                        //         GlowingLabel {
-                        //             color: "#ffffff"
-                        //             text: "FEEDBACK"
-                        //         }
-
-                        //         MixerDial {
-                        //             effect: "delay1"
-                        //             param: "feedback"
-                        //             value: polyValues.delay1.feedback.value
-                        //             to: 1
-                        //             width: 100
-                        //             height: 100
-                        //         }
-
-                        //     }
-                        // }
 
                         PolyFrame {
                             id: effects
                             width: 1280
                             height: 350
                             z: -1
-
                                 Column {
                                     spacing: 6
                                     width: parent.width
@@ -425,20 +516,88 @@ ApplicationWindow {
                             width: parent.width
                             height:parent.height
                             z: -1
+                            Column {
+                                height: 360
+                                anchors.fill: parent
 
-                            PolyBus {
-                                id: polyBus
-                                width: 1280
-                                height: 394
-                                availablePorts: sigmoid1_OutputAvailablePorts
-                                usedPorts: sigmoid1_OutputUsedPorts
-                                effect: "sigmoid1"
-                                sourcePort: "Output"
-                                // availablePorts: delay1_Left_OutAvailablePorts
-                                // usedPorts: delay1_Left_OutUsedPorts
-                                // effect: "delay1"
-                                // sourcePort: "Left Out"
+                                Row {
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    height: 0.5 * parent.height
+                                    GroupBox {
+                                        title: qsTr("DELAY 1")
+                                        font.pixelSize: baseFontSize
+                                        anchors.top: parent.top
+                                        anchors.bottom: parent.bottom
+                                        width: 0.5 * parent.width
+                                        background: null
+                                        PolyBus {
+                                            availablePorts: sigmoid1_OutputAvailablePorts
+                                            usedPorts: sigmoid1_OutputUsedPorts
+                                            effect: "sigmoid1"
+                                            sourcePort: "Output"
+                                        }
+                                    }
+                                    GroupBox {
+                                        title: qsTr("DELAY 2")
+                                        font.pixelSize: baseFontSize
+                                        anchors.top: parent.top
+                                        anchors.bottom: parent.bottom
+                                        width: 0.5 * parent.width
+                                        background: null
+                                        PolyBus {
+                                            availablePorts: delay2_out0AvailablePorts
+                                            usedPorts: delay2_out0UsedPorts
+                                            sourcePort: "out0"
+                                            effect: "delay2"
+                                        }
+                                    }
+                                }
+                                Row {
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    height: 0.5 * parent.height
+                                    GroupBox {
+                                        title: qsTr("DELAY 3")
+                                        font.pixelSize: baseFontSize
+                                        anchors.top: parent.top
+                                        anchors.bottom: parent.bottom
+                                        width: 0.5 * parent.width
+                                        background: null
+                                        PolyBus {
+                                            availablePorts: delay3_out0AvailablePorts
+                                            usedPorts: delay3_out0UsedPorts
+                                            sourcePort: "out0"
+                                            effect: "delay3"
+                                        }
+                                    }
+                                    GroupBox {
+                                        title: qsTr("DELAY 4")
+                                        font.pixelSize: baseFontSize
+                                        anchors.top: parent.top
+                                        anchors.bottom: parent.bottom
+                                        width: 0.5 * parent.width
+                                        background: null
+                                        PolyBus {
+                                            availablePorts: delay4_out0AvailablePorts
+                                            usedPorts: delay4_out0UsedPorts
+                                            sourcePort: "out0"
+                                            effect: "delay4"
+                                        }
+                                    }
+                                }
+
                             }
+
+                            // PolyBus {
+                            //     id: polyBus
+                            //     width: 1280
+                            //     height: 394
+                            //     // availablePorts: delay1_Left_OutAvailablePorts
+                            //     // usedPorts: delay1_Left_OutUsedPorts
+                            //     // effect: "delay1"
+                            //     // sourcePort: "Left Out"
+                            // }
                         }
                     }
 
@@ -492,7 +651,7 @@ ApplicationWindow {
 
 
                             ColumnLayout {
-                                x: 50
+                                x: 0
                                 y: 25
                                 Layout.fillHeight: true
                                 Layout.fillWidth: true
@@ -500,7 +659,7 @@ ApplicationWindow {
                                     x: 0
                                     // Layout.fillHeight: true
                                     height: 400
-                                    width: 300
+                                    width: 350
                                     current_selected: polyValues.reverb.ir.name
                                     top_folder: "file:///audio/reverbs"
                                     after_file_selected: (function(name) { 
@@ -524,7 +683,7 @@ ApplicationWindow {
                             }
 
                             EQWidget {
-                                x: 350
+                                x: 370
                             }
 
 
@@ -1085,42 +1244,39 @@ ApplicationWindow {
                                     // some way to handle errors also needed
                                 })
                             }
-                            // Column {
-                            //     x: 625
-                            //     y: 66
-                            //     width: 102
-                            //     height: 271
-                            //     spacing: 10
-                            //     GlowingLabel {
-                            //         color: "#ffffff"
-                            //         text: qsTr("TREBLE")
-                            //     }
+                            Column {
+                                x: 750
+                                y: 20
+                                width: 102
+                                height: 271
+                                spacing: 10
+                                GlowingLabel {
+                                    color: "#ffffff"
+                                    text: qsTr("IR GAIN")
+                                }
 
-                            //     MixerDial {
-                            //         effect: "cab"
-                            //         param: "CTreble"
-                            //         value: polyValues.cab.CTreble.value
-                            //         from: -10
-                            //         to: 10
-                            //         width: 100
-                            //         height: 100
-                            //     }
+                                MixerDial {
+                                    effect: "cab"
+                                    param: "gain"
+                                    // width: 100
+                                    // height: 100
+                                }
 
-                            //     GlowingLabel {
-                            //         color: "#ffffff"
-                            //         text: qsTr("BASS")
-                            //     }
+                                // GlowingLabel {
+                                //     color: "#ffffff"
+                                //     text: qsTr("BASS")
+                                // }
 
-                            //     MixerDial {
-                            //         effect: "cab"
-                            //         param: "CBass"
-                            //         value: polyValues.cab.CBass.value
-                            //         from: -10
-                            //         to: 10
-                            //         width: 100
-                            //         height: 100
-                            //     }
-                            // }
+                                // MixerDial {
+                                //     effect: "cab"
+                                //     param: "CBass"
+                                //     value: polyValues.cab.CBass.value
+                                //     from: -10
+                                //     to: 10
+                                //     width: 100
+                                //     height: 100
+                                // }
+                            }
                         }
 
                         PolyFrame {
@@ -1275,7 +1431,7 @@ ApplicationWindow {
                     text: qsTr("DELAY")
                     font.pixelSize: fontSizeMedium
                     // color:
-                    onPressAndHold: {
+                    onDoubleClicked: {
                         knobs.toggle_enabled("delay1");
                         knobs.toggle_enabled("delay2");
                         knobs.toggle_enabled("delay3");
@@ -1290,7 +1446,7 @@ ApplicationWindow {
                     text: qsTr("REVERB")
                     font.pixelSize: fontSizeMedium
                     // color: pluginState.reverb ? Material.Green : Material.Grey
-                    onPressAndHold: {
+                    onDoubleClicked: {
                         knobs.toggle_enabled("reverb")
                     }
                 }
@@ -1313,7 +1469,7 @@ ApplicationWindow {
                     font.pixelSize: fontSizeMedium
                     // color: pluginState.cab ? Material.Green : Material.Grey
                     text: qsTr("CAB")
-                    onPressAndHold: {
+                    onDoubleClicked: {
                         knobs.toggle_enabled("cab")
                     }
                 }
@@ -1323,7 +1479,7 @@ ApplicationWindow {
                     // color: pluginState.cab ? Material.Green : Material.Grey
                     font.pixelSize: fontSizeMedium
                     text: qsTr("MODIFY")
-                    // onPressAndHold: {
+                    // onDoubleClicked: {
                     //     knobs.toggle_enabled("cab")
                     // }
                 }
@@ -1491,6 +1647,9 @@ ApplicationWindow {
                 height: 70
                 flat: true
                 icon.name: "settings"
+                onClicked: {
+                    mainStack.push("Settings.qml")
+                }
             }
 
 

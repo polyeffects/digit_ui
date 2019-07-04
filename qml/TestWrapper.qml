@@ -21,8 +21,8 @@ ApplicationWindow {
     height: 720
     title: "Drag & drop example"
     visible: true
-    LFOControl {
-    }
+    // LFOControl {
+    // }
     // // EQWidget {
     
     // }
@@ -31,6 +31,10 @@ ApplicationWindow {
     // Settings {
     
     // }
+    EnvelopeFollower {
+
+    }
+    
     // FolderBrowser {
    		// height: 400
     //     width: 300 

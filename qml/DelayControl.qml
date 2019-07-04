@@ -20,34 +20,37 @@ import QtQuick.Controls.Material 2.3
         property bool snapping: true
         property bool synced: true
         property int division: 4
-        property int bars: 1
+        property int bars: delayNumBars.value 
         property int active_width: 900
         property int num_delays: 4
-        property string current_parameter: "LEVEL"
+        property string current_parameter: "Amp_5"
         property int max_delay_length: 30
-		property var delay_data: [{"time": polyValues["delay1"]["l_delay"].value, 
-			"LEVEL": polyValues["delay1"]["carla_level"].value, 
-			"TONE": polyValues["delay1"]["fb_tone"].value, 
-			"FEEDBACK": polyValues["delay1"]["feedback"].value},
-			{"time": polyValues["delay2"]["l_delay"].value, 
-			"LEVEL": polyValues["delay2"]["carla_level"].value, 
-			"TONE": polyValues["delay2"]["fb_tone"].value, 
-			"FEEDBACK": polyValues["delay2"]["feedback"].value},
-			{"time": polyValues["delay3"]["l_delay"].value, 
-			"LEVEL": polyValues["delay3"]["carla_level"].value, 
-			"TONE": polyValues["delay3"]["fb_tone"].value, 
-			"FEEDBACK": polyValues["delay3"]["feedback"].value},
-			{"time": polyValues["delay4"]["l_delay"].value, 
-			"LEVEL": polyValues["delay4"]["carla_level"].value, 
-			"TONE": polyValues["delay4"]["fb_tone"].value, 
-			"FEEDBACK": polyValues["delay4"]["feedback"].value}]
+		// property var delay_data: [{"time": polyValues["delay1"]["Delay_1"].value, 
+		// 	"LEVEL": polyValues["delay1"]["carla_level"].value, 
+		// 	"TONE": polyValues["delay1"]["fb_tone"].value, 
+		// 	"FEEDBACK": polyValues["delay1"]["feedback"].value},
+		// 	{"time": polyValues["delay2"]["Delay_1"].value, 
+		// 	"LEVEL": polyValues["delay2"]["carla_level"].value, 
+		// 	"TONE": polyValues["delay2"]["fb_tone"].value, 
+		// 	"FEEDBACK": polyValues["delay2"]["feedback"].value},
+		// 	{"time": polyValues["delay3"]["Delay_1"].value, 
+		// 	"LEVEL": polyValues["delay3"]["carla_level"].value, 
+		// 	"TONE": polyValues["delay3"]["fb_tone"].value, 
+		// 	"FEEDBACK": polyValues["delay3"]["feedback"].value},
+		// 	{"time": polyValues["delay4"]["Delay_1"].value, 
+		// 	"LEVEL": polyValues["delay4"]["carla_level"].value, 
+		// 	"TONE": polyValues["delay4"]["fb_tone"].value, 
+		// 	"FEEDBACK": polyValues["delay4"]["feedback"].value}]
+        property var delay_data: [polyValues["delay1"], polyValues["delay2"], polyValues["delay3"], polyValues["delay4"]]
         property var delay_colors: [Material.Pink, Material.Purple, Material.LightBlue, Material.Amber]
-        property var parameter_map: {"LEVEL":"carla_level", "TONE":"fb_tone", "FEEDBACK": "feedback"}
+        property var parameter_map: {"LEVEL":"Amp_5", "TONE":"FeedbackSm_6", "FEEDBACK": "Feedback_4", 
+                                    "GLIDE": "DelayT60_3", "WARP":"Warp_2"  }
+        property var inv_parameter_map: {'Amp_5': 'LEVEL', 'DelayT60_3': 'GLIDE', 'Feedback_4': 'FEEDBACK', 'Warp_2': 'WARP', 'FeedbackSm_6': 'TONE'}
         // PPQN * bars
         //
         function nearestDivision(x) {
             // given pixel find nearest pixel for division
-            var grid_width = active_width/time_scale.division;
+            var grid_width = active_width/(time_scale.division*time_scale.bars);
             return Math.round(x / grid_width) * grid_width;
         }
 
@@ -169,10 +172,31 @@ import QtQuick.Controls.Material 2.3
 
                 ComboBox {
                     width: 140
-                    model: ["LEVEL", "TONE", "FEEDBACK"]
+                    model: ["LEVEL", "TONE", "FEEDBACK", "GLIDE", "WARP"]
                     onActivated: {
                         console.debug(model[index]);
-                        time_scale.current_parameter = model[index];
+                        time_scale.current_parameter = parameter_map[model[index]];
+                    }
+                }
+
+                Label {
+                    text: "# Bars"
+                    font.pixelSize: baseFontSize
+                    // color: "grey"
+                }
+
+                SpinBox {
+                    value: bars
+                    from: 1 
+                    to: delayNumBars.rmax
+                    onValueModified: {
+                        delayNumBars.value = value;
+                        mycanvas.requestPaint();
+                        // console.log("rmax is ",  polyValues["delay1"]["Delay_1"].rmax)
+                        polyValues["delay1"]["Delay_1"].rmax = value
+                        polyValues["delay2"]["Delay_1"].rmax = value
+                        polyValues["delay3"]["Delay_1"].rmax = value
+                        polyValues["delay4"]["Delay_1"].rmax = value
                     }
                 }
             }
@@ -187,20 +211,28 @@ import QtQuick.Controls.Material 2.3
                 model: time_scale.num_delays 
                 Rectangle {
                     id: rect
-                    width: 50
-                    height: 50
+                    width: 100
+                    height: 100
+                    radius: 10
+                    color: Qt.rgba(0,0,0,0.05)
+                    Rectangle {
+                        x: 25
+                        y: 25
+                        width: 50
+                        height: 50
+                        radius: 5
+                        color: time_scale.delay_data[index]["Amp_5"].value > 0 ? Material.color(Material.Pink, Material.Shade200) : Material.color(Material.Grey, Material.Shade200)  
+                    }
                     z: mouseArea.drag.active ||  mouseArea.pressed ? 2 : 1
                     // color: Material.color(time_scale.delay_colors[index])
 					// color: Qt.rgba(0, 0, 0, 0)
 					// color: setColorAlpha(Material.Pink, 0.1);//Qt.rgba(0.1, 0.1, 0.1, 1);
-					color: time_scale.delay_data[index]["LEVEL"] > 0 ? Material.color(Material.Pink, Material.Shade200) : Material.color(Material.Grey, Material.Shade200)  
-                    x: time_scale.timeToPixel(time_scale.delay_data[index]["time"]) - (width / 2)
-                    y: time_scale.valueToPixel(time_scale.delay_data[index][time_scale.current_parameter]) - (width / 2)
+                    x: time_scale.timeToPixel(time_scale.delay_data[index]["Delay_1"].value) - (width / 2)
+                    y: time_scale.valueToPixel(time_scale.delay_data[index][time_scale.current_parameter].value) - (width / 2)
                     property point beginDrag
                     property bool caught: false
                     // border { width:1; color: Material.color(Material.Cyan, Material.Shade100)}
 					// border { width:2; color: Material.color(Material.Pink, Material.Shade200)}
-                    radius: 5
                     Drag.active: mouseArea.drag.active
 
                     Text {
@@ -217,6 +249,20 @@ import QtQuick.Controls.Material 2.3
                         drag.target: parent
                         onPressed: {
                             rect.beginDrag = Qt.point(rect.x, rect.y);
+                            if (knobs.waiting != "") // mapping on
+                            {
+                                // pop up knob mapping selector
+                                mappingPopup.set_mapping_choice("delay"+(index+1), "Delay_1", "TIME", 
+                                    "delay"+(index+1), time_scale.current_parameter, 
+                                    time_scale.inv_parameter_map[time_scale.current_parameter], true);
+                            }
+                        }
+                        onDoubleClicked: {
+                            mappingPopup.set_mapping_choice("delay"+(index+1), "Delay_1", "TIME", 
+                                "delay"+(index+1), time_scale.current_parameter, 
+                                time_scale.inv_parameter_map[time_scale.current_parameter], false);    
+                            // remove MIDI mapping
+                            // add MIDI mapping
                         }
                         onReleased: {
 							var in_x = rect.x;
@@ -228,16 +274,16 @@ import QtQuick.Controls.Material 2.3
 								in_y = Math.min(Math.max(-(width / 2), in_y), mycanvas.height - (width / 2));
 							}
 							if(time_scale.snapping && time_scale.synced) {
-								in_x = time_scale.nearestDivision(in_x) - (width / 2);
+								in_x = time_scale.nearestDivision(in_x + (width / 2)) - (width / 2);
 							}
 							in_x = in_x + (width / 2);
 							in_y = in_y + (width / 2);
-							knobs.ui_knob_change("delay"+(index+1), "l_delay", time_scale.pixelToTime(in_x));
+							knobs.ui_knob_change("delay"+(index+1), "Delay_1", time_scale.pixelToTime(in_x));
 							knobs.ui_knob_change("delay"+(index+1), 
-								time_scale.parameter_map[time_scale.current_parameter], 
+								time_scale.current_parameter, 
 								time_scale.pixelToValue(in_y));
 							console.log("parameter map", 
-								time_scale.parameter_map[time_scale.current_parameter], "value", 
+								time_scale.current_parameter, "value", 
 								time_scale.pixelToValue(in_y),
 								"rect.y", rect.y, "in_y", in_y);
                         }
@@ -267,8 +313,16 @@ import QtQuick.Controls.Material 2.3
                     if (time_scale.synced){
                         ctx.fillStyle = Material.accent;//Qt.rgba(0.1, 0.1, 0.1, 1);
 
-                        for (var i = 0; i < time_scale.division; i++) {
-                            ctx.fillRect(width/time_scale.division*i, 0, 1, height);
+                        for (var i = 0; i < (time_scale.division*time_scale.bars); i++) {
+                            if ((i % time_scale.division) == 0)
+                            {
+                                ctx.fillRect((width/(time_scale.division*time_scale.bars))*i, 0, 3, height);
+                                ctx.fillText(i-1, x+2, height - 10);
+                            }
+                            else
+                            {
+                                ctx.fillRect((width/(time_scale.division*time_scale.bars))*i, 0, 1, height);
+                            }
                         }
                     }
                     else
@@ -321,7 +375,7 @@ import QtQuick.Controls.Material 2.3
             }
 
             Label {
-                text: time_scale.current_parameter
+                text: time_scale.inv_parameter_map[time_scale.current_parameter]
                 font.pixelSize: 20
                 height:30
                 width: 30

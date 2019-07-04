@@ -14,7 +14,7 @@
 # client = JackClient()
 # sys_effect = SystemEffect('system', ['capture_1', 'capture_2', "capture_3, capture_4"],
 #         ['playback_1', 'playback_2', 'playback_3', 'playback_4'])
-import sys, time, json, os.path, os
+import sys, time, json, os.path, os, subprocess
 from collections import defaultdict
 ##### Hardware backend
 # --------------------------------------------------------------------------------------------------------
@@ -67,9 +67,12 @@ output_port_names = {"Out 1": ("system", "playback_1"),
     "Out 2": ("system", "playback_2"),
     "Out 3": ("system", "playback_3"),
     "Out 4": ("system", "playback_4"),
-    "Delay 1 In": ("delay1", "Left In"),
+    "Delay 1 In": ("delay1", "in0"),
+    "Delay 2 In": ("delay2", "in0"),
+    "Delay 3 In": ("delay3", "in0"),
+    "Delay 4 In": ("delay4", "in0"),
     "Cab": ("cab", "In"),
-    "Reverb": ("reverb", "In"),
+    "Reverb": ("eq2", "In"),
     }
 # inv_source_port_names = dict({(v, k) for k,v in source_port_names.items()})
 inv_output_port_names = dict({(v, k) for k,v in output_port_names.items()})
@@ -86,11 +89,10 @@ current_midi_connection_pairs_poly = set()
 current_ir_file = None
 
 # --------------------------------------------------------------------------------------------------------
-source_ports = ["sigmoid1:Output", "reverb:OutL", "reverb:OutR", "system:capture_1", "system:capture_2", "system:capture_3", "system:capture_4", "cab:Out"]
+source_ports = ["sigmoid1:Output", "delay2:out0","delay3:out0", "delay4:out0", "reverb:OutL", "reverb:OutR", "system:capture_1", "system:capture_2", "system:capture_3", "system:capture_4", "cab:Out"]
 available_port_models = dict({(k, QStringListModel()) for k in source_ports})
 used_port_models = dict({(k, QStringListModel()) for k in available_port_models.keys()})
 # XXX temp, until I fix bypassing
-knob_value_cache = defaultdict(int)
 
 
 def insert_row(model, row):
@@ -116,6 +118,8 @@ class PolyEncoder(QObject):
         QObject.__init__(self)
         self.effectval = starteffect
         self.parameterval = startparameter
+        self.speed = 1
+        self.value = 1
 
     def readEffect(self):
         return self.effectval
@@ -276,18 +280,11 @@ class Knobs(QObject):
         # print(x, y, z)
         if effect_name in pluginMap:
             effect_parameter_data[effect_name][parameter].value = value
-            if effect_name in tempo_synced and tempo_synced[effect_name].value == True and \
-                    parameter == "l_delay": ## FIXME
-                rounded_value, tempo_text = time_to_tempo_text(value)
-                tempo_synced[effect_name].name  = tempo_text
-                host.set_parameter_value(pluginMap[effect_name],
-                        parameterMap[effect_name][parameter], (60 / current_bpm.value) * rounded_value)
+            if parameter == "carla_level":
+                host.set_volume(pluginMap[effect_name], value)
             else:
-                if parameter == "carla_level":
-                    host.set_volume(pluginMap[effect_name], value)
-                else:
-                    host.set_parameter_value(pluginMap[effect_name],
-                            parameterMap[effect_name][parameter], value)
+                host.set_parameter_value(pluginMap[effect_name],
+                        parameterMap[effect_name][parameter], value)
         else:
             print("effect not found")
 
@@ -311,9 +308,9 @@ class Knobs(QObject):
         effect_source = effect + ":" + source_port
         remove_row(used_port_models[effect_source], x)
         insert_row(available_port_models[effect_source], x)
-        current_connection_pairs_poly.remove((effects_source, x))
+        current_connection_pairs_poly.remove((effect_source, x))
 
-        host.patchbay_disconnect(current_connections[(portMap[effect]["group"],
+        host.patchbay_disconnect(patchbay_external, current_connections[(portMap[effect]["group"],
                 portMap[effect]["ports"][source_port],
                 portMap[output_port_names[x][0]]["group"],
                 portMap[output_port_names[x][0]]["ports"][output_port_names[x][1]])])
@@ -326,11 +323,6 @@ class Knobs(QObject):
         # active = host.get_internal_parameter_value(pluginMap[effect], PARAMETER_ACTIVE))
         is_active = not plugin_state[effect].value
         set_active(effect, is_active)
-
-    @Slot(str)
-    def toggle_synced(self, effect):
-        print("toggling sync", effect)
-        tempo_synced[effect].value = not tempo_synced[effect].value
 
     @Slot(bool, str)
     def update_ir(self, is_reverb, ir_file):
@@ -366,6 +358,24 @@ class Knobs(QObject):
             current_midi_connection_pairs_poly.add(((self.waiting, "events-out"), (effect_name, "events-in")))
         self.waiting = ""
 
+    @Slot(str, str)
+    def unmap_parameter(self, effect_name, parameter):
+            host.set_parameter_midi_cc(pluginMap[effect_name], parameterMap[effect_name][parameter],
+                    None)
+            effect_parameter_data[effect_name][parameter].assigned_cc = None
+
+    @Slot(str, str, int)
+    def map_parameter_cc(self, effect_name, parameter, cc):
+        host.set_parameter_midi_cc(pluginMap[effect_name], parameterMap[effect_name][parameter],
+                cc)
+        # connect ports
+        # host.patchbay_connect(patchbay_external, portMap[self.waiting]["group"],
+        #         portMap[self.waiting]["ports"]["events-out"],
+        #         portMap[effect_name]["group"],
+        #         portMap[effect_name]["ports"]["events-in"])
+        effect_parameter_data[effect_name][parameter].assigned_cc = cc
+        # current_midi_connection_pairs_poly.add(((self.waiting, "events-out"), (effect_name, "events-in")))
+
     @Slot(str)
     def set_waiting(self, knob):
         print("waiting", knob)
@@ -398,6 +408,42 @@ class Knobs(QObject):
         outfile = preset_file[7:] # strip file:// prefix
         load_preset(outfile)
         update_counter.value+=1
+
+    @Slot()
+    def ui_copy_irs(self):
+        print("copy irs from USB")
+        # could convert any that aren't 48khz.
+        # instead we just only copy ones that are
+        command_reverb = """cd /media/reverbs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/audio/reverbs --parents"""
+        command_cab = """cd /media/cabs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/audio/cabs --parents"""
+        # copy all wavs in /usb/reverbs and /usr/cabs to /audio/reverbs and /audio/cabs
+        command_status[0].value = -1
+        command_status[1].value = -1
+        command_status[0].value = subprocess.call(command_reverb, shell=True)
+        command_status[1].value = subprocess.call(command_cab, shell=True)
+
+    @Slot()
+    def import_presets(self):
+        print("copy presets from USB")
+        # could convert any that aren't 48khz.
+        # instead we just only copy ones that are
+        command = """cd /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/presets --parents"""
+        command_status[0].value = subprocess.call(command, shell=True)
+
+    @Slot()
+    def export_presets(self):
+        print("copy presets to USB")
+        # could convert any that aren't 48khz.
+        # instead we just only copy ones that are
+        command = """cd /presets; mkdir -p /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/media/presets --parents"""
+        command_status[0].value = subprocess.call(command, shell=True)
+
+    @Slot()
+    def ui_update_firmware(self):
+        print("Updating firmware")
+        # dpkg the debs in the folder
+        command = """sudo dpkg -i /media/*.deb"""
+        command_status[0].value = subprocess.call(command, shell=True)
 
 def engineCallback(host, action, pluginId, value1, value2, value3, valuef, valueStr):
     valueStr = charPtrToString(valueStr)
@@ -449,8 +495,9 @@ def engineCallback(host, action, pluginId, value1, value2, value3, valuef, value
     # elif action == ENGINE_CALLBACK_PROCESS_MODE_CHANGED:
     #     host.processMode   = value1
     # elif action == ENGINE_CALLBACK_TRANSPORT_MODE_CHANGED:
-    #     host.transportMode  = value1
-    #     host.transportExtra = valueStr
+    #     print("transport change", value1, valueStr)
+        # host.transportMode  = value1
+        # host.transportExtra = valueStr
 
     # if action == ENGINE_CALLBACK_DEBUG:
     #     host.DebugCallback.emit(pluginId, value1, value2, value3, valueStr)
@@ -647,10 +694,10 @@ if not host.engine_init("JACK", "PolyCarla"):
     exit(1)
 
 
-host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay1", "http://drobilla.net/plugins/mda/Delay",  0, None, 0)
-host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay2", "http://drobilla.net/plugins/mda/Delay",  0, None, 0)
-host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay3", "http://drobilla.net/plugins/mda/Delay",  0, None, 0)
-host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay4", "http://drobilla.net/plugins/mda/Delay",  0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay1", "http://polyeffects.com/lv2/digit_delay",  0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay2", "http://polyeffects.com/lv2/digit_delay",  0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay3", "http://polyeffects.com/lv2/digit_delay",  0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay4", "http://polyeffects.com/lv2/digit_delay",  0, None, 0)
 # host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverb", "http://drobilla.net/plugins/fomp/reverb", 0, None, 0)
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverb", "http://gareus.org/oss/lv2/convoLV2#MonoToStereo", 0, None, 0)
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "mixer", "http://gareus.org/oss/lv2/matrixmixer#i4o4", 0, None, 0)
@@ -666,16 +713,16 @@ host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "sigmoid1", "http://moddevices.
 # plugins for reverb
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverse2", "http://moddevices.com/plugins/tap/reflector", 0, None, 0)
 
-host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "eq2", "http://gareus.org/oss/lv2/fil4#stereo", 0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "eq2", "http://gareus.org/oss/lv2/fil4#mono", 0, None, 0)
 # filter http://drobilla.net/plugins/fomp/mvclpf4
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "filter1", "http://drobilla.net/plugins/fomp/mvclpf1", 0, None, 0)
 # eq 
 # host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "cab", "http://guitarix.sourceforge.net/plugins/gx_cabinet#CABINET", 0, None, 0)
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "cab", "http://gareus.org/oss/lv2/convoLV2#Mono", 0, None, 0)
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "lfo1", "http://polyeffects.com/lv2/polylfo", 0, None, 0)
-# host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "lfo2", "http://polyeffects.com/lv2/polylfo", 0, None, 0)
-# host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "lfo3", "http://polyeffects.com/lv2/polylfo", 0, None, 0)
-# host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "lfo4", "http://polyeffects.com/lv2/polylfo", 0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "lfo2", "http://polyeffects.com/lv2/polylfo", 0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "lfo3", "http://polyeffects.com/lv2/polylfo", 0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "lfo4", "http://polyeffects.com/lv2/polylfo", 0, None, 0)
 
 signal(SIGINT,  signalHandler)
 signal(SIGTERM, signalHandler)
@@ -689,7 +736,7 @@ signal(SIGTERM, signalHandler)
 
 ###
 
-knob_map = {"left": PolyEncoder("delay1", "l_delay"), "right": PolyEncoder("delay1", "feedback")}
+knob_map = {"left": PolyEncoder("delay1", "Delay_1"), "right": PolyEncoder("delay1", "Feedback_4")}
 lfos = []
 
 
@@ -704,19 +751,44 @@ for n in range(4):
         lfos[n]["style"+str(i)] = PolyValue("style"+str(i), 0, 0, 5)
 
 # this is not great
-effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
-        "fb_tone": PolyValue("fb_tone", 1, 0, 1),
+
+effect_parameter_data = {"delay1": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.000000, 300.000000),
+        "Delay_1" : PolyValue("Time", 0.500000, 0.001000, 16.000000),
+        "Warp_2" : PolyValue("Warp", 0.000000, -1.000000, 1.000000),
+        "DelayT60_3" : PolyValue("Glide", 0.500000, 0.000000, 100.000000),
+        "Feedback_4" : PolyValue("Feedback", 0.300000, 0.000000, 1.000000),
+        "Amp_5" : PolyValue("Level", 0.500000, 0.000000, 1.000000),
+        "FeedbackSm_6" : PolyValue("Tone", 0.000000, 0.000000, 1.000000),
+        "EnableEcho_7" : PolyValue("EnableEcho_7", 1.000000, 0.000000, 1.000000),
         "carla_level": PolyValue("level", 1, 0, 1)},
-    "delay2": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
-        "fb_tone": PolyValue("fb_tone", 1, 0, 1),
-        "carla_level": PolyValue("level", 1, 0, 1)},
-    "delay3": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
-        "fb_tone": PolyValue("fb_tone", 1, 0, 1),
-        "carla_level": PolyValue("level", 1, 0, 1)},
-    "delay4": {"l_delay": PolyValue("time", 0.5, 0, 1), "feedback": PolyValue("feedback", 0.7, 0, 1),
-        "fb_tone": PolyValue("fb_tone", 1, 0, 1),
-        "carla_level": PolyValue("level", 1, 0, 1)},
-    "reverb": {"gain": PolyValue("mix", 0, -24, 24), "ir": PolyValue("/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1),
+    "delay2": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.000000, 300.000000),
+            "Delay_1" : PolyValue("Time", 0.500000, 0.001000, 16.000000),
+            "Warp_2" : PolyValue("Warp", 0.000000, -1.000000, 1.000000),
+            "DelayT60_3" : PolyValue("Glide", 0.500000, 0.000000, 100.000000),
+            "Feedback_4" : PolyValue("Feedback", 0.300000, 0.000000, 1.000000),
+            "Amp_5" : PolyValue("Level", 0.500000, 0.000000, 1.000000),
+            "FeedbackSm_6" : PolyValue("Tone", 0.000000, 0.000000, 1.000000),
+            "EnableEcho_7" : PolyValue("EnableEcho_7", 1.000000, 0.000000, 1.000000),
+            "carla_level": PolyValue("level", 1, 0, 1)},
+    "delay3": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.000000, 300.000000),
+            "Delay_1" : PolyValue("Time", 0.500000, 0.001000, 16.000000),
+            "Warp_2" : PolyValue("Warp", 0.000000, -1.000000, 1.000000),
+            "DelayT60_3" : PolyValue("Glide", 0.500000, 0.000000, 100.000000),
+            "Feedback_4" : PolyValue("Feedback", 0.300000, 0.000000, 1.000000),
+            "Amp_5" : PolyValue("Level", 0.500000, 0.000000, 1.000000),
+            "FeedbackSm_6" : PolyValue("Tone", 0.000000, 0.000000, 1.000000),
+            "EnableEcho_7" : PolyValue("EnableEcho_7", 1.000000, 0.000000, 1.000000),
+            "carla_level": PolyValue("level", 1, 0, 1)},
+    "delay4": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.000000, 300.000000),
+            "Delay_1" : PolyValue("Time", 0.500000, 0.001000, 16.000000),
+            "Warp_2" : PolyValue("Warp", 0.000000, -1.000000, 1.000000),
+            "DelayT60_3" : PolyValue("Glide", 0.500000, 0.000000, 100.000000),
+            "Feedback_4" : PolyValue("Feedback", 0.300000, 0.000000, 1.000000),
+            "Amp_5" : PolyValue("Level", 0.500000, 0.000000, 1.000000),
+            "FeedbackSm_6" : PolyValue("Tone", 0.000000, 0.000000, 1.000000),
+            "EnableEcho_7" : PolyValue("EnableEcho_7", 1.000000, 0.000000, 1.000000),
+            "carla_level": PolyValue("level", 1, 0, 1)},
+    "reverb": {"gain": PolyValue("gain", 0, -24, 24), "ir": PolyValue("/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1),
         "carla_level": PolyValue("level", 1, 0, 1)},
     "mixer": {"mix_1_1": PolyValue("mix 1,1", 0, 0, 1), "mix_1_2": PolyValue("mix 1,2", 0, 0, 1),
         "mix_1_3": PolyValue("mix 1,3", 0, 0, 1),"mix_1_4": PolyValue("mix 1,4", 0, 0, 1),
@@ -777,8 +849,10 @@ effect_parameter_data = {"delay1": {"l_delay": PolyValue("time", 0.5, 0, 1), "fe
     "lfo4": lfos[3]
     }
 
-tempo_synced = {"delay1": PolyValue("1/4", 0, 0, 1)}
-all_effects = [("delay1", True), ("delay2", False), ("delay3", False), ("delay4", False), ("reverb", True), ("mixer", True), ("tape1", False), ("filter1", False), ("reverse1", False), ("sigmoid1", False), ("eq2", False), ("reverse2", False), ("cab", True)]
+all_effects = [("delay1", True), ("delay2", True), ("delay3", True),
+        ("delay4", True), ("reverb", True), ("mixer", True),
+        ("tape1", False), ("filter1", False), ("reverse1", False),
+        ("sigmoid1", False), ("eq2", True), ("reverse2", False), ("cab", True)]
 plugin_state = dict({(k, PolyBool(initial)) for k, initial in all_effects})
 plugin_state["global"] = PolyBool(True)
 
@@ -790,6 +864,8 @@ current_bpm = PolyValue("BPM", 120, 30, 250) # bit of a hack
 global_bypass = PolyValue("BPM", 120, 30, 250) # bit of a hack
 current_preset = PolyValue("Default Preset", 0, 0, 1)
 update_counter = PolyValue("update counter", 0, 0, 100000)
+command_status = [PolyValue("command status", -1, -10, 100000), PolyValue("command status", -1, -10, 100000)]
+delay_num_bars = PolyValue("Num bars", 1, 1, 16)
 
 qmlEngine = QQmlApplicationEngine()
 # Expose the object to QML.
@@ -802,10 +878,11 @@ context.setContextProperty("knobs", knobs)
 context.setContextProperty("polyValues", effect_parameter_data)
 context.setContextProperty("knobMap", knob_map)
 context.setContextProperty("currentBPM", current_bpm)
-context.setContextProperty("tempoSynced", tempo_synced)
 context.setContextProperty("pluginState", plugin_state)
 context.setContextProperty("currentPreset", current_preset)
 context.setContextProperty("updateCounter", update_counter)
+context.setContextProperty("commandStatus", command_status)
+context.setContextProperty("delayNumBars", delay_num_bars)
 
 # engine.load(QUrl("qrc:/qml/digit.qml"))
 qmlEngine.load(QUrl("qml/digit.qml"))
@@ -849,23 +926,27 @@ def set_knob_current_effect(knob, effect, parameter):
     # get current value and update encoder / cache.
     knob_map[knob].effect = effect
     knob_map[knob].parameter = parameter
-    value = effect_parameter_data[effect][parameter].value
-    mapped_value = map_lv2_value_to_ui_knob(effect, parameter, 0, pedal_hardware.KNOB_MAX, value)
-    pedal_hardware.set_encoder_value(knob, mapped_value)
-    knob_value_cache[knob] = mapped_value
 
-def check_encoder_change():
-    for knob in ["left", "right"]:
-        cur_value = 0
-        knob_effect = knob_map[knob].effect
-        knob_parameter = knob_map[knob].parameter
-        cur_value = pedal_hardware.get_encoder(knob)
-        if cur_value != knob_value_cache[knob]:
-            mapped_value = map_ui_parameter_lv2_value(knob_effect, knob_parameter, 0, pedal_hardware.KNOB_MAX, cur_value)
-            print("knob value is", cur_value, "mapped", mapped_value)
-            knobs.ui_knob_change(knob_effect, knob_parameter, mapped_value)
-            # knob_mapping[knob](cur_value)
-            knob_value_cache[knob] = cur_value
+def handle_encoder_change(is_left, change):
+    # increase or decrease the current knob value depending on knob speed
+    # knob_value = knob_value + (change * knob_speed)
+    normal_speed = 48.0
+    knob = "right"
+    if is_left:
+        knob = "left"
+    knob_effect = knob_map[knob].effect
+    knob_parameter = knob_map[knob].parameter
+    value = effect_parameter_data[knob_effect][knob_parameter].value
+    # base speed * speed multiplier
+    base_speed = (abs(effect_parameter_data[knob_effect][knob_parameter].rmin) + abs(effect_parameter_data[knob_effect][knob_parameter].rmax)) / normal_speed
+    value = value + (change * knob_map[knob].speed * base_speed)
+    print("knob value is", value)
+    # knob change handles clamping
+    knobs.ui_knob_change(knob_effect, knob_parameter, value)
+
+def update_delay_bpms():
+    for effect_name in ["delay1", "delay2", "delay3", "delay4"]:
+        knobs.ui_knob_change(effect_name, "Delay_1", current_bpm.value)
 
 start_tap_time = None
 ## tap callback is called by hardware button from the GPIO checking thread
@@ -883,15 +964,7 @@ def handle_tap():
             host.transport_bpm(bpm)
             print("setting tempo", bpm)
             current_bpm.value = bpm
-
-            for effect_name, parameter in [("delay1", "l_delay")]:
-                if effect_name in tempo_synced and tempo_synced[effect_name].value == True and \
-                        parameter == "l_delay": ## FIXME
-
-                    value = effect_parameter_data[effect_name][parameter].value
-                    rounded_value = time_to_tempo_text(value)[0]
-                    host.set_parameter_value(pluginMap[effect_name],
-                            parameterMap[effect_name][parameter], (60 / current_bpm.value) * rounded_value)
+            update_delay_bpms()
 
     # record start time
     start_tap_time = current_tap
@@ -919,6 +992,7 @@ def handle_bypass():
 pedal_hardware.tap_callback = handle_tap
 pedal_hardware.next_callback = handle_next
 pedal_hardware.bypass_callback = handle_bypass
+pedal_hardware.encoder_change_callback = handle_encoder_change
 patchbay_external = False
 
 while host.is_engine_running() and not gCarla.term:
@@ -947,10 +1021,11 @@ while host.is_engine_running() and not gCarla.term:
                     portMap["mixer"]["ports"][output_port])
         mixer_is_connected = True
     if (not effects_are_connected) and "sigmoid1" in portMap:
-        for source_pair, output_pair in [(("delay1", "Left Out"), ("tape1","Input")),
+        for source_pair, output_pair in [(("delay1", "out0"), ("tape1","Input")),
                 (("tape1", "Output"), ("filter1", "Input")),
                 (("filter1", "Output"), ("reverse1", "Input")),
                 (("reverse1", "Output"), ("sigmoid1", "Input")),
+                (("eq2", "Out"), ("reverb", "In")),
                 ]:
             source_effect, source_port = source_pair
             output_effect, output_port = output_pair
@@ -958,19 +1033,21 @@ while host.is_engine_running() and not gCarla.term:
                     portMap[source_effect]["ports"][source_port],
                     portMap[output_effect]["group"],
                     portMap[output_effect]["ports"][output_port])
-        for effect in ["tape1", "filter1", "reverse1", "sigmoid1", "reverse2", "eq2"]:
+        for effect in ["tape1", "filter1", "reverse1", "sigmoid1", "reverse2"]:
             # set to all dry at start
             set_active(effect, False)
         effects_are_connected = True
 
     if (not knobs_are_initial_mapped):
         if "delay1" in portMap:
-            set_knob_current_effect("left", "delay1", "l_delay")
-            set_knob_current_effect("right", "delay1", "feedback")
+            set_knob_current_effect("left", "delay1", "Delay_1")
+            set_knob_current_effect("right", "delay1", "Feedback_4")
+            host.transport_play()
             knobs_are_initial_mapped = True
     else:
-        check_encoder_change()
+        pedal_hardware.process_input()
 
+pedal_hardware.EXIT_THREADS = True
 
 if not gCarla.term:
     print("Engine closed abruptely")
