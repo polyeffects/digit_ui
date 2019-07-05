@@ -53,19 +53,19 @@ Item {
                         value: 1
                     }
 
-                    Switch {
-                        font.pixelSize: baseFontSize
-                        text: qsTr("SEND MIDI CLOCK")
-                        // bottomPadding: 0
-                        width: 300
-                        // leftPadding: 0
-                        // topPadding: 0
-                        // rightPadding: 0
-                        checked: true
-                        // onClicked: {
-                        //     lfo_control.snapping = checked
-                        // }
-                    }
+                    // Switch {
+                    //     font.pixelSize: baseFontSize
+                    //     text: qsTr("SEND MIDI CLOCK")
+                    //     // bottomPadding: 0
+                    //     width: 300
+                    //     // leftPadding: 0
+                    //     // topPadding: 0
+                    //     // rightPadding: 0
+                    //     checked: true
+                    //     // onClicked: {
+                    //     //     lfo_control.snapping = checked
+                    //     // }
+                    // }
 
                     Switch {
                         font.pixelSize: baseFontSize
@@ -76,9 +76,9 @@ Item {
                         // topPadding: 0
                         // rightPadding: 0
                         checked: true
-                        // onClicked: {
-                        //     lfo_control.snapping = checked
-                        // }
+                        onClicked: {
+                            knobs.enable_ableton_link(checked);
+                        }
                     }
 
                 }
@@ -109,58 +109,58 @@ Item {
                         // show screen explaining to put USB flash drive in
                         onClicked: settingsStack.push(importPresets)
                     }
-                    Switch {
-                        font.pixelSize: baseFontSize
-                        text: qsTr("IN 1/2 BALANCED")
-                        // bottomPadding: 0
-                        width: 300
-                        // leftPadding: 0
-                        // topPadding: 0
-                        // rightPadding: 0
-                        checked: false
-                        // onClicked: {
-                        //     lfo_control.snapping = checked
-                        // }
-                    }
-                    Switch {
-                        font.pixelSize: baseFontSize
-                        text: qsTr("IN 3/4 BALANCED")
-                        // bottomPadding: 0
-                        width: 300
-                        // leftPadding: 0
-                        // topPadding: 0
-                        // rightPadding: 0
-                        checked: false
-                        // onClicked: {
-                        //     lfo_control.snapping = checked
-                        // }
-                    }
-                    Switch {
-                        font.pixelSize: baseFontSize
-                        text: qsTr("OUT 1/2 BALANCED")
-                        // bottomPadding: 0
-                        width: 300
-                        // leftPadding: 0
-                        // topPadding: 0
-                        // rightPadding: 0
-                        checked: false
-                        // onClicked: {
-                        //     lfo_control.snapping = checked
-                        // }
-                    }
-                    Switch {
-                        font.pixelSize: baseFontSize
-                        text: qsTr("OUT 3/4 BALANCED")
-                        // bottomPadding: 0
-                        width: 300
-                        // leftPadding: 0
-                        // topPadding: 0
-                        // rightPadding: 0
-                        checked: false
-                        // onClicked: {
-                        //     lfo_control.snapping = checked
-                        // }
-                    }
+                    // Switch {
+                    //     font.pixelSize: baseFontSize
+                    //     text: qsTr("IN 1/2 BALANCED")
+                    //     // bottomPadding: 0
+                    //     width: 300
+                    //     // leftPadding: 0
+                    //     // topPadding: 0
+                    //     // rightPadding: 0
+                    //     checked: false
+                    //     // onClicked: {
+                    //     //     lfo_control.snapping = checked
+                    //     // }
+                    // }
+                    // Switch {
+                    //     font.pixelSize: baseFontSize
+                    //     text: qsTr("IN 3/4 BALANCED")
+                    //     // bottomPadding: 0
+                    //     width: 300
+                    //     // leftPadding: 0
+                    //     // topPadding: 0
+                    //     // rightPadding: 0
+                    //     checked: false
+                    //     // onClicked: {
+                    //     //     lfo_control.snapping = checked
+                    //     // }
+                    // }
+                    // Switch {
+                    //     font.pixelSize: baseFontSize
+                    //     text: qsTr("OUT 1/2 BALANCED")
+                    //     // bottomPadding: 0
+                    //     width: 300
+                    //     // leftPadding: 0
+                    //     // topPadding: 0
+                    //     // rightPadding: 0
+                    //     checked: false
+                    //     // onClicked: {
+                    //     //     lfo_control.snapping = checked
+                    //     // }
+                    // }
+                    // Switch {
+                    //     font.pixelSize: baseFontSize
+                    //     text: qsTr("OUT 3/4 BALANCED")
+                    //     // bottomPadding: 0
+                    //     width: 300
+                    //     // leftPadding: 0
+                    //     // topPadding: 0
+                    //     // rightPadding: 0
+                    //     checked: false
+                    //     // onClicked: {
+                    //     //     lfo_control.snapping = checked
+                    //     // }
+                    // }
 
                 }
             }

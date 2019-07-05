@@ -14,11 +14,11 @@
 # client = JackClient()
 # sys_effect = SystemEffect('system', ['capture_1', 'capture_2', "capture_3, capture_4"],
 #         ['playback_1', 'playback_2', 'playback_3', 'playback_4'])
-import sys, time, json, os.path, os, subprocess
+import sys, time, json, os.path, os, subprocess, queue
 from collections import defaultdict
 ##### Hardware backend
 # --------------------------------------------------------------------------------------------------------
-import pedal_hardware
+import pedal_hardware, start_jconvolver
 os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
 ###### UI
 # --------------------------------------------------------------------------------------------------------
@@ -89,7 +89,7 @@ current_midi_connection_pairs_poly = set()
 current_ir_file = None
 
 # --------------------------------------------------------------------------------------------------------
-source_ports = ["sigmoid1:Output", "delay2:out0","delay3:out0", "delay4:out0", "reverb:OutL", "reverb:OutR", "system:capture_1", "system:capture_2", "system:capture_3", "system:capture_4", "cab:Out"]
+source_ports = ["sigmoid1:Output", "delay2:out0","delay3:out0", "delay4:out0", "postreverb:Out Left", "postreverb:Out Right", "system:capture_1", "system:capture_2", "system:capture_3", "system:capture_4", "cab:Out"]
 available_port_models = dict({(k, QStringListModel()) for k in source_ports})
 used_port_models = dict({(k, QStringListModel()) for k in available_port_models.keys()})
 # XXX temp, until I fix bypassing
@@ -332,8 +332,13 @@ class Knobs(QObject):
         # cause call file callback
         # by calling show GUI
         if is_reverb:
+            # kill existing jconvolver
+            # write jconvolver file
+            # start jconvolver
             effect_parameter_data["reverb"]["ir"].name = ir_file
-            host.show_custom_ui(pluginMap["reverb"], True)
+            # host.show_custom_ui(pluginMap["reverb"], True)
+            start_jconvolver.generate_conf(current_ir_file)
+            # host.set_program(pluginMap["reverb"], 0)
         else:
             effect_parameter_data["cab"]["ir"].name = ir_file
             host.show_custom_ui(pluginMap["cab"], True)
@@ -445,6 +450,15 @@ class Knobs(QObject):
         command = """sudo dpkg -i /media/*.deb"""
         command_status[0].value = subprocess.call(command, shell=True)
 
+    @Slot(bool)
+    def enable_ableton_link(self, enable):
+        extra = ":link:" if enable else ""
+        host.transportExtra = extra
+        host.set_engine_option(ENGINE_OPTION_TRANSPORT_MODE,
+                                    host.transportMode,
+                                    host.transportExtra)
+
+
 def engineCallback(host, action, pluginId, value1, value2, value3, valuef, valueStr):
     valueStr = charPtrToString(valueStr)
     if action == ENGINE_CALLBACK_PATCHBAY_PORT_ADDED:
@@ -461,6 +475,15 @@ def engineCallback(host, action, pluginId, value1, value2, value3, valuef, value
                     else:
                         # print("adding port:", invPortMap[pluginId], k)
                         insert_row(model, inv_output_port_names[(invPortMap[pluginId], valueStr)])
+            if "jconvolver" in  portMap and pluginId == portMap["jconvolver"]["group"]:
+                # auto connect jconvolver ports
+                print("auto connect jconvolver", pluginId, value1, value2, valueStr)
+                if valueStr == "OutL":
+                     pending_connect.put("OutL")
+                elif valueStr == "OutR":
+                     pending_connect.put("OutR")
+                elif valueStr == "In":
+                     pending_connect.put("In")
         else:
             print("got port without client")
     elif action == ENGINE_CALLBACK_PATCHBAY_CLIENT_ADDED:
@@ -640,6 +663,9 @@ def load_preset(filename):
                 if effect_parameter_data[effect_name][parameter_name].value != parameter_value:
                     print("loading parameter", effect_name, parameter_name, parameter_value)
                     knobs.ui_knob_change(effect_name, parameter_name, parameter_value)
+                # remove all existing MIDI mapping
+                if effect_parameter_data[effect_name][parameter_name].assigned_cc is not None:
+                    knobs.unmap_parameter(effect_name, parameter_name)
     for effect_name, effect_value in preset["midi_map"].items():
         for parameter_name, parameter_value in effect_value.items():
             host.set_parameter_midi_cc(pluginMap[effect_name],
@@ -681,6 +707,32 @@ def next_preset():
     # need to have some kind of mapping for all presets so you can assign numbers to them
     pass
 
+def auto_connect_ports():
+    try:
+        while True:
+            valueStr = pending_connect.get(block=False)
+            if valueStr == "OutL":
+                # connect to "postreverb:In Left" 
+                host.patchbay_connect(patchbay_external, portMap["jconvolver"]["group"],
+                        portMap["jconvolver"]["ports"]["OutL"],
+                        portMap["postreverb"]["group"],
+                        portMap["postreverb"]["ports"]["In Left"])
+            elif valueStr == "OutR":
+                # connect to "postreverb:In Left" 
+                host.patchbay_connect(patchbay_external, portMap["jconvolver"]["group"],
+                        portMap["jconvolver"]["ports"]["OutR"],
+                        portMap["postreverb"]["group"],
+                        portMap["postreverb"]["ports"]["In Right"])
+            elif valueStr == "In":
+                # connect to "postreverb:In Left" 
+                host.patchbay_connect(patchbay_external,
+                        portMap["reverb"]["group"],
+                        portMap["reverb"]["ports"]["Out"],
+                        portMap["jconvolver"]["group"],
+                        portMap["jconvolver"]["ports"]["In"])
+    except queue.Empty:
+        pass
+
 
 binaryDir = "/git_repos/Carla/bin"
 host = CarlaHostDLL("/git_repos/Carla/bin/libcarla_standalone2.so", False)
@@ -699,7 +751,8 @@ host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay2", "http://polyeffects.c
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay3", "http://polyeffects.com/lv2/digit_delay",  0, None, 0)
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "delay4", "http://polyeffects.com/lv2/digit_delay",  0, None, 0)
 # host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverb", "http://drobilla.net/plugins/fomp/reverb", 0, None, 0)
-host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverb", "http://gareus.org/oss/lv2/convoLV2#MonoToStereo", 0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "reverb", "http://lv2plug.in/plugins/eg-amp", 0, None, 0)
+host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "postreverb", "http://gareus.org/oss/lv2/stereoroute", 0, None, 0)
 host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "mixer", "http://gareus.org/oss/lv2/matrixmixer#i4o4", 0, None, 0)
 # host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, "", "http://gareus.org/oss/lv2/matrixmixer#i4o4", effects.cab, None, 0)
 ##### ---- Effects
@@ -738,6 +791,7 @@ signal(SIGTERM, signalHandler)
 
 knob_map = {"left": PolyEncoder("delay1", "Delay_1"), "right": PolyEncoder("delay1", "Feedback_4")}
 lfos = []
+pending_connect = queue.Queue()
 
 
 for n in range(4):
@@ -788,8 +842,9 @@ effect_parameter_data = {"delay1": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.
             "FeedbackSm_6" : PolyValue("Tone", 0.000000, 0.000000, 1.000000),
             "EnableEcho_7" : PolyValue("EnableEcho_7", 1.000000, 0.000000, 1.000000),
             "carla_level": PolyValue("level", 1, 0, 1)},
-    "reverb": {"gain": PolyValue("gain", 0, -24, 24), "ir": PolyValue("/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1),
+    "reverb": {"gain": PolyValue("gain", 0, -90, 24), "ir": PolyValue("/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1),
         "carla_level": PolyValue("level", 1, 0, 1)},
+    "postreverb": {"routing": PolyValue("gain", 6, 0, 6), "carla_level": PolyValue("level", 1, 0, 1)},
     "mixer": {"mix_1_1": PolyValue("mix 1,1", 0, 0, 1), "mix_1_2": PolyValue("mix 1,2", 0, 0, 1),
         "mix_1_3": PolyValue("mix 1,3", 0, 0, 1),"mix_1_4": PolyValue("mix 1,4", 0, 0, 1),
         "mix_2_1": PolyValue("mix 2,1", 0, 0, 1),"mix_2_2": PolyValue("mix 2,2", 0, 0, 1),
@@ -850,7 +905,7 @@ effect_parameter_data = {"delay1": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.
     }
 
 all_effects = [("delay1", True), ("delay2", True), ("delay3", True),
-        ("delay4", True), ("reverb", True), ("mixer", True),
+        ("delay4", True), ("reverb", True), ("postreverb", True), ("mixer", True),
         ("tape1", False), ("filter1", False), ("reverse1", False),
         ("sigmoid1", False), ("eq2", True), ("reverse2", False), ("cab", True)]
 plugin_state = dict({(k, PolyBool(initial)) for k, initial in all_effects})
@@ -1046,6 +1101,7 @@ while host.is_engine_running() and not gCarla.term:
             knobs_are_initial_mapped = True
     else:
         pedal_hardware.process_input()
+        auto_connect_ports()
 
 pedal_hardware.EXIT_THREADS = True
 

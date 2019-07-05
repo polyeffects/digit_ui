@@ -880,10 +880,10 @@ ApplicationWindow {
                                     width: 0.5 * parent.width
                                     PolyBus {
                                         id: polyBusRL
-                                        availablePorts: reverb_OutLAvailablePorts
-                                        usedPorts: reverb_OutLUsedPorts
-                                        effect: "reverb"
-                                        sourcePort: "OutL"
+                                        availablePorts: postreverb_Out_LeftAvailablePorts
+                                        usedPorts: postreverb_Out_LeftUsedPorts
+                                        effect: "postreverb"
+                                        sourcePort: "Out Left"
                                     }
                                 }
                                 GroupBox {
@@ -894,10 +894,10 @@ ApplicationWindow {
                                     width: 0.5 * parent.width
                                     PolyBus {
                                         id: polyBusRR
-                                        availablePorts: reverb_OutRAvailablePorts
-                                        usedPorts: reverb_OutRUsedPorts
-                                        effect: "reverb"
-                                        sourcePort: "OutR"
+                                        availablePorts: postreverb_Out_RightAvailablePorts
+                                        usedPorts: postreverb_Out_RightUsedPorts
+                                        effect: "postreverb"
+                                        sourcePort: "Out Right"
                                     }
                                 }
                             }

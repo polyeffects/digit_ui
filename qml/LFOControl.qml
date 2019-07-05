@@ -13,7 +13,7 @@ Item {
     property bool snapping: true
     property bool synced: true
     property bool repeat: true
-    property bool plus_minus: true
+    property bool plus_minus: false // disabled at the moment
     property real global_glide: 1.0
     property real speed_multiplier: 1.0
     property int division: 4
@@ -159,20 +159,20 @@ Item {
             //         mycanvas.requestPaint();
             //     }
             // }
-            Switch {
-                text: qsTr("+-")
-                font.pixelSize: baseFontSize
-                bottomPadding: 0
-                width: 200
-                leftPadding: 0
-                topPadding: 0
-                rightPadding: 0
-                checked: true
-                onClicked: {
-                    lfo_control.plus_minus = checked
-                    mycanvas.requestPaint();
-                }
-            }
+            // Switch {
+            //     text: qsTr("+-")
+            //     font.pixelSize: baseFontSize
+            //     bottomPadding: 0
+            //     width: 200
+            //     leftPadding: 0
+            //     topPadding: 0
+            //     rightPadding: 0
+            //     checked: true
+            //     onClicked: {
+            //         lfo_control.plus_minus = checked
+            //         mycanvas.requestPaint();
+            //     }
+            // }
             ComboBox {
                 width: 140
                 enabled: lfo_control.synced
