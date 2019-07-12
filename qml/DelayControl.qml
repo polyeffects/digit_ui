@@ -154,6 +154,7 @@ import QtQuick.Controls.Material 2.3
                 //     }
                 // }
                 ComboBox {
+                    flat: true
                     width: 140
                     enabled: time_scale.synced
                     textRole: "key"
@@ -171,6 +172,7 @@ import QtQuick.Controls.Material 2.3
                 }
 
                 ComboBox {
+                    flat: true
                     width: 140
                     model: ["LEVEL", "TONE", "FEEDBACK", "GLIDE", "WARP"]
                     onActivated: {
@@ -214,7 +216,7 @@ import QtQuick.Controls.Material 2.3
                     width: 100
                     height: 100
                     radius: 10
-                    color: Qt.rgba(0,0,0,0.05)
+                    color: Qt.rgba(0,0,0,0.0)
                     Rectangle {
                         x: 25
                         y: 25

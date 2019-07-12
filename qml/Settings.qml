@@ -39,6 +39,7 @@ Item {
                         font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
                         onClicked: settingsStack.push(copyIRInfo)
+                        flat: true
                     }
 
                     GlowingLabel {
@@ -47,10 +48,19 @@ Item {
                     }
 
                     SpinBox {
+                        id: midi_channel_spin
                         font.pixelSize: baseFontSize
                         from: 1
                         to: 16
-                        value: 1
+                        value: midiChannel.value
+                    }
+
+                    Button {
+                        flat: true
+                        text: "SET CHANNEL"
+                        font.pixelSize: baseFontSize
+                        // show screen explaining to put USB flash drive in
+                        onClicked: knobs.set_channel(midi_channel_spin.value)
                     }
 
                     // Switch {
@@ -91,6 +101,7 @@ Item {
                     // height:parent.height
 
                     Button {
+                        flat: true
                         font.pixelSize: baseFontSize
                         text: "FIRMWARE UPDATE"
                         onClicked: settingsStack.push(updateFirmware)
@@ -98,12 +109,14 @@ Item {
                     }
 
                     Button {
+                        flat: true
                         font.pixelSize: baseFontSize
                         text: "EXPORT PRESETS"
                         // show screen explaining to put USB flash drive in
                         onClicked: settingsStack.push(exportPresets)
                     }
                     Button {
+                        flat: true
                         font.pixelSize: baseFontSize
                         text: "IMPORT PRESETS"
                         // show screen explaining to put USB flash drive in
@@ -165,6 +178,7 @@ Item {
                 }
             }
             Button {
+                flat: true
                 font.pixelSize: baseFontSize
                 text: "BACK"
                 anchors.right: parent.right
@@ -198,6 +212,7 @@ Item {
                 }
 
                 Button {
+                    flat: true
                     font {
                         pixelSize: fontSizeMedium
                     }
@@ -245,6 +260,7 @@ Item {
                 }
 
                 Button {
+                    flat: true
                     font {
                         pixelSize: fontSizeMedium
                     }
@@ -257,6 +273,7 @@ Item {
                 }
             }
             Button {
+                flat: true
                 font {
                     pixelSize: fontSizeMedium
                 }
@@ -292,6 +309,7 @@ Item {
                 }
 
                 Button {
+                    flat: true
                     font {
                         pixelSize: fontSizeMedium
                     }
@@ -304,6 +322,7 @@ Item {
                 }
             }
             Button {
+                flat: true
                 font {
                     pixelSize: fontSizeMedium
                 }
@@ -339,6 +358,7 @@ Item {
                 }
 
                 Button {
+                    flat: true
                     font {
                         pixelSize: fontSizeMedium
                     }
@@ -351,6 +371,7 @@ Item {
                 }
             }
             Button {
+                flat: true
                 font {
                     pixelSize: fontSizeMedium
                 }
@@ -415,6 +436,7 @@ Item {
 
             }
             Button {
+                flat: true
                 font {
                     pixelSize: fontSizeMedium
                 }
@@ -480,6 +502,7 @@ Item {
 
             }
             Button {
+                flat: true
                 font {
                     pixelSize: fontSizeMedium
                 }
@@ -544,6 +567,7 @@ Item {
 
             }
             Button {
+                flat: true
                 font {
                     pixelSize: fontSizeMedium
                 }

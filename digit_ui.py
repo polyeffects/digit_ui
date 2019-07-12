@@ -2,7 +2,7 @@ import sys, os
 # import random
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer
-from PySide2.QtQml import QQmlApplicationEngine
+from PySide2.QtQml import QQmlApplicationEngine, QQmlDebuggingEnabler
 from PySide2.QtGui import QIcon
 # compiled QML files, compile with pyside2-rcc
 import qml.qml
@@ -142,6 +142,7 @@ model2 = QStringListModel()
 
 def tick():
     print("tick")
+    # app.quit()
     if obj["delay1"].value < 100:
         obj["delay1"].value += 1
     else:
@@ -256,9 +257,10 @@ effect_parameter_data = {"delay1": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.
     "lfo4": lfos[3]
     }
 
-if __name__ == "__main__":
-
-    app = QGuiApplication(sys.argv)
+app = QGuiApplication(sys.argv)
+def main_ui():
+    # d = QQmlDebuggingEnabler()
+    # d.startTcpDebugServer(3768)
     QIcon.setThemeName("digit")
     # Instantiate the Python object.
     knobs = Knobs()
@@ -271,8 +273,8 @@ if __name__ == "__main__":
     # t_list.append("a")
     # t_list.append("b")
     # t_list.append("c")
-    model.setStringList(["aasdfasdf", "b", "c"])
-    model2.setStringList(["fff", "ddd" "c"])
+    # model.setStringList(["aasdfasdf", "b", "c"])
+    # model2.setStringList(["fff", "ddd" "c"])
 
     engine = QQmlApplicationEngine()
     # Expose the object to QML.
@@ -291,6 +293,11 @@ if __name__ == "__main__":
 
     timer = QTimer()
     timer.timeout.connect(tick)
-    timer.start(1000)
+    timer.start(2000)
 
     app.exec_()
+
+if __name__ == "__main__":
+    # import cProfile
+    # cProfile.run('main_ui()')
+    main_ui()

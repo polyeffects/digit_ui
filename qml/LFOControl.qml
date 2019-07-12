@@ -188,6 +188,7 @@ Item {
                     lfo_control.division = model.get(index).value;
                     mycanvas.requestPaint();
                 }
+                flat: true
             }
 
             ComboBox {
@@ -201,10 +202,12 @@ Item {
                     console.log("setting style", selected_point, index);
                     mycanvas.requestPaint();
                 }
+                flat: true
             }
 
             Button {
                 text: "ASSIGN"
+                flat: true
                 font.pixelSize: baseFontSize
                 width: 140
                 onClicked: {
@@ -253,7 +256,7 @@ Item {
                     border { width:1; color: Material.color(Material.Indigo, Material.Shade200)}
                     radius: width * 0.5
                 }
-                color: Qt.rgba(0,0,0,0.05)
+                color: Qt.rgba(0,0,0,0.0)
                 z: mouseArea.drag.active ||  mouseArea.pressed ? 2 : 1
                 x: lfo_control.timeToPixel(lfo_control.lfo_data[index]["time"]) - (width / 2)
                 y: mycanvas.y_at_level(lfo_control.lfo_data[index]["level"]) - (width / 2)

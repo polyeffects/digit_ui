@@ -82,7 +82,7 @@ import QtQuick.Controls.Material 2.3
                     width: 100
                     height: 100
                     radius: width * 0.5
-                    color: Qt.rgba(0,0,0,0.05)
+                    color: Qt.rgba(0,0,0,0.0)
                     z: mouseArea.drag.active ||  mouseArea.pressed ? 2 : 1
                     Rectangle {
                         x: 25

@@ -724,145 +724,145 @@ ApplicationWindow {
                             // }
                         }
 
-                        PolyFrame {
-                            id: reverb_effects
-                            width: 1280
-                            height: 350
-                            z: -1
+                        // PolyFrame {
+                        //     id: reverb_effects
+                        //     width: 1280
+                        //     height: 350
+                        //     z: -1
 
-                                Column {
-                                    spacing: 6
-                                    width: parent.width
-                                    anchors.fill: parent
-                            // ScrollView { 
-                            //     // width: parent.width
-                                // anchors.fill: parent
-                                // clip: true
-                                // Layout.fillHeight: true
-                                // Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                                // Layout.fillWidth: true
-                                    GroupBox {
-                                        width: parent.width
-                                        anchors.left: parent.left
-                                        anchors.right: parent.right
-                                        title: qsTr("LOWPASS FILTER")
-                                        font.pixelSize: baseFontSize
+                        //         Column {
+                        //             spacing: 6
+                        //             width: parent.width
+                        //             anchors.fill: parent
+                        //     // ScrollView { 
+                        //     //     // width: parent.width
+                        //         // anchors.fill: parent
+                        //         // clip: true
+                        //         // Layout.fillHeight: true
+                        //         // Layout.alignment: Qt.AlignLeft | Qt.AlignTop
+                        //         // Layout.fillWidth: true
+                        //             GroupBox {
+                        //                 width: parent.width
+                        //                 anchors.left: parent.left
+                        //                 anchors.right: parent.right
+                        //                 title: qsTr("LOWPASS FILTER")
+                        //                 font.pixelSize: baseFontSize
 
-                                        Row {
-                                            width: 1280
-                                            height: parent.height
-                                            anchors.top: parent.top
-                                            // anchors.topMargin: 10
+                        //                 Row {
+                        //                     width: 1280
+                        //                     height: parent.height
+                        //                     anchors.top: parent.top
+                        //                     // anchors.topMargin: 10
 
-                                            GlowingLabel {
-                                                color: "#ffffff"
-                                                text: qsTr("CUTOFF")
-                                            }
-                                            MixerDial {
-                                                effect: "filter1"
-                                                param: "freq"
-                                                value: polyValues.filter1.freq.value
-                                                from: 20
-                                                to: 20000
-                                                stepSize: 10
-                                            }
-                                            GlowingLabel {
-                                                color: "#ffffff"
-                                                text: qsTr("RESONANCE")
-                                            }
-                                            MixerDial {
-                                                effect: "filter1"
-                                                param: "res"
-                                                value: polyValues.filter1.res.value
-                                                from: 0
-                                                to: 0.8
-                                            }
-                                            Switch {
-                                                text: qsTr("ENABLED")
-                                                font.pixelSize: baseFontSize
-                                                onClicked: {
-                                                    knobs.toggle_enabled("filter1")
-                                                }
-                                                bottomPadding: 0
-                                                Layout.fillWidth: true
-                                                leftPadding: 0
-                                                topPadding: 0
-                                                rightPadding: 0
-                                                font {
-                                                    pixelSize: fontSizeMedium
-                                                }
-                                            }
-                                            spacing: 35
-                                        }
-                                    }
+                        //                     GlowingLabel {
+                        //                         color: "#ffffff"
+                        //                         text: qsTr("CUTOFF")
+                        //                     }
+                        //                     MixerDial {
+                        //                         effect: "filter1"
+                        //                         param: "freq"
+                        //                         value: polyValues.filter1.freq.value
+                        //                         from: 20
+                        //                         to: 20000
+                        //                         stepSize: 10
+                        //                     }
+                        //                     GlowingLabel {
+                        //                         color: "#ffffff"
+                        //                         text: qsTr("RESONANCE")
+                        //                     }
+                        //                     MixerDial {
+                        //                         effect: "filter1"
+                        //                         param: "res"
+                        //                         value: polyValues.filter1.res.value
+                        //                         from: 0
+                        //                         to: 0.8
+                        //                     }
+                        //                     Switch {
+                        //                         text: qsTr("ENABLED")
+                        //                         font.pixelSize: baseFontSize
+                        //                         onClicked: {
+                        //                             knobs.toggle_enabled("filter1")
+                        //                         }
+                        //                         bottomPadding: 0
+                        //                         Layout.fillWidth: true
+                        //                         leftPadding: 0
+                        //                         topPadding: 0
+                        //                         rightPadding: 0
+                        //                         font {
+                        //                             pixelSize: fontSizeMedium
+                        //                         }
+                        //                     }
+                        //                     spacing: 35
+                        //                 }
+                        //             }
 
-                                    GroupBox {
-                                        width: parent.width
-                                        anchors.left: parent.left
-                                        anchors.right: parent.right
-                                        title: qsTr("REVERSE")
-                                        font.pixelSize: baseFontSize
+                        //             GroupBox {
+                        //                 width: parent.width
+                        //                 anchors.left: parent.left
+                        //                 anchors.right: parent.right
+                        //                 title: qsTr("REVERSE")
+                        //                 font.pixelSize: baseFontSize
 
-                                        Row {
-                                            width: 1280
-                                            height: parent.height
-                                            anchors.top: parent.top
-                                            // anchors.topMargin: 10
+                        //                 Row {
+                        //                     width: 1280
+                        //                     height: parent.height
+                        //                     anchors.top: parent.top
+                        //                     // anchors.topMargin: 10
 
-                                            GlowingLabel {
-                                                color: "#ffffff"
-                                                text: qsTr("FRAGMENT")
-                                            }
-                                            MixerDial {
-                                                effect: "reverse2"
-                                                param: "fragment"
-                                                value: polyValues.reverse2.fragment.value
-                                                from: 100
-                                                to: 1600
-                                            }
-                                            GlowingLabel {
-                                                color: "#ffffff"
-                                                text: qsTr("WET")
-                                            }
-                                            MixerDial {
-                                                effect: "reverse2"
-                                                param: "wet"
-                                                value: polyValues.reverse2.wet.value
-                                                from: -90
-                                                to: 20
-                                            }
-                                            GlowingLabel {
-                                                color: "#ffffff"
-                                                text: qsTr("DRY")
-                                            }
-                                            MixerDial {
-                                                effect: "reverse2"
-                                                param: "dry"
-                                                value: polyValues.reverse2.dry.value
-                                                from: -90
-                                                to: 20
-                                            }
-                                            Switch {
-                                                text: qsTr("ENABLED")
-                                                font.pixelSize: baseFontSize
-                                                bottomPadding: 0
-                                                Layout.fillWidth: true
-                                                leftPadding: 0
-                                                topPadding: 0
-                                                rightPadding: 0
-                                                onClicked: {
-                                                    knobs.toggle_enabled("reverse2")
-                                                }
-                                                font {
-                                                    pixelSize: fontSizeMedium
-                                                }
-                                            }
-                                            spacing: 35
-                                        }
-                                    }
-                                // }
-                            }
-                        }
+                        //                     GlowingLabel {
+                        //                         color: "#ffffff"
+                        //                         text: qsTr("FRAGMENT")
+                        //                     }
+                        //                     MixerDial {
+                        //                         effect: "reverse2"
+                        //                         param: "fragment"
+                        //                         value: polyValues.reverse2.fragment.value
+                        //                         from: 100
+                        //                         to: 1600
+                        //                     }
+                        //                     GlowingLabel {
+                        //                         color: "#ffffff"
+                        //                         text: qsTr("WET")
+                        //                     }
+                        //                     MixerDial {
+                        //                         effect: "reverse2"
+                        //                         param: "wet"
+                        //                         value: polyValues.reverse2.wet.value
+                        //                         from: -90
+                        //                         to: 20
+                        //                     }
+                        //                     GlowingLabel {
+                        //                         color: "#ffffff"
+                        //                         text: qsTr("DRY")
+                        //                     }
+                        //                     MixerDial {
+                        //                         effect: "reverse2"
+                        //                         param: "dry"
+                        //                         value: polyValues.reverse2.dry.value
+                        //                         from: -90
+                        //                         to: 20
+                        //                     }
+                        //                     Switch {
+                        //                         text: qsTr("ENABLED")
+                        //                         font.pixelSize: baseFontSize
+                        //                         bottomPadding: 0
+                        //                         Layout.fillWidth: true
+                        //                         leftPadding: 0
+                        //                         topPadding: 0
+                        //                         rightPadding: 0
+                        //                         onClicked: {
+                        //                             knobs.toggle_enabled("reverse2")
+                        //                         }
+                        //                         font {
+                        //                             pixelSize: fontSizeMedium
+                        //                         }
+                        //                     }
+                        //                     spacing: 35
+                        //                 }
+                        //             }
+                        //         // }
+                        //     }
+                        // }
                         PolyFrame {
                             id: bus2
                             width: 1280
@@ -916,11 +916,11 @@ ApplicationWindow {
                             font.pixelSize: baseFontSize
                         }
 
-                        TabButton {
-                            id: tabButton5
-                            font.pixelSize: baseFontSize
-                            text: qsTr("EFFECTS")
-                        }
+                        // TabButton {
+                        //     id: tabButton5
+                        //     font.pixelSize: baseFontSize
+                        //     text: qsTr("EFFECTS")
+                        // }
 
                         TabButton {
                             font.pixelSize: baseFontSize
@@ -1117,9 +1117,9 @@ ApplicationWindow {
                                         background: null
                                         PolyBus {
                                             id: polyBus3
-                                            availablePorts: system_capture_1AvailablePorts
-                                            usedPorts: system_capture_1UsedPorts
-                                            sourcePort: "capture_1"
+                                            availablePorts: system_capture_2AvailablePorts
+                                            usedPorts: system_capture_2UsedPorts
+                                            sourcePort: "capture_2"
                                             effect: "system"
                                         }
                                     }
@@ -1133,9 +1133,9 @@ ApplicationWindow {
                                         background: null
                                         PolyBus {
                                             id: polyBus4
-                                            availablePorts: system_capture_2AvailablePorts
-                                            usedPorts: system_capture_2UsedPorts
-                                            sourcePort: "capture_2"
+                                            availablePorts: system_capture_4AvailablePorts
+                                            usedPorts: system_capture_4UsedPorts
+                                            sourcePort: "capture_4"
                                             effect: "system"
                                         }
                                     }
@@ -1168,9 +1168,9 @@ ApplicationWindow {
                                         background: null
                                         PolyBus {
                                             id: polyBusMix5
-                                            availablePorts: system_capture_4AvailablePorts
-                                            usedPorts: system_capture_4UsedPorts
-                                            sourcePort: "capture_4"
+                                            availablePorts: system_capture_5AvailablePorts
+                                            usedPorts: system_capture_5UsedPorts
+                                            sourcePort: "capture_5"
                                             effect: "system"
                                         }
                                     }
@@ -1284,9 +1284,9 @@ ApplicationWindow {
                             height:parent.height
                             // width: parent.width
                             PolyBus {
-                                availablePorts: cab_OutAvailablePorts
-                                usedPorts: cab_OutUsedPorts
-                                effect: "cab"
+                                availablePorts: postcab_OutAvailablePorts
+                                usedPorts: postcab_OutUsedPorts
+                                effect: "postcab"
                                 sourcePort: "Out"
                             }
                             z: -1
@@ -1327,7 +1327,7 @@ ApplicationWindow {
                             width: 1280
                             // height: 720
                             height: 720
-                            z: -1
+                            // z: -1
 
 
                             LFOControl {
@@ -1336,49 +1336,49 @@ ApplicationWindow {
                                 effect: "lfo1"
                             }
                         }
-                        PolyFrame {
-                            width: 1280
-                            // height: 720
-                            height: 720
-                            z: -1
+                        // PolyFrame {
+                        //     width: 1280
+                        //     // height: 720
+                        //     height: 720
+                        //     z: -1
 
 
-                            LFOControl {
-                                x: 10
-                                y: -10
-                                effect: "lfo2"
-                            }
-                        }
-                        PolyFrame {
-                            width: 1280
-                            // height: 720
-                            height: 720
-                            z: -1
+                        //     LFOControl {
+                        //         x: 10
+                        //         y: -10
+                        //         effect: "lfo2"
+                        //     }
+                        // }
+                        // PolyFrame {
+                        //     width: 1280
+                        //     // height: 720
+                        //     height: 720
+                        //     z: -1
 
 
-                            LFOControl {
-                                x: 10
-                                y: -10
-                                effect: "lfo3"
-                            }
-                        }
-                        PolyFrame {
-                            width: 1280
-                            // height: 720
-                            height: 720
-                            z: -1
+                        //     LFOControl {
+                        //         x: 10
+                        //         y: -10
+                        //         effect: "lfo3"
+                        //     }
+                        // }
+                        // PolyFrame {
+                        //     width: 1280
+                        //     // height: 720
+                        //     height: 720
+                        //     z: -1
 
 
-                            LFOControl {
-                                x: 10
-                                y: -10
-                                effect: "lfo4"
-                            }
-                        }
-                        PolyFrame {
-                        }
-                        PolyFrame {
-                        }
+                        //     LFOControl {
+                        //         x: 10
+                        //         y: -10
+                        //         effect: "lfo4"
+                        //     }
+                        // }
+                        // PolyFrame {
+                        // }
+                        // PolyFrame {
+                        // }
 
                     }
 
@@ -1391,26 +1391,26 @@ ApplicationWindow {
                             text: qsTr("LFO1")
                             font.pixelSize: baseFontSize
                         }
-                        TabButton {
-                            text: qsTr("LFO2")
-                            font.pixelSize: baseFontSize
-                        }
-                        TabButton {
-                            text: qsTr("LFO3")
-                            font.pixelSize: baseFontSize
-                        }
-                        TabButton {
-                            text: qsTr("LFO4")
-                            font.pixelSize: baseFontSize
-                        }
-                        TabButton {
-                            text: qsTr("ENV1")
-                            font.pixelSize: baseFontSize
-                        }
-                        TabButton {
-                            text: qsTr("ENV2")
-                            font.pixelSize: baseFontSize
-                        }
+                        // TabButton {
+                        //     text: qsTr("LFO2")
+                        //     font.pixelSize: baseFontSize
+                        // }
+                        // TabButton {
+                        //     text: qsTr("LFO3")
+                        //     font.pixelSize: baseFontSize
+                        // }
+                        // TabButton {
+                        //     text: qsTr("LFO4")
+                        //     font.pixelSize: baseFontSize
+                        // }
+                        // TabButton {
+                        //     text: qsTr("ENV1")
+                        //     font.pixelSize: baseFontSize
+                        // }
+                        // TabButton {
+                        //     text: qsTr("ENV2")
+                        //     font.pixelSize: baseFontSize
+                        // }
                     }
                 }
 
@@ -1653,22 +1653,22 @@ ApplicationWindow {
             }
 
 
-            RectangleLoader { 
-                width:70
-                height: 70
-                x: 650
-                y: -6
-                // width: 145
-                // height: 35
-                // text: currentBPM.value.toFixed(0) + " BPM"
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 0
-                // horizontalAlignment: Text.AlignRight
-                anchors.rightMargin: 5
-                anchors.right: parent.right
-                beat_msec: 60 / currentBPM.value * 1000
-                // color: Material.color(Material.accent, Material.Shade200)
-            }
+            // RectangleLoader { 
+            //     width:70
+            //     height: 70
+            //     x: 650
+            //     y: -6
+            //     // width: 145
+            //     // height: 35
+            //     // text: currentBPM.value.toFixed(0) + " BPM"
+            //     anchors.bottom: parent.bottom
+            //     anchors.bottomMargin: 0
+            //     // horizontalAlignment: Text.AlignRight
+            //     anchors.rightMargin: 5
+            //     anchors.right: parent.right
+            //     beat_msec: 60 / currentBPM.value * 1000
+            //     // color: Material.color(Material.accent, Material.Shade200)
+            // }
             GlowingLabel {
             //     SequentialAnimation on color {
             //         id: anim

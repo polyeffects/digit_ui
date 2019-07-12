@@ -2,6 +2,7 @@ import QtQuick 2.9
 import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
+import Qt.labs.handlers 1.0
 
 Dial {
     id: control
@@ -43,7 +44,24 @@ Dial {
             knobs.map_parameter(effect, param)    
             console.warn("set knob mapping")
         }
+        if (pressed === true){
+            if(timer.running)
+            {
+                // console.log("double tapped");
+                midiAssignPopup.set_mapping_choice(effect, param);
+                timer.stop()
+            }
+            timer.restart()
+        }
     }
+    Timer{
+        id:timer
+        interval: 200
+    }
+    // TapHandler {
+    //     onDoubleTapped: console.log("double tapped")
+    //     gesturePolicy: TapHandler.DragThreshold
+    // }
     // onDoubleClick: {
     //     midiAssignPopup.set_mapping_choice(effect, param);
     // }
@@ -63,6 +81,31 @@ Dial {
     //     onDoubleClicked: {
     //         console.log("clicked blue")
     //         mouse.accepted = false
+    //     }
+    // }
+    //
+    // MouseArea {
+    //     property int pressAndHoldDuration: 2000
+    //     signal myPressAndHold()
+    //     anchors.fill: parent
+    //     onPressed: {
+    //         pressAndHoldTimer.start();
+    //     }
+    //     onReleased: {
+    //         pressAndHoldTimer.stop();
+    //     }
+    //     onMyPressAndHold: {
+    //         console.log("It works!");
+    //     }
+
+    //     Timer {
+    //         id:  pressAndHoldTimer
+    //         interval: parent.pressAndHoldDuration
+    //         running: false
+    //         repeat: false
+    //         onTriggered: {
+    //             parent.myPressAndHold();
+    //         }
     //     }
     // }
 }

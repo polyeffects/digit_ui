@@ -20,6 +20,7 @@ import Qt.labs.folderlistmodel 2.2
         property url current_selected: "file:///none.wav"
         property url top_folder: "file:///audio/reverbs/"
         property var after_file_selected: (function(name) { return null; })
+        property bool is_loading: false
 
         function basename(ustr)
         {
@@ -48,7 +49,7 @@ import Qt.labs.folderlistmodel 2.2
             font {
                 pixelSize: fontSizeLarge
             }
-            elide: Text.ElideRight
+            elide: Text.ElideMiddle
         }
 
         Button {
@@ -78,6 +79,7 @@ import Qt.labs.folderlistmodel 2.2
             width: parent.width
             height: parent.height - 60
             clip: true
+            visible: !is_loading
             model: FolderListModel {
                 id: folderListModel
                 showDirsFirst: true
@@ -108,6 +110,15 @@ import Qt.labs.folderlistmodel 2.2
                     // border.color: "black"
                 // }
             }
+        }
+        Label {
+            visible: is_loading
+            text: "LOADING"
+            font.pixelSize: fontSizeLarge
+            anchors.centerIn: parent
+            y: 60
+            width: parent.width
+            height: parent.height - 60
         }
     }
 // }
