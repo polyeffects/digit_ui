@@ -661,6 +661,7 @@ ApplicationWindow {
                                     height: 400
                                     width: 350
                                     current_selected: polyValues.reverb.ir.name
+                                    is_loading: isLoading.reverb.value
                                     top_folder: "file:///audio/reverbs"
                                     after_file_selected: (function(name) { 
                                         console.log("got new reveb file");
@@ -1234,6 +1235,7 @@ ApplicationWindow {
                                 height: 500
                                 width: 500
                                 current_selected: polyValues.cab.ir.name
+                                is_loading: isLoading.cab.value
                                 top_folder: "file:///audio/cabs"
                                 after_file_selected: (function(name) { 
                                     console.log("got new cab file");

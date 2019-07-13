@@ -79,7 +79,7 @@ import Qt.labs.folderlistmodel 2.2
             width: parent.width
             height: parent.height - 60
             clip: true
-            visible: !is_loading
+            visible: !(is_loading)
             model: FolderListModel {
                 id: folderListModel
                 showDirsFirst: true
@@ -115,8 +115,9 @@ import Qt.labs.folderlistmodel 2.2
             visible: is_loading
             text: "LOADING"
             font.pixelSize: fontSizeLarge
-            anchors.centerIn: parent
-            y: 60
+            // anchors.centerIn: parent
+            y: 160
+            x: 30
             width: parent.width
             height: parent.height - 60
         }

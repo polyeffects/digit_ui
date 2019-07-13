@@ -28,7 +28,7 @@ from PySide2.QtQml import QQmlApplicationEngine
 from PySide2.QtGui import QIcon
 # compiled QML files, compile with pyside2-rcc
 import qml.qml
-import icons.icons, imagine_assets
+import icons.icons#, imagine_assets
 import resource_rc
 ######## Carla
 # --------------------------------------------------------------------------------------------------------
@@ -87,6 +87,7 @@ current_connections = {} # these are group port group port to connection id pair
 current_connection_pairs_poly = set()
 current_midi_connection_pairs_poly = set()
 current_ir_file = None
+pending_connect = queue.Queue()
 
 # --------------------------------------------------------------------------------------------------------
 source_ports = ["sigmoid1:Output", "delay2:out0","delay3:out0", "delay4:out0",
@@ -337,17 +338,17 @@ class Knobs(QObject):
             # kill existing jconvolver
             # write jconvolver file
             # start jconvolver
-            if is_loading["reverb"]:
+            if is_loading["reverb"].value:
                 return
-            is_loading["reverb"] = True
+            is_loading["reverb"].value = True
             effect_parameter_data["reverb"]["ir"].name = ir_file
             # host.show_custom_ui(pluginMap["reverb"], True)
             start_jconvolver.generate_reverb_conf(current_ir_file)
             # host.set_program(pluginMap["reverb"], 0)
         else:
-            if is_loading["reverb"]:
+            if is_loading["cab"].value:
                 return
-            is_loading["cab"] = True
+            is_loading["cab"].value = True
             effect_parameter_data["cab"]["ir"].name = ir_file
             start_jconvolver.generate_cab_conf(current_ir_file)
 
@@ -749,7 +750,7 @@ def auto_connect_ports():
                         portMap["postreverb"]["group"],
                         portMap["postreverb"]["ports"]["In Right"])
                 # if we had the loading screen up, we are now loaded
-                is_loading["reverb"] = False
+                is_loading["reverb"].value = False
             elif valueStr == "ReverbIn":
                 # connect to "postreverb:In Left" 
                 host.patchbay_connect(patchbay_external,
@@ -771,7 +772,7 @@ def auto_connect_ports():
                         portMap["postcab"]["group"],
                         portMap["postcab"]["ports"]["In"])
                 # if we had the loading screen up, we are now loaded
-                is_loading["cab"] = False
+                is_loading["cab"].value = False
     except queue.Empty:
         pass
 
@@ -836,7 +837,6 @@ signal(SIGTERM, signalHandler)
 
 knob_map = {"left": PolyEncoder("delay1", "Delay_1"), "right": PolyEncoder("delay1", "Feedback_4")}
 lfos = []
-pending_connect = queue.Queue()
 
 
 for n in range(1):
@@ -988,7 +988,7 @@ context.setContextProperty("updateCounter", update_counter)
 context.setContextProperty("commandStatus", command_status)
 context.setContextProperty("delayNumBars", delay_num_bars)
 context.setContextProperty("midiChannel", midi_channel)
-context.setContextProperty("isLoading", midi_channel)
+context.setContextProperty("isLoading", is_loading)
 
 # engine.load(QUrl("qrc:/qml/digit.qml"))
 qmlEngine.load(QUrl("qml/digit.qml"))
