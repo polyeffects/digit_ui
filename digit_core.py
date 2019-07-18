@@ -597,7 +597,7 @@ def process_core_messages():
         while not gCarla.term:
             m = core_messages.get(block=False)
             if m[0] == "add_connection_pair":
-                add_connecton_pair(*m[1])
+                add_connection_pair(*m[1])
             elif m[0] == "add_connection":
                 add_connection(*m[1])
             elif m[0] == "map_parameter":

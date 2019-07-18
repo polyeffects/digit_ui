@@ -158,7 +158,7 @@ def ui_worker(ui_mess, core_mess):
         rmax = Property(float, readRMax, setRMax, notify=rmax_changed)
 
     source_ports = ["sigmoid1:Output", "delay2:out0","delay3:out0", "delay4:out0",
-        "postreverb:Out Left", "postreverb:Out Right", "system:capture_2", "system:capture_4",
+            "postreverb:Out Left", "postreverb:Out Right", "system:capture_2", "system:capture_4",
         "system:capture_3", "system:capture_5", "postcab:Out"]
     available_port_models = dict({(k, QStringListModel()) for k in source_ports})
     used_port_models = dict({(k, QStringListModel()) for k in available_port_models.keys()})
@@ -226,8 +226,8 @@ def ui_worker(ui_mess, core_mess):
                         knobs.unmap_parameter(effect_name, parameter_name)
         for effect_name, effect_value in preset["midi_map"].items():
             for parameter_name, parameter_value in effect_value.items():
-                send_core_message("map_parameter_cc", (effect_name, parameter_name, value, False))
-                effect_parameter_data[effect_name][parameter_name].assigned_cc = value
+                send_core_message("map_parameter_cc", (effect_name, parameter_name, parameter_value, False))
+                effect_parameter_data[effect_name][parameter_name].assigned_cc = parameter_value
         # read enabled state
         for effect, is_active in preset["state"].items():
             if effect == "global":
@@ -236,7 +236,14 @@ def ui_worker(ui_mess, core_mess):
                 send_core_message("set_active", (effect, is_active))
                 plugin_state[effect].value = is_active
         # read connections
+        # preset_con_list = []
+        # for conn in preset["connections"]:
+        #     if conn[0] == "system:capture_2":
+        #         preset_con_list.append(("balance1:Out Left", conn[1]))
+        #     else:
+        #         preset_con_list.append(tuple(conn))
         preset_connections = set([tuple(a) for a in preset["connections"]])
+        # preset_connections = set(preset_con_list)
         # remove connections that aren't in the new preset
         for source_port, target_port in (current_connection_pairs_poly-preset_connections):
             effect, source_p = source_port.split(":")
@@ -245,7 +252,7 @@ def ui_worker(ui_mess, core_mess):
         for source_port, target_port in (preset_connections - current_connection_pairs_poly):
             effect, source_p = source_port.split(":")
             knobs.ui_add_connection(effect, source_p, target_port)
-        midi_connections = set([tuple(a) for a in preset["midi_connections"]])
+        midi_connections = set([(tuple(a[0]), tuple(a[1])) for a in preset["midi_connections"]])
         for source_pair, target_pair in midi_connections:
             send_core_message("add_connection_pair", (source_pair, target_pair))
         global current_midi_connection_pairs_poly
@@ -299,6 +306,11 @@ def ui_worker(ui_mess, core_mess):
             is_active = not plugin_state[effect].value
             plugin_state[effect].value = is_active
             send_core_message("toggle_enabled", (effect, ))
+
+        @Slot(str)
+        def set_bypass_type(self, t):
+            print("setting bypass type", t)
+            send_core_message("set_bypass_type", (t, ))
 
         @Slot(bool, str)
         def update_ir(self, is_reverb, ir_file):
@@ -442,6 +454,11 @@ def ui_worker(ui_mess, core_mess):
 
             send_core_message("set_channel", (channel, args))
             midi_channel.value = channel
+
+        @Slot(int)
+        def set_input_level(self, level):
+            command = "amixer -- sset ADC1 "+str(level)+"db"""
+            command_status[0].value = subprocess.call(command, shell=True)
 
     def add_ports(port):
         source_ports_self = {"sigmoid1:Output":"delay1", "delay2:out0":"delay2",
