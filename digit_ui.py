@@ -3,7 +3,7 @@ import sys, os
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer
 from PySide2.QtQml import QQmlApplicationEngine, QQmlDebuggingEnabler
-from PySide2.QtGui import QIcon
+from PySide2.QtGui import QIcon, QFont
 # compiled QML files, compile with pyside2-rcc
 import qml.qml
 import icons.icons
@@ -294,6 +294,8 @@ def main_ui():
     timer = QTimer()
     timer.timeout.connect(tick)
     timer.start(2000)
+    font = QFont("OpenSans", 10)
+    app.setFont(font)
 
     app.exec_()
 

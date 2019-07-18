@@ -25,6 +25,7 @@ import QtQuick.Controls.Material 2.3
         property int num_delays: 4
         property string current_parameter: "Amp_5"
         property int max_delay_length: 30
+        property color assign_color: knobs.waiting != "" ? Material.color(Material.Cyan, Material.Shade400) : Material.color(Material.Pink, Material.Shade200) 
 		// property var delay_data: [{"time": polyValues["delay1"]["Delay_1"].value, 
 		// 	"LEVEL": polyValues["delay1"]["carla_level"].value, 
 		// 	"TONE": polyValues["delay1"]["fb_tone"].value, 
@@ -153,8 +154,7 @@ import QtQuick.Controls.Material 2.3
                 //         mycanvas.requestPaint();
                 //     }
                 // }
-                ComboBox {
-                    flat: true
+                PolyCombo {
                     width: 140
                     enabled: time_scale.synced
                     textRole: "key"
@@ -171,12 +171,13 @@ import QtQuick.Controls.Material 2.3
                     }
                 }
 
-                ComboBox {
+                PolyCombo {
                     flat: true
+                    id: control
                     width: 140
                     model: ["LEVEL", "TONE", "FEEDBACK", "GLIDE", "WARP"]
                     onActivated: {
-                        console.debug(model[index]);
+                        // console.debug(model[index]);
                         time_scale.current_parameter = parameter_map[model[index]];
                     }
                 }
@@ -189,6 +190,7 @@ import QtQuick.Controls.Material 2.3
 
                 SpinBox {
                     value: bars
+					font.pixelSize: baseFontSize
                     from: 1 
                     to: delayNumBars.rmax
                     onValueModified: {
@@ -223,7 +225,7 @@ import QtQuick.Controls.Material 2.3
                         width: 50
                         height: 50
                         radius: 5
-                        color: time_scale.delay_data[index]["Amp_5"].value > 0 ? Material.color(Material.Pink, Material.Shade200) : Material.color(Material.Grey, Material.Shade200)  
+                        color: time_scale.delay_data[index]["Amp_5"].value > 0 ? time_scale.assign_color: Material.color(Material.Grey, Material.Shade200)  
                     }
                     z: mouseArea.drag.active ||  mouseArea.pressed ? 2 : 1
                     // color: Material.color(time_scale.delay_colors[index])
@@ -239,7 +241,7 @@ import QtQuick.Controls.Material 2.3
 
                     Text {
                         anchors.centerIn: parent
-                        text: index
+                        text: (index+1)
                         color: "white"
 						font {
 							pixelSize: fontSizeMedium
@@ -284,10 +286,10 @@ import QtQuick.Controls.Material 2.3
 							knobs.ui_knob_change("delay"+(index+1), 
 								time_scale.current_parameter, 
 								time_scale.pixelToValue(in_y));
-							console.log("parameter map", 
-								time_scale.current_parameter, "value", 
-								time_scale.pixelToValue(in_y),
-								"rect.y", rect.y, "in_y", in_y);
+							// console.log("parameter map", 
+								// time_scale.current_parameter, "value", 
+								// time_scale.pixelToValue(in_y),
+								// "rect.y", rect.y, "in_y", in_y);
                         }
 
                     }

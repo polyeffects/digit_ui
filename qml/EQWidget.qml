@@ -56,7 +56,7 @@ import QtQuick.Controls.Material 2.3
         }
 
         function externalRefresh() {
-            console.log("external refresh");
+            // console.log("external refresh");
             for (var i = 0; i < time_scale.eq_data.length; i++) {
                 mycanvas.update_filter_external (i, 
                     time_scale.eq_data[i]["frequency"], 
@@ -163,7 +163,7 @@ import QtQuick.Controls.Material 2.3
 								in_y = Math.min(Math.max(-(width / 2), in_y), mycanvas.height - (width / 2));
                             }
                             var f = time_scale.pixelToHz(in_x + (width / 2)); // offset for square size
-                            console.log("frequency before", time_scale.eq_data[index]["frequency"]);
+                            // console.log("frequency before", time_scale.eq_data[index]["frequency"]);
                             var g = mycanvas.gain_at_y(in_y + (width / 2));
                             // update cache and redraw
                             if (index == 0){
@@ -180,7 +180,7 @@ import QtQuick.Controls.Material 2.3
                                 knobs.ui_knob_change(effect, "freq"+index, f);
                                 knobs.ui_knob_change(effect, "gain"+index, g);
                             }
-                            console.log("frequency after", time_scale.eq_data[index]["frequency"]);
+                            // console.log("frequency after", time_scale.eq_data[index]["frequency"]);
                             mycanvas.update_filter_external (index, time_scale.eq_data[index]["frequency"], 
                                 time_scale.eq_data[index]["q"], time_scale.eq_data[index]["gain"]);
                             mycanvas.requestPaint();
@@ -895,8 +895,9 @@ import QtQuick.Controls.Material 2.3
 
                 Switch {
                     text: qsTr("EQ ON")
-					font.pixelSize: baseFontSize
+					font.pixelSize: fontSizeMedium
                     bottomPadding: 0
+                    // height: 20
                     // implicitWidth: 100
                     width: 150
                     leftPadding: 0
@@ -965,7 +966,7 @@ import QtQuick.Controls.Material 2.3
                         {
                             // knobs.ui_knob_change(effect, param, control.value)
                             // time_scale.eq_data[time_scale.selected_point]["q"] = control.value
-                            console.log("setting q", control.value);
+                            // console.log("setting q", control.value);
                             if (time_scale.selected_point == 0){
                                 knobs.ui_knob_change(effect, "LSq", 
                                         control.value);

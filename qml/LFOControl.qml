@@ -96,7 +96,7 @@ Item {
     }
 
     function externalRefresh() {
-        console.log("external refresh");
+        // console.log("external refresh");
         mycanvas.requestPaint();
         return updateCounter.value;
     }
@@ -114,6 +114,7 @@ Item {
             height:parent.height
 
             SpinBox {
+                font.pixelSize: baseFontSize
                 from: 1
                 value: lfo_control.num_lfos
                 to: 64
@@ -126,7 +127,7 @@ Item {
                         knobs.ui_knob_change(effect, "time"+(lfo_control.num_lfos+1), Math.min(t + 0.05, bars)) 
                         knobs.ui_knob_change(effect, "value"+(lfo_control.num_lfos+1), v) 
                     }
-                    console.log("value is ", value, "num_lfos", lfo_control.num_lfos);
+                    // console.log("value is ", value, "num_lfos", lfo_control.num_lfos);
                     knobs.ui_knob_change(effect, "num_points", value);
                     // push or pop from array, putting the new value after the previous one
                     mycanvas.requestPaint();
@@ -173,7 +174,7 @@ Item {
             //         mycanvas.requestPaint();
             //     }
             // }
-            ComboBox {
+            PolyCombo {
                 width: 140
                 enabled: lfo_control.synced
                 textRole: "key"
@@ -191,7 +192,7 @@ Item {
                 flat: true
             }
 
-            ComboBox {
+            PolyCombo {
                 width: 140
                 model: ["linear", "smooth", "accell", "decell", "step", "random"]
                 currentIndex: lfo_control.lfo_data[selected_point]["style"]
@@ -199,7 +200,7 @@ Item {
                     // console.debug(model[index]);
                     knobs.ui_knob_change(effect, "style"+(selected_point+1), index);
                     // lfo_control.lfo_data[selected_point]["style"] = index
-                    console.log("setting style", selected_point, index);
+                    // console.log("setting style", selected_point, index);
                     mycanvas.requestPaint();
                 }
                 flat: true
@@ -525,7 +526,7 @@ Item {
                         cur_y = (seg_y1 * (1-mu)+seg_y2*mu);
                         ctx.lineTo(j, cur_y);
                     }
-                    console.log("drawing line", j, "seg_type", seg_type, "mu", mu, seg_x1, seg_x2, cur_y);    
+                    // console.log("drawing line", j, "seg_type", seg_type, "mu", mu, seg_x1, seg_x2, cur_y);    
                 } 
                 if (!lfo_control.repeat){
                     // ctx.lineTo(width, y_at_level(lfo_control.lfo_data[0]["level"])); // if repeating

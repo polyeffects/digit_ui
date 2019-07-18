@@ -40,9 +40,9 @@ Dial {
         // python variable in qml context
         if (knobs.waiting != "") // left or right
         {
-            console.warn("knob waiting", knobs.waiting)
+            // console.warn("knob waiting", knobs.waiting)
             knobs.map_parameter(effect, param)    
-            console.warn("set knob mapping")
+            // console.warn("set knob mapping")
         }
         if (pressed === true){
             if(timer.running)

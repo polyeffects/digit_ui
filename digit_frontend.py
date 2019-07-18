@@ -5,6 +5,21 @@ from time import sleep
 from sys import exit
 ###### UI
 # --------------------------------------------------------------------------------------------------------
+
+output_port_names = {"Out 1": ("system", "playback_3"),
+    "Out 2": ("system", "playback_4"),
+    "Out 3": ("system", "playback_6"),
+    "Out 4": ("system", "playback_8"),
+    "Delay 1 In": ("delay1", "in0"),
+    "Delay 2 In": ("delay2", "in0"),
+    "Delay 3 In": ("delay3", "in0"),
+    "Delay 4 In": ("delay4", "in0"),
+    "Cab": ("cab", "In"),
+    "Reverb": ("eq2", "In"),
+    }
+# inv_source_port_names = dict({(v, k) for k,v in source_port_names.items()})
+inv_output_port_names = dict({(v, k) for k,v in output_port_names.items()})
+
 def ui_worker(ui_mess, core_mess):
     os.sched_setaffinity(0, (2, ))
     EXIT_PROCESS = [False]
@@ -95,7 +110,7 @@ def ui_worker(ui_mess, core_mess):
             # clamp values
             self.valueval = clamp(val, self.rmin, self.rmax)
             self.value_changed.emit()
-            print("setting value", val)
+            # print("setting value", val)
 
         @Signal
         def value_changed(self):
@@ -204,7 +219,7 @@ def ui_worker(ui_mess, core_mess):
                         knobs.update_ir(effect_name == "reverb", parameter_value)
                 else:
                     if effect_parameter_data[effect_name][parameter_name].value != parameter_value:
-                        print("loading parameter", effect_name, parameter_name, parameter_value)
+                        # print("loading parameter", effect_name, parameter_name, parameter_value)
                         knobs.ui_knob_change(effect_name, parameter_name, parameter_value)
                     # remove all existing MIDI mapping
                     if effect_parameter_data[effect_name][parameter_name].assigned_cc is not None:
@@ -280,13 +295,14 @@ def ui_worker(ui_mess, core_mess):
 
         @Slot(str)
         def toggle_enabled(self, effect):
-            print("toggling", effect)
+            # print("toggling", effect)
             is_active = not plugin_state[effect].value
+            plugin_state[effect].value = is_active
             send_core_message("toggle_enabled", (effect, ))
 
         @Slot(bool, str)
         def update_ir(self, is_reverb, ir_file):
-            print("updating ir", ir_file)
+            # print("updating ir", ir_file)
             current_ir_file = ir_file[7:] # strip file:// prefix
             # cause call file callback
             # by calling show GUI
@@ -315,10 +331,14 @@ def ui_worker(ui_mess, core_mess):
             if self.waiting == "left" or self.waiting == "right":
                 # mapping and encoder
                 set_knob_current_effect(self.waiting, effect_name, parameter)
-                send_core_message("map_parameter", (self.waiting, effect_name, parameter))
+                send_core_message("map_parameter", (self.waiting, effect_name, parameter,
+                    effect_parameter_data[effect_name][parameter].rmin,
+                    effect_parameter_data[effect_name][parameter].rmax))
+                # print("mapping knob core")
             else:
                 # we're mapping to LFO
-                send_core_message("map_parameter", (self.waiting, effect_name, parameter, effect_parameter_data[self.waiting]["cc_num"].value))
+                # print("mapping lfo frontend")
+                send_core_message("map_parameter_to_lfo", (self.waiting, effect_name, parameter, effect_parameter_data[self.waiting]["cc_num"].value))
                 # connect ports
                 effect_parameter_data[effect_name][parameter].assigned_cc = effect_parameter_data[self.waiting]["cc_num"].value
                 current_midi_connection_pairs_poly.add(((self.waiting, "events-out"), (effect_name, "events-in")))
@@ -337,7 +357,7 @@ def ui_worker(ui_mess, core_mess):
 
         @Slot(str)
         def set_waiting(self, knob):
-            print("waiting", knob)
+            # print("waiting", knob)
             self.waiting = knob
 
         def readWaiting(self):
@@ -355,7 +375,7 @@ def ui_worker(ui_mess, core_mess):
 
         @Slot(str)
         def ui_save_preset(self, preset_name):
-            print("saving", preset_name)
+            # print("saving", preset_name)
             # TODO add folders
             outfile = "/presets/"+preset_name+".json"
             current_preset.name = preset_name
@@ -363,14 +383,14 @@ def ui_worker(ui_mess, core_mess):
 
         @Slot(str)
         def ui_load_preset_by_name(self, preset_file):
-            print("loading", preset_file)
+            # print("loading", preset_file)
             outfile = preset_file[7:] # strip file:// prefix
             load_preset(outfile)
             update_counter.value+=1
 
         @Slot()
         def ui_copy_irs(self):
-            print("copy irs from USB")
+            # print("copy irs from USB")
             # could convert any that aren't 48khz.
             # instead we just only copy ones that are
             command_reverb = """cd /media/reverbs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/audio/reverbs --parents"""
@@ -383,7 +403,7 @@ def ui_worker(ui_mess, core_mess):
 
         @Slot()
         def import_presets(self):
-            print("copy presets from USB")
+            # print("copy presets from USB")
             # could convert any that aren't 48khz.
             # instead we just only copy ones that are
             command = """cd /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/presets --parents"""
@@ -391,7 +411,7 @@ def ui_worker(ui_mess, core_mess):
 
         @Slot()
         def export_presets(self):
-            print("copy presets to USB")
+            # print("copy presets to USB")
             # could convert any that aren't 48khz.
             # instead we just only copy ones that are
             command = """cd /presets; mkdir -p /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/media/presets --parents"""
@@ -399,7 +419,7 @@ def ui_worker(ui_mess, core_mess):
 
         @Slot()
         def ui_update_firmware(self):
-            print("Updating firmware")
+            # print("Updating firmware")
             # dpkg the debs in the folder
             command = """sudo dpkg -i /media/*.deb"""
             command_status[0].value = subprocess.call(command, shell=True)
@@ -424,28 +444,28 @@ def ui_worker(ui_mess, core_mess):
             midi_channel.value = channel
 
     def add_ports(port):
+        source_ports_self = {"sigmoid1:Output":"delay1", "delay2:out0":"delay2",
+                "delay3:out0": "delay3", "delay4:out0": "delay4",
+                "postreverb:Out Left":"eq2", "postreverb:Out Right":"eq2",
+                "system:capture_2":"system", "system:capture_4":"system",
+                "system:capture_3":"system", "system:capture_5":"system",
+                "postcab:Out":"cab"}
         for k, model in available_port_models.items():
-            # if (invPortMap[pluginId], valueStr) in inv_output_port_names:
-                # if (((k.split(":")[0] == invPortMap[pluginId]) and
-                #         (invPortMap[pluginId] != "system"))) or \
-                #                 ((k.split(":")[0] == "sigmoid1") and \
-                #                 (invPortMap[pluginId] == "delay1")):
-                #     pass # don't allow effect to self connect
-                # else:
-                    # print("adding port:", invPortMap[pluginId], k)
-            insert_row(model, port)
+            if source_ports_self[k] == "system" or source_ports_self[k] != output_port_names[port][0]:
+                # print("add_port", k, port)
+                insert_row(model, port)
 
     def process_ui_messages():
         # pop from queue
         try:
             while not EXIT_PROCESS[0]:
                 m = ui_messages.get(block=False)
-                print("got ui message", m)
+                # print("got ui message", m)
                 if m[0] == "is_loading":
-                    print("setting is loading is process_ui")
+                    # print("setting is loading is process_ui")
                     is_loading[m[1][0]].value = False
                 elif m[0] == "value_change":
-                    print("got value change in process_ui")
+                    # print("got value change in process_ui")
                     effect_name, parameter, value = m[1]
                     if (effect_name in effect_parameter_data) and (parameter in effect_parameter_data[effect_name]):
                         effect_parameter_data[effect_name][parameter].value = value
@@ -626,7 +646,7 @@ def ui_worker(ui_mess, core_mess):
     ######### UI is setup
     def signalHandler(sig, frame):
         if sig in (SIGINT, SIGTERM):
-            print("frontend got signal")
+            # print("frontend got signal")
             # global EXIT_PROCESS
             EXIT_PROCESS[0] = True
     signal(SIGINT,  signalHandler)
@@ -637,5 +657,5 @@ def ui_worker(ui_mess, core_mess):
         process_ui_messages()
         sleep(0.01)
 
-    print("exiting frontend")
+    # print("exiting frontend")
     exit(1)

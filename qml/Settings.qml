@@ -33,6 +33,10 @@ Item {
                     // anchors.left: parent.left
                     spacing: 30
                     // height:parent.height
+                    GlowingLabel {
+                        // color: "#ffffff"
+                        text: qsTr("DIGIT FIRMWARE 1.4")
+                    }
 
                     Button {
                         text: "Copy IRs"
@@ -62,6 +66,20 @@ Item {
                         // show screen explaining to put USB flash drive in
                         onClicked: knobs.set_channel(midi_channel_spin.value)
                     }
+                    GlowingLabel {
+                        // color: "#ffffff"
+                        text: qsTr("BYPASS TYPE")
+                    }
+                    PolyCombo {
+                        flat: true
+                        // width: 140
+                        model: ["relay", "1 to all"]
+                        onActivated: {
+                            // console.debug(model[index]);
+                            knobs.set_bypass_type(model[index]);
+                        }
+                    }
+
 
                     // Switch {
                     //     font.pixelSize: baseFontSize
@@ -77,19 +95,19 @@ Item {
                     //     // }
                     // }
 
-                    Switch {
-                        font.pixelSize: baseFontSize
-                        text: qsTr("ENABLE LINK")
-                        // bottomPadding: 0
-                        width: 300
-                        // leftPadding: 0
-                        // topPadding: 0
-                        // rightPadding: 0
-                        checked: true
-                        onClicked: {
-                            knobs.enable_ableton_link(checked);
-                        }
-                    }
+                    // Switch {
+                    //     font.pixelSize: baseFontSize
+                    //     text: qsTr("ENABLE LINK")
+                    //     // bottomPadding: 0
+                    //     width: 300
+                    //     // leftPadding: 0
+                    //     // topPadding: 0
+                    //     // rightPadding: 0
+                    //     checked: true
+                    //     onClicked: {
+                    //         knobs.enable_ableton_link(checked);
+                    //     }
+                    // }
 
                 }
                 Column {
@@ -174,6 +192,26 @@ Item {
                     //     //     lfo_control.snapping = checked
                     //     // }
                     // }
+                    GlowingLabel {
+                        // color: "#ffffff"
+                        text: qsTr("INPUT LEVEL")
+                    }
+                    // FIXME
+                    SpinBox {
+                        id: input_level_spin
+                        font.pixelSize: baseFontSize
+                        from: -80
+                        to: 10
+                        value: -8
+                    }
+
+                    Button {
+                        flat: true
+                        text: "SET INPUT LEVEL"
+                        font.pixelSize: baseFontSize
+                        // show screen explaining to put USB flash drive in
+                        onClicked: knobs.set_input_level(input_level_spin.value)
+                    }
 
                 }
             }

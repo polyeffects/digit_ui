@@ -116,7 +116,7 @@ def process_input():
         while True:
             e = input_queue.get(block=False)
             if e.code == 30 and e.value == 1: # tap down
-                tap_callback()
+                tap_callback(e.timestamp())
             if e.code == 48 and e.value == 1: # step
                 next_callback()
             if e.code == 46 and e.value == 1: # bypass
@@ -150,7 +150,7 @@ def input_worker():
         for key, mask in selector.select():
             device = key.fileobj
             for event in device.read():
-                print(event)
+                # print(event)
                 input_queue.put(event)
 
 def add_hardware_listeners():

@@ -37,12 +37,13 @@ ApplicationWindow {
     readonly property color colorLightGrey: "#888"
     readonly property color colorDarkGrey: "#333"
 
-    readonly property int baseFontSize: 20 
+    readonly property int baseFontSize: 22 
+    readonly property int baseFontMod: 20 
     readonly property int tabHeight: 70 
-    readonly property int fontSizeExtraSmall: baseFontSize * 0.8
-    readonly property int fontSizeMedium: baseFontSize * 1.5
-    readonly property int fontSizeLarge: baseFontSize * 2
-    readonly property int fontSizeExtraLarge: baseFontSize * 5
+    readonly property int fontSizeExtraSmall: baseFontMod * 0.8
+    readonly property int fontSizeMedium: baseFontMod * 1.5
+    readonly property int fontSizeLarge: baseFontMod * 2
+    readonly property int fontSizeExtraLarge: baseFontMod * 5
 
     function setColorAlpha(color, alpha) {
         return Qt.hsla(color.hslHue, color.hslSaturation, color.hslLightness, alpha)
@@ -301,7 +302,7 @@ ApplicationWindow {
                                         width: parent.width
                                         anchors.left: parent.left
                                         anchors.right: parent.right
-                                        title: qsTr("TAPE / TUBE")
+                                        title: qsTr("DELAY 1 TAPE / TUBE")
                                         font.pixelSize: baseFontSize
 
                                         Row {
@@ -333,7 +334,9 @@ ApplicationWindow {
                                             }
                                             Switch {
                                                 text: qsTr("ENABLED")
-                                                font.pixelSize: baseFontSize
+                                                font.pixelSize: fontSizeMedium
+                                                checked: pluginState.tape1.value
+                                                height: parent.height
                                                 bottomPadding: 0
                                                 Layout.fillWidth: true
                                                 leftPadding: 0
@@ -400,7 +403,7 @@ ApplicationWindow {
                                         width: parent.width
                                         anchors.left: parent.left
                                         anchors.right: parent.right
-                                        title: qsTr("COMPRESSION BOOST")
+                                        title: qsTr("DELAY 1 COMPRESSION BOOST")
                                         font.pixelSize: baseFontSize
 
                                         Row {
@@ -433,7 +436,9 @@ ApplicationWindow {
                                             }
                                             Switch {
                                                 text: qsTr("ENABLED")
-                                                font.pixelSize: baseFontSize
+                                                font.pixelSize: fontSizeMedium
+                                                height: parent.height
+                                                checked: pluginState.sigmoid1.value
                                                 onClicked: {
                                                     knobs.toggle_enabled("sigmoid1")
                                                 }
@@ -450,7 +455,7 @@ ApplicationWindow {
                                         width: parent.width
                                         anchors.left: parent.left
                                         anchors.right: parent.right
-                                        title: qsTr("REVERSE")
+                                        title: qsTr("DELAY 1 REVERSE")
                                         font.pixelSize: baseFontSize
 
                                         Row {
@@ -494,12 +499,14 @@ ApplicationWindow {
                                             }
                                             Switch {
                                                 text: qsTr("ENABLED")
-                                                font.pixelSize: baseFontSize
+                                                font.pixelSize: fontSizeMedium
+                                                height: parent.height
                                                 bottomPadding: 0
                                                 Layout.fillWidth: true
                                                 leftPadding: 0
                                                 topPadding: 0
                                                 rightPadding: 0
+                                                checked: pluginState.reverse1.value
                                                 onClicked: {
                                                     knobs.toggle_enabled("reverse1")
                                                 }
@@ -603,26 +610,27 @@ ApplicationWindow {
 
                     TabBar {
                         id: delayTabs
-                        width: 376
+                        width: 440
                         spacing: 0
-                        currentIndex: 1
+                        currentIndex: 0
                         anchors.bottom: parent.bottom
                         TabButton {
                             id: tabButton7
                             text: qsTr("MAIN")
-                            font.pixelSize: baseFontSize
+                            font.pixelSize: fontSizeMedium
                         }
 
                         TabButton {
                             id: tabButton8
                             text: qsTr("EFFECTS")
-                            font.pixelSize: baseFontSize
+                            font.pixelSize: fontSizeMedium
+                            width: 180
                         }
 
                         TabButton {
                             id: tabButton9
                             text: qsTr("BUS")
-                            font.pixelSize: baseFontSize
+                            font.pixelSize: fontSizeMedium
                         }
                         anchors.bottomMargin: 0
                     }
@@ -664,10 +672,10 @@ ApplicationWindow {
                                     is_loading: isLoading.reverb.value
                                     top_folder: "file:///audio/reverbs"
                                     after_file_selected: (function(name) { 
-                                        console.log("got new reveb file");
+                                        // console.log("got new reveb file");
                                         // update that we're setting reverb
                                         // cause file callback
-                                        console.log("file  is", name.toString());
+                                        // console.log("file is", name.toString());
                                         knobs.update_ir(true, name.toString());
                                         // some way to handle errors also needed
                                     })
@@ -877,6 +885,7 @@ ApplicationWindow {
                                     title: qsTr("LEFT")
                                     font.pixelSize: baseFontSize
                                     anchors.top: parent.top
+                                    background: null
                                     anchors.bottom: parent.bottom
                                     width: 0.5 * parent.width
                                     PolyBus {
@@ -890,6 +899,7 @@ ApplicationWindow {
                                 GroupBox {
                                     title: qsTr("RIGHT")
                                     font.pixelSize: baseFontSize
+                                    background: null
                                     anchors.top: parent.top
                                     anchors.bottom: parent.bottom
                                     width: 0.5 * parent.width
@@ -914,7 +924,7 @@ ApplicationWindow {
                         TabButton {
                             id: tabButton4
                             text: qsTr("MAIN")
-                            font.pixelSize: baseFontSize
+                            font.pixelSize: fontSizeMedium
                         }
 
                         // TabButton {
@@ -924,7 +934,7 @@ ApplicationWindow {
                         // }
 
                         TabButton {
-                            font.pixelSize: baseFontSize
+                            font.pixelSize: fontSizeMedium
                             id: tabButton6
                             text: qsTr("BUS")
                         }
@@ -1194,13 +1204,13 @@ ApplicationWindow {
                         TabButton {
                             id: tabButton10
                             text: qsTr("MAIN")
-                            font.pixelSize: baseFontSize
+                            font.pixelSize: fontSizeMedium
                         }
 
                         TabButton {
                             id: tabButton12
                             text: qsTr("BUS")
-                            font.pixelSize: baseFontSize
+                            font.pixelSize: fontSizeMedium
                         }
                         anchors.bottom: parent.bottom
                     }
@@ -1238,10 +1248,10 @@ ApplicationWindow {
                                 is_loading: isLoading.cab.value
                                 top_folder: "file:///audio/cabs"
                                 after_file_selected: (function(name) { 
-                                    console.log("got new cab file");
+                                    // console.log("got new cab file");
                                     // update that we're setting reverb
                                     // cause file callback
-                                    console.log("file is", name.toString());
+                                    // console.log("file is", name.toString());
                                     knobs.update_ir(false, name.toString()); // false is set cab
                                     // some way to handle errors also needed
                                 })
@@ -1302,11 +1312,11 @@ ApplicationWindow {
                         anchors.bottomMargin: 0
                         TabButton {
                             text: qsTr("MAIN")
-                            font.pixelSize: baseFontSize
+                            font.pixelSize: fontSizeMedium
                         }
 
                         TabButton {
-                            font.pixelSize: baseFontSize
+                            font.pixelSize: fontSizeMedium
                             text: qsTr("BUS")
                         }
                     }
@@ -1391,7 +1401,7 @@ ApplicationWindow {
                         anchors.bottomMargin: 0
                         TabButton {
                             text: qsTr("LFO1")
-                            font.pixelSize: baseFontSize
+                            font.pixelSize: fontSizeMedium
                         }
                         // TabButton {
                         //     text: qsTr("LFO2")
@@ -1420,10 +1430,11 @@ ApplicationWindow {
 
             TabBar {
                 id: topLevelBar
-                x: 240
+                x: 220
                 y: 0
-                width: 800
-                currentIndex: 2
+                width: 840
+                currentIndex: 0
+                property int prevIndex: 0
 
                 TabButton {
                     Material.foreground: pluginState.delay1.value ? Material.color(Material.Indigo, Material.Shade200) : Material.Grey
@@ -1431,13 +1442,18 @@ ApplicationWindow {
                     id: tabButton
                     // height: parent.height
                     text: qsTr("DELAY")
-                    font.pixelSize: fontSizeMedium
+                    font.pixelSize: fontSizeLarge
                     // color:
-                    onDoubleClicked: {
-                        knobs.toggle_enabled("delay1");
-                        knobs.toggle_enabled("delay2");
-                        knobs.toggle_enabled("delay3");
-                        knobs.toggle_enabled("delay4");
+                    onClicked: {
+                        if (topLevelBar.currentIndex == 0 && topLevelBar.prevIndex == 0){
+                            knobs.toggle_enabled("delay1");
+                            knobs.toggle_enabled("delay2");
+                            knobs.toggle_enabled("delay3");
+                            knobs.toggle_enabled("delay4");
+                        }
+                        else {
+                            topLevelBar.prevIndex = 0
+                        }
                     }
                 }
 
@@ -1446,10 +1462,16 @@ ApplicationWindow {
                     Material.accent: pluginState.reverb.value ? Material.color(Material.Indigo, Material.Shade200) : Material.Grey
                     id: tabButton1
                     text: qsTr("REVERB")
-                    font.pixelSize: fontSizeMedium
+                    font.pixelSize: fontSizeLarge
                     // color: pluginState.reverb ? Material.Green : Material.Grey
-                    onDoubleClicked: {
-                        knobs.toggle_enabled("reverb")
+                    onClicked: {
+                        if (topLevelBar.currentIndex == 1 && topLevelBar.prevIndex == 1){
+                            knobs.toggle_enabled("reverb")
+                            // console.log("toggling reverb")
+                        }
+                        else {
+                            topLevelBar.prevIndex = 1
+                        }
                     }
                 }
 
@@ -1460,27 +1482,40 @@ ApplicationWindow {
                     Material.accent: Material.color(Material.Indigo, Material.Shade200)
                     id: tabButton2
                     // color: pluginState.mixer ? Material.Green : Material.Grey
-                    font.pixelSize: fontSizeMedium
+                    font.pixelSize: fontSizeLarge
                     text: qsTr("MIXER")
+                    width: 160
+                    onClicked: {
+                        topLevelBar.prevIndex = 2
+                    }
                 }
 
                 TabButton {
                     Material.foreground: pluginState.cab.value ? Material.color(Material.Indigo, Material.Shade200) : Material.Grey
                     Material.accent: pluginState.cab.value ? Material.color(Material.Indigo, Material.Shade200) : Material.Grey
                     id: tabButton3
-                    font.pixelSize: fontSizeMedium
+                    font.pixelSize: fontSizeLarge
+                    width: 110
                     // color: pluginState.cab ? Material.Green : Material.Grey
                     text: qsTr("CAB")
-                    onDoubleClicked: {
-                        knobs.toggle_enabled("cab")
+                    onClicked: {
+                        if (topLevelBar.currentIndex == 3 && topLevelBar.prevIndex == 3){
+                            knobs.toggle_enabled("cab")
+                        }
+                        else {
+                            topLevelBar.prevIndex = 3
+                        }
                     }
                 }
                 TabButton {
                     // Material.foreground: pluginState.cab.value ? Material.LightGreen : Material.Grey
                     // Material.accent: pluginState.cab.value ? Material.lightGreen : Material.Grey
                     // color: pluginState.cab ? Material.Green : Material.Grey
-                    font.pixelSize: fontSizeMedium
+                    font.pixelSize: fontSizeLarge
                     text: qsTr("MODIFY")
+                    onClicked: {
+                        topLevelBar.prevIndex = 4
+                    }
                     // onDoubleClicked: {
                     //     knobs.toggle_enabled("cab")
                     // }
@@ -1521,7 +1556,7 @@ ApplicationWindow {
                     onClicked: {
                         // set map encoder on
                         // python variable in qml context
-                        console.warn("waiting for knob mapping")
+                        // console.warn("waiting for knob mapping")
                         knobs.set_waiting("left")
                     }
                 }
@@ -1590,7 +1625,7 @@ ApplicationWindow {
                     onClicked: {
                         // set map encoder on
                         // python variable in qml context
-                        console.warn("waiting for knob mapping")
+                        // console.warn("waiting for knob mapping")
                         knobs.set_waiting("right")
                     }
                 }

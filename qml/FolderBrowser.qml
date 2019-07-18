@@ -63,7 +63,7 @@ import Qt.labs.folderlistmodel 2.2
             visible: folderListModel.folder != top_folder
             onClicked: {
                 folderListModel.folder = folderListModel.parentFolder
-                console.log(folderListModel.folder, top_folder);
+                // console.log(folderListModel.folder, top_folder);
             } 
             height: 60
         }
@@ -100,7 +100,7 @@ import Qt.labs.folderlistmodel 2.2
                     }
                     else
                     {
-                        console.log(mainRect.basename(fileURL.toString()))
+                        // console.log(mainRect.basename(fileURL.toString()))
                         mainRect.current_selected = fileURL
                         mainRect.after_file_selected(fileURL)
                     }
