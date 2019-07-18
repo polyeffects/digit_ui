@@ -72,7 +72,7 @@ def send_ui_message(command, args):
 
 def set_active(effect, is_active):
     # print(effect, " active state is ", bool(is_active))
-    if "delay" in effect:
+    if ("delay" in effect) or (effect == "reverb") or (effect == "cab"):
         host.set_volume(pluginMap[effect], is_active)
     else:
         host.set_drywet(pluginMap[effect], is_active) # full wet if active else full dry
@@ -142,7 +142,7 @@ def map_parameter(source, effect_name, parameter, rmin=0, rmax=1):
         set_knob_current_effect(source, effect_name, parameter, rmin, rmax)
         # print("mapping knob core")
 
-def map_parameter_to_lfo(source, effect_name, parameter):
+def map_parameter_to_lfo(source, effect_name, parameter, cc_num):
     # we're mapping to LFO
     # print("mapping lfo core", source, effect_name, parameter, cc_num)
     host.set_parameter_midi_cc(pluginMap[effect_name], parameterMap[effect_name][parameter],
@@ -557,7 +557,7 @@ start_tap_time = None
 ## tap callback is called by hardware button from the GPIO checking thread
 def handle_tap(timestamp):
     global start_tap_time
-    current_tap = timestamps
+    current_tap = timestamp
     if start_tap_time is not None:
         # just use this and previous to calculate BPM
         # BPM must be in range 30-250
