@@ -163,6 +163,14 @@ def ui_worker(ui_mess, core_mess):
     available_port_models = dict({(k, QStringListModel()) for k in source_ports})
     used_port_models = dict({(k, QStringListModel()) for k in available_port_models.keys()})
 
+    preset_list = []
+    try:
+        with open("/pedal_state/preset_list.json") as f:
+            preset_list = json.load(f)
+    except:
+        preset_list = ["Akg eq ed", "Back at u"]
+    preset_list_model = QStringListModel(preset_list)
+
     def set_knob_current_effect(knob, effect, parameter):
         # get current value and update encoder / cache.
         knob_map[knob].effect = effect
@@ -176,6 +184,21 @@ def ui_worker(ui_mess, core_mess):
     def remove_row(model, row):
         i = model.stringList().index(row)
         model.removeRows(i, 1)
+
+    # preset map number to filename
+    # playlists
+    # add number + filename
+    def jump_to_preset(is_inc, num):
+        p_list = preset_list_model.stringList()
+        if is_inc:
+            current_preset.value = (current_preset.value + num) % len(p_list)
+        else:
+            if num < len(p_list):
+                current_preset.value = num
+            else:
+                return
+        load_preset("/presets/"+p_list[current_preset.value]+".json")
+
 
     def save_preset(filename):
         # write all effect parameters
@@ -202,6 +225,7 @@ def ui_worker(ui_mess, core_mess):
         output["knobs"] = {k:[v.effect, v.parameter] for k,v in knob_map.items()}
         # write bpm
         output["bpm"] = current_bpm.value
+        output["delay_num_bars"] = delay_num_bars.value
         with open(filename, "w") as f:
             json.dump(output, f)
 
@@ -210,6 +234,21 @@ def ui_worker(ui_mess, core_mess):
         with open(filename) as f:
             preset = json.load(f)
         current_preset.name = os.path.splitext(os.path.basename(filename))[0]
+        # read first as clips
+        if "delay_num_bars" in preset:
+            if preset["delay_num_bars"] != delay_num_bars.value:
+                delay_num_bars.value = preset["delay_num_bars"]
+                effect_parameter_data["delay1"]["Delay_1"].rmax = preset["delay_num_bars"]
+                effect_parameter_data["delay2"]["Delay_1"].rmax = preset["delay_num_bars"]
+                effect_parameter_data["delay3"]["Delay_1"].rmax = preset["delay_num_bars"]
+                effect_parameter_data["delay4"]["Delay_1"].rmax = preset["delay_num_bars"]
+        else:
+            delay_num_bars.value = 2
+            effect_parameter_data["delay1"]["Delay_1"].rmax = 2
+            effect_parameter_data["delay2"]["Delay_1"].rmax = 2
+            effect_parameter_data["delay3"]["Delay_1"].rmax = 2
+            effect_parameter_data["delay4"]["Delay_1"].rmax = 2
+
         # read all effect parameters
         for effect_name, effect_value in preset["effects"].items():
             for parameter_name, parameter_value in effect_value.items():
@@ -265,6 +304,7 @@ def ui_worker(ui_mess, core_mess):
             current_bpm.value = preset["bpm"]
             send_core_message("set_bpm", (preset["bpm"], ))
 
+
     class Knobs(QObject):
         """Basically all functions for QML to call"""
 
@@ -318,6 +358,7 @@ def ui_worker(ui_mess, core_mess):
             current_ir_file = ir_file[7:] # strip file:// prefix
             # cause call file callback
             # by calling show GUI
+            # TODO queue reverb loading for presets
             if is_reverb:
                 # kill existing jconvolver
                 # write jconvolver file
@@ -426,7 +467,15 @@ def ui_worker(ui_mess, core_mess):
             # print("copy presets to USB")
             # could convert any that aren't 48khz.
             # instead we just only copy ones that are
-            command = """cd /presets; mkdir -p /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/media/presets --parents"""
+            command = """cd /presets; mkdir -p /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/media/presets --parents;sudo umount /media"""
+            command_status[0].value = subprocess.call(command, shell=True)
+
+        @Slot()
+        def copy_logs(self):
+            # print("copy presets to USB")
+            # could convert any that aren't 48khz.
+            # instead we just only copy ones that are
+            command = """mkdir -p /media/logs; sudo cp /var/log/syslog /media/logs/;sudo umount /media"""
             command_status[0].value = subprocess.call(command, shell=True)
 
         @Slot()
@@ -454,11 +503,35 @@ def ui_worker(ui_mess, core_mess):
 
             send_core_message("set_channel", (channel, args))
             midi_channel.value = channel
+            pedal_state["midi_channel"] = channel
+            write_pedal_state()
 
         @Slot(int)
-        def set_input_level(self, level):
+        def set_input_level(self, level, write=True):
             command = "amixer -- sset ADC1 "+str(level)+"db"""
             command_status[0].value = subprocess.call(command, shell=True)
+            if write:
+                pedal_state["input_level"] = level
+                write_pedal_state()
+
+        @Slot(int)
+        def set_preset_list_length(self, v):
+            if v > len(preset_list_model.stringList()):
+                # print("inserting new row in preset list", v)
+                insert_row(preset_list_model, "Default Preset")
+            else:
+                # print("removing row in preset list", v)
+                preset_list_model.removeRows(v, 1)
+
+        @Slot(int, str)
+        def map_preset(self, v, name):
+            current_name = name[16:-5] # strip file://presets/ prefix
+            preset_list_model.setData(preset_list_model.index(v), current_name)
+
+        @Slot()
+        def save_preset_list(self):
+            with open("/pedal_state/preset_list.json", "w") as f:
+                json.dump(preset_list_model.stringList(), f)
 
     def add_ports(port):
         source_ports_self = {"sigmoid1:Output":"delay1", "delay2:out0":"delay2",
@@ -492,11 +565,17 @@ def ui_worker(ui_mess, core_mess):
                     plugin_state[m[1][0]].value = m[1][1]
                 elif m[0] == "add_port":
                     add_ports(m[1][0])
+                elif m[0] == "jump_to_preset":
+                    jump_to_preset(m[1][0], m[1][1])
                 elif m[0] == "exit":
                     # global EXIT_PROCESS
                     EXIT_PROCESS[0] = True
         except queue.Empty:
             pass
+
+    def write_pedal_state():
+        with open("/pedal_state/state.json", "w") as f:
+            json.dump(pedal_state, f)
 
 
     lfos = []
@@ -627,12 +706,18 @@ def ui_worker(ui_mess, core_mess):
 
     # Instantiate the Python object.
     knobs = Knobs()
+    # read persistant state
+    pedal_state = {}
+    with open("/pedal_state/state.json") as f:
+        pedal_state = json.load(f)
     current_bpm = PolyValue("BPM", 120, 30, 250) # bit of a hack
-    current_preset = PolyValue("Default Preset", 0, 0, 1)
-    update_counter = PolyValue("update counter", 0, 0, 100000)
+    current_preset = PolyValue("Default Preset", 0, 0, 127)
+    update_counter = PolyValue("update counter", 0, 0, 500000)
     command_status = [PolyValue("command status", -1, -10, 100000), PolyValue("command status", -1, -10, 100000)]
     delay_num_bars = PolyValue("Num bars", 1, 1, 16)
-    midi_channel = PolyValue("channel", 1, 1, 16)
+    midi_channel = PolyValue("channel", pedal_state["midi_channel"], 1, 16)
+    input_level = PolyValue("input level", pedal_state["input_level"], -80, 10)
+    knobs.set_input_level(pedal_state["input_level"], write=False)
     is_loading = {"reverb":PolyBool(False), "cab":PolyBool(False)}
     # global ui_messages, core_messages
     ui_messages = ui_mess
@@ -657,6 +742,8 @@ def ui_worker(ui_mess, core_mess):
     context.setContextProperty("delayNumBars", delay_num_bars)
     context.setContextProperty("midiChannel", midi_channel)
     context.setContextProperty("isLoading", is_loading)
+    context.setContextProperty("inputLevel", input_level)
+    context.setContextProperty("presetList", preset_list_model)
 
     # engine.load(QUrl("qrc:/qml/digit.qml"))
     qmlEngine.load(QUrl("qml/digit.qml"))
@@ -669,10 +756,15 @@ def ui_worker(ui_mess, core_mess):
     signal(SIGINT,  signalHandler)
     signal(SIGTERM, signalHandler)
 
+    initial_preset = False
     while not EXIT_PROCESS[0]:
         app.processEvents()
         process_ui_messages()
         sleep(0.01)
+        if not initial_preset:
+            load_preset("/presets/Default Preset.json")
+            update_counter.value+=1
+            initial_preset = True
 
     # print("exiting frontend")
     exit(1)

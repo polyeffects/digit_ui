@@ -22,14 +22,18 @@ bypass_setup = False
 tap_callback = None
 next_callback = None
 bypass_callback = None
+tap_and_step_callback = None
+step_and_bypass_callback = None
 encoder_change_callback = None
+switch_is_down = [False, False, False]
+down_timestamp = 0
 
 knob_prev={"left":127, "right":127}
 max_knob_speed = 20
 
 input_queue = queue.Queue()
 
-def effect_on(t=0.001):
+def effect_on(t=0.01):
     # global is_on
     # echo 1 > /sys/class/gpio/gpio131/value
     # echo 0 > /sys/class/gpio/gpio131/value
@@ -40,7 +44,7 @@ def effect_on(t=0.001):
         f.write("0")
     # is_on = True
 
-def effect_off(t=0.001):
+def effect_off(t=0.01):
     # global is_on
     with open('/sys/class/gpio/gpio131/value', 'w') as f:
         f.write("1")
@@ -114,13 +118,50 @@ def process_input():
     # pop from queue
     try:
         while True:
+            # check if we get a down while other swtch is down, if so it's a multi press
             e = input_queue.get(block=False)
             if e.code == 30 and e.value == 1: # tap down
-                tap_callback(e.timestamp())
+                switch_is_down[0] = True
+                global down_timestamp
+                down_timestamp = e.timestamp()
             if e.code == 48 and e.value == 1: # step
-                next_callback()
+                switch_is_down[1] = True
             if e.code == 46 and e.value == 1: # bypass
-                bypass_callback()
+                switch_is_down[2] = True
+
+            # each action clears the others states if multiple
+            if e.code == 30 and e.value == 0: # tap up
+                if switch_is_down[0] and not (switch_is_down[1] or switch_is_down[2]):
+                    tap_callback(down_timestamp)
+                    switch_is_down[0] = False
+                elif switch_is_down[0] and switch_is_down[1]:
+                    tap_and_step_callback()
+                    switch_is_down[0] = False
+                    switch_is_down[1] = False
+                    switch_is_down[2] = False
+            if e.code == 48 and e.value == 0: # step
+                if switch_is_down[1] and not (switch_is_down[0] or switch_is_down[2]):
+                    next_callback()
+                    switch_is_down[1] = False
+                elif switch_is_down[0] and switch_is_down[1]:
+                    tap_and_step_callback()
+                    switch_is_down[0] = False
+                    switch_is_down[1] = False
+                    switch_is_down[2] = False
+                elif switch_is_down[2] and switch_is_down[1]:
+                    step_and_bypass_callback()
+                    switch_is_down[0] = False
+                    switch_is_down[1] = False
+                    switch_is_down[2] = False
+            if e.code == 46 and e.value == 0: # bypass
+                if switch_is_down[2] and not (switch_is_down[0] or switch_is_down[1]):
+                    bypass_callback()
+                    switch_is_down[2] = False
+                elif switch_is_down[2] and switch_is_down[1]:
+                    step_and_bypass_callback()
+                    switch_is_down[0] = False
+                    switch_is_down[1] = False
+                    switch_is_down[2] = False
             if e.type == 2: # knob
                 if e.code == 1: # left
                     encoder_change_callback(True, e.value)

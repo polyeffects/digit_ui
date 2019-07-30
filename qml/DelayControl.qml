@@ -26,6 +26,7 @@ import QtQuick.Controls.Material 2.3
         property string current_parameter: "Amp_5"
         property int max_delay_length: 30
         property color assign_color: knobs.waiting != "" ? Material.color(Material.Cyan, Material.Shade400) : Material.color(Material.Pink, Material.Shade200) 
+        property int updateCount: updateCounter, externalRefresh()
 		// property var delay_data: [{"time": polyValues["delay1"]["Delay_1"].value, 
 		// 	"LEVEL": polyValues["delay1"]["carla_level"].value, 
 		// 	"TONE": polyValues["delay1"]["fb_tone"].value, 
@@ -103,6 +104,11 @@ import QtQuick.Controls.Material 2.3
 		function setColorAlpha(color, alpha) {
 			return Qt.hsla(color.hslHue, color.hslSaturation, color.hslLightness, alpha)
 		}
+
+        function externalRefresh() {
+            mycanvas.requestPaint();
+            return updateCounter.value;
+        }
 
 
         // Row {
@@ -371,24 +377,26 @@ import QtQuick.Controls.Material 2.3
             // }
             Label {
                 text: time_scale.synced ? "BEAT" : "TIME (S)"
-                font.pixelSize: 20
+                font.pixelSize: 26
                 z: 2
                 anchors.horizontalCenter: mycanvas.horizontalCenter
                 anchors.top: mycanvas.bottom
-                color: "grey"
+                color: "white"
             }
 
             Label {
                 text: time_scale.inv_parameter_map[time_scale.current_parameter]
-                font.pixelSize: 20
+                font.pixelSize: 26
                 height:30
                 width: 30
                 // x: 200
+                // x: -2
                 z: 2
                 anchors.verticalCenter: mycanvas.verticalCenter
                 anchors.right: mycanvas.left
+                anchors.rightMargin: 10
                 rotation : 270
-                color: "grey"
+                color: "white"
             }
         }
 

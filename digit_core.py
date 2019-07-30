@@ -270,6 +270,12 @@ def engineCallback(host, action, pluginId, value1, value2, value3, valuef, value
         current_connections[(gOut, pOut, gIn, pIn)] = pluginId
         # print("patchbay connection added", pluginId, gOut, pOut, gIn, pIn)
         # host.PatchbayConnectionAddedCallback.emit(pluginId, gOut, pOut, gIn, pIn)
+    elif action == ENGINE_CALLBACK_PROGRAM_CHANGED:
+        print("got a program change", pluginId, value1)
+    elif action == ENGINE_CALLBACK_MIDI_PROGRAM_CHANGED:
+        # host.MidiProgramChangedCallback.emit(pluginId, value1)
+        print("got a midi program change", pluginId, value1)
+        jump_to_preset(value1)
     # elif action == ENGINE_CALLBACK_PATCHBAY_CONNECTION_REMOVED:
     #     pass
         # host.PatchbayConnectionRemovedCallback.emit(pluginId, value1, value2)
@@ -297,14 +303,11 @@ def engineCallback(host, action, pluginId, value1, value2, value3, valuef, value
     #     host.ParameterValueChangedCallback.emit(pluginId, value1, value3)
     # elif action == ENGINE_CALLBACK_PARAMETER_DEFAULT_CHANGED:
     #     host.ParameterDefaultChangedCallback.emit(pluginId, value1, value3)
-    # elif action == ENGINE_CALLBACK_PARAMETER_MIDI_CC_CHANGED:
-    #     host.ParameterMidiCcChangedCallback.emit(pluginId, value1, value2)
+    elif action == ENGINE_CALLBACK_PARAMETER_MIDI_CC_CHANGED:
+        print("CC changed")
+        # host.ParameterMidiCcChangedCallback.emit(pluginId, value1, value2)
     # elif action == ENGINE_CALLBACK_PARAMETER_MIDI_CHANNEL_CHANGED:
     #     host.ParameterMidiChannelChangedCallback.emit(pluginId, value1, value2)
-    # elif action == ENGINE_CALLBACK_PROGRAM_CHANGED:
-    #     host.ProgramChangedCallback.emit(pluginId, value1)
-    # elif action == ENGINE_CALLBACK_MIDI_PROGRAM_CHANGED:
-    #     host.MidiProgramChangedCallback.emit(pluginId, value1)
     # elif action == ENGINE_CALLBACK_OPTION_CHANGED:
     #     host.OptionChangedCallback.emit(pluginId, value1, bool(value2))
     # elif action == ENGINE_CALLBACK_UI_STATE_CHANGED:
@@ -362,8 +365,13 @@ def engineCallback(host, action, pluginId, value1, value2, value3, valuef, value
 
 
 def next_preset():
-    # need to have some kind of mapping for all presets so you can assign numbers to them
-    pass
+    send_ui_message("jump_to_preset", (True, 1))
+
+def previous_preset():
+    send_ui_message("jump_to_preset", (True, -1))
+
+def jump_to_preset(num):
+    send_ui_message("jump_to_preset", (False, num))
 
 def auto_connect_ports():
     try:
@@ -571,6 +579,9 @@ def handle_tap(timestamp):
     # record start time
     start_tap_time = current_tap
 
+def handle_tap_and_step():
+    previous_preset()
+
 def handle_next():
     # disable delay
     toggle_enabled("delay1")
@@ -581,6 +592,9 @@ def handle_next():
     send_ui_message("set_plugin_state", ("delay2", plugin_state["delay2"]))
     send_ui_message("set_plugin_state", ("delay3", plugin_state["delay3"]))
     send_ui_message("set_plugin_state", ("delay4", plugin_state["delay4"]))
+
+def handle_step_and_bypass():
+    next_preset()
 
 def handle_bypass():
     # global bypass
@@ -633,6 +647,8 @@ def process_core_messages():
 pedal_hardware.tap_callback = handle_tap
 pedal_hardware.next_callback = handle_next
 pedal_hardware.bypass_callback = handle_bypass
+pedal_hardware.tap_and_step_callback = handle_tap_and_step
+pedal_hardware.step_and_bypass_callback = handle_step_and_bypass
 pedal_hardware.encoder_change_callback = handle_encoder_change
 patchbay_external = False
 
@@ -683,9 +699,11 @@ while host.is_engine_running() and not gCarla.term:
         effects_are_connected = True
 
     if (not knobs_are_initial_mapped):
-        if "delay1" in portMap:
+        if "delay1" in portMap and "lfo1" in pluginMap:
             set_knob_current_effect("left", "delay1", "Delay_1")
             set_knob_current_effect("right", "delay1", "Feedback_4")
+            host.set_option(pluginMap["lfo1"], PLUGIN_OPTION_MAP_PROGRAM_CHANGES, False)
+            host.set_option(pluginMap["lfo1"], PLUGIN_OPTION_SEND_PROGRAM_CHANGES, True)
             host.transport_play()
             knobs_are_initial_mapped = True
     else:

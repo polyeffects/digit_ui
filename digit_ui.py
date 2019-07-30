@@ -51,6 +51,20 @@ class Knobs(QObject):
         # set_knob_current_effect(self.waiting, effect_name, parameter)
         self.waiting = ""
 
+    @Slot(int)
+    def set_preset_list_length(self, v):
+        if v > len(preset_list_model.stringList()):
+            print("inserting new row in preset list", v)
+            insert_row(preset_list_model, "Default Preset")
+        else:
+            print("removing row in preset list", v)
+            preset_list_model.removeRows(v, 1)
+
+    @Slot(int, str)
+    def map_preset(self, v, name):
+        current_name = name[16:-5] # strip file://presets/ prefix
+        preset_list_model.setData(preset_list_model.index(v), current_name)
+
     @Slot(str)
     def set_waiting(self, knob):
         print("waiting", knob)
@@ -257,6 +271,9 @@ effect_parameter_data = {"delay1": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.
     "lfo4": lfos[3]
     }
 
+preset_list = ["Akg eq ed", "Back at u"]
+preset_list_model = QStringListModel(preset_list)
+
 app = QGuiApplication(sys.argv)
 def main_ui():
     # d = QQmlDebuggingEnabler()
@@ -288,6 +305,7 @@ def main_ui():
     context.setContextProperty("polyValues", effect_parameter_data)
     context.setContextProperty("updateCounter", update_counter)
     context.setContextProperty("delayNumBars", delay_num_bars)
+    context.setContextProperty("presetList", preset_list_model)
     # engine.load(QUrl("qrc:/qml/digit.qml"))
     engine.load(QUrl("qml/digit.qml"))
 

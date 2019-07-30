@@ -14,11 +14,22 @@ import QtQuick.VirtualKeyboard 2.1
 //     Material.theme: Material.Dark
 //     Material.primary: Material.Green
 //     Material.accent: Material.Pink
+//
+//     preset list
+//     add item to list
+//     remove item 
+//     change preset mapped to number
+//     
+//     list of buttons,  + or - at top
+//     each button opens select preset
+//     save
+//
 
 
     Item {
         id: preset_widget
         property bool is_system_preset: false
+        property int map_index: 0
 
 		// save or load
         Component {
@@ -45,6 +56,16 @@ import QtQuick.VirtualKeyboard 2.1
 						width: 300
 						// height: 500
                         onClicked: is_system_preset ? presetStack.push(choosePresetFolder) : presetStack.push(newOrOverwrite) 
+						font {
+							pixelSize: fontSizeLarge
+						}
+                    }
+
+                    Button {
+                        text: "MAP"
+						width: 300
+						// height: 500
+                        onClicked: presetStack.push(mapPresets)
 						font {
 							pixelSize: fontSizeLarge
 						}
@@ -265,6 +286,7 @@ import QtQuick.VirtualKeyboard 2.1
 						width: 250
 						height: 100
                         text: "SAVE"
+                        enabled: new_preset_name.text.length > 0
 						onClicked: {
 							knobs.ui_save_preset(new_preset_name.text);
 							mainStack.pop()
@@ -294,6 +316,153 @@ import QtQuick.VirtualKeyboard 2.1
 					onClicked: presetStack.pop()
 				}
             }
+        }
+
+        Component {
+            id: mapPresets
+            Item {
+                id: mapPresetsCont
+				height:700
+				width:1280
+
+
+                SpinBox {
+                    y: 80
+                    x: 500
+                    width: 100
+                    font.pixelSize: fontSizeMedium
+                    from: 1
+                    value: presetList.rowCount()
+                    to: 127
+                    onValueModified: {
+                        knobs.set_preset_list_length(value);
+                    }
+                }
+                ListView {
+                    x: 500
+                    y: 150
+                    width: 600
+                    height: 500
+                    clip: true
+                    delegate: ItemDelegate {
+                        width: parent.width
+                        height: 50
+                        text: index + " " + edit
+                        bottomPadding: 10
+                        font.pixelSize: fontSizeMedium
+                        topPadding: 10
+                        onClicked: {
+                            // knobs.ui_add_connection(effect, sourcePort, edit)
+                            preset_widget.map_index = index;
+                            presetStack.push(mapPresetBrowser)
+                        }
+                    }
+                    ScrollIndicator.vertical: ScrollIndicator {
+                        anchors.top: parent.top
+                        parent: mapPresetsCont
+                        anchors.right: parent.right
+                        anchors.rightMargin: 1
+                        anchors.bottom: parent.bottom
+                    }
+                    model: presetList
+                }
+                // Row {
+                //     spacing: 100
+					// anchors.centerIn: parent
+                //     Button {
+						// font {
+							// pixelSize: fontSizeLarge
+						// }
+                //         text: "OVERWRITE"
+						// width: 300
+                //         onClicked: { // save preset and close browser
+							// knobs.ui_save_preset(currentPreset.name);
+							// mainStack.pop()
+						// }
+                //     }
+                //     Button {
+						// font {
+							// pixelSize: fontSizeLarge
+						// }
+                //         text: "CREATE NEW"
+						// width: 300
+                //         onClicked: presetStack.push(choosePresetFolder)
+                //     }
+                // }
+				Button {
+					font {
+						pixelSize: fontSizeMedium
+					}
+					text: "BACK"
+					anchors.right: parent.right
+					anchors.rightMargin: 20
+					anchors.topMargin: 20
+					width: 100
+					height: 100
+                    onClicked: {
+                        knobs.save_preset_list()
+                        presetStack.pop()
+                    }
+				}
+            }
+        }
+
+        Component {
+            id: mapPresetBrowser
+            // height:parent.height
+            // Column {
+                // width:300
+                // spacing: 20
+                // height:parent.height
+                Item {
+					height:700
+					width:1280
+
+					// anchors.centerIn: parent
+                    GlowingLabel {
+                        // color: "#ffffff"
+						y: 20
+						x: 400
+                        text: qsTr("Select Preset")
+                    }
+
+                    FolderBrowser {
+                        y: 60
+						x: 400
+                        // Layout.fillHeight: true
+                        height: 650
+                        width: 500
+						top_folder: "file:///presets/"
+						after_file_selected: (function(name) { 
+							console.log("mapping preset file");
+							knobs.map_preset(preset_widget.map_index, name.toString());
+                            presetStack.pop()
+						})
+						
+                    } // preset loaded on click on preset
+
+                    // Button {
+                    //     y: 460
+						// x: 400
+                    //     width: 500
+                    //     height: 60
+                    //     text: "LOAD"
+                    //     onClicked: presetStack.push(setPresetName) // load preset and close
+                    // }
+					Button {
+						font {
+							pixelSize: fontSizeMedium
+						}
+						text: "BACK"
+						anchors.right: parent.right
+						anchors.rightMargin: 10
+						anchors.topMargin: 10
+						width: 100
+						height: 100
+                        onClicked: presetStack.pop()
+					}
+                }
+            // }
         }
 
         StackView {

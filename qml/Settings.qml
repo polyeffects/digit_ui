@@ -35,7 +35,7 @@ Item {
                     // height:parent.height
                     GlowingLabel {
                         // color: "#ffffff"
-                        text: qsTr("DIGIT FIRMWARE 1.4")
+                        text: qsTr("DIGIT FIRMWARE 1.6.2")
                     }
 
                     Button {
@@ -66,18 +66,25 @@ Item {
                         // show screen explaining to put USB flash drive in
                         onClicked: knobs.set_channel(midi_channel_spin.value)
                     }
-                    GlowingLabel {
-                        // color: "#ffffff"
-                        text: qsTr("BYPASS TYPE")
-                    }
-                    PolyCombo {
+                    // GlowingLabel {
+                    //     // color: "#ffffff"
+                    //     text: qsTr("BYPASS TYPE")
+                    // }
+                    // PolyCombo {
+                    //     flat: true
+                    //     // width: 140
+                    //     model: ["relay", "1 to all"]
+                    //     onActivated: {
+                    //         // console.debug(model[index]);
+                    //         knobs.set_bypass_type(model[index]);
+                    //     }
+                    // }
+                    Button {
                         flat: true
-                        // width: 140
-                        model: ["relay", "1 to all"]
-                        onActivated: {
-                            // console.debug(model[index]);
-                            knobs.set_bypass_type(model[index]);
-                        }
+                        text: "COPY LOGS"
+                        font.pixelSize: baseFontSize
+                        // show screen explaining to put USB flash drive in
+                        onClicked: knobs.copy_logs()
                     }
 
 
@@ -202,7 +209,7 @@ Item {
                         font.pixelSize: baseFontSize
                         from: -80
                         to: 10
-                        value: -8
+                        value: inputLevel.value
                     }
 
                     Button {
