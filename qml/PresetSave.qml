@@ -329,7 +329,7 @@ import QtQuick.VirtualKeyboard 2.1
                 SpinBox {
                     y: 80
                     x: 500
-                    width: 100
+                    // width: 500
                     font.pixelSize: fontSizeMedium
                     from: 1
                     value: presetList.rowCount()

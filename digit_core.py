@@ -685,6 +685,7 @@ while host.is_engine_running() and not gCarla.term:
                 (("reverse1", "Output"), ("sigmoid1", "Input")),
                 (("eq2", "Out"), ("reverb", "In")),
                 (("ttymidi", "MIDI_in"), ("ttymidi", "MIDI_out")),
+                (("ttymidi", "MIDI_in"), ("lfo1", "events-in")),
                 (("mclk", "events-out"), ("ttymidi", "MIDI_out")),
                 ]:
             source_effect, source_port = source_pair
