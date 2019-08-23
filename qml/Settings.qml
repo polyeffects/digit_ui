@@ -35,7 +35,7 @@ Item {
                     // height:parent.height
                     GlowingLabel {
                         // color: "#ffffff"
-                        text: qsTr("DIGIT FIRMWARE 1.6.2")
+                        text: qsTr("DIGIT FIRMWARE 1.6.5")
                     }
 
                     Button {
@@ -218,6 +218,14 @@ Item {
                         font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
                         onClicked: knobs.set_input_level(input_level_spin.value)
+                    }
+
+                    Button {
+                        flat: true
+                        text: "STAGE VIEW"
+                        font.pixelSize: baseFontSize
+                        // show screen explaining to put USB flash drive in
+                        onClicked: mainStack.push("PerformanceMode.qml")
                     }
 
                 }

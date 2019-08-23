@@ -987,7 +987,7 @@ ApplicationWindow {
                                 MixerDial {
                                     GlowingLabel {
                                         color: "#ffffff"
-                                        text: qsTr("OUT 1")
+                                        text: qsTr("OUT 2")
                                         anchors.left: parent.left
                                         anchors.leftMargin: -115
                                         anchors.top: parent.verticalCenter
@@ -998,7 +998,7 @@ ApplicationWindow {
                                 MixerDial {
                                     GlowingLabel {
                                         color: "#ffffff"
-                                        text: qsTr("OUT 1")
+                                        text: qsTr("OUT 3")
                                         anchors.left: parent.left
                                         anchors.leftMargin: -115
                                         anchors.top: parent.verticalCenter
@@ -1009,7 +1009,7 @@ ApplicationWindow {
                                 MixerDial {
                                     GlowingLabel {
                                         color: "#ffffff"
-                                        text: qsTr("OUT 1")
+                                        text: qsTr("OUT 4")
                                         anchors.left: parent.left
                                         anchors.leftMargin: -115
                                         anchors.top: parent.verticalCenter
