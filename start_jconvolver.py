@@ -3,7 +3,7 @@ import os.path, os, subprocess
 reverb_conf_file = """
 /cd "{0}"
 #                in  out   partition    maxsize    density
-/convolver/new    1    2         512      100000       1.0
+/convolver/new    1    2         1024      100000       1.0
 /input/name     1     In
 /output/name    1     OutL
 /output/name    2     OutR
@@ -14,7 +14,7 @@ reverb_conf_file = """
 cab_conf_file = """
 /cd "{0}"
 #                in  out   partition    maxsize    density
-/convolver/new    1    1         128      2000       1.0
+/convolver/new    1    1         256      2000       1.0
 /input/name     1     In
 /output/name    1     Out
 #               in out  gain  delay  offset  length  chan      file

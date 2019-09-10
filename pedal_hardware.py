@@ -19,14 +19,12 @@ bypass_setup = False
 # GPIO.setup("P9_16", GPIO.IN)
 
 # footswitch_is_down = defaultdict(bool)
-tap_callback = None
-next_callback = None
-bypass_callback = None
-tap_and_step_callback = None
-step_and_bypass_callback = None
+foot_callback = None
 encoder_change_callback = None
 switch_is_down = [False, False, False]
-down_timestamp = 0
+tap_down_timestamp = 0
+step_down_timestamp = 0
+bypass_down_timestamp = 0
 
 knob_prev={"left":127, "right":127}
 max_knob_speed = 20
@@ -122,43 +120,47 @@ def process_input():
             e = input_queue.get(block=False)
             if e.code == 30 and e.value == 1: # tap down
                 switch_is_down[0] = True
-                global down_timestamp
-                down_timestamp = e.timestamp()
+                global tap_down_timestamp
+                tap_down_timestamp = e.timestamp()
             if e.code == 48 and e.value == 1: # step
                 switch_is_down[1] = True
+                global step_down_timestamp
+                step_down_timestamp = e.timestamp()
             if e.code == 46 and e.value == 1: # bypass
                 switch_is_down[2] = True
+                global bypass_down_timestamp
+                bypass_down_timestamp = e.timestamp()
 
             # each action clears the others states if multiple
             if e.code == 30 and e.value == 0: # tap up
                 if switch_is_down[0] and not (switch_is_down[1] or switch_is_down[2]):
-                    tap_callback(down_timestamp)
+                    foot_callback("tap_up", tap_down_timestamp)
                     switch_is_down[0] = False
                 elif switch_is_down[0] and switch_is_down[1]:
-                    tap_and_step_callback()
+                    foot_callback("tap_step_up", tap_down_timestamp)
                     switch_is_down[0] = False
                     switch_is_down[1] = False
                     switch_is_down[2] = False
             if e.code == 48 and e.value == 0: # step
                 if switch_is_down[1] and not (switch_is_down[0] or switch_is_down[2]):
-                    next_callback()
+                    foot_callback("step_up", step_down_timestamp)
                     switch_is_down[1] = False
                 elif switch_is_down[0] and switch_is_down[1]:
-                    tap_and_step_callback()
+                    foot_callback("tap_step_up", step_down_timestamp)
                     switch_is_down[0] = False
                     switch_is_down[1] = False
                     switch_is_down[2] = False
                 elif switch_is_down[2] and switch_is_down[1]:
-                    step_and_bypass_callback()
+                    foot_callback("step_bypass_up", step_down_timestamp)
                     switch_is_down[0] = False
                     switch_is_down[1] = False
                     switch_is_down[2] = False
             if e.code == 46 and e.value == 0: # bypass
                 if switch_is_down[2] and not (switch_is_down[0] or switch_is_down[1]):
-                    bypass_callback()
+                    foot_callback("bypass_up", bypass_down_timestamp)
                     switch_is_down[2] = False
                 elif switch_is_down[2] and switch_is_down[1]:
-                    step_and_bypass_callback()
+                    foot_callback("step_bypass_up", bypass_down_timestamp)
                     switch_is_down[0] = False
                     switch_is_down[1] = False
                     switch_is_down[2] = False

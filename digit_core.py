@@ -1,6 +1,7 @@
 ##################### DIGIT #######
 import sys, time, json, os.path, os, subprocess, queue, threading
 from multiprocessing import Process, Queue
+from enum import Enum
 ##### Hardware backend
 # --------------------------------------------------------------------------------------------------------
 import pedal_hardware, digit_frontend
@@ -165,11 +166,11 @@ def map_parameter_cc(effect_name, parameter, cc, connect_ports=True):
     host.set_parameter_midi_channel(pluginMap[effect_name], parameterMap[effect_name][parameter], midi_channel - 1)
     # connect ports
     # ("ttymidi", "MIDI_in")
-    if connect_ports:
-        host.patchbay_connect(patchbay_external, portMap["ttymidi"]["group"],
-                portMap["ttymidi"]["ports"]["MIDI_in"],
-                portMap[effect_name]["group"],
-                portMap[effect_name]["ports"]["events-in"])
+    # if connect_ports:
+    #     host.patchbay_connect(patchbay_external, portMap["ttymidi"]["group"],
+    #             portMap["ttymidi"]["ports"]["MIDI_in"],
+    #             portMap[effect_name]["group"],
+    #             portMap[effect_name]["ports"]["events-in"])
 
 
 # @Slot()
@@ -475,7 +476,7 @@ class Encoder():
         self.rmax = 1
 
 
-knob_map = {"left": Encoder("delay1", "Delay_1"), "right": Encoder("delay1", "Feedback_4")}
+knob_map = {"left": Encoder("delay1", "Amp_5"), "right": Encoder("delay1", "Feedback_4")}
 
 all_effects = [("delay1", True), ("delay2", True), ("delay3", True),
         ("delay4", True), ("reverb", True), ("postreverb", True), ("mixer", True),
@@ -560,6 +561,76 @@ def set_bpm(bpm):
     send_ui_message("bpm_change", (bpm, ))
     # print("setting tempo", bpm)
 
+### Assignable actions
+# 
+
+Actions = Enum("Actions", """set_value
+tap
+toggle_pedal toggle_delay toggle_cab toggle_reverb
+next_step
+set_tempo
+send_cc
+select_preset
+next_preset
+previous_preset
+next_action_group previous_action_group
+toggle_effect
+""")
+foot_action_groups = [{"tap_up":[Actions.tap] , "step_up": [Actions.toggle_delay], "bypass_up":[Actions.toggle_pedal],
+    "tap_step_up": [Actions.previous_preset], "step_bypass_up": [Actions.next_preset]}]
+current_action_group = 0
+
+def handle_foot_change(switch_name, timestamp):
+    action = foot_action_groups[current_action_group][switch_name][0]
+    params = None
+    if len(foot_action_groups[current_action_group][switch_name]) > 1:
+        params = foot_action_groups[current_action_group][switch_name][1:]
+    if action is Actions.tap:
+        handle_tap(timestamp)
+    elif action is Actions.toggle_pedal:
+        handle_bypass()
+    elif action is Actions.toggle_delay:
+        toggle_enabled("delay1")
+        toggle_enabled("delay2")
+        toggle_enabled("delay3")
+        toggle_enabled("delay4")
+        send_ui_message("set_plugin_state", ("delay1", plugin_state["delay1"]))
+        send_ui_message("set_plugin_state", ("delay2", plugin_state["delay2"]))
+        send_ui_message("set_plugin_state", ("delay3", plugin_state["delay3"]))
+        send_ui_message("set_plugin_state", ("delay4", plugin_state["delay4"]))
+
+    elif action is Actions.toggle_cab:
+        toggle_enabled("cab")
+
+    elif action is Actions.toggle_reverb:
+        toggle_enabled("reverb")
+
+    elif action is Actions.next_step:
+        pass
+
+    elif action is Actions.set_tempo:
+        pass
+
+    elif action is Actions.send_cc:
+        pass
+
+    elif action is Actions.select_preset:
+        pass
+
+    elif action is Actions.next_preset:
+        next_preset()
+
+    elif action is Actions.previous_preset:
+        previous_preset()
+
+    elif action is Actions.next_action_group:
+        pass
+
+    elif action is Actions.previous_action_group:
+        pass
+
+    elif action is Actions.toggle_effect:
+        pass
 
 start_tap_time = None
 ## tap callback is called by hardware button from the GPIO checking thread
@@ -578,23 +649,6 @@ def handle_tap(timestamp):
 
     # record start time
     start_tap_time = current_tap
-
-def handle_tap_and_step():
-    previous_preset()
-
-def handle_next():
-    # disable delay
-    toggle_enabled("delay1")
-    toggle_enabled("delay2")
-    toggle_enabled("delay3")
-    toggle_enabled("delay4")
-    send_ui_message("set_plugin_state", ("delay1", plugin_state["delay1"]))
-    send_ui_message("set_plugin_state", ("delay2", plugin_state["delay2"]))
-    send_ui_message("set_plugin_state", ("delay3", plugin_state["delay3"]))
-    send_ui_message("set_plugin_state", ("delay4", plugin_state["delay4"]))
-
-def handle_step_and_bypass():
-    next_preset()
 
 def handle_bypass():
     # global bypass
@@ -644,11 +698,7 @@ def process_core_messages():
 #             portMap["system"]["ports"][output_port])
 #     pass
 
-pedal_hardware.tap_callback = handle_tap
-pedal_hardware.next_callback = handle_next
-pedal_hardware.bypass_callback = handle_bypass
-pedal_hardware.tap_and_step_callback = handle_tap_and_step
-pedal_hardware.step_and_bypass_callback = handle_step_and_bypass
+pedal_hardware.foot_callback = handle_foot_change
 pedal_hardware.encoder_change_callback = handle_encoder_change
 patchbay_external = False
 
@@ -684,9 +734,9 @@ while host.is_engine_running() and not gCarla.term:
                 (("tape1", "Output"), ("reverse1", "Input")),
                 (("reverse1", "Output"), ("sigmoid1", "Input")),
                 (("eq2", "Out"), ("reverb", "In")),
-                (("ttymidi", "MIDI_in"), ("ttymidi", "MIDI_out")),
-                (("ttymidi", "MIDI_in"), ("lfo1", "events-in")),
-                (("mclk", "events-out"), ("ttymidi", "MIDI_out")),
+                # (("ttymidi", "MIDI_in"), ("ttymidi", "MIDI_out")),
+                # (("ttymidi", "MIDI_in"), ("lfo1", "events-in")),
+                # (("mclk", "events-out"), ("ttymidi", "MIDI_out")),
                 ]:
             source_effect, source_port = source_pair
             output_effect, output_port = output_pair
@@ -701,8 +751,8 @@ while host.is_engine_running() and not gCarla.term:
 
     if (not knobs_are_initial_mapped):
         if "delay1" in portMap and "lfo1" in pluginMap:
-            set_knob_current_effect("left", "delay1", "Delay_1")
-            set_knob_current_effect("right", "delay1", "Feedback_4")
+            set_knob_current_effect("left", "delay1", "Amp_5", 0, 1)
+            set_knob_current_effect("right", "delay1", "Feedback_4", 0, 1)
             host.set_option(pluginMap["lfo1"], PLUGIN_OPTION_MAP_PROGRAM_CHANGES, False)
             host.set_option(pluginMap["lfo1"], PLUGIN_OPTION_SEND_PROGRAM_CHANGES, True)
             host.transport_play()

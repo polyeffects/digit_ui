@@ -80,11 +80,11 @@ ApplicationWindow {
             property string param
             // x: 500
             // y: 200
-            width: 400
-            height: 200
+            width: 500
+            height: 300
             modal: true
             focus: true
-            closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
+            closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
             parent: Overlay.overlay
             Overlay.modal: Rectangle {
@@ -121,9 +121,9 @@ ApplicationWindow {
                 //     font.pixelSize: baseFontSize 
                 // }
                 Button {
-                    text: "Remove Mapping"
+                    text: "Clear Mapping"
                     font.pixelSize: baseFontSize
-                    width: 140
+                    width: 190
                     onClicked: {
                         knobs.unmap_parameter(midiAssignPopup.effect, midiAssignPopup.param)
                         midiAssignPopup.close()
@@ -174,7 +174,7 @@ ApplicationWindow {
             height: 200
             modal: true
             focus: true
-            closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
+            closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
             parent: Overlay.overlay
             Overlay.modal: Rectangle {
@@ -658,27 +658,43 @@ ApplicationWindow {
                             z: -1
 
 
-                            ColumnLayout {
-                                x: 0
-                                y: 25
-                                Layout.fillHeight: true
-                                Layout.fillWidth: true
-                                FolderBrowser {
-                                    x: 0
-                                    // Layout.fillHeight: true
-                                    height: 400
-                                    width: 350
-                                    current_selected: polyValues.reverb.ir.name
-                                    is_loading: isLoading.reverb.value
-                                    top_folder: "file:///audio/reverbs"
-                                    after_file_selected: (function(name) { 
-                                        // console.log("got new reveb file");
-                                        // update that we're setting reverb
-                                        // cause file callback
-                                        // console.log("file is", name.toString());
-                                        knobs.update_ir(true, name.toString());
-                                        // some way to handle errors also needed
-                                    })
+                            Row {
+                                x: 10
+                                y: 10
+                                height:parent.height
+                                width:parent.width
+                                spacing: 50
+                                Column {
+                                    spacing: 10
+                                    GlowingLabel {
+                                        // anchors.left: parent.left
+                                        // anchors.leftMargin: 5
+                                        text: reverbBrowser.display_name
+                                        height: 60
+                                        width: parent.width
+                                        font {
+                                            pixelSize: fontSizeLarge * 1.2
+                                        }
+                                        elide: Text.ElideMiddle
+                                    }
+                                    FolderBrowser {
+                                        id: reverbBrowser
+                                        x: 0
+                                        // Layout.fillHeight: true
+                                        height: 500
+                                        width: 900
+                                        current_selected: polyValues.reverb.ir.name
+                                        is_loading: isLoading.reverb.value
+                                        top_folder: "file:///audio/reverbs"
+                                        after_file_selected: (function(name) { 
+                                            // console.log("got new reveb file");
+                                            // update that we're setting reverb
+                                            // cause file callback
+                                            // console.log("file is", name.toString());
+                                            knobs.update_ir(true, name.toString());
+                                            // some way to handle errors also needed
+                                        })
+                                    }
                                 }
                                 // Image {
                                 //     x: 0
@@ -688,190 +704,33 @@ ApplicationWindow {
                                 //     // source: "qrc:/icons/reverb_spring.png"
                                 //     fillMode: Image.PreserveAspectFit
                                 // }
-                                Layout.preferredWidth: 350
+                                Row {
+                                    spacing: 30
+                                    GlowingLabel {
+                                        color: "#ffffff"
+                                        text: qsTr("GAIN")
+                                    }
+
+                                    MixerDial {
+                                        effect: "reverb"
+                                        param: "gain"
+                                    }
+                                
+                                }
+
                             }
 
-                            EQWidget {
-                                x: 370
-                            }
-
-
-                            // Column {
-                            //     id: column1
-                            //     x: 1000
-                            //     y: 66
-                            //     width: 102
-                            //     height: 271
-                            //     spacing: 10
-                            //     GlowingLabel {
-                            //         color: "#ffffff"
-                            //         text: qsTr("MIX")
-                            //     }
-
-                            //     MixerDial {
-                            //         effect: "reverb"
-                            //         param: "dry_wet"
-                            //         value: polyValues.reverb.dry_wet.value
-                            //         to: 100
-                            //         width: 100
-                            //         height: 100
-                            //     }
-
-                            //     GlowingLabel {
-                            //         color: "#ffffff"
-                            //         text: qsTr("TONE")
-                            //     }
-
-                            //     MixerDial {
-                            //         effect: "reverb"
-                            //         param: "roomsize"
-                            //         value: polyValues.reverb.roomsize.value
-                            //         to: 1
-                            //         width: 100
-                            //         height: 100
-                            //     }
-                            // }
                         }
 
-                        // PolyFrame {
-                        //     id: reverb_effects
-                        //     width: 1280
-                        //     height: 350
-                        //     z: -1
+                        PolyFrame {
+                            width: 1280
+                            height: 720
+                            EQWidget {
+                                x: 20
+                            }
+                            // z: -1
+                        }
 
-                        //         Column {
-                        //             spacing: 6
-                        //             width: parent.width
-                        //             anchors.fill: parent
-                        //     // ScrollView { 
-                        //     //     // width: parent.width
-                        //         // anchors.fill: parent
-                        //         // clip: true
-                        //         // Layout.fillHeight: true
-                        //         // Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                        //         // Layout.fillWidth: true
-                        //             GroupBox {
-                        //                 width: parent.width
-                        //                 anchors.left: parent.left
-                        //                 anchors.right: parent.right
-                        //                 title: qsTr("LOWPASS FILTER")
-                        //                 font.pixelSize: baseFontSize
-
-                        //                 Row {
-                        //                     width: 1280
-                        //                     height: parent.height
-                        //                     anchors.top: parent.top
-                        //                     // anchors.topMargin: 10
-
-                        //                     GlowingLabel {
-                        //                         color: "#ffffff"
-                        //                         text: qsTr("CUTOFF")
-                        //                     }
-                        //                     MixerDial {
-                        //                         effect: "filter1"
-                        //                         param: "freq"
-                        //                         value: polyValues.filter1.freq.value
-                        //                         from: 20
-                        //                         to: 20000
-                        //                         stepSize: 10
-                        //                     }
-                        //                     GlowingLabel {
-                        //                         color: "#ffffff"
-                        //                         text: qsTr("RESONANCE")
-                        //                     }
-                        //                     MixerDial {
-                        //                         effect: "filter1"
-                        //                         param: "res"
-                        //                         value: polyValues.filter1.res.value
-                        //                         from: 0
-                        //                         to: 0.8
-                        //                     }
-                        //                     Switch {
-                        //                         text: qsTr("ENABLED")
-                        //                         font.pixelSize: baseFontSize
-                        //                         onClicked: {
-                        //                             knobs.toggle_enabled("filter1")
-                        //                         }
-                        //                         bottomPadding: 0
-                        //                         Layout.fillWidth: true
-                        //                         leftPadding: 0
-                        //                         topPadding: 0
-                        //                         rightPadding: 0
-                        //                         font {
-                        //                             pixelSize: fontSizeMedium
-                        //                         }
-                        //                     }
-                        //                     spacing: 35
-                        //                 }
-                        //             }
-
-                        //             GroupBox {
-                        //                 width: parent.width
-                        //                 anchors.left: parent.left
-                        //                 anchors.right: parent.right
-                        //                 title: qsTr("REVERSE")
-                        //                 font.pixelSize: baseFontSize
-
-                        //                 Row {
-                        //                     width: 1280
-                        //                     height: parent.height
-                        //                     anchors.top: parent.top
-                        //                     // anchors.topMargin: 10
-
-                        //                     GlowingLabel {
-                        //                         color: "#ffffff"
-                        //                         text: qsTr("FRAGMENT")
-                        //                     }
-                        //                     MixerDial {
-                        //                         effect: "reverse2"
-                        //                         param: "fragment"
-                        //                         value: polyValues.reverse2.fragment.value
-                        //                         from: 100
-                        //                         to: 1600
-                        //                     }
-                        //                     GlowingLabel {
-                        //                         color: "#ffffff"
-                        //                         text: qsTr("WET")
-                        //                     }
-                        //                     MixerDial {
-                        //                         effect: "reverse2"
-                        //                         param: "wet"
-                        //                         value: polyValues.reverse2.wet.value
-                        //                         from: -90
-                        //                         to: 20
-                        //                     }
-                        //                     GlowingLabel {
-                        //                         color: "#ffffff"
-                        //                         text: qsTr("DRY")
-                        //                     }
-                        //                     MixerDial {
-                        //                         effect: "reverse2"
-                        //                         param: "dry"
-                        //                         value: polyValues.reverse2.dry.value
-                        //                         from: -90
-                        //                         to: 20
-                        //                     }
-                        //                     Switch {
-                        //                         text: qsTr("ENABLED")
-                        //                         font.pixelSize: baseFontSize
-                        //                         bottomPadding: 0
-                        //                         Layout.fillWidth: true
-                        //                         leftPadding: 0
-                        //                         topPadding: 0
-                        //                         rightPadding: 0
-                        //                         onClicked: {
-                        //                             knobs.toggle_enabled("reverse2")
-                        //                         }
-                        //                         font {
-                        //                             pixelSize: fontSizeMedium
-                        //                         }
-                        //                     }
-                        //                     spacing: 35
-                        //                 }
-                        //             }
-                        //         // }
-                        //     }
-                        // }
                         PolyFrame {
                             id: bus2
                             width: 1280
@@ -927,11 +786,11 @@ ApplicationWindow {
                             font.pixelSize: fontSizeMedium
                         }
 
-                        // TabButton {
-                        //     id: tabButton5
-                        //     font.pixelSize: baseFontSize
-                        //     text: qsTr("EFFECTS")
-                        // }
+                        TabButton {
+                            id: tabButton5
+                            font.pixelSize: fontSizeMedium
+                            text: qsTr("EQ")
+                        }
 
                         TabButton {
                             font.pixelSize: fontSizeMedium
@@ -1237,27 +1096,42 @@ ApplicationWindow {
                             height: 720
                             z: -1
 
-
-                            FolderBrowser {
-                                x: 191
+                            Column {
+                                x: 40
                                 y: 0
-                                // Layout.fillHeight: true
-                                height: 500
-                                width: 500
-                                current_selected: polyValues.cab.ir.name
-                                is_loading: isLoading.cab.value
-                                top_folder: "file:///audio/cabs"
-                                after_file_selected: (function(name) { 
-                                    // console.log("got new cab file");
-                                    // update that we're setting reverb
-                                    // cause file callback
-                                    // console.log("file is", name.toString());
-                                    knobs.update_ir(false, name.toString()); // false is set cab
-                                    // some way to handle errors also needed
-                                })
+                                spacing: 10
+                                GlowingLabel {
+                                    // anchors.left: parent.left
+                                    // anchors.leftMargin: 5
+                                    text: cabBrowser.display_name
+                                    height: 60
+                                    width: parent.width
+                                    font {
+                                        pixelSize: fontSizeLarge * 1.2
+                                    }
+                                    elide: Text.ElideMiddle
+                                }
+
+                                FolderBrowser {
+                                    id: cabBrowser
+                                    // Layout.fillHeight: true
+                                    height: 500
+                                    width: 800
+                                    current_selected: polyValues.cab.ir.name
+                                    is_loading: isLoading.cab.value
+                                    top_folder: "file:///audio/cabs"
+                                    after_file_selected: (function(name) { 
+                                        // console.log("got new cab file");
+                                        // update that we're setting reverb
+                                        // cause file callback
+                                        // console.log("file is", name.toString());
+                                        knobs.update_ir(false, name.toString()); // false is set cab
+                                        // some way to handle errors also needed
+                                    })
+                                }
                             }
                             Column {
-                                x: 750
+                                x: 900
                                 y: 20
                                 width: 102
                                 height: 271
@@ -1682,7 +1556,7 @@ ApplicationWindow {
                 icon.height: 70
                 width: 70
                 height: 70
-                flat: true
+                flat: false
                 icon.name: "settings"
                 onClicked: {
                     mainStack.push("Settings.qml")
@@ -1690,22 +1564,22 @@ ApplicationWindow {
             }
 
 
-            // RectangleLoader { 
-            //     width:70
-            //     height: 70
-            //     x: 650
-            //     y: -6
-            //     // width: 145
-            //     // height: 35
-            //     // text: currentBPM.value.toFixed(0) + " BPM"
-            //     anchors.bottom: parent.bottom
-            //     anchors.bottomMargin: 0
-            //     // horizontalAlignment: Text.AlignRight
-            //     anchors.rightMargin: 5
-            //     anchors.right: parent.right
-            //     beat_msec: 60 / currentBPM.value * 1000
-            //     // color: Material.color(Material.accent, Material.Shade200)
-            // }
+            RectangleLoader { 
+                width:70
+                height: 70
+                x: 650
+                y: -6
+                // width: 145
+                // height: 35
+                // text: currentBPM.value.toFixed(0) + " BPM"
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 0
+                // horizontalAlignment: Text.AlignRight
+                anchors.rightMargin: 5
+                anchors.right: parent.right
+                beat_msec: 60 / currentBPM.value * 1000
+                // color: Material.color(Material.accent, Material.Shade200)
+            }
             GlowingLabel {
             //     SequentialAnimation on color {
             //         id: anim

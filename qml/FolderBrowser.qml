@@ -18,6 +18,7 @@ import Qt.labs.folderlistmodel 2.2
     Item {
         id: mainRect
         property url current_selected: "file:///none.wav"
+        property string display_name: remove_suffix(mainRect.basename(mainRect.current_selected))
         property url top_folder: "file:///audio/reverbs/"
         property var after_file_selected: (function(name) { return null; })
         property bool is_loading: false
@@ -40,17 +41,17 @@ import Qt.labs.folderlistmodel 2.2
 
         width: parent.width
         height: parent.height
-        GlowingLabel {
-            anchors.left: mainRect.left
-            anchors.leftMargin: 5
-            text: remove_suffix(mainRect.basename(mainRect.current_selected))
-            height: 60
-            width: 300
-            font {
-                pixelSize: fontSizeLarge
-            }
-            elide: Text.ElideMiddle
-        }
+        // GlowingLabel {
+        //     anchors.left: mainRect.left
+        //     anchors.leftMargin: 5
+        //     text: remove_suffix(mainRect.basename(mainRect.current_selected))
+        //     height: 60
+        //     width: parent.width - 50
+        //     font {
+        //         pixelSize: fontSizeLarge
+        //     }
+        //     elide: Text.ElideMiddle
+        // }
 
         Button {
             anchors.right: mainRect.right
@@ -66,6 +67,7 @@ import Qt.labs.folderlistmodel 2.2
                 // console.log(folderListModel.folder, top_folder);
             } 
             height: 60
+            z: 2
         }
         Rectangle {
             width: parent.width
@@ -75,9 +77,9 @@ import Qt.labs.folderlistmodel 2.2
         }
         ListView {
             id: fileList
-            y: 60
+            y: 0
             width: parent.width
-            height: parent.height - 60
+            height: parent.height 
             clip: true
             visible: !(is_loading)
             model: FolderListModel {

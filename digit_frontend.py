@@ -238,16 +238,16 @@ def ui_worker(ui_mess, core_mess):
         if "delay_num_bars" in preset:
             if preset["delay_num_bars"] != delay_num_bars.value:
                 delay_num_bars.value = preset["delay_num_bars"]
-                effect_parameter_data["delay1"]["Delay_1"].rmax = preset["delay_num_bars"]
-                effect_parameter_data["delay2"]["Delay_1"].rmax = preset["delay_num_bars"]
-                effect_parameter_data["delay3"]["Delay_1"].rmax = preset["delay_num_bars"]
-                effect_parameter_data["delay4"]["Delay_1"].rmax = preset["delay_num_bars"]
+                effect_parameter_data["delay1"]["Delay_1"].rmax = preset["delay_num_bars"] * 4
+                effect_parameter_data["delay2"]["Delay_1"].rmax = preset["delay_num_bars"] * 4
+                effect_parameter_data["delay3"]["Delay_1"].rmax = preset["delay_num_bars"] * 4
+                effect_parameter_data["delay4"]["Delay_1"].rmax = preset["delay_num_bars"] * 4
         else:
             delay_num_bars.value = 2
-            effect_parameter_data["delay1"]["Delay_1"].rmax = 2
-            effect_parameter_data["delay2"]["Delay_1"].rmax = 2
-            effect_parameter_data["delay3"]["Delay_1"].rmax = 2
-            effect_parameter_data["delay4"]["Delay_1"].rmax = 2
+            effect_parameter_data["delay1"]["Delay_1"].rmax = 2 * 4
+            effect_parameter_data["delay2"]["Delay_1"].rmax = 2 * 4
+            effect_parameter_data["delay3"]["Delay_1"].rmax = 2 * 4
+            effect_parameter_data["delay4"]["Delay_1"].rmax = 2 * 4
 
         # read all effect parameters
         for effect_name, effect_value in preset["effects"].items():
@@ -298,7 +298,10 @@ def ui_worker(ui_mess, core_mess):
         current_midi_connection_pairs_poly = midi_connections
         # read knob mapping
         for knob, mapping in preset["knobs"].items():
-            send_core_message("map_parameter", (knob, mapping[0], mapping[1]))
+            set_knob_current_effect(knob, mapping[0], mapping[1])
+            send_core_message("map_parameter", (knob, mapping[0], mapping[1],
+                    effect_parameter_data[mapping[0]][mapping[1]].rmin,
+                    effect_parameter_data[mapping[0]][mapping[1]].rmax))
         # read bpm
         if current_bpm.value != preset["bpm"]:
             current_bpm.value = preset["bpm"]
@@ -586,6 +589,8 @@ def ui_worker(ui_mess, core_mess):
         lfos[n]["num_points"] = PolyValue("num_points", 1, 1, 16)
         lfos[n]["channel"] = PolyValue("channel", 1, 1, 16)
         lfos[n]["cc_num"] = PolyValue("cc_num", 102+n, 0, 127)
+        lfos[n]["speed_mul"] = PolyValue("speed_mul", 1, 0.01, 10.0)
+        lfos[n]["amount_mul"] = PolyValue("amount_mul", 1, 0, 1.0)
         for i in range(1,17):
             lfos[n]["time"+str(i)] = PolyValue("time"+str(i), 0, 0, 1)
             lfos[n]["value"+str(i)] = PolyValue("value"+str(i), 0, 0, 1)
@@ -594,7 +599,7 @@ def ui_worker(ui_mess, core_mess):
     # this is not great
 
     effect_parameter_data = {"delay1": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.000000, 300.000000),
-            "Delay_1" : PolyValue("Time", 0.500000, 0.001000, 1.000000),
+            "Delay_1" : PolyValue("Time", 0.500000, 0.001000, 4.000000),
             "Warp_2" : PolyValue("Warp", 0.000000, -1.000000, 1.000000),
             "DelayT60_3" : PolyValue("Glide", 0.500000, 0.000000, 100.000000),
             "Feedback_4" : PolyValue("Feedback", 0.300000, 0.000000, 1.000000),
@@ -603,7 +608,7 @@ def ui_worker(ui_mess, core_mess):
             "EnableEcho_7" : PolyValue("EnableEcho_7", 1.000000, 0.000000, 1.000000),
             "carla_level": PolyValue("level", 1, 0, 1)},
         "delay2": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.000000, 300.000000),
-                "Delay_1" : PolyValue("Time", 0.500000, 0.001000, 1.000000),
+                "Delay_1" : PolyValue("Time", 0.500000, 0.001000, 4.000000),
                 "Warp_2" : PolyValue("Warp", 0.000000, -1.000000, 1.000000),
                 "DelayT60_3" : PolyValue("Glide", 0.500000, 0.000000, 100.000000),
                 "Feedback_4" : PolyValue("Feedback", 0.300000, 0.000000, 1.000000),
@@ -612,7 +617,7 @@ def ui_worker(ui_mess, core_mess):
                 "EnableEcho_7" : PolyValue("EnableEcho_7", 1.000000, 0.000000, 1.000000),
                 "carla_level": PolyValue("level", 1, 0, 1)},
         "delay3": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.000000, 300.000000),
-                "Delay_1" : PolyValue("Time", 0.500000, 0.001000, 1.000000),
+                "Delay_1" : PolyValue("Time", 0.500000, 0.001000, 4.000000),
                 "Warp_2" : PolyValue("Warp", 0.000000, -1.000000, 1.000000),
                 "DelayT60_3" : PolyValue("Glide", 0.500000, 0.000000, 100.000000),
                 "Feedback_4" : PolyValue("Feedback", 0.300000, 0.000000, 1.000000),
@@ -621,7 +626,7 @@ def ui_worker(ui_mess, core_mess):
                 "EnableEcho_7" : PolyValue("EnableEcho_7", 1.000000, 0.000000, 1.000000),
                 "carla_level": PolyValue("level", 1, 0, 1)},
         "delay4": {"BPM_0" : PolyValue("BPM_0", 120.000000, 30.000000, 300.000000),
-                "Delay_1" : PolyValue("Time", 0.500000, 0.001000, 1.000000),
+                "Delay_1" : PolyValue("Time", 0.500000, 0.001000, 4.000000),
                 "Warp_2" : PolyValue("Warp", 0.000000, -1.000000, 1.000000),
                 "DelayT60_3" : PolyValue("Glide", 0.500000, 0.000000, 100.000000),
                 "Feedback_4" : PolyValue("Feedback", 0.300000, 0.000000, 1.000000),
@@ -693,7 +698,7 @@ def ui_worker(ui_mess, core_mess):
         "mclk": {"carla_level": PolyValue("level", 1, 0, 1)},
         }
 
-    knob_map = {"left": PolyEncoder("delay1", "Delay_1"), "right": PolyEncoder("delay1", "Feedback_4")}
+    knob_map = {"left": PolyEncoder("delay1", "Delay_1"), "right": PolyEncoder("delay1", "Amp_5")}
 
     all_effects = [("delay1", True), ("delay2", True), ("delay3", True),
             ("delay4", True), ("reverb", True), ("postreverb", True), ("mixer", True),

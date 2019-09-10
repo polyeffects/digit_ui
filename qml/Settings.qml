@@ -35,7 +35,7 @@ Item {
                     // height:parent.height
                     GlowingLabel {
                         // color: "#ffffff"
-                        text: qsTr("DIGIT FIRMWARE 1.6.5")
+                        text: qsTr("DIGIT FIRMWARE 1.7")
                     }
 
                     Button {
@@ -272,8 +272,8 @@ Item {
                     text: "COPY IRs"
                     width: 300
                     onClicked: { 
-                        knobs.ui_copy_irs();
                         settingsStack.push(irCopyView)
+                        knobs.ui_copy_irs();
                     }
                 }
             }
@@ -320,8 +320,8 @@ Item {
                     text: "Export Presets"
                     width: 300
                     onClicked: { // save preset and close browser
-                        knobs.export_presets();
                         settingsStack.push(presetCopyView)
+                        knobs.export_presets();
                     }
                 }
             }
@@ -369,8 +369,8 @@ Item {
                     text: "Import Presets"
                     width: 300
                     onClicked: { // save preset and close browser
-                        knobs.import_presets();
                         settingsStack.push(presetCopyView)
+                        knobs.import_presets();
                     }
                 }
             }
@@ -418,8 +418,8 @@ Item {
                     text: "Update firmware"
                     width: 300
                     onClicked: { // save preset and close browser
-                        knobs.ui_update_firmware();
                         settingsStack.push(firmwareUpdateView)
+                        knobs.ui_update_firmware();
                     }
                 }
             }

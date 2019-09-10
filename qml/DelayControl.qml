@@ -17,7 +17,7 @@ import QtQuick.Controls.Material 2.3
         id: time_scale
         width: 1200
         height: 530
-        property bool snapping: true
+        property bool snapping: false
         property bool synced: true
         property int division: 4
         property int bars: delayNumBars.value 
@@ -46,8 +46,9 @@ import QtQuick.Controls.Material 2.3
         property var delay_data: [polyValues["delay1"], polyValues["delay2"], polyValues["delay3"], polyValues["delay4"]]
         property var delay_colors: [Material.Pink, Material.Purple, Material.LightBlue, Material.Amber]
         property var parameter_map: {"LEVEL":"Amp_5", "TONE":"FeedbackSm_6", "FEEDBACK": "Feedback_4", 
-                                    "GLIDE": "DelayT60_3", "WARP":"Warp_2"  }
-        property var inv_parameter_map: {'Amp_5': 'LEVEL', 'DelayT60_3': 'GLIDE', 'Feedback_4': 'FEEDBACK', 'Warp_2': 'WARP', 'FeedbackSm_6': 'TONE'}
+                                    "GLIDE": "DelayT60_3", "WARP":"Warp_2", "POST LVL": "carla_level" }
+        property var inv_parameter_map: {'Amp_5': 'LEVEL', 'DelayT60_3': 'GLIDE', 'Feedback_4': 'FEEDBACK', 'Warp_2': 'WARP', 'FeedbackSm_6': 'TONE', "Delay_1": "TIME", "carla_level": "POST LVL"}
+        property int current_delay: 1
         // PPQN * bars
         //
         function nearestDivision(x) {
@@ -56,24 +57,28 @@ import QtQuick.Controls.Material 2.3
             return Math.round(x / grid_width) * grid_width;
         }
 
+        function convertRange( value, r1, r2 ) { 
+            return ( value - r1[ 0 ] ) * ( r2[ 1 ] - r2[ 0 ] ) / ( r1[ 1 ] - r1[ 0 ] ) + r2[ 0 ];
+        }
+
         function beatToPixel(beat) {
             // given factional beat find pixel 
-            return beat * active_width / time_scale.bars;
+            return beat * active_width / time_scale.bars / 4;
         }
 
         function pixelToBeat(x) {
             // given factional beat find pixel 
-            return x * time_scale.bars / active_width;
+            return x * time_scale.bars * 4 / active_width;
         }
 
-        function valueToPixel(v) {
+        function valueToPixel(rmin, rmax, v) {
             // work out a y pixel from level / tone / feedback value
-            return (1 - v) * height; // TODO values scaling?
+            return (1 - convertRange(v, [rmin, rmax], [0, 1])) * height; // TODO values scaling?
         }
 
-        function pixelToValue(y) {
+        function pixelToValue(rmin, rmax, y) {
             // given a y pixel set level / tone / feedback value
-            return 1 - (y / height);
+            return convertRange(1 - (y / height), [0, 1], [rmin, rmax]);
         }
 
         function secondsToPixel(t) {
@@ -140,7 +145,7 @@ import QtQuick.Controls.Material 2.3
                     leftPadding: 0
                     topPadding: 0
                     rightPadding: 0
-                    checked: true
+                    checked: time_scale.snapping
                     enabled: time_scale.synced
                     onClicked: {
                         time_scale.snapping = checked
@@ -203,10 +208,10 @@ import QtQuick.Controls.Material 2.3
                         delayNumBars.value = value;
                         mycanvas.requestPaint();
                         // console.log("rmax is ",  polyValues["delay1"]["Delay_1"].rmax)
-                        polyValues["delay1"]["Delay_1"].rmax = value
-                        polyValues["delay2"]["Delay_1"].rmax = value
-                        polyValues["delay3"]["Delay_1"].rmax = value
-                        polyValues["delay4"]["Delay_1"].rmax = value
+                        polyValues["delay1"]["Delay_1"].rmax = value * 4
+                        polyValues["delay2"]["Delay_1"].rmax = value * 4
+                        polyValues["delay3"]["Delay_1"].rmax = value * 4
+                        polyValues["delay4"]["Delay_1"].rmax = value * 4
                     }
                 }
             }
@@ -238,7 +243,9 @@ import QtQuick.Controls.Material 2.3
 					// color: Qt.rgba(0, 0, 0, 0)
 					// color: setColorAlpha(Material.Pink, 0.1);//Qt.rgba(0.1, 0.1, 0.1, 1);
                     x: time_scale.timeToPixel(time_scale.delay_data[index]["Delay_1"].value) - (width / 2)
-                    y: time_scale.valueToPixel(time_scale.delay_data[index][time_scale.current_parameter].value) - (width / 2)
+                    y: time_scale.valueToPixel(time_scale.delay_data[index][time_scale.current_parameter].rmin, 
+                        time_scale.delay_data[index][time_scale.current_parameter].rmax, 
+                        time_scale.delay_data[index][time_scale.current_parameter].value) - (width / 2)
                     property point beginDrag
                     property bool caught: false
                     // border { width:1; color: Material.color(Material.Cyan, Material.Shade100)}
@@ -268,9 +275,11 @@ import QtQuick.Controls.Material 2.3
                             }
                         }
                         onDoubleClicked: {
-                            mappingPopup.set_mapping_choice("delay"+(index+1), "Delay_1", "TIME", 
-                                "delay"+(index+1), time_scale.current_parameter, 
-                                time_scale.inv_parameter_map[time_scale.current_parameter], false);    
+                            time_scale.current_delay = index;
+                            mainStack.push(editDelay);
+                            // mappingPopup.set_mapping_choice("delay"+(index+1), "Delay_1", "TIME", 
+                            //     "delay"+(index+1), time_scale.current_parameter, 
+                            //     time_scale.inv_parameter_map[time_scale.current_parameter], false);    
                             // remove MIDI mapping
                             // add MIDI mapping
                         }
@@ -291,7 +300,9 @@ import QtQuick.Controls.Material 2.3
 							knobs.ui_knob_change("delay"+(index+1), "Delay_1", time_scale.pixelToTime(in_x));
 							knobs.ui_knob_change("delay"+(index+1), 
 								time_scale.current_parameter, 
-								time_scale.pixelToValue(in_y));
+                                time_scale.pixelToValue(time_scale.delay_data[index][time_scale.current_parameter].rmin, 
+                                time_scale.delay_data[index][time_scale.current_parameter].rmax, 
+                                in_y)); 
 							// console.log("parameter map", 
 								// time_scale.current_parameter, "value", 
 								// time_scale.pixelToValue(in_y),
@@ -401,6 +412,95 @@ import QtQuick.Controls.Material 2.3
         }
 
         // }
+        Component {
+            id: editDelay
+            Item {
+                height:700
+                width:1280
+                Column {
+                    id: editDelayCol
+                    width: 1100
+                    spacing: 20
+                    anchors.centerIn: parent
+                
+                    GlowingLabel {
+                        color: "#ffffff"
+                        text: "DELAY "+(current_delay+1)
+                        font {
+                            pixelSize: fontSizeLarge
+                        }
+                    }
+                    // property var parameter_map: {"LEVEL":"Amp_5", "TONE":"", "FEEDBACK": "", 
+                    //                 "GLIDE": "", "WARP":""  }
+                    DelayRow {
+                        row_param: "Delay_1"
+                    }
+                    Row {
+                        height: 40
+                        spacing: 25
+                        GlowingLabel {
+                            text: "TIME (ms)"
+                            width: 140
+                        }
+
+                        Slider {
+                            width: 625
+                            value: time_scale.delay_data[time_scale.current_delay]["Delay_1"].value 
+                            from: time_scale.delay_data[time_scale.current_delay]["Delay_1"].rmin 
+                            to: time_scale.delay_data[time_scale.current_delay]["Delay_1"].rmax 
+                            onMoved: {
+                                knobs.ui_knob_change("delay"+(time_scale.current_delay+1), "Delay_1", value);
+                            }
+
+                        }
+
+                        SpinBox {
+                            id: spinbox
+                            value: time_scale.delay_data[time_scale.current_delay]["Delay_1"].value * (60 / currentBPM.value) * 1000
+                            from: time_scale.delay_data[time_scale.current_delay]["Delay_1"].rmin * (60 / currentBPM.value) * 1000
+                            to: time_scale.delay_data[time_scale.current_delay]["Delay_1"].rmax  * (60 / currentBPM.value) * 1000
+                            stepSize: 10
+                            // editable: true
+                            onValueModified: {
+                                knobs.ui_knob_change("delay"+(time_scale.current_delay+1), "Delay_1", value / 1000 / (60 / currentBPM.value));
+                            }
+                        }
+                    }
+                    DelayRow {
+                        row_param: "Amp_5"
+                    }
+                    DelayRow {
+                        row_param: "FeedbackSm_6"
+                    }
+                    DelayRow {
+                        row_param: "Feedback_4"
+                    }
+                    DelayRow {
+                        row_param: "DelayT60_3"
+                    }
+                    DelayRow {
+                        row_param: "Warp_2"
+                    }
+                    // DelayRow {
+                    //     row_param: "carla_level"
+                    // }
+                }
+                
+
+                Button {
+                    font {
+                        pixelSize: fontSizeMedium
+                    }
+                    text: "BACK"
+                    anchors.right: parent.right
+                    anchors.rightMargin: 10
+                    anchors.topMargin: 10
+                    width: 100
+                    height: 100
+                    onClicked: mainStack.pop()
+                }
+            }
+        }
     }
 // }
 

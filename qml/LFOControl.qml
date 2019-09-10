@@ -10,7 +10,7 @@ Item {
     width: 1200
     height: 550
     property string effect: "lfo1"
-    property bool snapping: true
+    property bool snapping: false
     property bool synced: true
     property bool repeat: true
     property bool plus_minus: false // disabled at the moment
@@ -142,7 +142,7 @@ Item {
                 leftPadding: 0
                 topPadding: 0
                 rightPadding: 0
-                checked: true
+                checked: lfo_control.snapping
                 onClicked: {
                     lfo_control.snapping = checked
                 }
@@ -226,13 +226,9 @@ Item {
             // }
 
             // MixerDial {
-            //     effect: "LFO"
-            //     param: "Speed"
-            //     value: 1
-            //     from: 0.0625
-            //     to: 16
+            //     effect: lfo_control.effect
+            //     param: "speed_mul"
             // }
-            
         }
     }
 

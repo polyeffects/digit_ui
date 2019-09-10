@@ -26,7 +26,7 @@ import QtQuick.Controls.Material 2.3
         height: 550
         property string effect: "eq2"
         property bool eq_enabled: polyValues[effect]["enable"].value
-        property int active_width: 675
+        property int active_width: 975
         property int selected_point: 1
         property int point_updated: 1
         property int updateCount: updateCounter, externalRefresh()
@@ -72,7 +72,7 @@ import QtQuick.Controls.Material 2.3
         
         Item {
             x: 25
-            width: 675
+            width: 975
             height: parent.height
 
             Repeater {
@@ -850,7 +850,7 @@ import QtQuick.Controls.Material 2.3
             //     }
             // }
             Label {
-                text: "HZ"
+                text: "FREQUENCY (Hz)"
                 font.pixelSize: 20
                 z: 2
                 anchors.horizontalCenter: mycanvas.horizontalCenter
@@ -873,8 +873,8 @@ import QtQuick.Controls.Material 2.3
         }
         PolyFrame {
             // background: Material.background
-            x: 710
-            width:1220
+            x: 1020
+            width:100
             height:parent.height
             // Material.elevation: 2
 
@@ -882,16 +882,6 @@ import QtQuick.Controls.Material 2.3
                 width:120
                 spacing: 20
                 height:parent.height
-
-                GlowingLabel {
-                    color: "#ffffff"
-                    text: qsTr("GAIN")
-                }
-
-                MixerDial {
-                    effect: "reverb"
-                    param: "gain"
-                }
 
                 Switch {
                     text: qsTr("EQ ON")
@@ -920,7 +910,7 @@ import QtQuick.Controls.Material 2.3
 
                 Switch {
                     text: time_scale.selected_point + 1
-					font.pixelSize: baseFontSize
+					font.pixelSize: fontSizeMedium
                     bottomPadding: 0
                     width: 100
                     leftPadding: 0
