@@ -24,7 +24,7 @@ def ui_worker(ui_mess, core_mess):
     os.sched_setaffinity(0, (2, ))
     EXIT_PROCESS = [False]
     from PySide2.QtGui import QGuiApplication
-    from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal
+    from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QThreadPool, QRunnable
     from PySide2.QtQml import QQmlApplicationEngine
     from PySide2.QtGui import QIcon
     # compiled QML files, compile with pyside2-rcc
@@ -33,11 +33,30 @@ def ui_worker(ui_mess, core_mess):
     import resource_rc
     import start_jconvolver
 
+    worker_pool = QThreadPool()
+
+
     def clamp(v, min_value, max_value):
         return max(min(v, max_value), min_value)
 
     def send_core_message(command, args):
         core_messages.put((command, args))
+
+    class MyEmitter(QObject):
+        # setting up custom signal
+        done = Signal(int)
+
+    class MyWorker(QRunnable):
+
+        def __init__(self, command):
+            super(MyWorker, self).__init__()
+            self.command = command
+            self.emitter = MyEmitter()
+
+        def run(self):
+            # run subprocesses, grab output
+            ret_var = subprocess.call(self.command, shell=True)
+            self.emitter.done.emit(ret_var)
 
     class PolyEncoder(QObject):
         # name, min, max, value
@@ -449,21 +468,19 @@ def ui_worker(ui_mess, core_mess):
             # print("copy irs from USB")
             # could convert any that aren't 48khz.
             # instead we just only copy ones that are
-            command_reverb = """cd /media/reverbs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/audio/reverbs --parents"""
-            command_cab = """cd /media/cabs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/audio/cabs --parents"""
+            command = """cd /media/reverbs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/audio/reverbs --parents;
+            cd /media/cabs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/audio/cabs --parents"""
             # copy all wavs in /usb/reverbs and /usr/cabs to /audio/reverbs and /audio/cabs
             command_status[0].value = -1
-            command_status[1].value = -1
-            command_status[0].value = subprocess.call(command_reverb, shell=True)
-            command_status[1].value = subprocess.call(command_cab, shell=True)
-
+            self.launch_subprocess(command)
         @Slot()
         def import_presets(self):
             # print("copy presets from USB")
             # could convert any that aren't 48khz.
             # instead we just only copy ones that are
             command = """cd /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/presets --parents"""
-            command_status[0].value = subprocess.call(command, shell=True)
+            command_status[0].value = -1
+            self.launch_subprocess(command)
 
         @Slot()
         def export_presets(self):
@@ -471,7 +488,8 @@ def ui_worker(ui_mess, core_mess):
             # could convert any that aren't 48khz.
             # instead we just only copy ones that are
             command = """cd /presets; mkdir -p /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/media/presets --parents;sudo umount /media"""
-            command_status[0].value = subprocess.call(command, shell=True)
+            command_status[0].value = -1
+            self.launch_subprocess(command)
 
         @Slot()
         def copy_logs(self):
@@ -479,14 +497,16 @@ def ui_worker(ui_mess, core_mess):
             # could convert any that aren't 48khz.
             # instead we just only copy ones that are
             command = """mkdir -p /media/logs; sudo cp /var/log/syslog /media/logs/;sudo umount /media"""
-            command_status[0].value = subprocess.call(command, shell=True)
+            command_status[0].value = -1
+            self.launch_subprocess(command)
 
         @Slot()
         def ui_update_firmware(self):
             # print("Updating firmware")
             # dpkg the debs in the folder
             command = """sudo dpkg -i /media/*.deb"""
-            command_status[0].value = subprocess.call(command, shell=True)
+            command_status[0].value = -1
+            self.launch_subprocess(command)
 
         @Slot(bool)
         def enable_ableton_link(self, enable):
@@ -535,6 +555,17 @@ def ui_worker(ui_mess, core_mess):
         def save_preset_list(self):
             with open("/pedal_state/preset_list.json", "w") as f:
                 json.dump(preset_list_model.stringList(), f)
+
+        @Slot(int)
+        def on_worker_done(self, ret_var):
+            # print("updating UI")
+            command_status[0].value = ret_var
+
+        def launch_subprocess(self, command):
+            # print("launch_threadpool")
+            worker = MyWorker(command)
+            worker.emitter.done.connect(self.on_worker_done)
+            worker_pool.start(worker)
 
     def add_ports(port):
         source_ports_self = {"sigmoid1:Output":"delay1", "delay2:out0":"delay2",
@@ -771,5 +802,5 @@ def ui_worker(ui_mess, core_mess):
             update_counter.value+=1
             initial_preset = True
 
-    # print("exiting frontend")
+    print("exiting frontend")
     exit(1)
