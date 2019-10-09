@@ -68,7 +68,10 @@ class Knobs(QObject):
     @Slot(str)
     def set_waiting(self, knob):
         print("waiting", knob)
-        self.waiting = knob
+        if (self.waiting == knob):
+            self.waiting = ""
+        else:
+            self.waiting = knob
 
     def readWaiting(self):
         return self.waitingval

@@ -215,6 +215,13 @@ Item {
                     // set learn
                     knobs.set_waiting(effect)
                 }
+                Material.background: knobs.waiting == "" ? "transparent": Material.color(Material.Cyan, Material.Shade400) 
+                // Rectangle {
+                //     width: parent.width
+                //     height: parent.height
+                //     border: { width: 1; color: Material.color(Material.Indigo, Material.Shade200) }
+                
+                // }
             }
 
             // GlowingLabel {

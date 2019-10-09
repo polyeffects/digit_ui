@@ -14,16 +14,16 @@ import QtQuick.Window 2.0
 
 ApplicationWindow {
     id: window
-    width: 720
-    height: 1280
-    minimumHeight: 1280
-    minimumWidth: 720
-    maximumHeight: 1280
-    maximumWidth: 720
+    // width: 720
+    // height: 1280
+    // minimumHeight: 1280
+    // minimumWidth: 720
+    // maximumHeight: 1280
+    // maximumWidth: 720
     visible: true
     title: "DIGIT"
-    // width: 1280//Screen.height dev settings
-    // height: 720//Screen.width
+    width: 1280//Screen.height dev settings
+    height: 720//Screen.width
 
     Material.theme: Material.Dark
     Material.primary: Material.Green
@@ -51,13 +51,13 @@ ApplicationWindow {
 
     Item {
         transform: Rotation {
-            angle: -90
+            // angle: -90
             // origin.x: Screen.height / 2
             // origin.x: Screen.height / 2
             // origin.x: 720 / 2
             // origin.y: 720 / 2
-            origin.x: 1280 / 2
-            origin.y: 1280 / 2
+            // origin.x: 1280 / 2
+            // origin.y: 1280 / 2
         }
         id: root
         width: 1280//Screen.height

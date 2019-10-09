@@ -165,12 +165,12 @@ def map_parameter_cc(effect_name, parameter, cc, connect_ports=True):
             cc)
     host.set_parameter_midi_channel(pluginMap[effect_name], parameterMap[effect_name][parameter], midi_channel - 1)
     # connect ports
-    # ("ttymidi", "MIDI_in")
-    # if connect_ports:
-    #     host.patchbay_connect(patchbay_external, portMap["ttymidi"]["group"],
-    #             portMap["ttymidi"]["ports"]["MIDI_in"],
-    #             portMap[effect_name]["group"],
-    #             portMap[effect_name]["ports"]["events-in"])
+    ("ttymidi", "MIDI_in")
+    if connect_ports:
+        host.patchbay_connect(patchbay_external, portMap["ttymidi"]["group"],
+                portMap["ttymidi"]["ports"]["MIDI_in"],
+                portMap[effect_name]["group"],
+                portMap[effect_name]["ports"]["events-in"])
 
 
 # @Slot()
@@ -734,9 +734,9 @@ while host.is_engine_running() and not gCarla.term:
                 (("tape1", "Output"), ("reverse1", "Input")),
                 (("reverse1", "Output"), ("sigmoid1", "Input")),
                 (("eq2", "Out"), ("reverb", "In")),
-                # (("ttymidi", "MIDI_in"), ("ttymidi", "MIDI_out")),
-                # (("ttymidi", "MIDI_in"), ("lfo1", "events-in")),
-                # (("mclk", "events-out"), ("ttymidi", "MIDI_out")),
+                (("ttymidi", "MIDI_in"), ("ttymidi", "MIDI_out")),
+                (("ttymidi", "MIDI_in"), ("lfo1", "events-in")),
+                (("mclk", "events-out"), ("ttymidi", "MIDI_out")),
                 ]:
             source_effect, source_port = source_pair
             output_effect, output_port = output_pair
