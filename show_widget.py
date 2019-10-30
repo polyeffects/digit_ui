@@ -2,7 +2,7 @@ import sys, os
 # import random
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer
-from PySide2.QtQml import QQmlApplicationEngine
+from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 from PySide2.QtGui import QIcon
 # # compiled QML files, compile with pyside2-rcc
 # import qml.qml
@@ -10,6 +10,8 @@ os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
 import icons.icons
 # #, imagine_assets
 import resource_rc
+
+from patch_bay_model import PatchBayModel
 
 # def insert_row(model, row):
 #     j = len(model.stringList())
@@ -135,13 +137,17 @@ if __name__ == "__main__":
     # model.setStringList(["aasdfasdf", "b", "c"])
     # model2.setStringList(["fff", "ddd" "c"])
 
+    available_effects = QStringListModel()
+    available_effects.setStringList(["delay", "mono reverb", "stereo reverb", "c", "d"])
     engine = QQmlApplicationEngine()
+
+    qmlRegisterType(PatchBayModel, 'Poly', 1, 0, 'PatchBayModel')
     # Expose the object to QML.
     context = engine.rootContext()
     # context.setContextProperty("knobs", knobs)
     # context.setContextProperty("param_vals", obj)
     # context.setContextProperty("delay1_Left_Out_AvailablePorts", model)
-    # context.setContextProperty("delay1_Left_Out_UsedPorts", model2)
+    context.setContextProperty("available_effects", available_effects)
     # engine.load(QUrl("qrc:/qml/digit.qml"))
     engine.load(QUrl("qml/TestWrapper.qml"))
 

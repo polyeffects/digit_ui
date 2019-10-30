@@ -21,7 +21,7 @@ output_port_names = {"Out 1": ("system", "playback_3"),
 inv_output_port_names = dict({(v, k) for k,v in output_port_names.items()})
 
 def ui_worker(ui_mess, core_mess):
-    os.sched_setaffinity(0, (2, ))
+    # os.sched_setaffinity(0, (2, ))
     EXIT_PROCESS = [False]
     from PySide2.QtGui import QGuiApplication
     from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QThreadPool, QRunnable
@@ -785,6 +785,7 @@ def ui_worker(ui_mess, core_mess):
     context.setContextProperty("presetList", preset_list_model)
 
     # engine.load(QUrl("qrc:/qml/digit.qml"))
+    print("loading qml engine")
     qmlEngine.load(QUrl("qml/digit.qml"))
     ######### UI is setup
     def signalHandler(sig, frame):
@@ -796,6 +797,7 @@ def ui_worker(ui_mess, core_mess):
     signal(SIGTERM, signalHandler)
 
     initial_preset = False
+    print("starting UI")
     while not EXIT_PROCESS[0]:
         app.processEvents()
         process_ui_messages()

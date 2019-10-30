@@ -21,7 +21,11 @@ ApplicationWindow {
     height: 720
     title: "Drag & drop example"
     visible: true
-    LFOControl {
+    // FontLoader { source: "ionicons.ttf" }
+    Component {
+        id: mainView
+        PatchBay {
+        }
     }
     // // EQWidget {
     
@@ -46,4 +50,8 @@ ApplicationWindow {
     //     })
 
     // }
+    StackView {
+        id: mainStack
+        initialItem: mainView
+    }
 }

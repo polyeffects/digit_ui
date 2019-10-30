@@ -26,7 +26,7 @@ def signalHandler(sig, frame):
     if sig in (SIGINT, SIGTERM):
         gCarla.term = True
 
-os.sched_setaffinity(0, (0, 1, 3))
+# os.sched_setaffinity(0, (0, 1, 3))
 
 pedal_hardware.add_hardware_listeners()
 # --------------------------------------------------------------------------------------------------------

@@ -95,7 +95,7 @@ import Qt.labs.folderlistmodel 2.2
                 text: remove_suffix(fileName)
                 font.bold: fileIsDir ? true : false
                 font.pixelSize: fontSizeMedium
-                icon.name: fileIsDir ? "windows" : false // XXX replace with folder icon
+                icon.name: fileIsDir ? "md-folder-open" : false // or md-folder
                 onClicked: {
                     if (fileIsDir) {
                         folderListModel.folder = fileURL
