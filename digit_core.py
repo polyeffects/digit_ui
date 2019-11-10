@@ -91,6 +91,26 @@ def knob_change(effect_name, parameter, value):
     else:
         print("effect not found")
 
+def add_effects(user_effect_type):
+    # add pan, bitcrusher
+    effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
+            "reverb": "http://lv2plug.in/plugins/eg-amp",
+            "cab": "http://lv2plug.in/plugins/eg-amp",
+            "mixer": "http://gareus.org/oss/lv2/matrixmixer#i4o4",
+            "tape": "http://moddevices.com/plugins/tap/tubewarmth",
+            "reverse": "http://moddevices.com/plugins/tap/reflector",
+            "sigmoid": "http://moddevices.com/plugins/tap/sigmoid",
+            "eq": "http://gareus.org/oss/lv2/fil4#mono",
+            "filter": "http://drobilla.net/plugins/fomp/mvclpf1",
+            "lfo": "http://polyeffects.com/lv2/polylfo"}
+    # if there's existing effects of this type, increment the ID
+    effect_name = user_effect_type+str(1)
+    for i in enumerate(100):
+        if user_effect_type+str(i) is not in pluginMap:
+            effect_name = user_effect_type+str(i)
+            break
+    host.add_plugin(BINARY_NATIVE, PLUGIN_LV2, None, effect_name, effect_type_map[user_effect_type],  0, None, 0)
+
 def add_connection(effect, source_port, x):
     host.patchbay_connect(patchbay_external, portMap[effect]["group"],
             portMap[effect]["ports"][source_port],

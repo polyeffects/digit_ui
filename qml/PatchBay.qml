@@ -11,7 +11,7 @@ import Poly 1.0
  */
 
     Item {
-        id: time_scale
+        id: patch_bay
         width: 1200
         height: 700
         property bool snapping: false
@@ -30,26 +30,12 @@ import Poly 1.0
                                     "GLIDE": "DelayT60_3", "WARP":"Warp_2", "POST LVL": "carla_level" }
         property var inv_parameter_map: {'Amp_5': 'LEVEL', 'DelayT60_3': 'GLIDE', 'Feedback_4': 'FEEDBACK', 'Warp_2': 'WARP', 'FeedbackSm_6': 'TONE', "Delay_1": "TIME", "carla_level": "POST LVL"}
         property int current_index: -1
+        property bool delete_mode: deleteMode.checked
         // PPQN * bars
         //
-        function nearestDivision(x) {
-            // given pixel find nearest pixel for division
-            var grid_width = active_width/(time_scale.division*time_scale.bars);
-            return Math.round(x / grid_width) * grid_width;
-        }
 
         function convertRange( value, r1, r2 ) { 
             return ( value - r1[ 0 ] ) * ( r2[ 1 ] - r2[ 0 ] ) / ( r1[ 1 ] - r1[ 0 ] ) + r2[ 0 ];
-        }
-
-        function beatToPixel(beat) {
-            // given factional beat find pixel 
-            return beat * active_width / time_scale.bars / 4;
-        }
-
-        function pixelToBeat(x) {
-            // given factional beat find pixel 
-            return x * time_scale.bars * 4 / active_width;
         }
 
         function valueToPixel(rmin, rmax, v) {
@@ -105,7 +91,9 @@ import Poly 1.0
                 id: rep1
                 // model: [1, 2, 3, 4]
                 model: PatchBayModel {}
-                PatchBayEffect {}
+                PatchBayEffect {
+                    effect_id: display
+                }
             }
 
             Shape {
@@ -184,19 +172,34 @@ import Poly 1.0
             // add
             // remove
             // move
+            //
+            ButtonGroup {
+                id: modeButtonGroup
+                buttons: patchButtons.children
+                exclusive: true
+                onClicked: {
+                    checkedButton = button;
+                }
+            }
+
             Row {
+                id: patchButtons
                 anchors.bottom: parent.bottom
                 anchors.right: parent.right
                 spacing: 20
                 Button {
+                    id: expandMode
                     icon.name: "md-expand"
                     width: 70
                     height: 70
+                    checked: true
                 }
                 Button {
                     icon.name: "md-move"
                     width: 70
                     height: 70
+                    onClicked: {
+                    }
                 }
                 Button {
                     icon.name: "md-add"
@@ -207,9 +210,20 @@ import Poly 1.0
                     }
                 }
                 Button {
+                    id: deleteMode
                     icon.name: "md-close"
                     width: 70
                     height: 70
+                    onClicked: {
+                        console.log("clicked:");
+                        // if (checked){
+                        //     modeButtonGroup.checkedButton = expandMode;
+                        // }
+                        // else
+                        // {
+                        //     modeButtonGroup.checkedButton = deleteMode;
+                        // }
+                    }
                 }
             
             }
@@ -247,7 +261,9 @@ import Poly 1.0
                         font.pixelSize: fontSizeMedium
                         topPadding: 0
                         onClicked: {
-                            knobs.ui_add_effect(edit)
+                            rep1.model.add_effect(edit)
+                            // knobs.ui_add_effect(edit)
+                            mainStack.pop()
                         }
                     }
                     ScrollIndicator.vertical: ScrollIndicator {
@@ -277,4 +293,75 @@ import Poly 1.0
             }
         }
 
+
+        Popup {
+            id: portSelection
+            property string effect1
+            property string effect2
+            property string param1
+            property string param2
+            property string param1Name
+            property string param2Name
+            property bool is_map
+            // x: 500
+            // y: 200
+            width: 600
+            height: 200
+            modal: true
+            focus: true
+            closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+            parent: Overlay.overlay
+            Overlay.modal: Rectangle {
+                // x: 500
+                y: -560
+                width: 1280
+                height: 1280
+                color: "#AA333333"
+                transform: Rotation {
+                    angle: -90
+                    // origin.x: Screen.height / 2
+                    // origin.x: Screen.height / 2
+                    // origin.x: 720 / 2
+                    // origin.y: 720 / 2
+                    origin.x: 1280 / 2
+                    origin.y: 1280 / 2
+                }
+            }
+
+            x: Math.round((parent.width - width) / 2)
+            y: Math.round((parent.height - height) / 2)
+
+            function open_port_selection(effect){
+                portSelection.open()
+            }
+
+            ListView {
+                width: 400
+                anchors.centerIn: parent
+                clip: true
+                delegate: ItemDelegate {
+                    width: parent.width
+                    height: 50
+                    text: edit
+                    bottomPadding: 0
+                    font.pixelSize: fontSizeMedium
+                    topPadding: 0
+                    onClicked: {
+                        // rep1.model.add_effect(edit)
+                        // knobs.ui_add_effect(edit)
+                        // mainStack.pop()
+                        portSelection.close()
+                    }
+                }
+                ScrollIndicator.vertical: ScrollIndicator {
+                    anchors.top: parent.top
+                    parent: PortSelection
+                    anchors.right: parent.right
+                    anchors.rightMargin: 1
+                    anchors.bottom: parent.bottom
+                }
+                model: port_popup_options
+            }
+        } 
     }

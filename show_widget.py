@@ -138,7 +138,8 @@ if __name__ == "__main__":
     # model2.setStringList(["fff", "ddd" "c"])
 
     available_effects = QStringListModel()
-    available_effects.setStringList(["delay", "mono reverb", "stereo reverb", "c", "d"])
+    available_effects.setStringList(["delay", "mono reverb", "stereo reverb", "mono EQ", "stereo EQ", "cab", "reverse", 
+        "filter", "compressor", "bit crusher", "tape/tube", "mixer"])
     engine = QQmlApplicationEngine()
 
     qmlRegisterType(PatchBayModel, 'Poly', 1, 0, 'PatchBayModel')
