@@ -17,14 +17,31 @@ from patch_bay_model import PatchBayModel
 #     j = len(model.stringList())
 #     model.insertRows(j, 1)
 #     model.setData(model.index(j), row)
+effect_source_ports = {"delay":["out0", "out1"]}
+current_source_port = None
 
-# class Knobs(QObject):
-#     """Output stuff on the console."""
-
-#     @Slot(str, str, 'double')
-#     def ui_knob_change(self, x, y, z):
-#         obj["delay1"].value = z
-#         print(x, y, z)
+class Knobs(QObject):
+    @Slot(bool, int, str)
+    def set_current_port(self, is_source, effect_id, port_name):
+        # if source highlight targets
+        if is_source:
+            # set current source port
+            # effect_id, port_name
+            # highlight effects given source port
+            source_port = (effect_id, port_name)
+            for effect in currentEffects:
+                effect.highlight = False
+                if effect.id != effect_id
+                    for input_port in effect.input_ports:
+                        if input_port.style == effects[effect_id].source_ports[port_name].style:
+                            # highlight and break
+                            effect.highlight = True
+                            break
+        else:
+            # if target disable highlight
+            for effect in currentEffects:
+                effect.highlight = False
+            # add connection between source and target
 
 #     @Slot(str)
 #     def ui_add_connection(self, x):
@@ -140,6 +157,8 @@ if __name__ == "__main__":
     available_effects = QStringListModel()
     available_effects.setStringList(["delay", "mono reverb", "stereo reverb", "mono EQ", "stereo EQ", "cab", "reverse", 
         "filter", "compressor", "bit crusher", "tape/tube", "mixer"])
+    selected_effect_ports = QStringListModel()
+    selected_effect_ports.setStringList(["out1", "out2"])
     engine = QQmlApplicationEngine()
 
     qmlRegisterType(PatchBayModel, 'Poly', 1, 0, 'PatchBayModel')
@@ -149,6 +168,8 @@ if __name__ == "__main__":
     # context.setContextProperty("param_vals", obj)
     # context.setContextProperty("delay1_Left_Out_AvailablePorts", model)
     context.setContextProperty("available_effects", available_effects)
+    context.setContextProperty("effectSourcePorts", effect_source_ports)
+    context.setContextProperty("selectedEffectPorts", selected_effect_ports)
     # engine.load(QUrl("qrc:/qml/digit.qml"))
     engine.load(QUrl("qml/TestWrapper.qml"))
 

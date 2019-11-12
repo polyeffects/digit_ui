@@ -293,75 +293,148 @@ import Poly 1.0
             }
         }
 
-
-        Popup {
+        Component {
             id: portSelection
-            property string effect1
-            property string effect2
-            property string param1
-            property string param2
-            property string param1Name
-            property string param2Name
-            property bool is_map
-            // x: 500
-            // y: 200
-            width: 600
-            height: 200
-            modal: true
-            focus: true
-            closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+            property bool source: true
+            property int effect_id: 0
+            Item {
+                id: portSelectionCon
+                height:700
+                width:1280
 
-            parent: Overlay.overlay
-            Overlay.modal: Rectangle {
-                // x: 500
-                y: -560
-                width: 1280
-                height: 1280
-                color: "#AA333333"
-                transform: Rotation {
-                    angle: -90
-                    // origin.x: Screen.height / 2
-                    // origin.x: Screen.height / 2
-                    // origin.x: 720 / 2
-                    // origin.y: 720 / 2
-                    origin.x: 1280 / 2
-                    origin.y: 1280 / 2
-                }
-            }
-
-            x: Math.round((parent.width - width) / 2)
-            y: Math.round((parent.height - height) / 2)
-
-            function open_port_selection(effect){
-                portSelection.open()
-            }
-
-            ListView {
-                width: 400
-                anchors.centerIn: parent
-                clip: true
-                delegate: ItemDelegate {
-                    width: parent.width
-                    height: 50
-                    text: edit
-                    bottomPadding: 0
-                    font.pixelSize: fontSizeMedium
-                    topPadding: 0
-                    onClicked: {
-                        // rep1.model.add_effect(edit)
-                        // knobs.ui_add_effect(edit)
-                        // mainStack.pop()
-                        portSelection.close()
+                GlowingLabel {
+                    color: "#ffffff"
+                    text: "Choose Port"
+                    font {
+                        pixelSize: fontSizeLarge
                     }
-                }
-                ScrollIndicator.vertical: ScrollIndicator {
                     anchors.top: parent.top
-                    parent: PortSelection
-                    anchors.right: parent.right
-                    anchors.rightMargin: 1
-                    anchors.bottom: parent.bottom
+                    anchors.horizontalCenter: parent.horizontalCenter
                 }
-                model: port_popup_options
+
+                ListView {
+                    width: 400
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: parent.top
+                    anchors.topMargin: 50
+                    anchors.bottom: parent.bottom
+                    clip: true
+                    delegate: ItemDelegate {
+                        width: parent.width
+                        height: 50
+                        text: edit
+                        bottomPadding: 0
+                        font.pixelSize: fontSizeMedium
+                        topPadding: 0
+                        onClicked: {
+                            // set this as the current port
+                            // and update valid targets
+                            knobs.set_current_port(source, effect_id, edit);
+                            // rep1.model.add_effect(edit)
+                            // knobs.ui_add_effect(edit)
+                            mainStack.pop();
+                        }
+                    }
+                    ScrollIndicator.vertical: ScrollIndicator {
+                        anchors.top: parent.top
+                        parent: portSelectionCon
+                        anchors.right: parent.right
+                        anchors.rightMargin: 1
+                        anchors.bottom: parent.bottom
+                    }
+                    model: selectedEffectPorts
+                }
+            
+                
+
+                Button {
+                    font {
+                        pixelSize: fontSizeMedium
+                    }
+                    text: "BACK"
+                    anchors.right: parent.right
+                    anchors.rightMargin: 10
+                    anchors.topMargin: 10
+                    width: 100
+                    height: 100
+                    onClicked: mainStack.pop()
+                }
             }
-        } 
+        }
+
+        // Popup {
+        //     id: portSelectionPopup
+        //     property var ports: []
+        //     // x: 500
+        //     // y: 200
+        //     width: 600
+        //     height: 400
+        //     modal: true
+        //     focus: true
+        //     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        //     parent: Overlay.overlay
+        //     Overlay.modal: Rectangle {
+        //         // x: 500
+        //         // y: -560
+        //         width: 1280
+        //         height: 1280
+        //         color: "#AA333333"
+        //         transform: Rotation {
+        //             angle: -90
+        //             // origin.x: Screen.height / 2
+        //             // origin.x: Screen.height / 2
+        //             // origin.x: 720 / 2
+        //             // origin.y: 720 / 2
+        //             origin.x: 1280 / 2
+        //             origin.y: 1280 / 2
+        //         }
+        //     }
+
+        //     x: Math.round((parent.width - width) / 2)
+        //     y: Math.round((parent.height - height) / 2)
+
+        //     function open_port_selection(effect){
+        //         portSelectionPopup.open()
+        //     }
+
+        //     Item {
+        //         id: portSelectCont
+        //         anchors.centerIn: parent
+        //         width:500
+        //         height:500
+        //         Label {
+        //             text: "Select Port"
+        //             font.pixelSize: baseFontSize
+        //             width: 190
+        //         }
+        //         ListView {
+        //             width: 400
+        //             anchors.centerIn: parent
+        //             clip: true
+        //             delegate: ItemDelegate {
+        //                 width: parent.width
+        //                 height: 50
+        //                 text: edit
+        //                 bottomPadding: 0
+        //                 font.pixelSize: fontSizeMedium
+        //                 topPadding: 0
+        //                 onClicked: {
+        //                     // rep1.model.add_effect(edit)
+        //                     // knobs.ui_add_effect(edit)
+        //                     // mainStack.pop()
+        //                     portSelectionPopup.close()
+        //                 }
+        //             }
+        //             ScrollIndicator.vertical: ScrollIndicator {
+        //                 anchors.top: parent.top
+        //                 parent: portSelectCont
+        //                 anchors.right: parent.right
+        //                 anchors.rightMargin: 1
+        //                 anchors.bottom: parent.bottom
+        //             }
+        //             model: selectedEffectPorts
+        //         }
+        //     }
+        // } 
     }

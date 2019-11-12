@@ -6,6 +6,7 @@ import QtQuick.Controls.Material 2.3
 // effect has name, internal name / class, id
 //
 // later exposed parameters
+//
 
 Rectangle {
     id: rect
@@ -22,6 +23,7 @@ Rectangle {
     property point beginDrag
     property bool caught: false
     property int effect_id
+    property string effect_name: "delay"
     // border { width:1; color: Material.color(Material.Cyan, Material.Shade100)}
     // border { width:2; color: Material.color(Material.Pink, Material.Shade200)}
     Drag.active: mouseArea.drag.active
@@ -98,32 +100,46 @@ Rectangle {
         onPressed: {
             // check mode: move, delete, connect, open
             rect.beginDrag = Qt.point(rect.x, rect.y);
-            if (knobs.waiting != "") // mapping on
-            {
-                // pop up knob mapping selector
-                mappingPopup.set_mapping_choice("delay"+(index+1), "Delay_1", "TIME", 
-                "delay"+(index+1), time_scale.current_parameter, 
-                time_scale.inv_parameter_map[time_scale.current_parameter], true);
-            }
 
             /*
-             * on click, find source ports 
-             * knobs.effectSourcePorts(effect_name)
-             * select source, show popup with source ports
-             * highlight effects given source port
-             * for effect in effects:
-             *  for input_port in effect.input_ports:
-             *      if input_port.type == source_port.type:
-             *          highlight and break
-             *
-             * on click if highlighted (valid port)
-             * show select target port if port count > 1
-             * 
-             * effect_connections[(effect_id, port_id)].append((target_effect_id, target_port_id))
-             *  
-             * for conn in effect_connections:
-             *  draw arc
+             * on click, check if we are highlight, if not find source ports 
+             * if we are, then we're a current target
              */
+            if (!highlight){
+                if (effectSourcePorts[effect_name].length > 1){
+                    // portSelectionPopup.ports = effectSourcePorts[effect_name];
+                    // portSelectionPopup.open()
+                    portSelection.effect_id = effect_id
+                    portSelection.source = true
+                    mainStack.push(portSelection);
+                    // select source, show popup with source ports
+                } 
+                else {
+                    knobs.set_current_port(true, effect_id, ) // XXX
+
+                }
+            } else {
+                 // * on click if highlighted (valid port)
+                 // * show select target port if port count > 1
+                if (effectSourcePorts[effect_name].length > 1){
+                    // portSelectionPopup.ports = effectSourcePorts[effect_name];
+                    // portSelectionPopup.open()
+                    portSelection.effect_id = effect_id
+                    portSelection.source = false
+                    mainStack.push(portSelection);
+                    // select target, show popup with target ports
+                } 
+                else {
+                    knobs.set_current_port(false, effect_id, ) // XXX
+
+                }
+            }
+             // * 
+             // * effect_connections[(effect_id, port_id)].append((target_effect_id, target_port_id))
+             // *  
+             // * for conn in effect_connections:
+             // *  draw arc
+             // */
         }
         onDoubleClicked: {
             time_scale.current_delay = index;
@@ -135,25 +151,25 @@ Rectangle {
             // add MIDI mapping
         }
         onReleased: {
-            var in_x = rect.x;
-            var in_y = rect.y;
+            // var in_x = rect.x;
+            // var in_y = rect.y;
 
             // if(!rect.caught) {
             // // clamp to bounds
             // in_x = Math.min(Math.max(-(width / 2), in_x), mycanvas.width - (width / 2));
             // in_y = Math.min(Math.max(-(width / 2), in_y), mycanvas.height - (width / 2));
             // }
-            if(time_scale.snapping && time_scale.synced) {
-                in_x = time_scale.nearestDivision(in_x + (width / 2)) - (width / 2);
-            }
-            in_x = in_x + (width / 2);
-            in_y = in_y + (width / 2);
-            knobs.ui_knob_change("delay"+(index+1), "Delay_1", time_scale.pixelToTime(in_x));
-            knobs.ui_knob_change("delay"+(index+1), 
-            time_scale.current_parameter, 
-            time_scale.pixelToValue(time_scale.delay_data[index][time_scale.current_parameter].rmin, 
-            time_scale.delay_data[index][time_scale.current_parameter].rmax, 
-            in_y)); 
+            // if(time_scale.snapping && time_scale.synced) {
+            //     in_x = time_scale.nearestDivision(in_x + (width / 2)) - (width / 2);
+            // }
+            // in_x = in_x + (width / 2);
+            // in_y = in_y + (width / 2);
+            // knobs.ui_knob_change("delay"+(index+1), "Delay_1", time_scale.pixelToTime(in_x));
+            // knobs.ui_knob_change("delay"+(index+1), 
+            // time_scale.current_parameter, 
+            // time_scale.pixelToValue(time_scale.delay_data[index][time_scale.current_parameter].rmin, 
+            // time_scale.delay_data[index][time_scale.current_parameter].rmax, 
+            // in_y)); 
             // console.log("parameter map", 
             // time_scale.current_parameter, "value", 
             // time_scale.pixelToValue(in_y),
