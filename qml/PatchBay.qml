@@ -31,6 +31,10 @@ import Poly 1.0
         property var inv_parameter_map: {'Amp_5': 'LEVEL', 'DelayT60_3': 'GLIDE', 'Feedback_4': 'FEEDBACK', 'Warp_2': 'WARP', 'FeedbackSm_6': 'TONE', "Delay_1": "TIME", "carla_level": "POST LVL"}
         property int current_index: -1
         property bool delete_mode: deleteMode.checked
+        // relate to port selection popup
+        property bool list_source: true
+        property string list_effect_id
+        property var effect_map: {"invalid":"b"}
         // PPQN * bars
         //
 
@@ -78,7 +82,7 @@ import Poly 1.0
 		}
 
         function externalRefresh() {
-            // mycanvas.requestPaint();
+            mycanvas.requestPaint();
             return updateCounter.value;
         }
 
@@ -92,80 +96,126 @@ import Poly 1.0
                 // model: [1, 2, 3, 4]
                 model: PatchBayModel {}
                 PatchBayEffect {
-                    effect_id: display
+                    effect_id: l_effect_id
+                    effect_type: l_effect_type
+                    x: cur_x
+                    y: cur_y
+                    highlight: l_highlight
+                }
+                onItemAdded: {
+                    if ("invalid" in effect_map){
+                        delete effect_map["invalid"];
+                    }
+                    // console.log("added", index, item.effect_id);
+                    effect_map[item.effect_id] = item;
+                    // console.log(Object.keys(effect_map)); //[item.effect_id]);
                 }
             }
 
-            Shape {
-                width: parent.width
-                height: parent.height
-                ShapePath {
-                    strokeWidth: 1
-                    strokeColor: "red"
-                    // strokeStyle: ShapePath.DashLine
-                    // dashPattern: [ 1, 4 ]
-                    // startX: rep1.itemAt(0).children[0].x; startY: rep1.itemAt(0).children[0].y
-                    startX: 20; startY: 20  
-                    PathLine { x: rep1.itemAt(current_index).children[1].x; y: rep1.itemAt(current_index).children[1].y}
-                    // PathLine { x: 100; y: 100}
-                }
-                z: 5
-            }
-
-            // Canvas {
-            //     id: mycanvas
-            //     anchors {
-            //         top: parent.top
-            //         right:  parent.right
-            //         bottom:  parent.bottom
+            // Shape {
+            //     width: parent.width
+            //     height: parent.height
+            //     ShapePath {
+            //         strokeWidth: 1
+            //         strokeColor: "red"
+            //         // strokeStyle: ShapePath.DashLine
+            //         // dashPattern: [ 1, 4 ]
+            //         // startX: rep1.itemAt(0).children[0].x; startY: rep1.itemAt(0).children[0].y
+            //         startX: 20; startY: 20  
+            //         PathLine { x: rep1.itemAt(current_index).x; y: rep1.itemAt(current_index).y}
+            //         // PathLine { x: 100; y: 100}
             //     }
-            //     width: time_scale.active_width
-            //     onPaint: {
-            //         var ctx = getContext("2d");
-            //         ctx.fillStyle = Material.background; //Qt.rgba(1, 1, 0, 1);
-            //         ctx.fillRect(0, 0, width, height);
-            //         // draw beat snap lines  
-            //         if (time_scale.synced){
-            //             ctx.fillStyle = Material.accent;//Qt.rgba(0.1, 0.1, 0.1, 1);
-
-            //             for (var i = 0; i < (time_scale.division*time_scale.bars); i++) {
-            //                 if ((i % time_scale.division) == 0)
-            //                 {
-            //                     ctx.fillRect((width/(time_scale.division*time_scale.bars))*i, 0, 3, height);
-            //                     ctx.fillText(i-1, x+2, height - 10);
-            //                 }
-            //                 else
-            //                 {
-            //                     ctx.fillRect((width/(time_scale.division*time_scale.bars))*i, 0, 1, height);
-            //                 }
-            //             }
-            //         }
-            //         else
-            //         {
-            //             // every second
-            //             ctx.fillStyle = Material.accent;//Qt.rgba(0.1, 0.1, 0.1, 1);
-
-            //             // ctx.fillRect(0, 0, 1, height);
-
-            //             for (var i = 1; i < time_scale.max_delay_length+1; i++) {
-            //                 var x = (width/time_scale.max_delay_length)*i
-            //                 ctx.fillRect(x, 0, 1, height);
-            //                 // var x = width/Math.log(time_scale.max_delay_length+1)*Math.log(i)
-            //                 // ctx.fillRect(x, 0, 1, height);
-            //                 if (i < 4)
-            //                 {
-            //                     ctx.fillText(i-1, x+2, height - 10);
-            //                 }
-            //             }
-            //         }
-
-            //     }
-            //     DropArea {
-            //         anchors.fill: parent
-            //         onEntered: drag.source.caught = true;
-            //         onExited: drag.source.caught = false;
-            //     }
+            //     z: 5
             // }
+
+            Canvas {
+                id: mycanvas
+                function findConnections(drawContext){ 
+                    // iterate over items in rep1, adding to dictionary of effect_id : patchbayeffect
+                    console.log("finding connection", Object.keys(portConnections));
+                    for (var source_effect_port_str in portConnections){ 
+                        console.log("key ", source_effect_port_str);
+                        var source_effect_port = source_effect_port_str.split(":");
+                        var targets = portConnections[source_effect_port_str];
+                        console.log("drawing connection 1", source_effect_port[0], portConnections[source_effect_port_str]);
+                        for (var target in targets){
+                             console.log("drawing connection 2 obj", effect_map[source_effect_port[0]], effect_map[targets[target][0]]);
+                             console.log("drawing connection 2 keys", source_effect_port[0], targets[target][0]);
+                             //effect_map[source_effect_port[0]], effect_map[targets[target][0]]
+                             drawConnection(effect_map[source_effect_port[0]], effect_map[targets[target][0]]);
+                        } 
+                    }
+                }
+
+                function drawConnection( drawContext, outputPort, inputPort ) {
+                    var start   = getCanvasCoordinates( outputPort, 0, 0)
+                    var end     = getCanvasCoordinates( inputPort, 0, 0) 
+                    if( start.x > end.x ) {
+                        var tmp = start;
+                        start = end;
+                        end = tmp;
+                    }
+
+                    var minmax  = getMinMax( start, end )
+                    var sizeX   = minmax[2] - minmax[0]
+
+
+                    drawContext.lineWidth   = 4;
+                    drawContext.strokeStyle = Material.accent
+                    drawContext.beginPath()
+                    drawContext.moveTo( start.x, start.y )
+                    drawContext.bezierCurveTo( start.x + sizeX / 4 , start.y, end.x - sizeX / 4, end.y, end.x, end.y )
+                    drawContext.stroke()
+                    return true;
+                }
+
+                function getCanvasCoordinates( port, hotSpotX, hotSpotY )
+                {
+                    return mycanvas.mapFromItem( port, hotSpotX, hotSpotY )
+                }
+
+                function getMinMax( start, end )
+                {
+                    var minX, minY,
+                    maxX, maxY
+                    if( start.x < end.x ) {
+                        minX = start.x
+                        maxX = end.x
+                    }
+                    else {
+                        minX = end.x
+                        maxX = start.x
+                    }
+
+                    if( start.y < end.y ) {
+                        minY = start.y
+                        maxY = end.y
+                    }
+                    else {
+                        minY = end.y
+                        maxY = start.y
+                    }
+                    return [minX, minY, maxX, maxY]
+                }
+
+                anchors {
+                    top: parent.top
+                    right:  parent.right
+                    bottom:  parent.bottom
+                }
+                width: parent.width
+                onPaint: {
+                    var ctx = getContext("2d");
+                    ctx.fillStyle = Material.background; //Qt.rgba(1, 1, 0, 1);
+                    ctx.fillRect(0, 0, width, height);
+                    findConnections(ctx);
+                }
+                DropArea {
+                    anchors.fill: parent
+                    onEntered: drag.source.caught = true;
+                    onExited: drag.source.caught = false;
+                }
+            }
 
             // bottom buttons
             // normal
@@ -295,8 +345,6 @@ import Poly 1.0
 
         Component {
             id: portSelection
-            property bool source: true
-            property int effect_id: 0
             Item {
                 id: portSelectionCon
                 height:700
@@ -329,7 +377,9 @@ import Poly 1.0
                         onClicked: {
                             // set this as the current port
                             // and update valid targets
-                            knobs.set_current_port(source, effect_id, edit);
+                            knobs.set_current_port(list_source, list_effect_id, edit);
+                            rep1.model.items_changed();
+                            mycanvas.requestPaint();
                             // rep1.model.add_effect(edit)
                             // knobs.ui_add_effect(edit)
                             mainStack.pop();

@@ -91,7 +91,7 @@ def knob_change(effect_name, parameter, value):
     else:
         print("effect not found")
 
-def add_effects(user_effect_type):
+def add_effect(user_effect_type):
     # add pan, bitcrusher
     effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
             "reverb": "http://lv2plug.in/plugins/eg-amp",

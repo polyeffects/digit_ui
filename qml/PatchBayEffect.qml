@@ -13,17 +13,17 @@ Rectangle {
     width: 200
     height: 100
     radius: 10
-    color: patch_bay.delete_mode ? Qt.rgba(0.9,0.0,0.0,1.0) : Qt.rgba(0.3,0.3,0.3,1.0)  
+    // color: patch_bay.delete_mode ? Qt.rgba(0.9,0.0,0.0,1.0) : Qt.rgba(0.3,0.3,0.3,1.0)  
+    color: highlight ? Qt.rgba(0.9,0.0,0.0,1.0) : Qt.rgba(0.3,0.3,0.3,1.0)  
     z: mouseArea.drag.active ||  mouseArea.pressed ? 2 : 1
     // color: Material.color(time_scale.delay_colors[index])
     // color: Qt.rgba(0, 0, 0, 0)
     // color: setColorAlpha(Material.Pink, 0.1);//Qt.rgba(0.1, 0.1, 0.1, 1);
-    x: 0
-    y: 0
     property point beginDrag
     property bool caught: false
-    property int effect_id
-    property string effect_name: "delay"
+    property string effect_id
+    property string effect_type
+    property bool highlight: false
     // border { width:1; color: Material.color(Material.Cyan, Material.Shade100)}
     // border { width:2; color: Material.color(Material.Pink, Material.Shade200)}
     Drag.active: mouseArea.drag.active
@@ -84,7 +84,7 @@ Rectangle {
         anchors.top: parent.top
         anchors.topMargin: 0
         anchors.horizontalCenter: parent.horizontalCenter
-        text: "Delay "+(index+1)
+        text: effect_id
         color: "white"
         font {
             // pixelSize: fontSizeMedium
@@ -106,33 +106,29 @@ Rectangle {
              * if we are, then we're a current target
              */
             if (!highlight){
-                if (effectSourcePorts[effect_name].length > 1){
-                    // portSelectionPopup.ports = effectSourcePorts[effect_name];
-                    // portSelectionPopup.open()
-                    portSelection.effect_id = effect_id
-                    portSelection.source = true
+				knobs.select_effect(true, effect_id)
+                // if (selectedEffectPorts.count > 1){
+                    patch_bay.list_effect_id = effect_id;
+                    patch_bay.list_source = true;
                     mainStack.push(portSelection);
                     // select source, show popup with source ports
-                } 
-                else {
-                    knobs.set_current_port(true, effect_id, ) // XXX
-
-                }
+                // } 
+                // else {
+                //     knobs.set_current_port(true, effect_id, selectedEffectPorts[0]);
+                // }
             } else {
+				knobs.select_effect(false, effect_id)
                  // * on click if highlighted (valid port)
                  // * show select target port if port count > 1
-                if (effectSourcePorts[effect_name].length > 1){
-                    // portSelectionPopup.ports = effectSourcePorts[effect_name];
-                    // portSelectionPopup.open()
-                    portSelection.effect_id = effect_id
-                    portSelection.source = false
+                    patch_bay.list_effect_id = effect_id;
+                    patch_bay.list_source = false;
                     mainStack.push(portSelection);
                     // select target, show popup with target ports
-                } 
-                else {
-                    knobs.set_current_port(false, effect_id, ) // XXX
+                // } 
+                // else {
+                    // knobs.set_current_port(false, effect_id, ) // XXX
 
-                }
+                // }
             }
              // * 
              // * effect_connections[(effect_id, port_id)].append((target_effect_id, target_port_id))
