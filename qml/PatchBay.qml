@@ -139,17 +139,18 @@ import Poly 1.0
                         var targets = portConnections[source_effect_port_str];
                         console.log("drawing connection 1", source_effect_port[0], portConnections[source_effect_port_str]);
                         for (var target in targets){
+                             console.log("drawing connection 2 targets", targets[0][0]);
                              console.log("drawing connection 2 obj", effect_map[source_effect_port[0]], effect_map[targets[target][0]]);
                              console.log("drawing connection 2 keys", source_effect_port[0], targets[target][0]);
                              //effect_map[source_effect_port[0]], effect_map[targets[target][0]]
-                             drawConnection(effect_map[source_effect_port[0]], effect_map[targets[target][0]]);
+                             drawConnection(drawContext, effect_map[source_effect_port[0]], effect_map[targets[target][0]]);
                         } 
                     }
                 }
 
                 function drawConnection( drawContext, outputPort, inputPort ) {
-                    var start   = getCanvasCoordinates( outputPort, 0, 0)
-                    var end     = getCanvasCoordinates( inputPort, 0, 0) 
+                    var start   = getCanvasCoordinates( outputPort, 0, 10)
+                    var end     = getCanvasCoordinates( inputPort,  inputPort.width, 10) 
                     if( start.x > end.x ) {
                         var tmp = start;
                         start = end;

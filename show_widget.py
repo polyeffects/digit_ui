@@ -85,7 +85,7 @@ class Knobs(QObject):
             if current_source_port not in port_connections:
                 port_connections[current_source_port] = []
 
-            port_connections[current_source_port].append((effect_id, port_name))
+            port_connections[current_source_port].append([effect_id, port_name])
             print("port_connections is", port_connections)
             # global context
             context.setContextProperty("portConnections", port_connections)
