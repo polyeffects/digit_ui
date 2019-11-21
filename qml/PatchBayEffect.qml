@@ -218,6 +218,25 @@ Rectangle {
 				mainStack.push(editDelay);
 				patch_bay.externalRefresh();
 			}
+			if (patch_bay.disconnect_mode){
+
+				/*
+				 * on click, if there's just one port then connected then disconnect it
+				 * otherwise list connected
+				 */
+						knobs.list_connected(effect_id);
+					 // * on click if highlighted (valid port)
+					 // * show select target port if port count > 1
+						patch_bay.list_effect_id = effect_id;
+						patch_bay.list_source = false;
+						mainStack.push(disconnectPortSelection);
+						// select target, show popup with target ports
+					// } 
+					// else {
+						// knobs.set_current_port(false, effect_id, ) // XXX
+
+					// }
+			}
              // * 
              // * effect_connections[(effect_id, port_id)].append((target_effect_id, target_port_id))
              // *  

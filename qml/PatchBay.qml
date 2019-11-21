@@ -34,6 +34,7 @@ import Poly 1.0
         property bool move_mode: moveMode.checked
         property bool isMoving: false
         property bool connect_mode: connectMode.checked
+        property bool disconnect_mode: disconnectMode.checked
         property bool expand_mode: expandMode.checked
         // relate to port selection popup
         property bool list_source: true
@@ -265,6 +266,14 @@ import Poly 1.0
                 Button {
                     id: connectMode
                     icon.name: "md-git-branch"
+                    width: 70
+                    height: 70
+                    onClicked: {
+                    }
+                }
+                Button {
+                    id: disconnectMode
+                    icon.name: "md-git-compare"
                     width: 70
                     height: 70
                     onClicked: {

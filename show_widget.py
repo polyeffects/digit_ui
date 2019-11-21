@@ -255,16 +255,13 @@ class Knobs(QObject):
     @Slot(str)
     def list_connected(self, effect_id):
         ports = []
-        for source_port, connected in port_connections.item():
-            effect, port_name = source_port.split(":")
-            if effect == effect_id:
-                # connections where we are source
-                ports.append(connected)
-            else:
-                # connections where we are target
-                for c_effect, c_port in connected:
-                    if c_effect == effect_id:
-                        ports.append(c_effect+":"+c_port)
+        for source_port, connected in port_connections.items():
+            s_effect, s_port = source_port.split(":")
+            # connections where we are target
+            for c_effect, c_port in connected:
+                if c_effect == effect_id or s_effect == effect_id:
+                    ports.append(s_effect+":"+s_port+":"+c_effect+":"+c_port)
+        print("connected ports:", ports)
         selected_effect_ports.setStringList(ports)
 
     @Slot(str)
