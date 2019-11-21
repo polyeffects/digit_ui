@@ -13,6 +13,7 @@ connections and nodes.
 needs: effect type, effect_id, is_highlighted, x, y
 """
 local_effects = None
+patch_bay_singleton = None
 
 class PatchBayModel(QAbstractListModel):
 
@@ -28,6 +29,8 @@ class PatchBayModel(QAbstractListModel):
         # self.__effects_count = 3
         self.__effect_ids = local_effects.keys()
         self.__order = dict(enumerate(local_effects.keys()))
+        global patch_bay_singleton
+        patch_bay_singleton = self
 
         # self.__update_timer = QTimer(self)
         # self.__update_timer.setInterval(1000)
@@ -37,25 +40,33 @@ class PatchBayModel(QAbstractListModel):
         # The first call returns invalid data
         # psutil.cpu_percent(percpu=True)
 
-    @Slot(str)
-    def add_effect(self, effect_name):
+    def startInsert(self):
+        print("start insert")
         self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount())
-        self.__effect_ids.append(self.__effect_ids[-1]+1) # temp get real IDs
-        print(effect_name, " added.")
+
+    def endInsert(self):
+        print("end insert")
+        self.__order = dict(enumerate(local_effects.keys()))
         self.endInsertRows()
 
-    @Slot(int)
-    def remove_effect(self, effect_id):
-        current_row = self.__effect_ids.index(effect_id)
+    def startRemove(self, effect_id):
+        current_row = list(local_effects.keys()).index(effect_id)
         self.beginRemoveRows(QModelIndex(), current_row, current_row)
-        self.__effect_ids.pop(current_row)
+        print(effect_id, " removing.")
+
+    def endRemove(self):
         self.endRemoveRows()
-        print(effect_id, " removed.")
 
     @Slot()
     def items_changed(self):
         # self.__cpu_load = psutil.cpu_percent(percpu=True)
         self.dataChanged.emit(self.index(0,0), self.index(len(local_effects)-1, 0))
+
+    @Slot()
+    def item_changed(self, effect_id):
+        current_row = list(local_effects.keys()).index(effect_id)
+        # self.__cpu_load = psutil.cpu_percent(percpu=True)
+        self.dataChanged.emit(self.index(current_row,0), self.index(current_row, 0))
 
     def rowCount(self, parent=None):
         # return self.__effects_count
@@ -66,7 +77,7 @@ class PatchBayModel(QAbstractListModel):
             return QVariant()
         row = index.row()
         if 0 <= row < self.rowCount():
-            print("getting role", role)
+            # print("getting role", role, local_effects)
             if role == PatchBayModel.EffectID:
                 # print("getting effectID", local_effects[self.__order[index.row()]])
                 return self.__order[index.row()]

@@ -21,7 +21,7 @@ output_port_names = {"Out 1": ("system", "playback_3"),
 inv_output_port_names = dict({(v, k) for k,v in output_port_names.items()})
 
 def ui_worker(ui_mess, core_mess):
-    # os.sched_setaffinity(0, (2, ))
+    os.sched_setaffinity(0, (2, ))
     EXIT_PROCESS = [False]
     from PySide2.QtGui import QGuiApplication
     from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QThreadPool, QRunnable

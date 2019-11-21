@@ -28,57 +28,125 @@ Rectangle {
     // border { width:2; color: Material.color(Material.Pink, Material.Shade200)}
     Drag.active: mouseArea.drag.active
 
-    Button {
-        anchors.left: parent.left
-        anchors.leftMargin: 5
-        icon.name: "md-arrow-back"
-        width: 45
-        height: 45
-        // On click make this the current patch source, highlight this and possible targets
-        // port id
-        // creates new path element / connection
-        // text: "<"
-        // background: Rectangle {
-        //     // anchors.left: parent.left
-        //     // anchors.leftMargin: 0
-        //     width: 20
-        //     height: 20
-        //     radius: 20
-        //     // color: Material.color(Material.Pink, Material.Shade200)
-        //     color: setColorAlpha(Material.color(Material.Pink, Material.Shade200), 0.2)
-        //     border {
-        //         color: Material.color(Material.Pink, Material.Shade200);
-        //         width: 1
-        //     }
-        // }
-    }
+	Column {
+		width:20
+		Repeater {
+			id: outputRep
+			model: Object.keys(effectPrototypes[effect_type]["outputs"]) 
+			Button {
+				anchors.left: parent.left
+				anchors.leftMargin: 5
+				// text: "<"
+				background: Rectangle {
+					anchors.left: parent.left
+					anchors.leftMargin: 5
+					y:5
+					width: 20
+					height: 20
+					radius: 20
+					// color: Material.color(Material.Pink, Material.Shade200)
+					color: setColorAlpha(Material.color(Material.Pink, Material.Shade200), 0.2)
+					border {
+						color: Material.color(Material.Pink, Material.Shade200);
+						width: 1
+					}
+				}
+			}
+			// onItemAdded: {
+			// 	if ("invalid" in effect_map){
+			// 		delete effect_map["invalid"];
+			// 	}
+			// 	// console.log("added", index, item.effect_id);
+			// 	effect_map[item.effect_id] = item;
+			// 	// console.log(Object.keys(effect_map)); //[item.effect_id]);
+			// }
+		}
+	}
+    // Button {
+    //     anchors.left: parent.left
+    //     anchors.leftMargin: 5
+    //     icon.name: "md-arrow-back"
+    //     width: 45
+    //     height: 45
+    //     // On click make this the current patch source, highlight this and possible targets
+    //     // port id
+    //     // creates new path element / connection
+    //     // text: "<"
+    //     // background: Rectangle {
+    //     //     // anchors.left: parent.left
+    //     //     // anchors.leftMargin: 0
+    //     //     width: 20
+    //     //     height: 20
+    //     //     radius: 20
+    //     //     // color: Material.color(Material.Pink, Material.Shade200)
+    //     //     color: setColorAlpha(Material.color(Material.Pink, Material.Shade200), 0.2)
+    //     //     border {
+    //     //         color: Material.color(Material.Pink, Material.Shade200);
+    //     //         width: 1
+    //     //     }
+    //     // }
+    // }
 
-    Button {
-        anchors.right: parent.right
-        anchors.rightMargin: 35
-        text: "<"
-        background: Rectangle {
-            anchors.right: parent.right
-            anchors.rightMargin: -25
-            y:5
-            width: 20
-            height: 20
-            radius: 20
-            // color: Material.color(Material.Pink, Material.Shade200)
-            color: setColorAlpha(Material.color(Material.Pink, Material.Shade200), 0.2)
-            border {
-                color: Material.color(Material.Pink, Material.Shade200);
-                width: 1
-            }
-        }
-        onClicked: {
-            // delete current effect
-            // console.log("clicked", display);
-            // rep1.model.remove_effect(display)
-            console.log("clicked", effect_id);
-            rep1.model.remove_effect(effect_id)
-        }
-    }
+	Column {
+		width:20
+		anchors.right: parent.right
+		Column {
+			width:20
+			anchors.right: parent.right
+			Repeater {
+				id: inputRep
+				model: Object.keys(effectPrototypes[effect_type]["inputs"]) 
+				Button {
+					anchors.right: parent.right
+					anchors.rightMargin: 35
+					// text: "<"
+					background: Rectangle {
+						anchors.right: parent.right
+						anchors.rightMargin: -25
+						y:5
+						width: 20
+						height: 20
+						radius: 20
+						// color: Material.color(Material.Pink, Material.Shade200)
+						color: setColorAlpha(Material.color(Material.Pink, Material.Shade200), 0.2)
+						border {
+							color: Material.color(Material.Pink, Material.Shade200);
+							width: 1
+						}
+					}
+				}
+			}
+		}
+		// Column {
+		// 	width:20
+		// 	anchors.right: parent.right
+		// 	spacing: 0
+		// 	Repeater {
+		// 		id: controlRep
+		// 		model: Object.keys(effectPrototypes[effect_type]["controls"]) 
+		// 		Button {
+		// 			height: 10
+		// 			anchors.right: parent.right
+		// 			anchors.rightMargin: 35
+		// 			// text: "<"
+		// 			background: Rectangle {
+		// 				anchors.right: parent.right
+		// 				anchors.rightMargin: -25
+		// 				y:5
+		// 				width: 10
+		// 				height: 10
+		// 				radius: 10
+		// 				// color: Material.color(Material.Pink, Material.Shade200)
+		// 				color: setColorAlpha(Material.color(Material.Indigo, Material.Shade200), 0.2)
+		// 				border {
+		// 					color: Material.color(Material.Indigo, Material.Shade200);
+		// 					width: 1
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// }
+	}
 
     Label {
         anchors.top: parent.top
@@ -100,36 +168,56 @@ Rectangle {
         onPressed: {
             // check mode: move, delete, connect, open
             rect.beginDrag = Qt.point(rect.x, rect.y);
+			console.log("effect proto", Object.keys(effectPrototypes[effect_type]["inputs"]))
 
-            /*
-             * on click, check if we are highlight, if not find source ports 
-             * if we are, then we're a current target
-             */
-            if (!highlight){
-				knobs.select_effect(true, effect_id)
-                // if (selectedEffectPorts.count > 1){
-                    patch_bay.list_effect_id = effect_id;
-                    patch_bay.list_source = true;
-                    mainStack.push(portSelection);
-                    // select source, show popup with source ports
-                // } 
-                // else {
-                //     knobs.set_current_port(true, effect_id, selectedEffectPorts[0]);
-                // }
-            } else {
-				knobs.select_effect(false, effect_id)
-                 // * on click if highlighted (valid port)
-                 // * show select target port if port count > 1
-                    patch_bay.list_effect_id = effect_id;
-                    patch_bay.list_source = false;
-                    mainStack.push(portSelection);
-                    // select target, show popup with target ports
-                // } 
-                // else {
-                    // knobs.set_current_port(false, effect_id, ) // XXX
+			if (patch_bay.connect_mode){
 
-                // }
-            }
+				/*
+				 * on click, check if we are highlight, if not find source ports 
+				 * if we are, then we're a current target
+				 */
+				if (!highlight){
+					knobs.select_effect(true, effect_id)
+					// if (selectedEffectPorts.count > 1){
+						patch_bay.list_effect_id = effect_id;
+						patch_bay.list_source = true;
+						mainStack.push(portSelection);
+						// select source, show popup with source ports
+					// } 
+					// else {
+					//     knobs.set_current_port(true, effect_id, selectedEffectPorts[0]);
+					// }
+				} else {
+					knobs.select_effect(false, effect_id)
+					 // * on click if highlighted (valid port)
+					 // * show select target port if port count > 1
+						patch_bay.list_effect_id = effect_id;
+						patch_bay.list_source = false;
+						mainStack.push(portSelection);
+						// select target, show popup with target ports
+					// } 
+					// else {
+						// knobs.set_current_port(false, effect_id, ) // XXX
+
+					// }
+				}
+			}
+			else if (patch_bay.move_mode) {
+				patch_bay.isMoving = true;
+				patch_bay.externalRefresh();
+			}
+			else if (patch_bay.delete_mode) {
+				// delete current effect
+				// console.log("clicked", display);
+				// rep1.model.remove_effect(display)
+				console.log("deleting", effect_id);
+				knobs.remove_effect(effect_id);
+				patch_bay.externalRefresh();
+			}
+			else if (patch_bay.expand_mode) {
+				mainStack.push(editDelay);
+				patch_bay.externalRefresh();
+			}
              // * 
              // * effect_connections[(effect_id, port_id)].append((target_effect_id, target_port_id))
              // *  
@@ -149,6 +237,12 @@ Rectangle {
         onReleased: {
             // var in_x = rect.x;
             // var in_y = rect.y;
+			if (patch_bay.move_mode){
+				patch_bay.isMoving = false;
+				patch_bay.externalRefresh();
+				knobs.move_effect(effect_id, rect.x, rect.y)
+			
+			}
 
             // if(!rect.caught) {
             // // clamp to bounds

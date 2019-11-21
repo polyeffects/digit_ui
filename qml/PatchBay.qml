@@ -31,6 +31,10 @@ import Poly 1.0
         property var inv_parameter_map: {'Amp_5': 'LEVEL', 'DelayT60_3': 'GLIDE', 'Feedback_4': 'FEEDBACK', 'Warp_2': 'WARP', 'FeedbackSm_6': 'TONE', "Delay_1": "TIME", "carla_level": "POST LVL"}
         property int current_index: -1
         property bool delete_mode: deleteMode.checked
+        property bool move_mode: moveMode.checked
+        property bool isMoving: false
+        property bool connect_mode: connectMode.checked
+        property bool expand_mode: expandMode.checked
         // relate to port selection popup
         property bool list_source: true
         property string list_effect_id
@@ -162,11 +166,16 @@ import Poly 1.0
 
 
                     drawContext.lineWidth   = 4;
-                    drawContext.strokeStyle = Material.accent
-                    drawContext.beginPath()
-                    drawContext.moveTo( start.x, start.y )
-                    drawContext.bezierCurveTo( start.x + sizeX / 4 , start.y, end.x - sizeX / 4, end.y, end.x, end.y )
-                    drawContext.stroke()
+                    if (patch_bay.isMoving){
+                        drawContext.strokeStyle = setColorAlpha(Material.accent, 0.2);
+                    } else
+                    {
+                        drawContext.strokeStyle = Material.accent;
+                    }
+                    drawContext.beginPath();
+                    drawContext.moveTo( start.x, start.y );
+                    drawContext.bezierCurveTo( start.x + sizeX / 4 , start.y, end.x - sizeX / 4, end.y, end.x, end.y );
+                    drawContext.stroke();
                     return true;
                 }
 
@@ -246,7 +255,16 @@ import Poly 1.0
                     checked: true
                 }
                 Button {
+                    id: moveMode
                     icon.name: "md-move"
+                    width: 70
+                    height: 70
+                    onClicked: {
+                    }
+                }
+                Button {
+                    id: connectMode
+                    icon.name: "md-git-branch"
                     width: 70
                     height: 70
                     onClicked: {
@@ -312,7 +330,7 @@ import Poly 1.0
                         font.pixelSize: fontSizeMedium
                         topPadding: 0
                         onClicked: {
-                            rep1.model.add_effect(edit)
+                            knobs.add_new_effect(edit)
                             // knobs.ui_add_effect(edit)
                             mainStack.pop()
                         }
@@ -389,6 +407,76 @@ import Poly 1.0
                     ScrollIndicator.vertical: ScrollIndicator {
                         anchors.top: parent.top
                         parent: portSelectionCon
+                        anchors.right: parent.right
+                        anchors.rightMargin: 1
+                        anchors.bottom: parent.bottom
+                    }
+                    model: selectedEffectPorts
+                }
+            
+                
+
+                Button {
+                    font {
+                        pixelSize: fontSizeMedium
+                    }
+                    text: "BACK"
+                    anchors.right: parent.right
+                    anchors.rightMargin: 10
+                    anchors.topMargin: 10
+                    width: 100
+                    height: 100
+                    onClicked: mainStack.pop()
+                }
+            }
+        }
+
+        Component {
+            id: disconnectPortSelection
+            Item {
+                id: disPortSelectionCon
+                height:700
+                width:1280
+
+                GlowingLabel {
+                    color: "#ffffff"
+                    text: "Disconnect Port"
+                    font {
+                        pixelSize: fontSizeLarge
+                    }
+                    anchors.top: parent.top
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                ListView {
+                    width: 400
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: parent.top
+                    anchors.topMargin: 50
+                    anchors.bottom: parent.bottom
+                    clip: true
+                    delegate: ItemDelegate {
+                        width: parent.width
+                        height: 50
+                        text: edit
+                        bottomPadding: 0
+                        font.pixelSize: fontSizeMedium
+                        topPadding: 0
+                        onClicked: {
+                            // set this as the current port
+                            // and update valid targets
+                            //knobs.set_current_port(list_source, list_effect_id, edit);
+                            console.log("disconnect", edit);
+                            rep1.model.items_changed();
+                            mycanvas.requestPaint();
+                            // rep1.model.add_effect(edit)
+                            // knobs.ui_add_effect(edit)
+                            mainStack.pop();
+                        }
+                    }
+                    ScrollIndicator.vertical: ScrollIndicator {
+                        anchors.top: parent.top
+                        parent: disPortSelectionCon
                         anchors.right: parent.right
                         anchors.rightMargin: 1
                         anchors.bottom: parent.bottom
