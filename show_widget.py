@@ -23,7 +23,6 @@ current_effects = OrderedDict()
 # current_effects["delay1"] = {"x": 20, "y": 30, "effect_type": "delay", "controls": {}, "highlight": False}
 # current_effects["delay2"] = {"x": 250, "y": 290, "effect_type": "delay", "controls": {}, "highlight": False}
 port_connections = {} # key is port, value is list of ports
-port_connections_inv = {} # key is port, value is list of ports
 
 context = None
 
@@ -260,9 +259,16 @@ class Knobs(QObject):
             # connections where we are target
             for c_effect, c_port in connected:
                 if c_effect == effect_id or s_effect == effect_id:
-                    ports.append(s_effect+":"+s_port+":"+c_effect+":"+c_port)
+                    ports.append(s_effect+":"+s_port+"---"+c_effect+":"+c_port)
         print("connected ports:", ports)
         selected_effect_ports.setStringList(ports)
+
+    @Slot(str)
+    def disconnect_port(self, port_pair):
+        source_pair, target_pair = port_pair.split("---")
+        t_effect, t_port = target_pair.split(":")
+        port_connections[source_pair].pop(port_connections[source_pair].index([t_effect, t_port]))
+        context.setContextProperty("portConnections", port_connections)
 
     @Slot(str)
     def add_new_effect(self, effect_type):

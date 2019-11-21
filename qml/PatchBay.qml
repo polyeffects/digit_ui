@@ -476,6 +476,7 @@ import Poly 1.0
                             // and update valid targets
                             //knobs.set_current_port(list_source, list_effect_id, edit);
                             console.log("disconnect", edit);
+                            knobs.disconnect_port(edit);
                             rep1.model.items_changed();
                             mycanvas.requestPaint();
                             // rep1.model.add_effect(edit)
