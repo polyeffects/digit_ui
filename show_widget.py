@@ -13,6 +13,7 @@ import icons.icons
 import resource_rc
 
 import patch_bay_model
+import ingen_wrapper
 
 # def insert_row(model, row):
 #     j = len(model.stringList())
@@ -29,7 +30,7 @@ context = None
 patch_bay_model.local_effects = current_effects
     # effect = {"parameters", "inputs", "outputs", "effect_type", "id", "x", "y"}
 effect_prototypes ={"delay": {"inputs": {"in0": "AudioPort"},
-    "outputs": {"out1": "AudioPort", "out2a": "AudioPort"},
+    "outputs": {"out0": "AudioPort", "out0a": "AudioPort"},
     "controls": {"BPM_0" : ["BPM_0", 120.000000, 30.000000, 300.000000],
         "Delay_1" : ["Time", 0.500000, 0.001000, 4.000000],
         "Warp_2" : ["Warp", 0.000000, -1.000000, 1.000000],
@@ -185,8 +186,8 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
     if patch_bay_model.patch_bay_singleton is not None:
         patch_bay_model.patch_bay_singleton.endInsert()
 
-from_backend_new_effect("delay1", "delay", 20, 30);
-from_backend_new_effect("delay2", "delay", 250, 290);
+# from_backend_new_effect("delay1", "delay", 20, 30);
+# from_backend_new_effect("delay2", "delay", 250, 290);
 
 def from_backend_remove_effect(effect_name):
     # called by engine code when effect is removed
@@ -212,7 +213,7 @@ class Knobs(QObject):
             # effect_id, port_name
             # highlight effects given source port
             global current_source_port
-            current_source_port = ":".join((effect_id, port_name))
+            current_source_port = "/".join((effect_id, port_name))
             for id, effect in current_effects.items():
                 effect["highlight"] = False
                 if id != effect_id:
@@ -231,6 +232,9 @@ class Knobs(QObject):
                 port_connections[current_source_port] = []
             if [effect_id, port_name] not in port_connections[current_source_port]:
                 port_connections[current_source_port].append([effect_id, port_name])
+
+
+            ingen_wrapper.connect_port("/main/"+current_source_port, "/main/"+effect_id+"/"+port_name)
 
             # if [effect_id, port_name] not in inv_port_connections:
             #     inv_port_connections[[effect_id, port_name]] = []
@@ -255,20 +259,21 @@ class Knobs(QObject):
     def list_connected(self, effect_id):
         ports = []
         for source_port, connected in port_connections.items():
-            s_effect, s_port = source_port.split(":")
+            s_effect, s_port = source_port.split("/")
             # connections where we are target
             for c_effect, c_port in connected:
                 if c_effect == effect_id or s_effect == effect_id:
-                    ports.append(s_effect+":"+s_port+"---"+c_effect+":"+c_port)
+                    ports.append(s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
         print("connected ports:", ports)
         selected_effect_ports.setStringList(ports)
 
     @Slot(str)
     def disconnect_port(self, port_pair):
         source_pair, target_pair = port_pair.split("---")
-        t_effect, t_port = target_pair.split(":")
+        t_effect, t_port = target_pair.split("/")
         port_connections[source_pair].pop(port_connections[source_pair].index([t_effect, t_port]))
         context.setContextProperty("portConnections", port_connections)
+        ingen_wrapper.disconnect_port("/main/"+source_pair, "/main/"+target_pair)
 
     @Slot(str)
     def add_new_effect(self, effect_type):
@@ -277,7 +282,24 @@ class Knobs(QObject):
         global seq_num
         seq_num = seq_num + 1
         print("add new effect", effect_type)
-        from_backend_new_effect(effect_type+str(seq_num), effect_type)
+        effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
+                "reverb": "http://lv2plug.in/plugins/eg-amp",
+                "cab": "http://lv2plug.in/plugins/eg-amp",
+                "mixer": "http://gareus.org/oss/lv2/matrixmixer#i4o4",
+                "tape": "http://moddevices.com/plugins/tap/tubewarmth",
+                "reverse": "http://moddevices.com/plugins/tap/reflector",
+                "sigmoid": "http://moddevices.com/plugins/tap/sigmoid",
+                "eq": "http://gareus.org/oss/lv2/fil4#mono",
+                "filter": "http://drobilla.net/plugins/fomp/mvclpf1",
+                "lfo": "http://polyeffects.com/lv2/polylfo"}
+        # if there's existing effects of this type, increment the ID
+        effect_name = effect_type+str(1)
+        for i in range(1, 1000):
+            if effect_type+str(i) not in current_effects:
+                effect_name = effect_type+str(i)
+                break
+        ingen_wrapper.add_plugin(effect_name, effect_type_map[effect_type])
+        from_backend_new_effect(effect_name, effect_type)
 
     @Slot(str, int, int)
     def move_effect(self, effect_name, x, y):
@@ -289,6 +311,7 @@ class Knobs(QObject):
         # calls backend to remove effect
         # TODO actually call backend.
         print("remove effect", effect_id)
+        ingen_wrapper.remove_plugin("/main/"+effect_id)
         from_backend_remove_effect(effect_id)
 
 #     @Slot(str)

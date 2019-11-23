@@ -140,7 +140,7 @@ import Poly 1.0
                     console.log("finding connection", Object.keys(portConnections));
                     for (var source_effect_port_str in portConnections){ 
                         console.log("key ", source_effect_port_str);
-                        var source_effect_port = source_effect_port_str.split(":");
+                        var source_effect_port = source_effect_port_str.split("/");
                         var targets = portConnections[source_effect_port_str];
                         console.log("drawing connection 1", source_effect_port[0], portConnections[source_effect_port_str]);
                         for (var target in targets){
@@ -477,7 +477,6 @@ import Poly 1.0
                             //knobs.set_current_port(list_source, list_effect_id, edit);
                             console.log("disconnect", edit);
                             knobs.disconnect_port(edit);
-                            rep1.model.items_changed();
                             mycanvas.requestPaint();
                             // rep1.model.add_effect(edit)
                             // knobs.ui_add_effect(edit)
