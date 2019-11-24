@@ -5,7 +5,8 @@ def set_bypass():
 
 def set_parameter_value(port, value):
     #ingen.set("/main/tone/output", "ingen:value", "0.8") 
-    ingen.set(port, "ingen:value", str(value))
+    # ingen.set(port, "ingen:value", str(value))
+    ingen.put(port, "ingen:value "+ str(value))
 
 def add_plugin(effect_id, effect_url):
     # put /main/tone <http://drobilla.net/plugins/mda/Shepard>'

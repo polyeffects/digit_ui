@@ -215,8 +215,9 @@ Rectangle {
 				patch_bay.externalRefresh();
 			}
 			else if (patch_bay.expand_mode) {
-				mainStack.push(editDelay);
-				patch_bay.externalRefresh();
+				// mainStack.push(editDelay);
+				mainStack.push(editGeneric);
+				// patch_bay.externalRefresh();
 			}
 			if (patch_bay.disconnect_mode){
 
@@ -291,4 +292,142 @@ Rectangle {
         SpringAnimation { id: backAnimX; target: rect; property: "x"; duration: 500; spring: 2; damping: 0.2 }
         SpringAnimation { id: backAnimY; target: rect; property: "y"; duration: 500; spring: 2; damping: 0.2 }
     }
+
+        Component {
+            id: editDelay
+            Item {
+                height:700
+                width:1280
+                Column {
+                    width: 1100
+                    spacing: 20
+                    anchors.centerIn: parent
+                
+                    GlowingLabel {
+                        color: "#ffffff"
+                        text: effect_id
+                        font {
+                            pixelSize: fontSizeLarge
+                        }
+                    }
+                    // property var parameter_map: {"LEVEL":"Amp_5", "TONE":"", "FEEDBACK": "", 
+                    //                 "GLIDE": "", "WARP":""  }
+                    DelayRow {
+                        row_param: "Delay_1"
+						current_effect: effect_id
+                    }
+                    // Row {
+                    //     height: 40
+                    //     spacing: 25
+                    //     GlowingLabel {
+                    //         text: "TIME (ms)"
+                    //         width: 140
+                    //     }
+
+                    //     Slider {
+                    //         width: 625
+                    //         value: time_scale.delay_data[time_scale.current_delay]["Delay_1"].value 
+                    //         from: time_scale.delay_data[time_scale.current_delay]["Delay_1"].rmin 
+                    //         to: time_scale.delay_data[time_scale.current_delay]["Delay_1"].rmax 
+                    //         onMoved: {
+                    //             knobs.ui_knob_change("delay"+(time_scale.current_delay+1), "Delay_1", value);
+                    //         }
+
+                    //     }
+
+                    //     SpinBox {
+                    //         id: spinbox
+                    //         value: time_scale.delay_data[time_scale.current_delay]["Delay_1"].value * (60 / currentBPM.value) * 1000
+                    //         from: time_scale.delay_data[time_scale.current_delay]["Delay_1"].rmin * (60 / currentBPM.value) * 1000
+                    //         to: time_scale.delay_data[time_scale.current_delay]["Delay_1"].rmax  * (60 / currentBPM.value) * 1000
+                    //         stepSize: 10
+                    //         // editable: true
+                    //         onValueModified: {
+                    //             knobs.ui_knob_change("delay"+(time_scale.current_delay+1), "Delay_1", value / 1000 / (60 / currentBPM.value));
+                    //         }
+                    //     }
+                    // }
+                    DelayRow {
+                        row_param: "Amp_5"
+						current_effect: effect_id
+                    }
+                    DelayRow {
+                        row_param: "FeedbackSm_6"
+						current_effect: effect_id
+                    }
+                    DelayRow {
+                        row_param: "Feedback_4"
+						current_effect: effect_id
+                    }
+                    DelayRow {
+                        row_param: "DelayT60_3"
+						current_effect: effect_id
+                    }
+                    DelayRow {
+                        row_param: "Warp_2"
+						current_effect: effect_id
+                    }
+                    // DelayRow {
+                    //     row_param: "carla_level"
+                    // }
+                }
+                
+
+                Button {
+                    font {
+                        pixelSize: fontSizeMedium
+                    }
+                    text: "BACK"
+                    anchors.right: parent.right
+                    anchors.rightMargin: 10
+                    anchors.topMargin: 10
+                    width: 100
+                    height: 100
+                    onClicked: mainStack.pop()
+                }
+            }
+        }
+
+        Component {
+            id: editGeneric
+            Item {
+                height:700
+                width:1280
+                Column {
+                    width: 1100
+                    spacing: 20
+                    anchors.centerIn: parent
+                
+                    GlowingLabel {
+                        color: "#ffffff"
+                        text: effect_id
+                        font {
+                            pixelSize: fontSizeLarge
+                        }
+                    }
+
+					Repeater {
+						model: Object.keys(currentEffects[effect_id]["controls"])
+						DelayRow {
+							row_param: modelData
+							current_effect: effect_id
+						}
+					}
+                }
+                
+
+                Button {
+                    font {
+                        pixelSize: fontSizeMedium
+                    }
+                    text: "BACK"
+                    anchors.right: parent.right
+                    anchors.rightMargin: 10
+                    anchors.topMargin: 10
+                    width: 100
+                    height: 100
+                    onClicked: mainStack.pop()
+                }
+            }
+        }
 }

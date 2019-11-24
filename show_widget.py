@@ -20,7 +20,8 @@ import ingen_wrapper
 #     model.insertRows(j, 1)
 #     model.setData(model.index(j), row)
 current_source_port = None
-current_effects = OrderedDict()
+# current_effects = OrderedDict()
+current_effects = {}
 # current_effects["delay1"] = {"x": 20, "y": 30, "effect_type": "delay", "controls": {}, "highlight": False}
 # current_effects["delay2"] = {"x": 250, "y": 290, "effect_type": "delay", "controls": {}, "highlight": False}
 port_connections = {} # key is port, value is list of ports
@@ -38,9 +39,12 @@ effect_prototypes ={"delay": {"inputs": {"in0": "AudioPort"},
         "Feedback_4" : ["Feedback", 0.300000, 0.000000, 1.000000],
         "Amp_5" : ["Level", 0.500000, 0.000000, 1.000000],
         "FeedbackSm_6" : ["Tone", 0.000000, 0.000000, 1.000000],
-        "EnableEcho_7" : ["EnableEcho_7", 1.000000, 0.000000, 1.000000],
-        "carla_level": ["level", 1, 0, 1]}
+        "EnableEcho_7" : ["EnableEcho_7", 1.000000, 0.000000, 1.000000]}
+        # "carla_level": ["level", 1, 0, 1]}
     }}
+
+def clamp(v, min_value, max_value):
+    return max(min(v, max_value), min_value)
 
 class PolyValue(QObject):
     # name, min, max, value
@@ -182,12 +186,15 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
     # print("from backend new effect", effect_name, effect_type)
     if patch_bay_model.patch_bay_singleton is not None:
         patch_bay_model.patch_bay_singleton.startInsert()
-    current_effects[effect_name] = {"x": x, "y": y, "effect_type": effect_type, "controls": {}, "highlight": False}
+
+    current_effects[effect_name] = {"x": x, "y": y, "effect_type": effect_type,
+            "controls": {k : PolyValue(*v) for k,v in effect_prototypes[effect_type]["controls"].items()},
+            "highlight": False}
     if patch_bay_model.patch_bay_singleton is not None:
         patch_bay_model.patch_bay_singleton.endInsert()
+    # insert in context or model? 
+    context.setContextProperty("currentEffects", current_effects) # might be slow
 
-# from_backend_new_effect("delay1", "delay", 20, 30);
-# from_backend_new_effect("delay2", "delay", 250, 290);
 
 def from_backend_remove_effect(effect_name):
     # called by engine code when effect is removed
@@ -313,6 +320,16 @@ class Knobs(QObject):
         print("remove effect", effect_id)
         ingen_wrapper.remove_plugin("/main/"+effect_id)
         from_backend_remove_effect(effect_id)
+
+    @Slot(str, str, 'double')
+    def ui_knob_change(self, effect_name, parameter, value):
+        # print(x, y, z)
+        if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
+            current_effects[effect_name]["controls"][parameter].value = value
+            # send_core_message("knob_change", (effect_name, parameter, value))
+            ingen_wrapper.set_parameter_value("/main/"+effect_name+"/"+parameter, value)
+        else:
+            print("effect not found")
 
 #     @Slot(str)
 #     def ui_add_connection(self, x):
@@ -444,6 +461,8 @@ if __name__ == "__main__":
     context.setContextProperty("effectPrototypes", effect_prototypes)
     context.setContextProperty("updateCounter", update_counter)
     # engine.load(QUrl("qrc:/qml/digit.qml"))
+    # from_backend_new_effect("delay1", "delay", 20, 30);
+    # from_backend_new_effect("delay2", "delay", 250, 290);
     engine.load(QUrl("qml/TestWrapper.qml"))
 
     # timer = QTimer()

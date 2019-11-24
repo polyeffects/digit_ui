@@ -14,21 +14,8 @@ import Poly 1.0
         id: patch_bay
         width: 1200
         height: 700
-        property bool snapping: false
-        property bool synced: true
-        property int division: 4
-        property int bars: delayNumBars.value 
         property int active_width: 900
-        property int num_delays: 4
-        property string current_parameter: "Amp_5"
-        property int max_delay_length: 30
-        property color assign_color: knobs.waiting != "" ? Material.color(Material.Cyan, Material.Shade400) : Material.color(Material.Pink, Material.Shade200) 
         property int updateCount: updateCounter, externalRefresh()
-        property var delay_data: [polyValues["delay1"], polyValues["delay2"], polyValues["delay3"], polyValues["delay4"]]
-        property var delay_colors: [Material.Pink, Material.Purple, Material.LightBlue, Material.Amber]
-        property var parameter_map: {"LEVEL":"Amp_5", "TONE":"FeedbackSm_6", "FEEDBACK": "Feedback_4", 
-                                    "GLIDE": "DelayT60_3", "WARP":"Warp_2", "POST LVL": "carla_level" }
-        property var inv_parameter_map: {'Amp_5': 'LEVEL', 'DelayT60_3': 'GLIDE', 'Feedback_4': 'FEEDBACK', 'Warp_2': 'WARP', 'FeedbackSm_6': 'TONE', "Delay_1": "TIME", "carla_level": "POST LVL"}
         property int current_index: -1
         property bool delete_mode: deleteMode.checked
         property bool move_mode: moveMode.checked
@@ -40,47 +27,6 @@ import Poly 1.0
         property bool list_source: true
         property string list_effect_id
         property var effect_map: {"invalid":"b"}
-        // PPQN * bars
-        //
-
-        function convertRange( value, r1, r2 ) { 
-            return ( value - r1[ 0 ] ) * ( r2[ 1 ] - r2[ 0 ] ) / ( r1[ 1 ] - r1[ 0 ] ) + r2[ 0 ];
-        }
-
-        function valueToPixel(rmin, rmax, v) {
-            // work out a y pixel from level / tone / feedback value
-            return (1 - convertRange(v, [rmin, rmax], [0, 1])) * height; // TODO values scaling?
-        }
-
-        function pixelToValue(rmin, rmax, y) {
-            // given a y pixel set level / tone / feedback value
-            return convertRange(1 - (y / height), [0, 1], [rmin, rmax]);
-        }
-
-        function secondsToPixel(t) {
-            // log / inv log 0-max delay length seconds TODO
-            return t * active_width / max_delay_length
-        }
-
-        function pixelToSeconds(x) {
-            return x * max_delay_length / active_width
-        }
-
-        function pixelToTime(x) {
-            if (synced) {
-                return pixelToBeat(x);
-            } else {
-                return pixelToSeconds(x);
-            } 
-        }
-
-        function timeToPixel(t) {
-            if (synced) {
-                return beatToPixel(t);
-            } else {
-                return secondsToPixel(t);
-            } 
-        }
 
 		function setColorAlpha(color, alpha) {
 			return Qt.hsla(color.hslHue, color.hslSaturation, color.hslLightness, alpha)
