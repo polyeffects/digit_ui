@@ -25,26 +25,37 @@ import QtQuick.Controls.Material 2.3
         width: 800
         height: 550
         property string effect: "eq2"
-        property bool eq_enabled: polyValues[effect]["enable"].value
+        property bool eq_enabled: currentEffects[effect]["controls"]["enable"].value
         property int active_width: 975
         property int selected_point: 1
         property int point_updated: 1
         property int updateCount: updateCounter, externalRefresh()
 
         // q is 0-4 gain is +-18 db
-        property var eq_data: [{"frequency": polyValues[effect]["LSfreq"].value, 
-            "gain": polyValues[effect]["LSgain"].value, "q": polyValues[effect]["LSq"].value,
-            "enabled":polyValues[effect]["LSsec"].value},
-            {"frequency": polyValues[effect]["freq1"].value, "gain": polyValues[effect]["gain1"].value, 
-            "q": polyValues[effect]["q1"].value, "enabled":polyValues[effect]["sec1"].value},
-            {"frequency": polyValues[effect]["freq2"].value, "gain": polyValues[effect]["gain2"].value, 
-            "q": polyValues[effect]["q2"].value, "enabled":polyValues[effect]["sec2"].value},
-            {"frequency": polyValues[effect]["freq3"].value, "gain": polyValues[effect]["gain3"].value,
-            "q": polyValues[effect]["q3"].value, "enabled":polyValues[effect]["sec3"].value},
-            {"frequency": polyValues[effect]["freq4"].value, "gain": polyValues[effect]["gain4"].value,
-            "q": polyValues[effect]["q4"].value, "enabled":polyValues[effect]["sec4"].value},
-            {"frequency": polyValues[effect]["HSfreq"].value, "gain": polyValues[effect]["HSgain"].value,
-            "q": polyValues[effect]["HSq"].value, "enabled":polyValues[effect]["HSsec"].value}]
+        property var eq_data: [{"frequency": currentEffects[effect]["controls"]["LSfreq"].value, 
+        "gain": currentEffects[effect]["controls"]["LSgain"].value, 
+        "q": currentEffects[effect]["controls"]["LSq"].value,
+            "enabled":currentEffects[effect]["controls"]["LSsec"].value},
+            {"frequency": currentEffects[effect]["controls"]["freq1"].value, 
+            "gain": currentEffects[effect]["controls"]["gain1"].value, 
+            "q": currentEffects[effect]["controls"]["q1"].value, 
+            "enabled":currentEffects[effect]["controls"]["sec1"].value},
+            {"frequency": currentEffects[effect]["controls"]["freq2"].value,
+            "gain": currentEffects[effect]["controls"]["gain2"].value, 
+            "q": currentEffects[effect]["controls"]["q2"].value, 
+            "enabled":currentEffects[effect]["controls"]["sec2"].value},
+            {"frequency": currentEffects[effect]["controls"]["freq3"].value, 
+            "gain": currentEffects[effect]["controls"]["gain3"].value,
+            "q": currentEffects[effect]["controls"]["q3"].value, 
+            "enabled":currentEffects[effect]["controls"]["sec3"].value},
+            {"frequency": currentEffects[effect]["controls"]["freq4"].value, 
+            "gain": currentEffects[effect]["controls"]["gain4"].value,
+            "q": currentEffects[effect]["controls"]["q4"].value, 
+            "enabled":currentEffects[effect]["controls"]["sec4"].value},
+            {"frequency": currentEffects[effect]["controls"]["HSfreq"].value,
+            "gain": currentEffects[effect]["controls"]["HSgain"].value,
+            "q": currentEffects[effect]["controls"]["HSq"].value, 
+            "enabled":currentEffects[effect]["controls"]["HSsec"].value}]
         
 
         function hzToPixel(f) {

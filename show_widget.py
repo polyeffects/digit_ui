@@ -30,18 +30,123 @@ context = None
 
 patch_bay_model.local_effects = current_effects
     # effect = {"parameters", "inputs", "outputs", "effect_type", "id", "x", "y"}
-effect_prototypes ={"delay": {"inputs": {"in0": "AudioPort"},
-    "outputs": {"out0": "AudioPort", "out0a": "AudioPort"},
-    "controls": {"BPM_0" : ["BPM_0", 120.000000, 30.000000, 300.000000],
-        "Delay_1" : ["Time", 0.500000, 0.001000, 4.000000],
-        "Warp_2" : ["Warp", 0.000000, -1.000000, 1.000000],
-        "DelayT60_3" : ["Glide", 0.500000, 0.000000, 100.000000],
-        "Feedback_4" : ["Feedback", 0.300000, 0.000000, 1.000000],
-        "Amp_5" : ["Level", 0.500000, 0.000000, 1.000000],
-        "FeedbackSm_6" : ["Tone", 0.000000, 0.000000, 1.000000],
-        "EnableEcho_7" : ["EnableEcho_7", 1.000000, 0.000000, 1.000000]}
-        # "carla_level": ["level", 1, 0, 1]}
-    }}
+effect_prototypes ={
+        "input": {"inputs": {},
+        "outputs": {"out": "AudioPort"},
+        "controls": {}},
+        "output": {"inputs": {"in": "AudioPort"},
+        "outputs": {},
+        "controls": {}},
+        "delay": {"inputs": {"in0": "AudioPort"},
+        "outputs": {"out0": "AudioPort"},
+        "controls": {"BPM_0" : ["BPM_0", 120.000000, 30.000000, 300.000000],
+            "Delay_1" : ["Time", 0.500000, 0.001000, 4.000000],
+            "Warp_2" : ["Warp", 0.000000, -1.000000, 1.000000],
+            "DelayT60_3" : ["Glide", 0.500000, 0.000000, 100.000000],
+            "Feedback_4" : ["Feedback", 0.300000, 0.000000, 1.000000],
+            "Amp_5" : ["Level", 0.500000, 0.000000, 1.000000],
+            "FeedbackSm_6" : ["Tone", 0.000000, 0.000000, 1.000000],
+            "EnableEcho_7" : ["EnableEcho_7", 1.000000, 0.000000, 1.000000]}
+        },
+        # "mixer":  {"inputs": {"in0": "AudioPort"},
+        # "outputs": {"out0": "AudioPort"},
+        # "controls":{"mix_1_1": ["mix 1,1", 1, 0, 1], "mix_1_2": ["mix 1,2", 0, 0, 1],
+        #     "mix_1_3": ["mix 1,3", 0, 0, 1],"mix_1_4": ["mix 1,4", 0, 0, 1],
+        #     "mix_2_1": ["mix 2,1", 0, 0, 1],"mix_2_2": ["mix 2,2", 1, 0, 1],
+        #     "mix_2_3": ["mix 2,3", 0, 0, 1],"mix_2_4": ["mix 2,4", 0, 0, 1],
+        #     "mix_3_1": ["mix 3,1", 0, 0, 1],"mix_3_2": ["mix 3,2", 0, 0, 1],
+        #     "mix_3_3": ["mix 3,3", 1, 0, 1],"mix_3_4": ["mix 3,4", 0, 0, 1],
+        #     "mix_4_1": ["mix 4,1", 0, 0, 1],"mix_4_2": ["mix 4,2", 0, 0, 1],
+        #     "mix_4_3": ["mix 4,3", 0, 0, 1],"mix_4_4": ["mix 4,4", 1, 0, 1]
+        #     },
+        "warmth": {"inputs": {"input": "AudioPort"},
+                "outputs": {"output": "AudioPort"},
+            "controls":{"drive": ["drive", 5, 0, 10], "blend": ["tape vs tube", 10, -10, 10]},
+            },
+        # "filter1": {"freq": ["cutoff", 440, 20, 15000, "log"], "res": ["resonance", 0, 0, 0.8]},
+        "saturator": {"inputs": {"input": "AudioPort"},
+            "outputs": {"output": "AudioPort"},
+            "controls":{"Pregain": ["pre gain", 0, -90, 20], "Postgain": ["post gain", 0, -90, 20]},
+            },
+        "reverse": {"inputs": {"input": "AudioPort"},
+            "outputs": {"output": "AudioPort"},
+            "controls":{"fragment": ["fragment", 1000, 100, 1600],
+                "wet": ["wet", 0, -90, 20],
+                "dry": ["dry", 0, -90, 20]},
+            },
+        "mono_EQ": {"inputs": {"In": "AudioPort"},
+            "outputs": {"Out": "AudioPort"},
+            "controls": {
+                "enable": ["Enable", 1.000000, 0.000000, 1.0],
+                "gain": ["Gain", 0.000000, -18.000000, 18.000000],
+                "HighPass": ["Highpass", 0.000000, 0.000000, 1.000000],
+                "HPfreq": ["Highpass Frequency", 20.000000, 5.000000, 1250.000000],
+                "HPQ": ["HighPass Resonance", 0.700000, 0.000000, 1.400000],
+                "LowPass": ["Lowpass", 0.000000, 0.000000, 1.000000],
+                "LPfreq": ["Lowpass Frequency", 20000.000000, 500.000000, 20000.000000],
+                "LPQ": ["LowPass Resonance", 1.000000, 0.000000, 1.400000],
+                "LSsec": ["Lowshelf", 1.000000, 0.000000, 1.000000],
+                "LSfreq": ["Lowshelf Frequency", 80.000000, 25.000000, 400.000000],
+                "LSq": ["Lowshelf Bandwidth", 1.000000, 0.062500, 4.000000],
+                "LSgain": ["Lowshelf Gain", 0.000000, -18.000000, 18.000000],
+                "sec1": ["Section 1", 1.000000, 0.000000, 1.000000],
+                "freq1": ["Frequency 1", 160.000000, 20.000000, 2000.000000],
+                "q1": ["Bandwidth 1", 0.600000, 0.062500, 4.000000],
+                "gain1": ["Gain 1", 0.000000, -18.000000, 18.000000],
+                "sec2": ["Section 2", 1.000000, 0.000000, 1.000000],
+                "freq2": ["Frequency 2", 397.000000, 40.000000, 4000.000000],
+                "q2": ["Bandwidth 2", 0.600000, 0.062500, 4.000000],
+                "gain2": ["Gain 2", 0.000000, -18.000000, 18.000000],
+                "sec3": ["Section 3", 1.000000, 0.000000, 1.000000],
+                "freq3": ["Frequency 3", 1250.000000, 100.000000, 10000.000000],
+                "q3": ["Bandwidth 3", 0.600000, 0.062500, 4.000000],
+                "gain3": ["Gain 3", 0.000000, -18.000000, 18.000000],
+                "sec4": ["Section 4", 1.000000, 0.000000, 1.000000],
+                "freq4": ["Frequency 4", 2500.000000, 200.000000, 20000.000000],
+                "q4": ["Bandwidth 4", 0.600000, 0.062500, 4.000000],
+                "gain4": ["Gain 4", 0.000000, -18.000000, 18.000000],
+                "HSsec": ["Highshelf", 1.000000, 0.000000, 1.000000],
+                "HSfreq": ["Highshelf Frequency", 8000.000000, 1000.000000, 16000.000000],
+                "HSq": ["Highshelf Bandwidth", 1.000000, 0.062500, 4.000000],
+                "HSgain": ["Highshelf Gain", 0.000000, -18.000000, 18.000000]}
+            },
+        "stereo_EQ": {"inputs": {"inR": "AudioPort", "inL": "AudioPort"},
+            "outputs": {"outR": "AudioPort", "outL": "AudioPort"},
+            "controls": {
+                "enable": ["Enable", 1.000000, 0.000000, 1.0],
+                "gain": ["Gain", 0.000000, -18.000000, 18.000000],
+                "HighPass": ["Highpass", 0.000000, 0.000000, 1.000000],
+                "HPfreq": ["Highpass Frequency", 20.000000, 5.000000, 1250.000000],
+                "HPQ": ["HighPass Resonance", 0.700000, 0.000000, 1.400000],
+                "LowPass": ["Lowpass", 0.000000, 0.000000, 1.000000],
+                "LPfreq": ["Lowpass Frequency", 20000.000000, 500.000000, 20000.000000],
+                "LPQ": ["LowPass Resonance", 1.000000, 0.000000, 1.400000],
+                "LSsec": ["Lowshelf", 1.000000, 0.000000, 1.000000],
+                "LSfreq": ["Lowshelf Frequency", 80.000000, 25.000000, 400.000000],
+                "LSq": ["Lowshelf Bandwidth", 1.000000, 0.062500, 4.000000],
+                "LSgain": ["Lowshelf Gain", 0.000000, -18.000000, 18.000000],
+                "sec1": ["Section 1", 1.000000, 0.000000, 1.000000],
+                "freq1": ["Frequency 1", 160.000000, 20.000000, 2000.000000],
+                "q1": ["Bandwidth 1", 0.600000, 0.062500, 4.000000],
+                "gain1": ["Gain 1", 0.000000, -18.000000, 18.000000],
+                "sec2": ["Section 2", 1.000000, 0.000000, 1.000000],
+                "freq2": ["Frequency 2", 397.000000, 40.000000, 4000.000000],
+                "q2": ["Bandwidth 2", 0.600000, 0.062500, 4.000000],
+                "gain2": ["Gain 2", 0.000000, -18.000000, 18.000000],
+                "sec3": ["Section 3", 1.000000, 0.000000, 1.000000],
+                "freq3": ["Frequency 3", 1250.000000, 100.000000, 10000.000000],
+                "q3": ["Bandwidth 3", 0.600000, 0.062500, 4.000000],
+                "gain3": ["Gain 3", 0.000000, -18.000000, 18.000000],
+                "sec4": ["Section 4", 1.000000, 0.000000, 1.000000],
+                "freq4": ["Frequency 4", 2500.000000, 200.000000, 20000.000000],
+                "q4": ["Bandwidth 4", 0.600000, 0.062500, 4.000000],
+                "gain4": ["Gain 4", 0.000000, -18.000000, 18.000000],
+                "HSsec": ["Highshelf", 1.000000, 0.000000, 1.000000],
+                "HSfreq": ["Highshelf Frequency", 8000.000000, 1000.000000, 16000.000000],
+                "HSq": ["Highshelf Bandwidth", 1.000000, 0.062500, 4.000000],
+                "HSgain": ["Highshelf Gain", 0.000000, -18.000000, 18.000000]}
+            }
+    }
 
 def clamp(v, min_value, max_value):
     return max(min(v, max_value), min_value)
@@ -114,57 +219,6 @@ effect_parameter_data = {
         "reverb": {"gain": PolyValue("gain", 0, -90, 24), "ir": PolyValue("/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1),
             "carla_level": PolyValue("level", 1, 0, 1)},
         "postreverb": {"routing": PolyValue("gain", 6, 0, 6), "carla_level": PolyValue("level", 1, 0, 1)},
-        "mixer": {"mix_1_1": PolyValue("mix 1,1", 1, 0, 1), "mix_1_2": PolyValue("mix 1,2", 0, 0, 1),
-            "mix_1_3": PolyValue("mix 1,3", 0, 0, 1),"mix_1_4": PolyValue("mix 1,4", 0, 0, 1),
-            "mix_2_1": PolyValue("mix 2,1", 0, 0, 1),"mix_2_2": PolyValue("mix 2,2", 1, 0, 1),
-            "mix_2_3": PolyValue("mix 2,3", 0, 0, 1),"mix_2_4": PolyValue("mix 2,4", 0, 0, 1),
-            "mix_3_1": PolyValue("mix 3,1", 0, 0, 1),"mix_3_2": PolyValue("mix 3,2", 0, 0, 1),
-            "mix_3_3": PolyValue("mix 3,3", 1, 0, 1),"mix_3_4": PolyValue("mix 3,4", 0, 0, 1),
-            "mix_4_1": PolyValue("mix 4,1", 0, 0, 1),"mix_4_2": PolyValue("mix 4,2", 0, 0, 1),
-            "mix_4_3": PolyValue("mix 4,3", 0, 0, 1),"mix_4_4": PolyValue("mix 4,4", 1, 0, 1)
-            },
-        "tape1": {"drive": PolyValue("drive", 5, 0, 10), "blend": PolyValue("tape vs tube", 10, -10, 10)},
-        # "filter1": {"freq": PolyValue("cutoff", 440, 20, 15000, "log"), "res": PolyValue("resonance", 0, 0, 0.8)},
-        "sigmoid1": {"Pregain": PolyValue("pre gain", 0, -90, 20), "Postgain": PolyValue("post gain", 0, -90, 20)},
-        "reverse1": {"fragment": PolyValue("fragment", 1000, 100, 1600),
-            "wet": PolyValue("wet", 0, -90, 20),
-            "dry": PolyValue("dry", 0, -90, 20)},
-        # "reverse2": {"fragment": PolyValue("fragment", 1000, 100, 1600),
-        #     "wet": PolyValue("wet", 0, -90, 20),
-        #     "dry": PolyValue("dry", 0, -90, 20)},
-        "eq2": {
-            "enable": PolyValue("Enable", 1.000000, 0.000000, 1.0),
-            "gain": PolyValue("Gain", 0.000000, -18.000000, 18.000000),
-            "HighPass": PolyValue("Highpass", 0.000000, 0.000000, 1.000000),
-            "HPfreq": PolyValue("Highpass Frequency", 20.000000, 5.000000, 1250.000000),
-            "HPQ": PolyValue("HighPass Resonance", 0.700000, 0.000000, 1.400000),
-            "LowPass": PolyValue("Lowpass", 0.000000, 0.000000, 1.000000),
-            "LPfreq": PolyValue("Lowpass Frequency", 20000.000000, 500.000000, 20000.000000),
-            "LPQ": PolyValue("LowPass Resonance", 1.000000, 0.000000, 1.400000),
-            "LSsec": PolyValue("Lowshelf", 1.000000, 0.000000, 1.000000),
-            "LSfreq": PolyValue("Lowshelf Frequency", 80.000000, 25.000000, 400.000000),
-            "LSq": PolyValue("Lowshelf Bandwidth", 1.000000, 0.062500, 4.000000),
-            "LSgain": PolyValue("Lowshelf Gain", 0.000000, -18.000000, 18.000000),
-            "sec1": PolyValue("Section 1", 1.000000, 0.000000, 1.000000),
-            "freq1": PolyValue("Frequency 1", 160.000000, 20.000000, 2000.000000),
-            "q1": PolyValue("Bandwidth 1", 0.600000, 0.062500, 4.000000),
-            "gain1": PolyValue("Gain 1", 0.000000, -18.000000, 18.000000),
-            "sec2": PolyValue("Section 2", 1.000000, 0.000000, 1.000000),
-            "freq2": PolyValue("Frequency 2", 397.000000, 40.000000, 4000.000000),
-            "q2": PolyValue("Bandwidth 2", 0.600000, 0.062500, 4.000000),
-            "gain2": PolyValue("Gain 2", 0.000000, -18.000000, 18.000000),
-            "sec3": PolyValue("Section 3", 1.000000, 0.000000, 1.000000),
-            "freq3": PolyValue("Frequency 3", 1250.000000, 100.000000, 10000.000000),
-            "q3": PolyValue("Bandwidth 3", 0.600000, 0.062500, 4.000000),
-            "gain3": PolyValue("Gain 3", 0.000000, -18.000000, 18.000000),
-            "sec4": PolyValue("Section 4", 1.000000, 0.000000, 1.000000),
-            "freq4": PolyValue("Frequency 4", 2500.000000, 200.000000, 20000.000000),
-            "q4": PolyValue("Bandwidth 4", 0.600000, 0.062500, 4.000000),
-            "gain4": PolyValue("Gain 4", 0.000000, -18.000000, 18.000000),
-            "HSsec": PolyValue("Highshelf", 1.000000, 0.000000, 1.000000),
-            "HSfreq": PolyValue("Highshelf Frequency", 8000.000000, 1000.000000, 16000.000000),
-            "HSq": PolyValue("Highshelf Bandwidth", 1.000000, 0.062500, 4.000000),
-            "HSgain": PolyValue("Highshelf Gain", 0.000000, -18.000000, 18.000000)},
         "cab": {"gain": PolyValue("gain", 0, -90, 24), "ir": PolyValue("/audio/cabs/1x12cab.wav", 0, 0, 1),
             "carla_level": PolyValue("level", 1, 0, 1)},
         "postcab": {"gain": PolyValue("gain", 0, -90, 24), "carla_level": PolyValue("level", 1, 0, 1)},
@@ -241,7 +295,20 @@ class Knobs(QObject):
                 port_connections[current_source_port].append([effect_id, port_name])
 
 
-            ingen_wrapper.connect_port("/main/"+current_source_port, "/main/"+effect_id+"/"+port_name)
+            s_effect, s_port = current_source_port.split("/")
+            s_effect_type = current_effects[s_effect]["effect_type"]
+            t_effect_type = current_effects[effect_id]["effect_type"]
+            if t_effect_type == "output" or t_effect_type == "input":
+                if s_effect_type == "output" or s_effect_type == "input":
+                    ingen_wrapper.connect_port("/main/"+s_effect, "/main/"+effect_id)
+                else:
+                    ingen_wrapper.connect_port("/main/"+current_source_port, "/main/"+effect_id)
+            else:
+                if s_effect_type == "output" or s_effect_type == "input":
+                    ingen_wrapper.connect_port("/main/"+s_effect, "/main/"+effect_id+"/"+port_name)
+                else:
+                    ingen_wrapper.connect_port("/main/"+current_source_port, "/main/"+effect_id+"/"+port_name)
+
 
             # if [effect_id, port_name] not in inv_port_connections:
             #     inv_port_connections[[effect_id, port_name]] = []
@@ -282,6 +349,20 @@ class Knobs(QObject):
         context.setContextProperty("portConnections", port_connections)
         ingen_wrapper.disconnect_port("/main/"+source_pair, "/main/"+target_pair)
 
+        s_effect, s_port = source_pair.split("/")
+        s_effect_type = current_effects[s_effect]["effect_type"]
+        t_effect_type = current_effects[t_effect]["effect_type"]
+        if t_effect_type == "output" or t_effect_type == "input":
+            if s_effect_type == "output" or s_effect_type == "input":
+                ingen_wrapper.disconnect_port("/main/"+s_effect, "/main/"+t_effect)
+            else:
+                ingen_wrapper.disconnect_port("/main/"+source_pair, "/main/"+t_effect)
+        else:
+            if s_effect_type == "output" or s_effect_type == "input":
+                ingen_wrapper.disconnect_port("/main/"+s_effect, "/main/"+target_pair)
+            else:
+                ingen_wrapper.disconnect_port("/main/"+source_pair, "/main/"+target_pair)
+
     @Slot(str)
     def add_new_effect(self, effect_type):
         # calls backend to add effect
@@ -289,16 +370,6 @@ class Knobs(QObject):
         global seq_num
         seq_num = seq_num + 1
         print("add new effect", effect_type)
-        effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
-                "reverb": "http://lv2plug.in/plugins/eg-amp",
-                "cab": "http://lv2plug.in/plugins/eg-amp",
-                "mixer": "http://gareus.org/oss/lv2/matrixmixer#i4o4",
-                "tape": "http://moddevices.com/plugins/tap/tubewarmth",
-                "reverse": "http://moddevices.com/plugins/tap/reflector",
-                "sigmoid": "http://moddevices.com/plugins/tap/sigmoid",
-                "eq": "http://gareus.org/oss/lv2/fil4#mono",
-                "filter": "http://drobilla.net/plugins/fomp/mvclpf1",
-                "lfo": "http://polyeffects.com/lv2/polylfo"}
         # if there's existing effects of this type, increment the ID
         effect_name = effect_type+str(1)
         for i in range(1, 1000):
@@ -307,6 +378,7 @@ class Knobs(QObject):
                 break
         ingen_wrapper.add_plugin(effect_name, effect_type_map[effect_type])
         from_backend_new_effect(effect_name, effect_type)
+
 
     @Slot(str, int, int)
     def move_effect(self, effect_name, x, y):
@@ -330,6 +402,15 @@ class Knobs(QObject):
             ingen_wrapper.set_parameter_value("/main/"+effect_name+"/"+parameter, value)
         else:
             print("effect not found")
+
+def add_io():
+    for i in range(1,5):
+        ingen_wrapper.add_input("input"+str(i))
+        from_backend_new_effect("input"+str(i), "input", x=800, y=(80 * i))
+
+    for i in range(1,5):
+        ingen_wrapper.add_output("output"+str(i))
+        from_backend_new_effect("output"+str(i), "output", x=50, y=(80 * i))
 
 #     @Slot(str)
 #     def ui_add_connection(self, x):
@@ -428,6 +509,18 @@ class Knobs(QObject):
 #     else:
 #         obj["delay1"].value = 0
 
+effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
+        "reverb": "http://lv2plug.in/plugins/eg-amp",
+        "cab": "http://lv2plug.in/plugins/eg-amp",
+        "mixer": "http://gareus.org/oss/lv2/matrixmixer#i4o4",
+        "warmth": "http://moddevices.com/plugins/tap/tubewarmth",
+        "reverse": "http://moddevices.com/plugins/tap/reflector",
+        "saturator": "http://moddevices.com/plugins/tap/sigmoid",
+        "mono_EQ": "http://gareus.org/oss/lv2/fil4#mono",
+        "stereo_EQ": "http://gareus.org/oss/lv2/fil4#stereo",
+        "filter": "http://drobilla.net/plugins/fomp/mvclpf1",
+        "lfo": "http://polyeffects.com/lv2/polylfo"}
+
 if __name__ == "__main__":
 
     app = QGuiApplication(sys.argv)
@@ -444,8 +537,7 @@ if __name__ == "__main__":
     update_counter = PolyValue("update counter", 0, 0, 500000)
 
     available_effects = QStringListModel()
-    available_effects.setStringList(["delay", "mono reverb", "stereo reverb", "mono EQ", "stereo EQ", "cab", "reverse", 
-        "filter", "compressor", "bit crusher", "tape/tube", "mixer"])
+    available_effects.setStringList(list(effect_type_map.keys()))
     engine = QQmlApplicationEngine()
 
     qmlRegisterType(patch_bay_model.PatchBayModel, 'Poly', 1, 0, 'PatchBayModel')
@@ -463,6 +555,7 @@ if __name__ == "__main__":
     # engine.load(QUrl("qrc:/qml/digit.qml"))
     # from_backend_new_effect("delay1", "delay", 20, 30);
     # from_backend_new_effect("delay2", "delay", 250, 290);
+    add_io()
     engine.load(QUrl("qml/TestWrapper.qml"))
 
     # timer = QTimer()

@@ -215,8 +215,17 @@ Rectangle {
 				patch_bay.externalRefresh();
 			}
 			else if (patch_bay.expand_mode) {
-				// mainStack.push(editDelay);
-				mainStack.push(editGeneric);
+				if (effect_type == "stereo_EQ" || effect_type == "mono_EQ"){
+					mainStack.push("EQWidget.qml", {"effect": effect_id});
+				}
+				else if (effect_type == "delay"){
+					mainStack.push(editDelay);
+				}
+				else if (effect_type == "input" || effect_type == "output"){
+					// pass
+				} else {
+					mainStack.push(editGeneric);
+				}
 				// patch_bay.externalRefresh();
 			}
 			if (patch_bay.disconnect_mode){
@@ -316,37 +325,36 @@ Rectangle {
                         row_param: "Delay_1"
 						current_effect: effect_id
                     }
-                    // Row {
-                    //     height: 40
-                    //     spacing: 25
-                    //     GlowingLabel {
-                    //         text: "TIME (ms)"
-                    //         width: 140
-                    //     }
+                    Row {
+                        height: 40
+                        spacing: 25
+                        GlowingLabel {
+                            text: "TIME (ms)"
+                            width: 140
+                        }
 
-                    //     Slider {
-                    //         width: 625
-                    //         value: time_scale.delay_data[time_scale.current_delay]["Delay_1"].value 
-                    //         from: time_scale.delay_data[time_scale.current_delay]["Delay_1"].rmin 
-                    //         to: time_scale.delay_data[time_scale.current_delay]["Delay_1"].rmax 
-                    //         onMoved: {
-                    //             knobs.ui_knob_change("delay"+(time_scale.current_delay+1), "Delay_1", value);
-                    //         }
+                        Slider {
+                            width: 625
+							value: currentEffects[effect_id]["controls"]["Delay_1"].value
+							from: currentEffects[effect_id]["controls"]["Delay_1"].rmin
+							to: currentEffects[effect_id]["controls"]["Delay_1"].rmax
+                            onMoved: {
+								knobs.ui_knob_change(effect_id, "Delay_1", value);
+                            }
 
-                    //     }
+                        }
 
-                    //     SpinBox {
-                    //         id: spinbox
-                    //         value: time_scale.delay_data[time_scale.current_delay]["Delay_1"].value * (60 / currentBPM.value) * 1000
-                    //         from: time_scale.delay_data[time_scale.current_delay]["Delay_1"].rmin * (60 / currentBPM.value) * 1000
-                    //         to: time_scale.delay_data[time_scale.current_delay]["Delay_1"].rmax  * (60 / currentBPM.value) * 1000
-                    //         stepSize: 10
-                    //         // editable: true
-                    //         onValueModified: {
-                    //             knobs.ui_knob_change("delay"+(time_scale.current_delay+1), "Delay_1", value / 1000 / (60 / currentBPM.value));
-                    //         }
-                    //     }
-                    // }
+                        SpinBox {
+                            value: currentEffects[effect_id]["controls"]["Delay_1"].value * (60 / currentBPM.value) * 1000
+                            from: currentEffects[effect_id]["controls"]["Delay_1"].rmin * (60 / currentBPM.value) * 1000
+                            to:  currentEffects[effect_id]["controls"]["Delay_1"].rmax * (60 / currentBPM.value) * 1000
+                            stepSize: 10
+                            // editable: true
+                            onValueModified: {
+								knobs.ui_knob_change(effect_id, "Delay_1", value / 1000 / (60 / currentBPM.value));
+                            }
+                        }
+                    }
                     DelayRow {
                         row_param: "Amp_5"
 						current_effect: effect_id
