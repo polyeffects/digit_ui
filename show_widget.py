@@ -63,6 +63,30 @@ effect_prototypes ={
                 "outputs": {"output": "AudioPort"},
             "controls":{"drive": ["drive", 5, 0, 10], "blend": ["tape vs tube", 10, -10, 10]},
             },
+        "mono_reverb": {"inputs": {"in": "AudioPort"},
+                "outputs": {"out": "AudioPort"},
+                "controls":{"gain": ["gain", 0, -24, 24], "ir": ["/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1]},
+            },
+        "stereo_reverb": {"inputs": {"in": "AudioPort"},
+            "outputs": {"out_1": "AudioPort", "out_2": "AudioPort"},
+                "controls":{"gain": ["gain", 0, -24, 24], "ir": ["/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1]},
+            },
+        "true_stereo_reverb": {"inputs": {"in_1": "AudioPort", "in_2": "AudioPort"},
+            "outputs": {"out_1": "AudioPort", "out_2": "AudioPort"},
+                "controls":{"gain": ["gain", 0, -24, 24], "ir": ["/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1]},
+            },
+        "mono_cab": {"inputs": {"in": "AudioPort"},
+                "outputs": {"out": "AudioPort"},
+                "controls":{"gain": ["gain", 0, -24, 24], "ir": ["/audio/cabs/1x12cab.wav", 0, 0, 1]},
+            },
+        "stereo_cab": {"inputs": {"in": "AudioPort"},
+            "outputs": {"out_1": "AudioPort", "out_2": "AudioPort"},
+                "controls":{"gain": ["gain", 0, -24, 24], "ir": ["/audio/cabs/1x12cab.wav", 0, 0, 1]},
+            },
+        "true_stereo_cab": {"inputs": {"in_1": "AudioPort", "in_2": "AudioPort"},
+            "outputs": {"out_1": "AudioPort", "out_2": "AudioPort"},
+                "controls":{"gain": ["gain", 0, -24, 24], "ir": ["/audio/cabs/1x12cab.wav", 0, 0, 1]},
+            },
         # "filter1": {"freq": ["cutoff", 440, 20, 15000, "log"], "res": ["resonance", 0, 0, 0.8]},
         "saturator": {"inputs": {"input": "AudioPort"},
             "outputs": {"output": "AudioPort"},
@@ -403,6 +427,14 @@ class Knobs(QObject):
         else:
             print("effect not found")
 
+    @Slot(str, str)
+    def update_ir(self, effect_id, ir_file):
+        is_cab = True
+        effect_type = current_effects[effect_id]["effect_type"]
+        if effect_type in ["mono_reverb", "stereo_reverb", "true_stereo_reverb"]:
+            is_cab = False
+        ingen_wrapper.set_file(effect_id, ir_file, is_cab)
+
 def add_io():
     for i in range(1,5):
         ingen_wrapper.add_input("input"+str(i))
@@ -510,8 +542,12 @@ def add_io():
 #         obj["delay1"].value = 0
 
 effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
-        "reverb": "http://lv2plug.in/plugins/eg-amp",
-        "cab": "http://lv2plug.in/plugins/eg-amp",
+        "mono_reverb": "http://polyeffects.com/lv2/polyconvo#Mono",
+        "stereo_reverb": "http://polyeffects.com/lv2/polyconvo#MonoToStereo",
+        "true_stereo_reverb": "http://polyeffects.com/lv2/polyconvo#Stereo",
+        "mono_cab": "http://gareus.org/oss/lv2/convoLV2#Mono",
+        "stereo_cab": "http://gareus.org/oss/lv2/convoLV2#MonoToStereo",
+        "true_stereo_cab": "http://gareus.org/oss/lv2/convoLV2#Stereo",
         "mixer": "http://gareus.org/oss/lv2/matrixmixer#i4o4",
         "warmth": "http://moddevices.com/plugins/tap/tubewarmth",
         "reverse": "http://moddevices.com/plugins/tap/reflector",

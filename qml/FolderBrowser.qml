@@ -17,11 +17,14 @@ import Qt.labs.folderlistmodel 2.2
 
     Item {
         id: mainRect
-        property url current_selected: "file:///none.wav"
+        property string effect
+        property url current_selected: currentEffects[effect]["controls"]["ir"].name
         property string display_name: remove_suffix(mainRect.basename(mainRect.current_selected))
         property url top_folder: "file:///audio/reverbs/"
         property var after_file_selected: (function(name) { return null; })
         property bool is_loading: false
+        height: 500
+        width: 800
 
         function basename(ustr)
         {
@@ -39,8 +42,8 @@ import Qt.labs.folderlistmodel 2.2
            return x.replace(/\.[^/.]+$/, "") 
         }
 
-        width: parent.width
-        height: parent.height
+        // width: parent.width
+        // height: parent.height
         // GlowingLabel {
         //     anchors.left: mainRect.left
         //     anchors.leftMargin: 5

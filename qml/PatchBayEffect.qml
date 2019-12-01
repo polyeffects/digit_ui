@@ -221,6 +221,26 @@ Rectangle {
 				else if (effect_type == "delay"){
 					mainStack.push(editDelay);
 				}
+				else if (effect_type == "mono_reverb" || effect_type == "stereo_reverb" || effect_type == "true_stereo_reverb"){
+					mainStack.push("ReverbBrowser.qml", {"effect": effect_id, 
+                                        "top_folder": "file:///audio/reverbs",
+                                        "after_file_selected": (function(name) { 
+                                            // console.log("got new reveb file");
+                                            // console.log("file is", name.toString());
+                                            knobs.update_ir(effect_id, name.toString());
+										})
+								   	});
+				}
+				else if (effect_type == "mono_cab" || effect_type == "stereo_cab" || effect_type == "true_stereo_cab"){
+					mainStack.push("ReverbBrowser.qml", {"effect": effect_id, 
+                                        "top_folder": "file:///audio/cabs",
+                                        "after_file_selected": (function(name) { 
+                                            // console.log("got new reveb file");
+                                            // console.log("file is", name.toString());
+                                            knobs.update_ir(effect_id, name.toString());
+										})
+								   	});
+				}
 				else if (effect_type == "input" || effect_type == "output"){
 					// pass
 				} else {

@@ -58,6 +58,9 @@ class Interface:
     def delete(self, subject):
         pass
 
+    def copy(self, subject, destination):
+        pass
+
 class Error(Exception):
     def __init__(self, msg, cause):
         Exception.__init__(self, '%s; cause: %s' % (msg, cause))
@@ -308,3 +311,11 @@ class Remote(Interface):
 	a patch:Delete ;
 	patch:subject <%s> .
 ''' % subject)
+
+    def copy(self, subject, destination):
+        return self.send('''
+[]
+	a patch:Copy ;
+	patch:subject <%s> ;
+	patch:destination <%s> .
+''' % (subject, destination))
