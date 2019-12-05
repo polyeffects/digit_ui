@@ -1,12 +1,23 @@
-import sys, os
+import sys, time, json, os.path, os, subprocess, queue, threading, traceback
+os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
+from signal import signal, SIGINT, SIGTERM
+from time import sleep
+from sys import exit
 from collections import OrderedDict
 # import random
 from PySide2.QtGui import QGuiApplication
-from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer
+from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer, QThreadPool, QRunnable
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 from PySide2.QtGui import QIcon
 # # compiled QML files, compile with pyside2-rcc
 # import qml.qml
+
+sys._excepthook = sys.excepthook
+def exception_hook(exctype, value, traceback):
+    sys._excepthook(exctype, value, traceback)
+    sys.exit(1)
+sys.excepthook = exception_hook
+
 os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
 import icons.icons
 # #, imagine_assets
@@ -15,10 +26,10 @@ import resource_rc
 import patch_bay_model
 import ingen_wrapper
 
-# def insert_row(model, row):
-#     j = len(model.stringList())
-#     model.insertRows(j, 1)
-#     model.setData(model.index(j), row)
+worker_pool = QThreadPool()
+EXIT_PROCESS = [False]
+ui_messages = queue.Queue()
+
 current_source_port = None
 # current_effects = OrderedDict()
 current_effects = {}
@@ -175,6 +186,86 @@ effect_prototypes ={
 def clamp(v, min_value, max_value):
     return max(min(v, max_value), min_value)
 
+def insert_row(model, row):
+    j = len(model.stringList())
+    model.insertRows(j, 1)
+    model.setData(model.index(j), row)
+
+def remove_row(model, row):
+    i = model.stringList().index(row)
+    model.removeRows(i, 1)
+
+class MyEmitter(QObject):
+    # setting up custom signal
+    done = Signal(int)
+
+class MyWorker(QRunnable):
+
+    def __init__(self, command):
+        super(MyWorker, self).__init__()
+        self.command = command
+        self.emitter = MyEmitter()
+
+    def run(self):
+        # run subprocesses, grab output
+        ret_var = subprocess.call(self.command, shell=True)
+        self.emitter.done.emit(ret_var)
+
+class PolyBool(QObject):
+    # name, min, max, value
+    def __init__(self, startval=False):
+        QObject.__init__(self)
+        self.valueval = startval
+
+    def readValue(self):
+        return self.valueval
+
+    def setValue(self,val):
+        self.valueval = val
+        self.value_changed.emit()
+
+    @Signal
+    def value_changed(self):
+        pass
+
+    value = Property(bool, readValue, setValue, notify=value_changed)
+
+
+# class PolyEncoder(QObject):
+#     # name, min, max, value
+#     def __init__(self, starteffect="", startparameter=""):
+#         QObject.__init__(self)
+#         self.effectval = starteffect
+#         self.parameterval = startparameter
+#         self.speed = 1
+#         self.value = 1
+
+#     def readEffect(self):
+#         return self.effectval
+
+#     def setEffect(self,val):
+#         self.effectval = val
+#         self.effect_changed.emit()
+
+#     @Signal
+#     def effect_changed(self):
+#         pass
+
+#     effect = Property(str, readEffect, setEffect, notify=effect_changed)
+
+#     def readParameter(self):
+#         return self.parameterval
+
+#     def setParameter(self,val):
+#         self.parameterval = val
+#         self.parameter_changed.emit()
+
+#     @Signal
+#     def parameter_changed(self):
+#         pass
+
+#     parameter = Property(str, readParameter, setParameter, notify=parameter_changed)
+
 class PolyValue(QObject):
     # name, min, max, value
     def __init__(self, startname="", startval=0, startmin=0, startmax=1, curve_type="lin"):
@@ -239,28 +330,28 @@ class PolyValue(QObject):
 
     rmax = Property(float, readRMax, setRMax, notify=rmax_changed)
 
-effect_parameter_data = {
-        "reverb": {"gain": PolyValue("gain", 0, -90, 24), "ir": PolyValue("/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1),
-            "carla_level": PolyValue("level", 1, 0, 1)},
-        "postreverb": {"routing": PolyValue("gain", 6, 0, 6), "carla_level": PolyValue("level", 1, 0, 1)},
-        "cab": {"gain": PolyValue("gain", 0, -90, 24), "ir": PolyValue("/audio/cabs/1x12cab.wav", 0, 0, 1),
-            "carla_level": PolyValue("level", 1, 0, 1)},
-        "postcab": {"gain": PolyValue("gain", 0, -90, 24), "carla_level": PolyValue("level", 1, 0, 1)},
-        # "lfo1": lfos[0],
-        # "lfo2": lfos[1],
-        # "lfo3": lfos[2],
-        # "lfo4": lfos[3],
-        "mclk": {"carla_level": PolyValue("level", 1, 0, 1)},
-}
+def jump_to_preset(is_inc, num):
+    p_list = preset_list_model.stringList()
+    if is_inc:
+        current_preset.value = (current_preset.value + num) % len(p_list)
+    else:
+        if num < len(p_list):
+            current_preset.value = num
+        else:
+            return
+    # load_preset("/presets/"+p_list[current_preset.value]+".json")
+    print("load preset here") # TODO
+
+def write_pedal_state():
+    with open("/pedal_state/state.json", "w") as f:
+        json.dump(pedal_state, f)
 
 selected_effect_ports = QStringListModel()
 selected_effect_ports.setStringList(["val1", "val2"])
 seq_num = 10
 
-
 def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
-    # add effect_parameter_data for all parameters / ports
     # print("from backend new effect", effect_name, effect_type)
     if patch_bay_model.patch_bay_singleton is not None:
         patch_bay_model.patch_bay_singleton.startInsert()
@@ -282,11 +373,70 @@ def from_backend_remove_effect(effect_name):
     if patch_bay_model.patch_bay_singleton is not None:
         patch_bay_model.patch_bay_singleton.endRemove()
 
-def generate_current_arcs():
-    # return x,y pairs for each arc and colour
-    # for source in port_connections:
-    #     a.
-    pass
+def from_backend_add_connection(head, tail):
+    print("head ", head, "tail", tail)
+    current_source_port = head[6:]
+    if len(current_source_port.split("/")) == 1:
+        s_effect = current_source_port
+        s_effect_type = current_effects[s_effect]["effect_type"]
+        if s_effect_type == "output":
+            s_port = "input"
+        elif s_effect_type == "input":
+            s_port = "output"
+        current_source_port = s_effect + "/" + s_port
+
+    effect_id_port_name = tail[6:].split("/")
+    if len(effect_id_port_name) == 1:
+        t_effect = current_source_port
+        t_effect_type = current_effects[t_effect]["effect_type"]
+        if t_effect_type == "output":
+            t_port = "input"
+        elif t_effect_type == "input":
+            t_port = "output"
+    else:
+        t_effect, t_port = effect_id_port_name
+
+    if current_source_port not in port_connections:
+        port_connections[current_source_port] = []
+    if [t_effect, t_port] not in port_connections[current_source_port]:
+        port_connections[current_source_port].append([t_effect, t_port])
+
+    print("port_connections is", port_connections)
+    # global context
+    context.setContextProperty("portConnections", port_connections)
+    update_counter.value+=1
+
+
+def from_backend_disconnect(head, tail):
+    print("head ", head, "tail", tail)
+    current_source_port = head[6:]
+    if len(current_source_port.split("/")) == 1:
+        s_effect = current_source_port
+        s_effect_type = current_effects[s_effect]["effect_type"]
+        if s_effect_type == "output":
+            s_port = "input"
+        elif s_effect_type == "input":
+            s_port = "output"
+        current_source_port = s_effect + "/" + s_port
+
+    effect_id_port_name = tail[6:].split("/")
+    if len(effect_id_port_name) == 1:
+        t_effect = current_source_port
+        t_effect_type = current_effects[t_effect]["effect_type"]
+        if t_effect_type == "output":
+            t_port = "input"
+        elif t_effect_type == "input":
+            t_port = "output"
+    else:
+        t_effect, t_port = effect_id_port_name
+
+    print("before port_connections is", port_connections)
+    if current_source_port in port_connections and [t_effect, t_port] in port_connections[current_source_port]:
+        port_connections[current_source_port].pop(port_connections[current_source_port].index([t_effect, t_port]))
+    print("after port_connections is", port_connections)
+    # global context
+    context.setContextProperty("portConnections", port_connections)
+    update_counter.value+=1
 
 class Knobs(QObject):
     @Slot(bool, str, str)
@@ -313,10 +463,10 @@ class Knobs(QObject):
                 effect["highlight"] = False
             # add connection between source and target
             # or just wait until it's automatically created from engine? 
-            if current_source_port not in port_connections:
-                port_connections[current_source_port] = []
-            if [effect_id, port_name] not in port_connections[current_source_port]:
-                port_connections[current_source_port].append([effect_id, port_name])
+            # if current_source_port not in port_connections:
+            #     port_connections[current_source_port] = []
+            # if [effect_id, port_name] not in port_connections[current_source_port]:
+            #     port_connections[current_source_port].append([effect_id, port_name])
 
 
             s_effect, s_port = current_source_port.split("/")
@@ -339,9 +489,9 @@ class Knobs(QObject):
             # if current_source_port not in inv_port_connections[[effect_id, port_name]]:
             #     inv_port_connections[[effect_id, port_name]].append(current_source_port)
 
-            print("port_connections is", port_connections)
+            # print("port_connections is", port_connections)
             # global context
-            context.setContextProperty("portConnections", port_connections)
+            # context.setContextProperty("portConnections", port_connections)
 
 
     @Slot(bool, str)
@@ -367,11 +517,9 @@ class Knobs(QObject):
 
     @Slot(str)
     def disconnect_port(self, port_pair):
-        source_pair, target_pair = port_pair.split("---")
+        target_pair, source_pair = port_pair.split("---")
         t_effect, t_port = target_pair.split("/")
-        port_connections[source_pair].pop(port_connections[source_pair].index([t_effect, t_port]))
-        context.setContextProperty("portConnections", port_connections)
-        ingen_wrapper.disconnect_port("/main/"+source_pair, "/main/"+target_pair)
+        print("### disconnect, port pair", port_pair)
 
         s_effect, s_port = source_pair.split("/")
         s_effect_type = current_effects[s_effect]["effect_type"]
@@ -401,7 +549,7 @@ class Knobs(QObject):
                 effect_name = effect_type+str(i)
                 break
         ingen_wrapper.add_plugin(effect_name, effect_type_map[effect_type])
-        from_backend_new_effect(effect_name, effect_type)
+        # from_backend_new_effect(effect_name, effect_type)
 
 
     @Slot(str, int, int)
@@ -415,7 +563,7 @@ class Knobs(QObject):
         # TODO actually call backend.
         print("remove effect", effect_id)
         ingen_wrapper.remove_plugin("/main/"+effect_id)
-        from_backend_remove_effect(effect_id)
+        # from_backend_remove_effect(effect_id)
 
     @Slot(str, str, 'double')
     def ui_knob_change(self, effect_name, parameter, value):
@@ -435,6 +583,97 @@ class Knobs(QObject):
             is_cab = False
         ingen_wrapper.set_file(effect_id, ir_file, is_cab)
 
+    @Slot(str)
+    def ui_load_preset_by_name(self, preset_file):
+        # print("loading", preset_file)
+        outfile = preset_file[7:] # strip file:// prefix
+        load_preset(outfile)
+        update_counter.value+=1
+
+    @Slot()
+    def ui_copy_irs(self):
+        # print("copy irs from USB")
+        # could convert any that aren't 48khz.
+        # instead we just only copy ones that are
+        command = """cd /media/reverbs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/audio/reverbs --parents;
+        cd /media/cabs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/audio/cabs --parents"""
+        # copy all wavs in /usb/reverbs and /usr/cabs to /audio/reverbs and /audio/cabs
+        command_status[0].value = -1
+        self.launch_subprocess(command)
+
+    @Slot()
+    def import_presets(self):
+        # print("copy presets from USB")
+        # could convert any that aren't 48khz.
+        # instead we just only copy ones that are
+        command = """cd /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/presets --parents"""
+        command_status[0].value = -1
+        self.launch_subprocess(command)
+
+    @Slot()
+    def export_presets(self):
+        # print("copy presets to USB")
+        # could convert any that aren't 48khz.
+        # instead we just only copy ones that are
+        command = """cd /presets; mkdir -p /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/media/presets --parents;sudo umount /media"""
+        command_status[0].value = -1
+        self.launch_subprocess(command)
+
+    @Slot()
+    def copy_logs(self):
+        # print("copy presets to USB")
+        # could convert any that aren't 48khz.
+        # instead we just only copy ones that are
+        command = """mkdir -p /media/logs; sudo cp /var/log/syslog /media/logs/;sudo umount /media"""
+        command_status[0].value = -1
+        self.launch_subprocess(command)
+
+    @Slot()
+    def ui_update_firmware(self):
+        # print("Updating firmware")
+        # dpkg the debs in the folder
+        command = """sudo dpkg -i /media/*.deb"""
+        command_status[0].value = -1
+        self.launch_subprocess(command)
+
+    @Slot(int)
+    def set_input_level(self, level, write=True):
+        command = "amixer -- sset ADC1 "+str(level)+"db"""
+        command_status[0].value = subprocess.call(command, shell=True)
+        if write:
+            pedal_state["input_level"] = level
+            write_pedal_state()
+
+    @Slot(int)
+    def set_preset_list_length(self, v):
+        if v > len(preset_list_model.stringList()):
+            # print("inserting new row in preset list", v)
+            insert_row(preset_list_model, "Default Preset")
+        else:
+            # print("removing row in preset list", v)
+            preset_list_model.removeRows(v, 1)
+
+    @Slot(int, str)
+    def map_preset(self, v, name):
+        current_name = name[16:-5] # strip file://presets/ prefix
+        preset_list_model.setData(preset_list_model.index(v), current_name)
+
+    @Slot()
+    def save_preset_list(self):
+        with open("/pedal_state/preset_list.json", "w") as f:
+            json.dump(preset_list_model.stringList(), f)
+
+    @Slot(int)
+    def on_worker_done(self, ret_var):
+        # print("updating UI")
+        command_status[0].value = ret_var
+
+    def launch_subprocess(self, command):
+        # print("launch_threadpool")
+        worker = MyWorker(command)
+        worker.emitter.done.connect(self.on_worker_done)
+        worker_pool.start(worker)
+
 def add_io():
     for i in range(1,5):
         ingen_wrapper.add_input("input"+str(i))
@@ -444,102 +683,52 @@ def add_io():
         ingen_wrapper.add_output("output"+str(i))
         from_backend_new_effect("output"+str(i), "output", x=50, y=(80 * i))
 
-#     @Slot(str)
-#     def ui_add_connection(self, x):
-#         i = model.stringList().index(x)
-#         model.removeRows(i, 1)
-#         j = len(model2.stringList())
-#         model2.insertRows(j, 1)
-#         model2.setData(model2.index(j), x)
-#         print(x)
+def process_ui_messages():
+    # pop from queue
+    try:
+        while not EXIT_PROCESS[0]:
+            m = ui_messages.get(block=False)
+            print("got ui message", m)
+            if m[0] == "value_change":
+                # print("got value change in process_ui")
+                effect_name_parameter, value = m[1:]
+                effect_name, parameter = effect_name_parameter.split("/")
+                try:
+                    if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
+                        current_effects[effect_name]["controls"][parameter].value = float(value)
+                except ValueError:
+                    pass
 
-#     @Slot(str)
-#     def ui_remove_connection(self, x):
-#         i = model.stringList().index(x)
-#         model.removeRows(i, 1)
-#         print(x)
-
-#     @Slot(str)
-#     def toggle_enabled(self, x):
-#         print(x)
-
-
-# class PolyValue(QObject):
-#     # name, min, max, value
-#     def __init__(self, startname="", startval=0, startmin=0, startmax=1, curve_type="lin"):
-#         QObject.__init__(self)
-#         self.nameval = startname
-#         self.valueval = startval
-#         self.rminval = startmin
-#         self.rmax = startmax
-
-#     def readValue(self):
-#         return self.valueval
-
-#     def setValue(self,val):
-#         self.valueval = val
-#         self.value_changed.emit()
-#         print("setting value", val)
-
-#     @Signal
-#     def value_changed(self):
-#         pass
-
-#     value = Property(int, readValue, setValue, notify=value_changed)
-
-#     def readName(self):
-#         return self.nameval
-
-#     def setName(self,val):
-#         self.nameval = val
-#         self.name_changed.emit()
-
-#     @Signal
-#     def name_changed(self):
-#         pass
-
-#     name = Property(str, readName, setName, notify=name_changed)
-
-#     def readRMin(self):
-#         return self.rminval
-
-#     def setRMin(self,val):
-#         self.rminval = val
-#         self.rmin_changed.emit()
-
-#     @Signal
-#     def rmin_changed(self):
-#         pass
-
-#     rmin = Property(int, readRMin, setRMin, notify=rmin_changed)
-
-#     def readRMax(self):
-#         return self.rmaxval
-
-#     def setRMax(self,val):
-#         self.rmaxval = val
-#         self.rmax_changed.emit()
-
-#     @Signal
-#     def rmax_changed(self):
-#         pass
-
-#     rmax = Property(int, readRMax, setRMax, notify=rmax_changed)
-
-# obj = {"delay1": PolyValue()}
-# obj["delay1"].value = 47
-
-# print(obj["delay1"].value)
-
-# model = QStringListModel()
-# model2 = QStringListModel()
-
-# def tick():
-#     print("tick")
-#     if obj["delay1"].value < 100:
-#         obj["delay1"].value += 1
-#     else:
-#         obj["delay1"].value = 0
+            elif m[0] == "bpm_change":
+                current_bpm.value = m[1][0]
+            elif m[0] == "set_plugin_state":
+                pass
+                # plugin_state[m[1][0]].value = m[1][1]
+            elif m[0] == "add_connection":
+                head, tail = m[1:]
+                from_backend_add_connection(head, tail)
+            elif m[0] == "remove_connection":
+                head, tail = m[1:]
+                from_backend_disconnect(head, tail)
+            elif m[0] == "add_plugin":
+                effect_name, effect_type, x, y = m[1:5]
+                print("got add", m)
+                if (effect_name not in current_effects and effect_type in inv_effect_type_map):
+                    print("adding ", m)
+                    from_backend_new_effect(effect_name, inv_effect_type_map[effect_type], x, y)
+            elif m[0] == "remove_plugin":
+                effect_name = m[1]
+                if (effect_name in current_effects):
+                    from_backend_remove_effect(effect_name)
+            elif m[0] == "add_port":
+                pass
+            elif m[0] == "remove_port":
+                pass
+            elif m[0] == "exit":
+                # global EXIT_PROCESS
+                EXIT_PROCESS[0] = True
+    except queue.Empty:
+        pass
 
 effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
         "mono_reverb": "http://polyeffects.com/lv2/polyconvo#Mono",
@@ -557,20 +746,29 @@ effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
         "filter": "http://drobilla.net/plugins/fomp/mvclpf1",
         "lfo": "http://polyeffects.com/lv2/polylfo"}
 
+inv_effect_type_map = {v:k for k, v in effect_type_map.items()}
+
 if __name__ == "__main__":
 
+    print("in Main")
     app = QGuiApplication(sys.argv)
     QIcon.setThemeName("digit")
     # Instantiate the Python object.
     knobs = Knobs()
 
-    # t_list = QStringList()
-    # t_list.append("a")
-    # t_list.append("b")
-    # t_list.append("c")
-    # model.setStringList(["aasdfasdf", "b", "c"])
-    # model2.setStringList(["fff", "ddd" "c"])
     update_counter = PolyValue("update counter", 0, 0, 500000)
+    # read persistant state
+    # pedal_state = {}
+    # with open("/pedal_state/state.json") as f:
+    #     pedal_state = json.load(f)
+    current_bpm = PolyValue("BPM", 120, 30, 250) # bit of a hack
+    current_preset = PolyValue("Default Preset", 0, 0, 127)
+    update_counter = PolyValue("update counter", 0, 0, 500000)
+    command_status = [PolyValue("command status", -1, -10, 100000), PolyValue("command status", -1, -10, 100000)]
+    delay_num_bars = PolyValue("Num bars", 1, 1, 16)
+    # midi_channel = PolyValue("channel", pedal_state["midi_channel"], 1, 16)
+    # input_level = PolyValue("input level", pedal_state["input_level"], -80, 10)
+    # knobs.set_input_level(pedal_state["input_level"], write=False)
 
     available_effects = QStringListModel()
     available_effects.setStringList(list(effect_type_map.keys()))
@@ -581,21 +779,66 @@ if __name__ == "__main__":
     # global context
     context = engine.rootContext()
     context.setContextProperty("knobs", knobs)
-    # context.setContextProperty("param_vals", obj)
-    # context.setContextProperty("delay1_Left_Out_AvailablePorts", model)
     context.setContextProperty("available_effects", available_effects)
     context.setContextProperty("selectedEffectPorts", selected_effect_ports)
     context.setContextProperty("portConnections", port_connections)
     context.setContextProperty("effectPrototypes", effect_prototypes)
     context.setContextProperty("updateCounter", update_counter)
-    # engine.load(QUrl("qrc:/qml/digit.qml"))
-    # from_backend_new_effect("delay1", "delay", 20, 30);
-    # from_backend_new_effect("delay2", "delay", 250, 290);
-    add_io()
+    context.setContextProperty("currentBPM", current_bpm)
+    # context.setContextProperty("pluginState", plugin_state)
+    context.setContextProperty("currentPreset", current_preset)
+    context.setContextProperty("commandStatus", command_status)
+    context.setContextProperty("delayNumBars", delay_num_bars)
+    # context.setContextProperty("midiChannel", midi_channel)
+    # context.setContextProperty("isLoading", is_loading)
+    # # context.setContextProperty("inputLevel", input_level)
+    # context.setContextProperty("presetList", preset_list_model)
+    # add_io()
+    print("starting recv thread")
     engine.load(QUrl("qml/TestWrapper.qml"))
+    ingen_wrapper.start_recv_thread(ui_messages)
+    print("starting send thread")
+    ingen_wrapper.start_send_thread()
 
+    sys._excepthook = sys.excepthook
+    def exception_hook(exctype, value, traceback):
+        print("except hook got a thing!")
+        sys._excepthook(exctype, value, traceback)
+        sys.exit(1)
+    sys.excepthook = exception_hook
+    # try:
+    # crash_here
+    # except:
+    #     print("caught crash")
     # timer = QTimer()
     # timer.timeout.connect(tick)
     # timer.start(1000)
 
-    app.exec_()
+    def signalHandler(sig, frame):
+        if sig in (SIGINT, SIGTERM):
+            # print("frontend got signal")
+            # global EXIT_PROCESS
+            EXIT_PROCESS[0] = True
+            ingen_wrapper._FINISH = True
+    signal(SIGINT,  signalHandler)
+    signal(SIGTERM, signalHandler)
+    initial_preset = False
+    print("starting UI")
+    # ingen_wrapper._FINISH = True
+    while not EXIT_PROCESS[0]:
+        # print("processing events")
+        try:
+            app.processEvents()
+            # print("processing ui messages")
+            process_ui_messages()
+        except Exception as e:
+            print("########## e is:", e)
+            ex_type, ex_value, tb = sys.exc_info()
+            error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
+            print("EXception is:", error)
+        sleep(0.01)
+
+        # if not initial_preset:
+        #     load_preset("/presets/Default Preset.json")
+        #     update_counter.value+=1
+        #     initial_preset = True

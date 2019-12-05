@@ -31,9 +31,11 @@ class NS:
     ingerr = rdflib.Namespace('http://drobilla.net/ns/ingen/errors#')
     lv2    = rdflib.Namespace('http://lv2plug.in/ns/lv2core#')
     patch  = rdflib.Namespace('http://lv2plug.in/ns/ext/patch#')
+    midi   = rdflib.Namespace('http://lv2plug.in/ns/ext/midi#')
     rdf    = rdflib.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
     rsz    = rdflib.Namespace('http://lv2plug.in/ns/ext/resize-port#')
     xsd    = rdflib.Namespace('http://www.w3.org/2001/XMLSchema#')
+    doap   = rdflib.Namespace("http://usefulinc.com/ns/doap#")
 
 class Interface:
     'The core Ingen interface'
@@ -192,10 +194,11 @@ class Remote(Interface):
         if sys.version_info[0] == 3:
             payload = bytes(msg, 'utf-8')
         self.sock.send(self.msgencode(msg))
-
         # Receive response and parse into a model
-        response_str = self._get_prefixes_string() + self.recv()
-        return response_str
+        # response_str = self._get_prefixes_string() + self.recv()
+        # return response_str
+
+    def parse_response(self, response_str):
         response_model = rdflib.Graph(namespace_manager=self.ns_manager)
 
         # Because rdflib has embarrassingly broken base URI resolution that
