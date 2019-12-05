@@ -353,16 +353,19 @@ seq_num = 10
 def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
     # print("from backend new effect", effect_name, effect_type)
-    if patch_bay_model.patch_bay_singleton is not None:
-        patch_bay_model.patch_bay_singleton.startInsert()
+    if effect_type in effect_prototypes:
+        if patch_bay_model.patch_bay_singleton is not None:
+            patch_bay_model.patch_bay_singleton.startInsert()
 
-    current_effects[effect_name] = {"x": x, "y": y, "effect_type": effect_type,
-            "controls": {k : PolyValue(*v) for k,v in effect_prototypes[effect_type]["controls"].items()},
-            "highlight": False}
-    if patch_bay_model.patch_bay_singleton is not None:
-        patch_bay_model.patch_bay_singleton.endInsert()
-    # insert in context or model? 
-    context.setContextProperty("currentEffects", current_effects) # might be slow
+        current_effects[effect_name] = {"x": x, "y": y, "effect_type": effect_type,
+                "controls": {k : PolyValue(*v) for k,v in effect_prototypes[effect_type]["controls"].items()},
+                "highlight": False}
+        if patch_bay_model.patch_bay_singleton is not None:
+            patch_bay_model.patch_bay_singleton.endInsert()
+        # insert in context or model? 
+        context.setContextProperty("currentEffects", current_effects) # might be slow
+    else:
+        print("### backend tried to add an unknown effect!")
 
 
 def from_backend_remove_effect(effect_name):
@@ -378,6 +381,8 @@ def from_backend_add_connection(head, tail):
     current_source_port = head[6:]
     if len(current_source_port.split("/")) == 1:
         s_effect = current_source_port
+        if s_effect not in current_effects:
+            return
         s_effect_type = current_effects[s_effect]["effect_type"]
         if s_effect_type == "output":
             s_port = "input"
@@ -388,12 +393,16 @@ def from_backend_add_connection(head, tail):
     effect_id_port_name = tail[6:].split("/")
     if len(effect_id_port_name) == 1:
         t_effect = current_source_port
+        if t_effect not in current_effects:
+            return
         t_effect_type = current_effects[t_effect]["effect_type"]
         if t_effect_type == "output":
             t_port = "input"
         elif t_effect_type == "input":
             t_port = "output"
     else:
+        if t_effect not in current_effects:
+            return
         t_effect, t_port = effect_id_port_name
 
     if current_source_port not in port_connections:
@@ -556,6 +565,7 @@ class Knobs(QObject):
     def move_effect(self, effect_name, x, y):
         current_effects[effect_name]["x"] = x
         current_effects[effect_name]["y"] = y
+        ingen_wrapper.set_plugin_position(effect_name, x, y)
 
     @Slot(str)
     def remove_effect(self, effect_id):

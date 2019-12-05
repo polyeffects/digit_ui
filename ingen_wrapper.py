@@ -55,6 +55,9 @@ def set_parameter_value(port, value):
     # ingen.set(port, "ingen:value", str(value))
     q.put((ingen.put, port, "ingen:value "+ str(value)))
 
+def set_plugin_position(effect_id, x, y):
+    q.put((ingen.put, "/main/"+effect_id, 'ingen:canvasX "%s"^^xsd:float; ingen:canvasY "%s"^^xsd:float' % (x, y)))
+
 def add_plugin(effect_id, effect_url):
     # put /main/tone <http://drobilla.net/plugins/mda/Shepard>'
     q.put((ingen.put, "/main/"+effect_id, "a ingen:Block ; lv2:prototype " + "<" + effect_url + ">"))
