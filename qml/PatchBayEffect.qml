@@ -7,15 +7,16 @@ import QtQuick.Controls.Material 2.3
 //
 // later exposed parameters
 //
+import "polyconst.js" as Constants
 
 Rectangle {
     id: rect
-    width: 200
-    height: 100
-    radius: 10
+    width: 114
+    height: 68
+    radius: 6
     // color: patch_bay.delete_mode ? Qt.rgba(0.9,0.0,0.0,1.0) : Qt.rgba(0.3,0.3,0.3,1.0)  
-    color: highlight ? Qt.rgba(0.9,0.0,0.0,1.0) : Qt.rgba(0.3,0.3,0.3,1.0)  
-    z: mouseArea.drag.active ||  mouseArea.pressed ? 2 : 1
+    color: Constants.background_color
+    z: mouseArea.drag.active ||  mouseArea.pressed || selected ? 4 : 1
     // color: Material.color(time_scale.delay_colors[index])
     // color: Qt.rgba(0, 0, 0, 0)
     // color: setColorAlpha(Material.Pink, 0.1);//Qt.rgba(0.1, 0.1, 0.1, 1);
@@ -23,140 +24,184 @@ Rectangle {
     property bool caught: false
     property string effect_id
     property string effect_type
+    property color effect_color: Constants.audio_color
     property bool highlight: false
-    // border { width:1; color: Material.color(Material.Cyan, Material.Shade100)}
-    // border { width:2; color: Material.color(Material.Pink, Material.Shade200)}
+    property bool selected: false
+    property var sliders; 
+    // border { width:2; color: Material.color(Material.Cyan, Material.Shade100)}
     Drag.active: mouseArea.drag.active
 
-	Column {
-		width:20
-		Repeater {
-			id: outputRep
-			model: Object.keys(effectPrototypes[effect_type]["outputs"]) 
-			Button {
-				anchors.left: parent.left
-				anchors.leftMargin: 5
-				// text: "<"
-				background: Rectangle {
-					anchors.left: parent.left
-					anchors.leftMargin: 5
-					y:5
-					width: 20
-					height: 20
-					radius: 20
-					// color: Material.color(Material.Pink, Material.Shade200)
-					color: setColorAlpha(Material.color(Material.Pink, Material.Shade200), 0.2)
-					border {
-						color: Material.color(Material.Pink, Material.Shade200);
-						width: 1
-					}
-				}
-			}
-			// onItemAdded: {
-			// 	if ("invalid" in effect_map){
-			// 		delete effect_map["invalid"];
-			// 	}
-			// 	// console.log("added", index, item.effect_id);
-			// 	effect_map[item.effect_id] = item;
-			// 	// console.log(Object.keys(effect_map)); //[item.effect_id]);
-			// }
-		}
-	}
-    // Button {
-    //     anchors.left: parent.left
-    //     anchors.leftMargin: 5
-    //     icon.name: "md-arrow-back"
-    //     width: 45
-    //     height: 45
-    //     // On click make this the current patch source, highlight this and possible targets
-    //     // port id
-    //     // creates new path element / connection
-    //     // text: "<"
-    //     // background: Rectangle {
-    //     //     // anchors.left: parent.left
-    //     //     // anchors.leftMargin: 0
-    //     //     width: 20
-    //     //     height: 20
-    //     //     radius: 20
-    //     //     // color: Material.color(Material.Pink, Material.Shade200)
-    //     //     color: setColorAlpha(Material.color(Material.Pink, Material.Shade200), 0.2)
-    //     //     border {
-    //     //         color: Material.color(Material.Pink, Material.Shade200);
-    //     //         width: 1
-    //     //     }
-    //     // }
-    // }
+    function connect_clicked() {
+        /*
+         * on click, check if we are highlight, if not find source ports 
+         * if we are, then we're a current target
+         */
+        if (!highlight){
+            knobs.select_effect(true, effect_id)
+            patch_bay.list_effect_id = effect_id;
+            patch_bay.list_source = true;
 
-	Column {
-		width:20
-		anchors.right: parent.right
-		Column {
-			width:20
-			anchors.right: parent.right
-			Repeater {
-				id: inputRep
-				model: Object.keys(effectPrototypes[effect_type]["inputs"]) 
-				Button {
-					anchors.right: parent.right
-					anchors.rightMargin: 35
-					// text: "<"
-					background: Rectangle {
-						anchors.right: parent.right
-						anchors.rightMargin: -25
-						y:5
-						width: 20
-						height: 20
-						radius: 20
-						// color: Material.color(Material.Pink, Material.Shade200)
-						color: setColorAlpha(Material.color(Material.Pink, Material.Shade200), 0.2)
-						border {
-							color: Material.color(Material.Pink, Material.Shade200);
-							width: 1
-						}
-					}
-				}
-			}
-		}
-		// Column {
-		// 	width:20
-		// 	anchors.right: parent.right
-		// 	spacing: 0
-		// 	Repeater {
-		// 		id: controlRep
-		// 		model: Object.keys(effectPrototypes[effect_type]["controls"]) 
-		// 		Button {
-		// 			height: 10
-		// 			anchors.right: parent.right
-		// 			anchors.rightMargin: 35
-		// 			// text: "<"
-		// 			background: Rectangle {
-		// 				anchors.right: parent.right
-		// 				anchors.rightMargin: -25
-		// 				y:5
-		// 				width: 10
-		// 				height: 10
-		// 				radius: 10
-		// 				// color: Material.color(Material.Pink, Material.Shade200)
-		// 				color: setColorAlpha(Material.color(Material.Indigo, Material.Shade200), 0.2)
-		// 				border {
-		// 					color: Material.color(Material.Indigo, Material.Shade200);
-		// 					width: 1
-		// 				}
-		// 			}
-		// 		}
-		// 	}
-		// }
+            var k = Object.keys(effectPrototypes[effect_type]["outputs"])
+            if (k.length > 1 )
+            {
+                mainStack.push(portSelection);
+            } 
+            else {
+                knobs.set_current_port(true, effect_id, k[0]);
+                rep1.model.items_changed();
+                patch_bay.externalRefresh();
+            }
+        } else {
+            knobs.select_effect(false, effect_id)
+            patch_bay.list_effect_id = effect_id;
+            patch_bay.list_source = false;
+
+            var k = Object.keys(effectPrototypes[effect_type]["inputs"])
+            if (k.length > 1 )
+            {
+                mainStack.push(portSelection);
+            } 
+            else {
+                knobs.set_current_port(false, effect_id, k[0]);
+                rep1.model.items_changed();
+                patch_bay.externalRefresh();
+            }
+        }
+
+    }
+
+    function delete_clicked() {
+        // delete current effect
+        // console.log("clicked", display);
+        // rep1.model.remove_effect(display)
+        console.log("deleting", effect_id);
+        knobs.remove_effect(effect_id);
+        patch_bay.externalRefresh();
+    }
+
+    function expand_clicked () {
+        if (effect_type == "stereo_EQ" || effect_type == "mono_EQ"){
+            mainStack.push("EQWidget.qml", {"effect": effect_id});
+        }
+        else if (effect_type == "delay"){
+            mainStack.push(editDelay);
+        }
+        else if (effect_type == "mono_reverb" || effect_type == "stereo_reverb" || effect_type == "true_stereo_reverb")
+        {
+            mainStack.push("ReverbBrowser.qml", {"effect": effect_id, 
+            "top_folder": "file:///audio/reverbs",
+            "after_file_selected": (function(name) { 
+                // console.log("got new reveb file");
+                // console.log("file is", name.toString());
+                knobs.update_ir(effect_id, name.toString());
+                })
+            });
+        }
+        else if (effect_type == "mono_cab" || effect_type == "stereo_cab" || effect_type == "true_stereo_cab"){
+            mainStack.push("ReverbBrowser.qml", {"effect": effect_id, 
+            "top_folder": "file:///audio/cabs",
+            "after_file_selected": (function(name) { 
+                // console.log("got new reveb file");
+                // console.log("file is", name.toString());
+                knobs.update_ir(effect_id, name.toString());
+                })
+            });
+        }
+        else if (effect_type == "input" || effect_type == "output"){
+            // pass
+        } else {
+            // mainStack.push(editGeneric);
+        }
+    }
+
+    function disconnect_clicked()
+    {
+        /*
+         * on click, if there's just one port then connected then disconnect it
+         * otherwise list connected
+         */
+        knobs.list_connected(effect_id);
+        // * on click if highlighted (valid port)
+        // * show select target port if port count > 1
+        patch_bay.list_effect_id = effect_id;
+        patch_bay.list_source = false;
+        mainStack.push(disconnectPortSelection);
+        // select target, show popup with target ports
+        // } 
+        // else {
+        // knobs.set_current_port(false, effect_id, ) // XXX
+
+        // }
+    }
+
+    border { width:2; color: selected ? Constants.accent_color : Constants.outline_color}
+
+    Column {
+        width:5
+        y:20
+        anchors.left: parent.left
+        Repeater {
+            id: outputRep
+            model: Object.keys(effectPrototypes[effect_type]["outputs"]) 
+            Rectangle {
+                anchors.left: parent.left
+                anchors.leftMargin: 0
+                width: 2
+                height: 8
+                color: Constants.audio_color
+            }
+        }
+    }
+
+    Column {
+        width:5
+        anchors.right: parent.right
+        y:20
+        Repeater {
+            id: inputRep
+            model: Object.keys(effectPrototypes[effect_type]["inputs"]) 
+            Rectangle {
+                anchors.right: parent.right
+                anchors.rightMargin: 0
+                width: 2
+                height: 8
+                color: highlight ? Constants.accent_color : Constants.audio_color
+            }
+        }
 	}
+
+    Rectangle {
+        anchors.verticalCenter: parent.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: 30
+        height: 30
+        radius: 15
+        color: Constants.background_color
+        border { width:2; color: Constants.control_color}
+        Label {
+            anchors.centerIn: parent
+            text: Object.keys(effectPrototypes[effect_type]["controls"]).length
+            // height: 15
+            color: Constants.control_color
+            font {
+                // pixelSize: fontSizeMedium
+                pixelSize: 18
+                capitalization: Font.AllUppercase
+            }
+        }
+    }
 
     Label {
         anchors.top: parent.top
-        anchors.topMargin: 0
+        anchors.topMargin: 8
         anchors.horizontalCenter: parent.horizontalCenter
-        text: effect_id
-        color: "white"
+        text: effect_id.replace("_", " ")
+        height: 36
+        color: effect_color
         font {
             // pixelSize: fontSizeMedium
-            pixelSize: 26
+            pixelSize: 23
+            capitalization: Font.AllUppercase
         }
     }
     //
@@ -170,113 +215,35 @@ Rectangle {
             rect.beginDrag = Qt.point(rect.x, rect.y);
 			console.log("effect proto", Object.keys(effectPrototypes[effect_type]["inputs"]))
 
-			if (patch_bay.connect_mode){
-
-				/*
-				 * on click, check if we are highlight, if not find source ports 
-				 * if we are, then we're a current target
-				 */
-				if (!highlight){
-					knobs.select_effect(true, effect_id)
-					// if (selectedEffectPorts.count > 1){
-						patch_bay.list_effect_id = effect_id;
-						patch_bay.list_source = true;
-						mainStack.push(portSelection);
-						// select source, show popup with source ports
-					// } 
-					// else {
-					//     knobs.set_current_port(true, effect_id, selectedEffectPorts[0]);
-					// }
-				} else {
-					knobs.select_effect(false, effect_id)
-					 // * on click if highlighted (valid port)
-					 // * show select target port if port count > 1
-						patch_bay.list_effect_id = effect_id;
-						patch_bay.list_source = false;
-						mainStack.push(portSelection);
-						// select target, show popup with target ports
-					// } 
-					// else {
-						// knobs.set_current_port(false, effect_id, ) // XXX
-
-					// }
-				}
-			}
-			else if (patch_bay.move_mode) {
+            if (!patch_bay.anythingSelected){
+                selected = true
+                patch_bay.anythingSelected = true
+                patch_bay.selected_effect = rect
+                // bring up sliders/controls, and icons
+                // if we're past left of center sliders on right
+                // else sliders on left
+                // selected changes z via binding
+                if (rect.x > 640){
+                    sliders = editGeneric.createObject(patch_bay, {x: 0, y: 0});
+                    action_icons.x = rect.x + 130; // bound max
+                } else {
+                    sliders = editGeneric.createObject(patch_bay, {x: 700, y: 0});
+                    action_icons.x = rect.x - 90; // and min
+                }
+                action_icons.visible = true;
+                return;
+            }
+            else if (patch_bay.currentMode == PatchBay.Connect){
+                connect_clicked();
+            }
+            else if (patch_bay.currentMode == PatchBay.Move){
 				patch_bay.isMoving = true;
 				patch_bay.externalRefresh();
 			}
-			else if (patch_bay.delete_mode) {
-				// delete current effect
-				// console.log("clicked", display);
-				// rep1.model.remove_effect(display)
-				console.log("deleting", effect_id);
-				knobs.remove_effect(effect_id);
-				patch_bay.externalRefresh();
-			}
-			else if (patch_bay.expand_mode) {
-				if (effect_type == "stereo_EQ" || effect_type == "mono_EQ"){
-					mainStack.push("EQWidget.qml", {"effect": effect_id});
-				}
-				else if (effect_type == "delay"){
-					mainStack.push(editDelay);
-				}
-				else if (effect_type == "mono_reverb" || effect_type == "stereo_reverb" || effect_type == "true_stereo_reverb"){
-					mainStack.push("ReverbBrowser.qml", {"effect": effect_id, 
-                                        "top_folder": "file:///audio/reverbs",
-                                        "after_file_selected": (function(name) { 
-                                            // console.log("got new reveb file");
-                                            // console.log("file is", name.toString());
-                                            knobs.update_ir(effect_id, name.toString());
-										})
-								   	});
-				}
-				else if (effect_type == "mono_cab" || effect_type == "stereo_cab" || effect_type == "true_stereo_cab"){
-					mainStack.push("ReverbBrowser.qml", {"effect": effect_id, 
-                                        "top_folder": "file:///audio/cabs",
-                                        "after_file_selected": (function(name) { 
-                                            // console.log("got new reveb file");
-                                            // console.log("file is", name.toString());
-                                            knobs.update_ir(effect_id, name.toString());
-										})
-								   	});
-				}
-				else if (effect_type == "input" || effect_type == "output"){
-					// pass
-				} else {
-					mainStack.push(editGeneric);
-				}
-				// patch_bay.externalRefresh();
-			}
-			if (patch_bay.disconnect_mode){
-
-				/*
-				 * on click, if there's just one port then connected then disconnect it
-				 * otherwise list connected
-				 */
-						knobs.list_connected(effect_id);
-					 // * on click if highlighted (valid port)
-					 // * show select target port if port count > 1
-						patch_bay.list_effect_id = effect_id;
-						patch_bay.list_source = false;
-						mainStack.push(disconnectPortSelection);
-						// select target, show popup with target ports
-					// } 
-					// else {
-						// knobs.set_current_port(false, effect_id, ) // XXX
-
-					// }
-			}
-             // * 
-             // * effect_connections[(effect_id, port_id)].append((target_effect_id, target_port_id))
-             // *  
-             // * for conn in effect_connections:
-             // *  draw arc
-             // */
         }
         onDoubleClicked: {
-            time_scale.current_delay = index;
-            mainStack.push(editDelay);
+            // time_scale.current_delay = index;
+            // mainStack.push(editDelay);
             // mappingPopup.set_mapping_choice("delay"+(index+1), "Delay_1", "TIME", 
             //     "delay"+(index+1), time_scale.current_parameter, 
             //     time_scale.inv_parameter_map[time_scale.current_parameter], false);    
@@ -286,7 +253,7 @@ Rectangle {
         onReleased: {
             // var in_x = rect.x;
             // var in_y = rect.y;
-			if (patch_bay.move_mode){
+            if (patch_bay.currentMode == PatchBay.Move){
 				patch_bay.isMoving = false;
 				patch_bay.externalRefresh();
 				knobs.move_effect(effect_id, rect.x, rect.y)
@@ -348,12 +315,9 @@ Rectangle {
                     Row {
                         height: 40
                         spacing: 25
-                        GlowingLabel {
-                            text: "TIME (ms)"
-                            width: 140
-                        }
 
                         Slider {
+                            title: "TIME (ms)" 
                             width: 625
 							value: currentEffects[effect_id]["controls"]["Delay_1"].value
 							from: currentEffects[effect_id]["controls"]["Delay_1"].rmin
@@ -419,20 +383,12 @@ Rectangle {
         Component {
             id: editGeneric
             Item {
-                height:700
-                width:1280
+                height:540
+                width:500
                 Column {
-                    width: 1100
-                    spacing: 20
+                    width: 500
+                    spacing: 35
                     anchors.centerIn: parent
-                
-                    GlowingLabel {
-                        color: "#ffffff"
-                        text: effect_id
-                        font {
-                            pixelSize: fontSizeLarge
-                        }
-                    }
 
 					Repeater {
 						model: Object.keys(currentEffects[effect_id]["controls"])
@@ -443,19 +399,7 @@ Rectangle {
 					}
                 }
                 
-
-                Button {
-                    font {
-                        pixelSize: fontSizeMedium
-                    }
-                    text: "BACK"
-                    anchors.right: parent.right
-                    anchors.rightMargin: 10
-                    anchors.topMargin: 10
-                    width: 100
-                    height: 100
-                    onClicked: mainStack.pop()
-                }
             }
         }
+
 }

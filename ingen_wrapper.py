@@ -60,7 +60,11 @@ def set_plugin_position(effect_id, x, y):
 
 def add_plugin(effect_id, effect_url):
     # put /main/tone <http://drobilla.net/plugins/mda/Shepard>'
-    q.put((ingen.put, "/main/"+effect_id, "a ingen:Block ; lv2:prototype " + "<" + effect_url + ">"))
+		
+    q.put((ingen.put, "/main/"+effect_id, """ingen:canvasX "200.0"^^xsd:float ;
+    ingen:canvasY "200.0"^^xsd:float ;
+    a ingen:Block ;
+    lv2:prototype """ + "<" + effect_url + ">"))
 
 def add_input(port_id):
     # put /main/left_in 'a lv2:InputPort ; a lv2:AudioPort'

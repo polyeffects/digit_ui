@@ -39,6 +39,14 @@ port_connections = {} # key is port, value is list of ports
 
 context = None
 
+preset_list = []
+try:
+    with open("/pedal_state/preset_list.json") as f:
+        preset_list = json.load(f)
+except:
+    preset_list = ["Akg eq ed", "Back at u"]
+preset_list_model = QStringListModel(preset_list)
+
 patch_bay_model.local_effects = current_effects
     # effect = {"parameters", "inputs", "outputs", "effect_type", "id", "x", "y"}
 effect_prototypes ={
@@ -401,9 +409,9 @@ def from_backend_add_connection(head, tail):
         elif t_effect_type == "input":
             t_port = "output"
     else:
+        t_effect, t_port = effect_id_port_name
         if t_effect not in current_effects:
             return
-        t_effect, t_port = effect_id_port_name
 
     if current_source_port not in port_connections:
         port_connections[current_source_port] = []
@@ -805,7 +813,7 @@ if __name__ == "__main__":
     # context.setContextProperty("presetList", preset_list_model)
     # add_io()
     print("starting recv thread")
-    engine.load(QUrl("qml/TestWrapper.qml"))
+    engine.load(QUrl("qml/TestWrapper.qml")) # XXX 
     ingen_wrapper.start_recv_thread(ui_messages)
     print("starting send thread")
     ingen_wrapper.start_send_thread()

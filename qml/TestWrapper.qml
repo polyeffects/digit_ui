@@ -9,6 +9,7 @@ ApplicationWindow {
     Material.theme: Material.Dark
     Material.primary: Material.Green
     Material.accent: Material.Pink
+    Material.background: "black"
     contentOrientation: Qt.LandscapeOrientation
 
     readonly property int baseFontSize: 20 
@@ -19,13 +20,40 @@ ApplicationWindow {
     readonly property int fontSizeExtraLarge: baseFontSize * 5
     width: 1280
     height: 720
-    title: "Drag & drop example"
+    title: "Digit 2"
     visible: true
     // FontLoader { source: "ionicons.ttf" }
     Component {
         id: mainView
-        PatchBay {
+        // PatchBay {
+        // }
+        TitleFooter {
         }
+        // Item {
+        //     width: 1280
+        //     height: 720
+        
+        // Slider {
+        //     x: 50
+        //     y: 50
+        //     width: 625
+        //     height: 48
+        //     value: 0.5
+        //     from: 0
+        //     to: 1
+        //     title: "Fragment Length"
+        // }
+
+        // SpinBox {
+        //     x: 100
+        //     y: 100
+        //     height: 50
+        //     value: 10
+        //     from: 1
+        //     to:  100
+        //     stepSize: 10
+        // }
+    // }
     }
     // // EQWidget {
     

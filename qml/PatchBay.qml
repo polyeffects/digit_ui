@@ -5,6 +5,7 @@ import QtQuick.Controls.Material 2.3
 import QtQuick.Shapes 1.11
 
 import Poly 1.0
+import "polyconst.js" as Constants
 /*
  * connection pairs of id / port, id / port
  *
@@ -12,21 +13,25 @@ import Poly 1.0
 
     Item {
         id: patch_bay
-        width: 1200
-        height: 700
+        width: 1280
+        height: 548
+
+        enum PatchMode {
+            Select,
+            Move,
+            Connect
+        }
         property int active_width: 900
         property int updateCount: updateCounter, externalRefresh()
         property int current_index: -1
-        property bool delete_mode: deleteMode.checked
-        property bool move_mode: moveMode.checked
         property bool isMoving: false
-        property bool connect_mode: connectMode.checked
-        property bool disconnect_mode: disconnectMode.checked
-        property bool expand_mode: expandMode.checked
+        property bool anythingSelected: false
+        property int currentMode: PatchBay.Select
         // relate to port selection popup
         property bool list_source: true
         property string list_effect_id
         property var effect_map: {"invalid":"b"}
+        property PatchBayEffect selected_effect
 
 		function setColorAlpha(color, alpha) {
 			return Qt.hsla(color.hslHue, color.hslSaturation, color.hslLightness, alpha)
@@ -37,9 +42,101 @@ import Poly 1.0
             return updateCounter.value;
         }
 
+        Column {
+            x: 0
+            y: 0
+            z:2
+            Rectangle {
+                x: 0
+                y: 0
+                color: Constants.accent_color
+                width: 58
+                height: 36
+                border { width:1; color: "white"}
+
+                Label {
+                    // color: "#ffffff"
+                    text: "out"
+                    elide: Text.ElideRight
+                    anchors.centerIn: parent
+                    horizontalAlignment: Text.AlignHCenter
+                    // width: 1000
+                    // height: 60
+                    // z: 3
+                    color: "white"
+                    font {
+                        pixelSize: 22
+                        capitalization: Font.AllUppercase
+                    }
+                }
+            }
+            IOPort {
+                io_num: 1
+                port_name: "output1"
+            }
+            IOPort {
+                io_num: 2
+                port_name: "output2"
+            }
+            IOPort {
+                io_num: 3
+                port_name: "output3"
+            }
+            IOPort {
+                io_num: 4
+                port_name: "output4"
+            }
+        }
+
+        Column {
+            x: 1222 
+            y: 0
+            z:2
+            Rectangle {
+                x: 0
+                y: 0
+                color: Constants.accent_color
+                width: 58
+                height: 36
+                border { width:1; color: "white"}
+
+                Label {
+                    // color: "#ffffff"
+                    text: "in"
+                    elide: Text.ElideRight
+                    anchors.centerIn: parent
+                    horizontalAlignment: Text.AlignHCenter
+                    // width: 1000
+                    // height: 60
+                    // z: 3
+                    color: "white"
+                    font {
+                        pixelSize: 22
+                        capitalization: Font.AllUppercase
+                    }
+                }
+            }
+            IOPort {
+                io_num: 1
+                port_name: "input1"
+            }
+            IOPort {
+                io_num: 2
+                port_name: "input2"
+            }
+            IOPort {
+                io_num: 3
+                port_name: "input3"
+            }
+            IOPort {
+                io_num: 4
+                port_name: "input4"
+            }
+        }
+
         Item {
             x: 0
-            width: 1200
+            width: 1280
             height: parent.height
 
             Repeater {
@@ -112,12 +209,12 @@ import Poly 1.0
                     var sizeX   = minmax[2] - minmax[0]
 
 
-                    drawContext.lineWidth   = 4;
+                    drawContext.lineWidth   = 2;
                     if (patch_bay.isMoving){
-                        drawContext.strokeStyle = setColorAlpha(Material.accent, 0.2);
+                        drawContext.strokeStyle = setColorAlpha(outputPort.effect_color, 0.2);
                     } else
                     {
-                        drawContext.strokeStyle = Material.accent;
+                        drawContext.strokeStyle = outputPort.effect_color;
                     }
                     drawContext.beginPath();
                     drawContext.moveTo( start.x, start.y );
@@ -180,142 +277,88 @@ import Poly 1.0
             // remove
             // move
             //
-            ButtonGroup {
-                id: modeButtonGroup
-                buttons: patchButtons.children
-                exclusive: true
-                onClicked: {
-                    checkedButton = button;
-                }
-            }
 
-            Row {
-                id: patchButtons
-                anchors.bottom: parent.bottom
-                anchors.right: parent.right
-                spacing: 20
-                Button {
-                    id: expandMode
-                    icon.name: "md-expand"
-                    width: 70
-                    height: 70
-                    checked: true
-                }
-                Button {
-                    id: moveMode
-                    icon.name: "md-move"
-                    width: 70
-                    height: 70
-                    onClicked: {
-                    }
-                }
-                Button {
+            Column {
+                visible: false
+                y: 67
+                x: 1043
+                id: action_icons
+                z: 6
+                spacing: 15
+                IconButton {
                     id: connectMode
-                    icon.name: "md-git-branch"
-                    width: 70
-                    height: 70
+                    icon.name: "connect"
+                    width: 56
+                    height: 56
                     onClicked: {
+                        selected_effect.connect_clicked()
+                        currentMode = PatchBay.Connect
                     }
+                    Material.background: "white"
+                    Material.foreground: Constants.accent_color
+                    radius: 28
                 }
-                Button {
+                IconButton {
                     id: disconnectMode
-                    icon.name: "md-git-compare"
-                    width: 70
-                    height: 70
+                    icon.name: "disconnect"
+                    width: 56
+                    height: 56
                     onClicked: {
+                        selected_effect.disconnect_clicked()
                     }
+                    Material.background: "white"
+                    Material.foreground: Constants.accent_color
+                    radius: 28
                 }
-                Button {
-                    icon.name: "md-add"
-                    width: 70
-                    height: 70
+                IconButton {
+                    id: moveMode
+                    icon.name: "move"
+                    width: 56
+                    height: 56
                     onClicked: {
-                        mainStack.push(addEffect);
+                        currentMode = PatchBay.Move
                     }
+                    Material.background: "white"
+                    Material.foreground: Constants.accent_color
+                    radius: 28
                 }
-                Button {
-                    id: deleteMode
-                    icon.name: "md-close"
-                    width: 70
-                    height: 70
+                IconButton {
+                    id: expandMode
+                    icon.name: "view"
+                    width: 56
+                    height: 56
+                    checked: true
+                    Material.background: "white"
+                    Material.foreground: Constants.accent_color
+                    radius: 28
+                }
+                IconButton {
+                    id: helpMode
+                    icon.name: "help"
+                    width: 56
+                    height: 56
                     onClicked: {
                         console.log("clicked:");
-                        // if (checked){
-                        //     modeButtonGroup.checkedButton = expandMode;
-                        // }
-                        // else
-                        // {
-                        //     modeButtonGroup.checkedButton = deleteMode;
-                        // }
                     }
+                    Material.background: "white"
+                    Material.foreground: Constants.accent_color
+                    radius: 28
                 }
-            
-            }
-        }
-
-        Component {
-            id: addEffect
-            Item {
-                id: addEffectCon
-                height:700
-                width:1280
-
-                GlowingLabel {
-                    color: "#ffffff"
-                    text: "Add Effect"
-                    font {
-                        pixelSize: fontSizeLarge
+                IconButton {
+                    id: deleteMode
+                    icon.name: "delete"
+                    width: 56
+                    height: 56
+                    onClicked: {
+                        selected_effect.delete_clicked()
                     }
-                    anchors.top: parent.top
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-
-                ListView {
-                    width: 400
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.top: parent.top
-                    anchors.topMargin: 50
-                    anchors.bottom: parent.bottom
-                    clip: true
-                    delegate: ItemDelegate {
-                        width: parent.width
-                        height: 50
-                        text: edit
-                        bottomPadding: 0
-                        font.pixelSize: fontSizeMedium
-                        topPadding: 0
-                        onClicked: {
-                            knobs.add_new_effect(edit)
-                            // knobs.ui_add_effect(edit)
-                            mainStack.pop()
-                        }
-                    }
-                    ScrollIndicator.vertical: ScrollIndicator {
-                        anchors.top: parent.top
-                        parent: addEffectCon
-                        anchors.right: parent.right
-                        anchors.rightMargin: 1
-                        anchors.bottom: parent.bottom
-                    }
-                    model: available_effects
-                }
-            
-                
-
-                Button {
-                    font {
-                        pixelSize: fontSizeMedium
-                    }
-                    text: "BACK"
-                    anchors.right: parent.right
-                    anchors.rightMargin: 10
-                    anchors.topMargin: 10
-                    width: 100
-                    height: 100
-                    onClicked: mainStack.pop()
+                    Material.background: "white"
+                    Material.foreground: Constants.accent_color
+                    radius: 28
                 }
             }
         }
+
 
         Component {
             id: portSelection
@@ -354,8 +397,6 @@ import Poly 1.0
                             knobs.set_current_port(list_source, list_effect_id, edit);
                             rep1.model.items_changed();
                             mycanvas.requestPaint();
-                            // rep1.model.add_effect(edit)
-                            // knobs.ui_add_effect(edit)
                             mainStack.pop();
                         }
                     }
