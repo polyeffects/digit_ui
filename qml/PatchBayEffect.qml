@@ -31,12 +31,24 @@ Rectangle {
     // border { width:2; color: Material.color(Material.Cyan, Material.Shade100)}
     Drag.active: mouseArea.drag.active
 
+    function hide_sliders(leave_selected) {
+        // console.log("hiding sliders");
+        if (sliders){
+            sliders.destroy();
+        }
+        if (leave_selected){
+            selected = false;
+            patch_bay.currentMode = PatchBay.Select;
+        }
+    }
+
     function connect_clicked() {
         /*
          * on click, check if we are highlight, if not find source ports 
          * if we are, then we're a current target
          */
         if (!highlight){
+            hide_sliders(false);
             knobs.select_effect(true, effect_id)
             patch_bay.list_effect_id = effect_id;
             patch_bay.list_source = true;
@@ -77,6 +89,7 @@ Rectangle {
         console.log("deleting", effect_id);
         knobs.remove_effect(effect_id);
         patch_bay.externalRefresh();
+        hide_sliders(true);
     }
 
     function expand_clicked () {
@@ -125,6 +138,7 @@ Rectangle {
         // * show select target port if port count > 1
         patch_bay.list_effect_id = effect_id;
         patch_bay.list_source = false;
+        hide_sliders(true);
         mainStack.push(disconnectPortSelection);
         // select target, show popup with target ports
         // } 
@@ -209,37 +223,36 @@ Rectangle {
         id: mouseArea
         z: -1
         anchors.fill: parent
-        drag.target: parent
+        // drag.target: patch_bay.current_mode == PatchBay.Move ? parent : undefined
+        drag.target: parent 
         onPressed: {
             // check mode: move, delete, connect, open
             rect.beginDrag = Qt.point(rect.x, rect.y);
 			console.log("effect proto", Object.keys(effectPrototypes[effect_type]["inputs"]))
 
-            if (!patch_bay.anythingSelected){
-                selected = true
-                patch_bay.anythingSelected = true
-                patch_bay.selected_effect = rect
-                // bring up sliders/controls, and icons
-                // if we're past left of center sliders on right
-                // else sliders on left
-                // selected changes z via binding
-                if (rect.x > 640){
-                    sliders = editGeneric.createObject(patch_bay, {x: 0, y: 0});
-                    action_icons.x = rect.x + 130; // bound max
-                } else {
-                    sliders = editGeneric.createObject(patch_bay, {x: 700, y: 0});
-                    action_icons.x = rect.x - 90; // and min
-                }
-                action_icons.visible = true;
-                return;
-            }
-            else if (patch_bay.currentMode == PatchBay.Connect){
+            if (patch_bay.currentMode == PatchBay.Connect){
                 connect_clicked();
             }
             else if (patch_bay.currentMode == PatchBay.Move){
 				patch_bay.isMoving = true;
 				patch_bay.externalRefresh();
 			}
+            else if (patch_bay.currentMode == PatchBay.Select){
+                selected = true
+                patch_bay.selected_effect = rect
+                // bring up sliders/controls, and icons
+                // if we're past left of center sliders on right
+                // else sliders on left
+                // selected changes z via binding
+                if (rect.x > 582){
+                    sliders = editGeneric.createObject(patch_bay, {x: Math.max(rect.x - 600, 50) , y: 0});
+                    action_icons.x = rect.x + 130; // bound max
+                } else {
+                    sliders = editGeneric.createObject(patch_bay, {x: Math.min(rect.x + 150, 790) , y: 0});
+                    action_icons.x = rect.x - 90; // and min
+                }
+                patch_bay.currentMode = PatchBay.Sliders;
+            }
         }
         onDoubleClicked: {
             // time_scale.current_delay = index;
@@ -383,6 +396,7 @@ Rectangle {
         Component {
             id: editGeneric
             Item {
+                z: 3
                 height:540
                 width:500
                 Column {

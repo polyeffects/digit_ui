@@ -19,13 +19,14 @@ import "polyconst.js" as Constants
         enum PatchMode {
             Select,
             Move,
-            Connect
+            Connect,
+            Sliders,
+            Details
         }
         property int active_width: 900
         property int updateCount: updateCounter, externalRefresh()
         property int current_index: -1
         property bool isMoving: false
-        property bool anythingSelected: false
         property int currentMode: PatchBay.Select
         // relate to port selection popup
         property bool list_source: true
@@ -279,20 +280,19 @@ import "polyconst.js" as Constants
             //
 
             Column {
-                visible: false
+                visible: patch_bay.currentMode == PatchBay.Sliders
                 y: 67
                 x: 1043
                 id: action_icons
                 z: 6
                 spacing: 15
                 IconButton {
-                    id: connectMode
                     icon.name: "connect"
                     width: 56
                     height: 56
                     onClicked: {
-                        selected_effect.connect_clicked()
-                        currentMode = PatchBay.Connect
+                        selected_effect.connect_clicked();
+                        currentMode = PatchBay.Connect;
                     }
                     Material.background: "white"
                     Material.foreground: Constants.accent_color
@@ -311,12 +311,12 @@ import "polyconst.js" as Constants
                     radius: 28
                 }
                 IconButton {
-                    id: moveMode
                     icon.name: "move"
                     width: 56
                     height: 56
                     onClicked: {
-                        currentMode = PatchBay.Move
+                        currentMode = PatchBay.Move;
+                        selected_effect.hide_sliders(false);
                     }
                     Material.background: "white"
                     Material.foreground: Constants.accent_color

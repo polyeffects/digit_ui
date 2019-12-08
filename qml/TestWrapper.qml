@@ -4,11 +4,13 @@ import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
 
+import "polyconst.js" as Constants
+
 ApplicationWindow {
 
     Material.theme: Material.Dark
-    Material.primary: Material.Green
-    Material.accent: Material.Pink
+    Material.primary: Constants.control_color
+    Material.accent: Constants.accent_color
     Material.background: "black"
     contentOrientation: Qt.LandscapeOrientation
 
