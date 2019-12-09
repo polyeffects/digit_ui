@@ -157,11 +157,12 @@ class Remote(Interface):
         'Read from socket until a null terminator is received'
         msg = u''
         while True:
-            c = self.sock.recv(1, 0).decode('utf-8')
-            if not c or ord(c[0]) == 0:  # End of transmission
+            chunk = self.sock.recv(1, 0)
+            if not chunk or chunk[0] == 0:  # End of transmission
                 break
-            else:
-                msg += c[0]
+
+            msg += chunk.decode('utf-8')
+
         return msg
 
     def blank_closure(self, graph, node):

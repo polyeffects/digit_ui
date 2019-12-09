@@ -376,6 +376,7 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
         print("### backend tried to add an unknown effect!")
 
 
+
 def from_backend_remove_effect(effect_name):
     # called by engine code when effect is removed
     if patch_bay_model.patch_bay_singleton is not None:
@@ -389,6 +390,7 @@ def from_backend_add_connection(head, tail):
     current_source_port = head[6:]
     if len(current_source_port.split("/")) == 1:
         s_effect = current_source_port
+        print("## s_effect", s_effect)
         if s_effect not in current_effects:
             return
         s_effect_type = current_effects[s_effect]["effect_type"]
@@ -397,10 +399,11 @@ def from_backend_add_connection(head, tail):
         elif s_effect_type == "input":
             s_port = "output"
         current_source_port = s_effect + "/" + s_port
+        print("## current_source_port", current_source_port)
 
     effect_id_port_name = tail[6:].split("/")
     if len(effect_id_port_name) == 1:
-        t_effect = current_source_port
+        t_effect = effect_id_port_name[0]
         if t_effect not in current_effects:
             return
         t_effect_type = current_effects[t_effect]["effect_type"]
@@ -438,7 +441,7 @@ def from_backend_disconnect(head, tail):
 
     effect_id_port_name = tail[6:].split("/")
     if len(effect_id_port_name) == 1:
-        t_effect = current_source_port
+        t_effect = effect_id_port_name[0]
         t_effect_type = current_effects[t_effect]["effect_type"]
         if t_effect_type == "output":
             t_port = "input"
@@ -692,14 +695,29 @@ class Knobs(QObject):
         worker.emitter.done.connect(self.on_worker_done)
         worker_pool.start(worker)
 
-def add_io():
-    for i in range(1,5):
-        ingen_wrapper.add_input("input"+str(i))
-        from_backend_new_effect("input"+str(i), "input", x=800, y=(80 * i))
 
+def io_new_effect(effect_name, effect_type, x=20, y=30):
+    # called by engine code when new effect is created
+    # print("from backend new effect", effect_name, effect_type)
+    if effect_type in effect_prototypes:
+        current_effects[effect_name] = {"x": x, "y": y, "effect_type": effect_type,
+                "controls": {},
+                "highlight": False}
+
+def add_io():
+    # if patch_bay_model.patch_bay_singleton is not None:
+    #     patch_bay_model.patch_bay_singleton.startInsert()
     for i in range(1,5):
-        ingen_wrapper.add_output("output"+str(i))
-        from_backend_new_effect("output"+str(i), "output", x=50, y=(80 * i))
+        ingen_wrapper.add_input("in_"+str(i), x=1100, y=(80*i))
+        # io_new_effect("input"+str(i), "input", x=1200, y=(80 * i))
+        from_backend_new_effect("in_"+str(i), "input", x=1100, y=(80 * i))
+    for i in range(1,5):
+        ingen_wrapper.add_output("out_"+str(i), x=50, y=(80 * i))
+        # io_new_effect("output"+str(i), "output", x=50, y=(80 * i))
+        from_backend_new_effect("out_"+str(i), "output", x=50, y=(80 * i))
+    # if patch_bay_model.patch_bay_singleton is not None:
+    #     patch_bay_model.patch_bay_singleton.endInsert()
+    # context.setContextProperty("currentEffects", current_effects) # might be slow
 
 def process_ui_messages():
     # pop from queue
@@ -811,12 +829,19 @@ if __name__ == "__main__":
     # context.setContextProperty("isLoading", is_loading)
     # # context.setContextProperty("inputLevel", input_level)
     # context.setContextProperty("presetList", preset_list_model)
-    # add_io()
     print("starting recv thread")
     engine.load(QUrl("qml/TestWrapper.qml")) # XXX 
     ingen_wrapper.start_recv_thread(ui_messages)
     print("starting send thread")
     ingen_wrapper.start_send_thread()
+    try:
+        add_io()
+    except Exception as e:
+        print("########## e is:", e)
+        ex_type, ex_value, tb = sys.exc_info()
+        error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
+        print("EXception is:", error)
+        sys.exit()
 
     sys._excepthook = sys.excepthook
     def exception_hook(exctype, value, traceback):
@@ -854,6 +879,7 @@ if __name__ == "__main__":
             ex_type, ex_value, tb = sys.exc_info()
             error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
             print("EXception is:", error)
+            sys.exit()
         sleep(0.01)
 
         # if not initial_preset:

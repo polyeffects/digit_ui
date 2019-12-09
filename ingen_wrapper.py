@@ -66,12 +66,16 @@ def add_plugin(effect_id, effect_url):
     a ingen:Block ;
     lv2:prototype """ + "<" + effect_url + ">"))
 
-def add_input(port_id):
+def add_input(port_id, x, y):
     # put /main/left_in 'a lv2:InputPort ; a lv2:AudioPort'
-    q.put((ingen.put, "/main/"+port_id, "a lv2:InputPort ; a lv2:AudioPort"))
+    q.put((ingen.put, "/main/"+port_id, """ingen:canvasX "%s"^^xsd:float ;
+    ingen:canvasY "%s"^^xsd:float ;
+    a lv2:InputPort ; a lv2:AudioPort""" % (x, y)))
 
-def add_output(port_id):
-    q.put((ingen.put, "/main/"+port_id, "a lv2:OutputPort ; a lv2:AudioPort"))
+def add_output(port_id, x, y):
+    q.put((ingen.put, "/main/"+port_id, """ingen:canvasX "%s"^^xsd:float ;
+    ingen:canvasY "%s"^^xsd:float ;
+    a lv2:OutputPort ; a lv2:AudioPort""" % (x, y)))
 
 def set_file(effect_id, file_name, is_cab):
     if is_cab:

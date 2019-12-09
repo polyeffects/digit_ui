@@ -43,97 +43,105 @@ import "polyconst.js" as Constants
             return updateCounter.value;
         }
 
-        Column {
-            x: 0
-            y: 0
-            z:2
-            Rectangle {
-                x: 0
-                y: 0
-                color: Constants.accent_color
-                width: 58
-                height: 36
-                border { width:1; color: "white"}
+        // Column {
+        //     x: 0
+        //     y: 0
+        //     z:2
+        //     Rectangle {
+        //         x: 0
+        //         y: 0
+        //         color: Constants.accent_color
+        //         width: 58
+        //         height: 36
+        //         border { width:1; color: "white"}
 
-                Label {
-                    // color: "#ffffff"
-                    text: "out"
-                    elide: Text.ElideRight
-                    anchors.centerIn: parent
-                    horizontalAlignment: Text.AlignHCenter
-                    // width: 1000
-                    // height: 60
-                    // z: 3
-                    color: "white"
-                    font {
-                        pixelSize: 22
-                        capitalization: Font.AllUppercase
-                    }
-                }
-            }
-            IOPort {
-                io_num: 1
-                port_name: "output1"
-            }
-            IOPort {
-                io_num: 2
-                port_name: "output2"
-            }
-            IOPort {
-                io_num: 3
-                port_name: "output3"
-            }
-            IOPort {
-                io_num: 4
-                port_name: "output4"
-            }
-        }
+        //         Label {
+        //             // color: "#ffffff"
+        //             text: "out"
+        //             elide: Text.ElideRight
+        //             anchors.centerIn: parent
+        //             horizontalAlignment: Text.AlignHCenter
+        //             // width: 1000
+        //             // height: 60
+        //             // z: 3
+        //             color: "white"
+        //             font {
+        //                 pixelSize: 22
+        //                 capitalization: Font.AllUppercase
+        //             }
+        //         }
+        //     }
+        //     IOPort {
+        //         io_num: 1
+        //         port_name: "output1"
+        //         effect_type: "output"
+        //     }
+        //     IOPort {
+        //         io_num: 2
+        //         port_name: "output2"
+        //         effect_type: "output"
+        //     }
+        //     IOPort {
+        //         io_num: 3
+        //         port_name: "output3"
+        //         effect_type: "output"
+        //     }
+        //     IOPort {
+        //         io_num: 4
+        //         port_name: "output4"
+        //         effect_type: "output"
+        //     }
+        // }
 
-        Column {
-            x: 1222 
-            y: 0
-            z:2
-            Rectangle {
-                x: 0
-                y: 0
-                color: Constants.accent_color
-                width: 58
-                height: 36
-                border { width:1; color: "white"}
+        // Column {
+        //     x: 1222 
+        //     y: 0
+        //     z:2
+        //     Rectangle {
+        //         x: 0
+        //         y: 0
+        //         color: Constants.accent_color
+        //         width: 58
+        //         height: 36
+        //         border { width:1; color: "white"}
 
-                Label {
-                    // color: "#ffffff"
-                    text: "in"
-                    elide: Text.ElideRight
-                    anchors.centerIn: parent
-                    horizontalAlignment: Text.AlignHCenter
-                    // width: 1000
-                    // height: 60
-                    // z: 3
-                    color: "white"
-                    font {
-                        pixelSize: 22
-                        capitalization: Font.AllUppercase
-                    }
-                }
-            }
-            IOPort {
-                io_num: 1
-                port_name: "input1"
-            }
-            IOPort {
-                io_num: 2
-                port_name: "input2"
-            }
-            IOPort {
-                io_num: 3
-                port_name: "input3"
-            }
-            IOPort {
-                io_num: 4
-                port_name: "input4"
-            }
-        }
+        //         Label {
+        //             // color: "#ffffff"
+        //             text: "in"
+        //             elide: Text.ElideRight
+        //             anchors.centerIn: parent
+        //             horizontalAlignment: Text.AlignHCenter
+        //             // width: 1000
+        //             // height: 60
+        //             // z: 3
+        //             color: "white"
+        //             font {
+        //                 pixelSize: 22
+        //                 capitalization: Font.AllUppercase
+        //             }
+        //         }
+        //     }
+        //     IOPort {
+        //         io_num: 1
+        //         port_name: "input1"
+        //         effect_type: "input"
+        //     }
+        //     IOPort {
+        //         io_num: 2
+        //         port_name: "input2"
+        //         effect_type: "input"
+        //     }
+        //     IOPort {
+        //         io_num: 3
+        //         port_name: "input3"
+        //         effect_type: "input"
+        //     }
+        //     IOPort {
+        //         io_num: 4
+        //         port_name: "input4"
+        //         effect_type: "input"
+        //     }
+        // }
 
         Item {
             x: 0
@@ -198,8 +206,8 @@ import "polyconst.js" as Constants
                 }
 
                 function drawConnection( drawContext, outputPort, inputPort ) {
-                    var start   = getCanvasCoordinates( outputPort, 0, 10)
-                    var end     = getCanvasCoordinates( inputPort,  inputPort.width, 10) 
+                    var start   = getCanvasCoordinates( inputPort, 0, 10)
+                    var end     = getCanvasCoordinates( outputPort,  outputPort.width, 10) 
                     if( start.x > end.x ) {
                         var tmp = start;
                         start = end;
@@ -270,6 +278,14 @@ import "polyconst.js" as Constants
                     onEntered: drag.source.caught = true;
                     onExited: drag.source.caught = false;
                 }
+            }
+
+            Rectangle {
+                z: 3
+                id: darken_patch
+                anchors.fill: parent
+                color: "#90000000"
+                visible: patch_bay.currentMode == PatchBay.Sliders
             }
 
             // bottom buttons

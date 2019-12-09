@@ -185,6 +185,7 @@ Rectangle {
 	}
 
     Rectangle {
+        visible: Object.keys(effectPrototypes[effect_type]["controls"]).length > 0
         anchors.verticalCenter: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         width: 30
@@ -246,10 +247,21 @@ Rectangle {
                 // selected changes z via binding
                 if (rect.x > 582){
                     sliders = editGeneric.createObject(patch_bay, {x: Math.max(rect.x - 600, 50) , y: 0});
-                    action_icons.x = rect.x + 130; // bound max
+                    if (rect.x + 130 > 1200){
+                        action_icons.x = rect.x - 90; // bound max
+                    }
+                    else {
+                        action_icons.x = rect.x + 130;
+                    }
                 } else {
-                    sliders = editGeneric.createObject(patch_bay, {x: Math.min(rect.x + 150, 790) , y: 0});
+                    sliders = editGeneric.createObject(patch_bay, {x: Math.min(rect.x + 220, 790) , y: 0});
                     action_icons.x = rect.x - 90; // and min
+                    if (rect.x - 90 < 10){
+                        action_icons.x = rect.x + 130; // bound max
+                    }
+                    else {
+                        action_icons.x = rect.x - 90; // bound max
+                    }
                 }
                 patch_bay.currentMode = PatchBay.Sliders;
             }
@@ -412,7 +424,6 @@ Rectangle {
 						}
 					}
                 }
-                
             }
         }
 
