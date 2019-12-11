@@ -47,8 +47,13 @@ def DestinationThread( ) :
         except queue.Empty:
             pass
 
-def set_bypass():
-    pass
+def set_bypass(effect_id, active):
+	# a patch:Set ;
+	# patch:subject </main/digit_delay> ;
+	# patch:property ingen:enabled ;
+	# patch:value false .
+    effect_id = "/main/"+effect_id
+    q.put((ingen.put, effect_id, "ingen:enabled "+ str(active).lower()))
 
 def set_parameter_value(port, value):
     #ingen.set("/main/tone/output", "ingen:value", "0.8") 
@@ -78,6 +83,7 @@ def add_output(port_id, x, y):
     a lv2:OutputPort ; a lv2:AudioPort""" % (x, y)))
 
 def set_file(effect_id, file_name, is_cab):
+    effect_id = "/main/"+effect_id
     if is_cab:
         q.put((ingen.put, effect_id, "patch:property <http://gareus.org/oss/lv2/convoLV2#impulse> ; patch:value <file://"+ file_name +">"))
     else:
@@ -179,6 +185,14 @@ def parse_ingen(to_parse):
                     print("port is_in", is_in, "subject", subject)
                 else:
                     print("None! port is_in", is_in, "subject", subject)
+            elif (body, NS.ingen.enabled, None) in g:
+                # setting value
+                value = g.value(body, NS.ingen.enabled, None)
+                print("in put enabled", subject, "value", value)
+                print("in put enabled", subject, "value", value, "b value", bool(value))
+                print("to parse", to_parse)
+                ui_queue.put(("enabled_change", subject, bool(value)))
+
     for t in g.triples([None, NS.rdf.type, NS.patch.Set]):
         response = t[0]
         subject  = str(g.value(response, NS.patch.subject, None))[13:]
@@ -186,6 +200,10 @@ def parse_ingen(to_parse):
             value = g.value(response, NS.patch.value, None)
             print("in set subject", subject, "value", value)
             ui_queue.put(("value_change", subject, value))
+        elif (response, NS.patch.property, NS.ingen.enabled) in g:
+            value = g.value(response, NS.patch.value, None)
+            print("in set enabled", subject, "value", value, "b value", bool(value))
+            ui_queue.put(("enabled_change", subject, bool(value)))
     for t in g.triples([None, NS.rdf.type, NS.patch.Delete]):
         response = t[0]
         body     = g.value(response, NS.patch.body, None)

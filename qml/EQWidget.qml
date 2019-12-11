@@ -21,6 +21,7 @@ import QtQuick.Controls.Material 2.3
 //     visible: true
 
     Item {
+        x: 100
         id: time_scale
         width: 800
         height: 550
@@ -82,7 +83,7 @@ import QtQuick.Controls.Material 2.3
         // Row {
         
         Item {
-            x: 25
+            x: 40
             width: 975
             height: parent.height
 
@@ -128,40 +129,40 @@ import QtQuick.Controls.Material 2.3
                         onPressed: {
                             rect.beginDrag = Qt.point(rect.x, rect.y);
                             time_scale.selected_point = index;
-                            if (knobs.waiting != "") // mapping on
-                            {
-                                // pop up knob mapping selector
-                                if (index == 0){
-                                    // low shelf
-                                    mappingPopup.set_mapping_choice(effect, "LSfreq", "FREQUENCY", 
-                                        effect, "LSgain", "GAIN", true);
-                                }
-                                else if (index == 5){
-                                    // high shelf
-                                    mappingPopup.set_mapping_choice(effect, "HSfreq", "FREQUENCY", 
-                                        effect, "HSgain", "GAIN", true);
-                                }
-                                else {
-                                    mappingPopup.set_mapping_choice(effect, "freq"+index, "FREQUENCY", 
-                                        effect, "gain"+index, "GAIN", true);
-                                }
-                            }
+                            // if (knobs.waiting != "") // mapping on
+                            // {
+                            //     // pop up knob mapping selector
+                            //     if (index == 0){
+                            //         // low shelf
+                            //         mappingPopup.set_mapping_choice(effect, "LSfreq", "FREQUENCY", 
+                            //             effect, "LSgain", "GAIN", true);
+                            //     }
+                            //     else if (index == 5){
+                            //         // high shelf
+                            //         mappingPopup.set_mapping_choice(effect, "HSfreq", "FREQUENCY", 
+                            //             effect, "HSgain", "GAIN", true);
+                            //     }
+                            //     else {
+                            //         mappingPopup.set_mapping_choice(effect, "freq"+index, "FREQUENCY", 
+                            //             effect, "gain"+index, "GAIN", true);
+                            //     }
+                            // }
                         }
                         onDoubleClicked: {
-                            if (index == 0){
-                                // low shelf
-                                mappingPopup.set_mapping_choice(effect, "LSfreq", "FREQUENCY", 
-                                    effect, "LSgain", "GAIN", false);    
-                            }
-                            else if (index == 5){
-                                // high shelf
-                                mappingPopup.set_mapping_choice(effect, "HSfreq", "FREQUENCY", 
-                                    effect, "HSgain", "GAIN", false);    
-                            }
-                            else {
-                                mappingPopup.set_mapping_choice(effect, "freq"+index, "FREQUENCY", 
-                                    effect, "gain"+index, "GAIN", false);
-                            }
+                            // if (index == 0){
+                            //     // low shelf
+                            //     mappingPopup.set_mapping_choice(effect, "LSfreq", "FREQUENCY", 
+                            //         effect, "LSgain", "GAIN", false);    
+                            // }
+                            // else if (index == 5){
+                            //     // high shelf
+                            //     mappingPopup.set_mapping_choice(effect, "HSfreq", "FREQUENCY", 
+                            //         effect, "HSgain", "GAIN", false);    
+                            // }
+                            // else {
+                            //     mappingPopup.set_mapping_choice(effect, "freq"+index, "FREQUENCY", 
+                            //         effect, "gain"+index, "GAIN", false);
+                            // }
                         }
                         onReleased: {
 
@@ -884,23 +885,23 @@ import QtQuick.Controls.Material 2.3
         }
         PolyFrame {
             // background: Material.background
-            x: 1020
-            width:100
+            x: 1040
+            width:200
             height:parent.height
             // Material.elevation: 2
 
             Column {
-                width:120
+                width:200
                 spacing: 20
                 height:parent.height
 
                 Switch {
-                    text: qsTr("EQ ON")
-					font.pixelSize: fontSizeMedium
+                    text: qsTr("EQ")
+					font.pixelSize: baseFontSize
                     bottomPadding: 0
                     // height: 20
                     // implicitWidth: 100
-                    width: 150
+                    width: 175
                     leftPadding: 0
                     topPadding: 0
                     rightPadding: 0
@@ -911,19 +912,11 @@ import QtQuick.Controls.Material 2.3
                     }
                 }
 
-                Label {
-                    width: parent.width
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    text: qsTr("BAND")
-                    font.pixelSize: baseFontSize
-                }
-
                 Switch {
-                    text: time_scale.selected_point + 1
-					font.pixelSize: fontSizeMedium
+                    text: "BAND " + (time_scale.selected_point + 1)
+					font.pixelSize: baseFontSize
                     bottomPadding: 0
-                    width: 100
+                    width: 175
                     leftPadding: 0
                     topPadding: 0
                     rightPadding: 0
@@ -942,26 +935,22 @@ import QtQuick.Controls.Material 2.3
                     }
                 }
 
-                GlowingLabel {
-                    color: "#ffffff"
-                    text: qsTr("Q")
-                }
 
-                Dial {
+                Slider {
                     id: control
-                    // property string param
-                    // property string effect: "mixer"
-                    // property string textOverride: control.value.toFixed(1)
-                    width: 75
-                    height: 75
+                    width: 60 
+                    height: 300
+                    orientation: Qt.Vertical
+                    title: "Q (Resonance)"
+                    value: time_scale.eq_data[time_scale.selected_point]["q"]
                     from: 0.1
+                    to: 4
+                    stepSize: 0.01
                     live: false
-                    Label {
-                        color: "#ffffff"
-                        text: control.value.toFixed(1)
-                        font.pixelSize: 20 * 2
-                        anchors.centerIn: parent
+                    onMoved: {
+                        knobs.ui_knob_change(effect, "gain", value);
                     }
+
                     onPressedChanged: {
                         if (pressed === false)
                         {
@@ -985,27 +974,6 @@ import QtQuick.Controls.Material 2.3
                             mycanvas.requestPaint();
                         }
                     }
-                    // onPressedChanged: {
-                        // console.warn("set knob mapping")
-                        // if we're in set control mode, then set this control
-                        // python variable in qml context
-                        // if (knobs.waiting != "") // left or right
-                        // {
-                        //     knobs.map_parameter_to_encoder(effect, param)    
-                        //     console.warn("set knob mapping")
-                        // }
-                    // }
-                    // Layout.minimumHeight: 64
-                    value: time_scale.eq_data[time_scale.selected_point]["q"]
-                    // Layout.minimumWidth: 64
-                    // Layout.maximumHeight: 128
-                    // Layout.fillHeight: true
-                    // Layout.preferredWidth: 128
-                    stepSize: 0.01
-                    to: 4
-                    // Layout.preferredHeight: 128
-                    // Layout.alignment: Qt.AlignHCenter
-                    // Layout.maximumWidth: 128
                 }
             }
         }

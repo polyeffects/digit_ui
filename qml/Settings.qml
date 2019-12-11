@@ -3,6 +3,7 @@ import QtQuick.Controls 2.3
 // import QtQuick.Window 2.2
 import Qt.labs.folderlistmodel 2.2
 import QtQuick.Controls.Material 2.3
+import "polyconst.js" as Constants
 
 // ApplicationWindow {
 //     visible: true
@@ -35,7 +36,8 @@ Item {
                     // height:parent.height
                     GlowingLabel {
                         // color: "#ffffff"
-                        text: qsTr("DIGIT FIRMWARE 1.7")
+                        text: qsTr("DIGIT FIRMWARE 2.0")
+                        color: Constants.accent_color
                     }
 
                     Button {
@@ -43,7 +45,9 @@ Item {
                         font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
                         onClicked: settingsStack.push(copyIRInfo)
-                        flat: true
+                        flat: false
+                        Material.foreground: "white"
+                        Material.background: Constants.outline_color
                     }
 
                     GlowingLabel {
@@ -60,7 +64,7 @@ Item {
                     }
 
                     Button {
-                        flat: true
+                        flat: false
                         text: "SET CHANNEL"
                         font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
@@ -71,7 +75,7 @@ Item {
                     //     text: qsTr("BYPASS TYPE")
                     // }
                     // PolyCombo {
-                    //     flat: true
+                    //     flat: false
                     //     // width: 140
                     //     model: ["relay", "1 to all"]
                     //     onActivated: {
@@ -80,7 +84,7 @@ Item {
                     //     }
                     // }
                     Button {
-                        flat: true
+                        flat: false
                         text: "COPY LOGS"
                         font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
@@ -126,7 +130,7 @@ Item {
                     // height:parent.height
 
                     Button {
-                        flat: true
+                        flat: false
                         font.pixelSize: baseFontSize
                         text: "FIRMWARE UPDATE"
                         onClicked: settingsStack.push(updateFirmware)
@@ -134,14 +138,14 @@ Item {
                     }
 
                     Button {
-                        flat: true
+                        flat: false
                         font.pixelSize: baseFontSize
                         text: "EXPORT PRESETS"
                         // show screen explaining to put USB flash drive in
                         onClicked: settingsStack.push(exportPresets)
                     }
                     Button {
-                        flat: true
+                        flat: false
                         font.pixelSize: baseFontSize
                         text: "IMPORT PRESETS"
                         // show screen explaining to put USB flash drive in
@@ -213,7 +217,7 @@ Item {
                     }
 
                     Button {
-                        flat: true
+                        flat: false
                         text: "SET INPUT LEVEL"
                         font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
@@ -221,7 +225,7 @@ Item {
                     }
 
                     Button {
-                        flat: true
+                        flat: false
                         text: "STAGE VIEW"
                         font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
@@ -230,15 +234,18 @@ Item {
 
                 }
             }
-            Button {
-                flat: true
-                font.pixelSize: baseFontSize
-                text: "BACK"
-                anchors.right: parent.right
-                anchors.rightMargin: 10
-                anchors.topMargin: 10
-                width: 100
-                height: 100
+
+            IconButton {
+                x: 14 
+                y: 646
+                icon.width: 15
+                icon.height: 25
+                width: 62
+                height: 62
+                flat: false
+                icon.name: "back"
+                Material.background: "white"
+                Material.foreground: Constants.outline_color
                 onClicked: mainStack.pop()
             }
         }
@@ -265,7 +272,7 @@ Item {
                 }
 
                 Button {
-                    flat: true
+                    flat: false
                     font {
                         pixelSize: fontSizeMedium
                     }
@@ -313,7 +320,7 @@ Item {
                 }
 
                 Button {
-                    flat: true
+                    flat: false
                     font {
                         pixelSize: fontSizeMedium
                     }
@@ -326,7 +333,7 @@ Item {
                 }
             }
             Button {
-                flat: true
+                flat: false
                 font {
                     pixelSize: fontSizeMedium
                 }
@@ -362,7 +369,7 @@ Item {
                 }
 
                 Button {
-                    flat: true
+                    flat: false
                     font {
                         pixelSize: fontSizeMedium
                     }
@@ -375,7 +382,7 @@ Item {
                 }
             }
             Button {
-                flat: true
+                flat: false
                 font {
                     pixelSize: fontSizeMedium
                 }
@@ -411,7 +418,7 @@ Item {
                 }
 
                 Button {
-                    flat: true
+                    flat: false
                     font {
                         pixelSize: fontSizeMedium
                     }
@@ -424,7 +431,7 @@ Item {
                 }
             }
             Button {
-                flat: true
+                flat: false
                 font {
                     pixelSize: fontSizeMedium
                 }
@@ -489,7 +496,7 @@ Item {
 
             }
             Button {
-                flat: true
+                flat: false
                 font {
                     pixelSize: fontSizeMedium
                 }
@@ -555,7 +562,7 @@ Item {
 
             }
             Button {
-                flat: true
+                flat: false
                 font {
                     pixelSize: fontSizeMedium
                 }
@@ -620,7 +627,7 @@ Item {
 
             }
             Button {
-                flat: true
+                flat: false
                 font {
                     pixelSize: fontSizeMedium
                 }

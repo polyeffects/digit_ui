@@ -7,7 +7,27 @@ Item {
     width:  500
     property string row_param: "Amp_5"
     property string current_effect 
+
+    function basename(ustr)
+    {
+        // return (String(str).slice(String(str).lastIndexOf("/")+1))
+        if (ustr != null)
+        {
+            var str = ustr.toString()
+            return (str.slice(str.lastIndexOf("/")+1))
+        }
+        return "None Selected"
+    }
+
+    function remove_suffix(x)
+    {
+       return x.replace(/\.[^/.]+$/, "") 
+    }
+
     Slider {
+        x: 0
+        y: 0
+        visible: row_param != "ir"
         title: currentEffects[current_effect]["controls"][row_param].name
         width: 500
         height:40
@@ -16,6 +36,19 @@ Item {
         to: currentEffects[current_effect]["controls"][row_param].rmax
         onMoved: {
             knobs.ui_knob_change(current_effect, row_param, value);
+        }
+    }
+
+   Text {
+        x: 10
+        y: 0
+        visible: row_param == "ir"
+        font.pixelSize: 18
+        font.capitalization: Font.AllUppercase
+        width: 500
+        height:40
+        color: "white"
+        text: row_param == "ir" ? remove_suffix(basename(currentEffects[current_effect]["controls"][row_param].name)) : "not IR"
         }
 
 
@@ -56,5 +89,5 @@ Item {
         //     }
         //     // flat: true
         // }
-    }
+    // }
 }

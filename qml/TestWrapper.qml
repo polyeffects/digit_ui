@@ -12,6 +12,7 @@ ApplicationWindow {
     Material.primary: Constants.control_color
     Material.accent: Constants.accent_color
     Material.background: "black"
+    // Material.buttonColor: "grey"
     contentOrientation: Qt.LandscapeOrientation
 
     readonly property int baseFontSize: 20 
@@ -24,13 +25,18 @@ ApplicationWindow {
     height: 720
     title: "Digit 2"
     visible: true
-    // FontLoader { source: "ionicons.ttf" }
+    // FontLoad0er { source: "ionicons.ttf" }
+    //00
+    FontLoader { id: mainFont; source: "fonts/Dosis-VF.ttf" }
+    font.family: mainFont.name
+    font.weight: Font.Medium
     Component {
         id: mainView
         // PatchBay {
         // }
         TitleFooter {
         }
+
         // Item {
         //     width: 1280
         //     height: 720
@@ -45,6 +51,56 @@ ApplicationWindow {
         //     to: 1
         //     title: "Fragment Length"
         // }
+
+        // Slider {
+        //     x: 100
+        //     y: 300
+        //     value: 0.5
+        //     from: 0
+        //     to: 1
+        //     title: "Fragment"
+        //     orientation: Qt.Vertical
+        //     width: 50 
+        //     height: 300
+        // }
+
+        // Slider {
+        //     x: 200
+        //     y: 300
+        //     value: 0.5
+        //     from: 0
+        //     to: 1
+        //     title: "Gain"
+        //     orientation: Qt.Vertical
+        //     width: 75 
+        //     height: 300
+        // }
+
+        // Slider {
+        //     x: 300
+        //     y: 300
+        //     value: 0.5
+        //     from: 0
+        //     to: 1
+        //     title: "Gain"
+        //     orientation: Qt.Vertical
+        //     width: 75 
+        //     height: 200
+        // }
+        // // Switch {
+        // //     x: 50
+        // //     y: 50
+        // //     text: qsTr("BAND 5")
+        // //     font.pixelSize: baseFontSize
+        // //     bottomPadding: 0
+        // //     // height: 20
+        // //     // implicitWidth: 100
+        // //     width: 175
+        // //     height: 30
+        // //     leftPadding: 0
+        // //     topPadding: 0
+        // //     rightPadding: 0
+        // // }
 
         // SpinBox {
         //     x: 100

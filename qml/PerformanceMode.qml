@@ -1,6 +1,8 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3  
+
+import "polyconst.js" as Constants
 // Component {
             Item {
 				id: performanceView
@@ -32,134 +34,6 @@ import QtQuick.Controls.Material 2.3
                 }
             }
 
-            ProgressBar {
-                id: leftEncoderVal
-                x: 0
-                y: 0
-                width: 300
-                height: 140
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        // set map encoder on
-                        // python variable in qml context
-                        // console.warn("waiting for knob mapping")
-                        knobs.set_waiting("left")
-                    }
-                }
-                from: polyValues[knobMap.left.effect][knobMap.left.parameter].rmin
-                to: polyValues[knobMap.left.effect][knobMap.left.parameter].rmax
-                value: polyValues[knobMap.left.effect][knobMap.left.parameter].value
-                background: Rectangle {
-                    // implicitWidth: 200
-                    // implicitHeight: 6
-                    // color: "#22e6e6e6"
-                    color: "#00222222"
-                    border {
-                        // color: Material.color(Material.Grey, Material.Shade200);
-                        color: "#666666"
-                        width: 1
-                    }
-                }
-                contentItem: Item {
-                    implicitWidth: parent.width
-                    implicitHeight: parent.height
-                    // width: parent.width
-                    // height: parent.height
-                    Rectangle {
-                        width: leftEncoderVal.visualPosition * parent.width
-                        height: parent.height
-                        // radius: 2
-                        color: setColorAlpha(Material.color(Material.Pink, Material.Shade200), 0.5)
-                        border {
-                            color: Material.color(Material.Pink, Material.Shade200);
-                            width: 1
-                        }
-                    }
-                }
-            }
-            GlowingLabel {
-                elide: Text.ElideRight
-                color: "#ffffff"
-                text: polyValues[knobMap.left.effect][knobMap.left.parameter].name
-                x: 5
-                y: 5
-                width: 200
-                height: 41
-                horizontalAlignment: Text.AlignLeft
-                z: 1
-                font {
-                    pixelSize: fontSizeLarge * 1.5
-                }
-            }
-
-            ProgressBar {
-                id: rightEncoderVal
-                width: 300
-                height: 140
-                anchors.top: parent.top
-                anchors.topMargin: 0
-                anchors.right: parent.right
-                anchors.rightMargin: 0
-                from: polyValues[knobMap.right.effect][knobMap.right.parameter].rmin
-                to: polyValues[knobMap.right.effect][knobMap.right.parameter].rmax
-                value: polyValues[knobMap.right.effect][knobMap.right.parameter].value
-                // from: 0
-                // to: 1
-                // value: 0.7
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        // set map encoder on
-                        // python variable in qml context
-                        // console.warn("waiting for knob mapping")
-                        knobs.set_waiting("right")
-                    }
-                }
-                background: Rectangle {
-                    // implicitWidth: 200
-                    // implicitHeight: 6
-                    // color: "#22e6e6e6"
-                    color: "#00222222"
-                    border {
-                        // color: Material.color(Material.Grey, Material.Shade200);
-                        color: "#666666"
-                        width: 1
-                    }
-                }
-                contentItem: Item {
-                    implicitWidth: parent.width
-                    implicitHeight: parent.height
-                    // width: parent.width
-                    // height: parent.height
-                    Rectangle {
-                        width: rightEncoderVal.visualPosition * parent.width
-                        height: parent.height
-                        // radius: 2
-                        color: setColorAlpha(Material.color(Material.Pink, Material.Shade200), 0.5)
-                        border {
-                            color: Material.color(Material.Pink, Material.Shade200);
-                            width: 1
-                        }
-                    }
-                }
-            }
-            GlowingLabel {
-                elide: Text.ElideRight
-                color: "#ffffff"
-                text: polyValues[knobMap.right.effect][knobMap.right.parameter].name
-                horizontalAlignment: Text.AlignRight
-                width: 200
-                height: 41
-                anchors.top: parent.top
-                anchors.right: parent.right
-                anchors.rightMargin: 5
-                anchors.topMargin: 5
-                z: 1
-                font {
-                    pixelSize: fontSizeLarge * 1.5  
-                }
-            }
             // Button {
             //     anchors.bottom: parent.bottom
             //     anchors.right: parent.right
@@ -250,16 +124,17 @@ import QtQuick.Controls.Material 2.3
                 }
             }
 
-            Button {
-                flat: true
-                font.pixelSize: baseFontSize
-                text: "BACK"
-                anchors.left: parent.left
-                anchors.bottom: parent.bottom
-                anchors.rightMargin: 10
-                anchors.bottomMargin: 10
-                width: 100
-                height: 100
+            IconButton {
+                x: 14 
+                y: 646
+                icon.width: 15
+                icon.height: 25
+                width: 62
+                height: 62
+                flat: false
+                icon.name: "back"
+                Material.background: "white"
+                Material.foreground: Constants.outline_color
                 onClicked: mainStack.pop()
             }
             // Label {

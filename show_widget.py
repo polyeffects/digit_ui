@@ -82,6 +82,11 @@ effect_prototypes ={
                 "outputs": {"output": "AudioPort"},
             "controls":{"drive": ["drive", 5, 0, 10], "blend": ["tape vs tube", 10, -10, 10]},
             },
+
+        "lfo": {"inputs": {},
+                "outputs": {"output": "ControlPort"},
+            "controls":{"drive": ["drive", 5, 0, 10], "blend": ["tape vs tube", 10, -10, 10]},
+            },
         "mono_reverb": {"inputs": {"in": "AudioPort"},
                 "outputs": {"out": "AudioPort"},
                 "controls":{"gain": ["gain", 0, -24, 24], "ir": ["/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1]},
@@ -367,7 +372,7 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
 
         current_effects[effect_name] = {"x": x, "y": y, "effect_type": effect_type,
                 "controls": {k : PolyValue(*v) for k,v in effect_prototypes[effect_type]["controls"].items()},
-                "highlight": False}
+                "highlight": False, "enabled": PolyBool(True)}
         if patch_bay_model.patch_bay_singleton is not None:
             patch_bay_model.patch_bay_singleton.endInsert()
         # insert in context or model? 
@@ -572,6 +577,10 @@ class Knobs(QObject):
         # from_backend_new_effect(effect_name, effect_type)
 
 
+    @Slot(str, bool)
+    def set_bypass(self, effect_name, is_active):
+        ingen_wrapper.set_bypass(effect_name, is_active)
+
     @Slot(str, int, int)
     def move_effect(self, effect_name, x, y):
         current_effects[effect_name]["x"] = x
@@ -708,13 +717,13 @@ def add_io():
     # if patch_bay_model.patch_bay_singleton is not None:
     #     patch_bay_model.patch_bay_singleton.startInsert()
     for i in range(1,5):
-        ingen_wrapper.add_input("in_"+str(i), x=1100, y=(80*i))
+        ingen_wrapper.add_input("in_"+str(i), x=1192, y=(80*i))
         # io_new_effect("input"+str(i), "input", x=1200, y=(80 * i))
-        from_backend_new_effect("in_"+str(i), "input", x=1100, y=(80 * i))
+        from_backend_new_effect("in_"+str(i), "input", x=1192, y=(80 * i))
     for i in range(1,5):
-        ingen_wrapper.add_output("out_"+str(i), x=50, y=(80 * i))
+        ingen_wrapper.add_output("out_"+str(i), x=-20, y=(80 * i))
         # io_new_effect("output"+str(i), "output", x=50, y=(80 * i))
-        from_backend_new_effect("out_"+str(i), "output", x=50, y=(80 * i))
+        from_backend_new_effect("out_"+str(i), "output", x=-20, y=(80 * i))
     # if patch_bay_model.patch_bay_singleton is not None:
     #     patch_bay_model.patch_bay_singleton.endInsert()
     # context.setContextProperty("currentEffects", current_effects) # might be slow
@@ -756,6 +765,12 @@ def process_ui_messages():
                 effect_name = m[1]
                 if (effect_name in current_effects):
                     from_backend_remove_effect(effect_name)
+            elif m[0] == "enabled_change":
+                effect_name, is_enabled = m[1:]
+                # print("enabled changed ", m)
+                if (effect_name in current_effects):
+                    # print("adding ", m)
+                    current_effects[effect_name]["enabled"].value = bool(is_enabled)
             elif m[0] == "add_port":
                 pass
             elif m[0] == "remove_port":
@@ -780,7 +795,7 @@ effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
         "mono_EQ": "http://gareus.org/oss/lv2/fil4#mono",
         "stereo_EQ": "http://gareus.org/oss/lv2/fil4#stereo",
         "filter": "http://drobilla.net/plugins/fomp/mvclpf1",
-        "lfo": "http://polyeffects.com/lv2/polylfo"}
+        "lfo": "http://kxstudio.sf.net/carla/plugins/lfo"}
 
 inv_effect_type_map = {v:k for k, v in effect_type_map.items()}
 

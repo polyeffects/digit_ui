@@ -27,9 +27,15 @@ Rectangle {
     property color effect_color: Constants.audio_color
     property bool highlight: false
     property bool selected: false
+    property bool no_sliders: ["mono_EQ", "stereo_EQ", "input", "output"].indexOf(effect_type) >= 0
+    property bool has_ui: ["mono_EQ", "stereo_EQ", "mono_reverb", "stereo_reverb", "true_stereo_reverb",
+        "mono_cab", "stereo_cab", "true_stereo_cab"].indexOf(effect_type) >= 0
     property var sliders; 
     // border { width:2; color: Material.color(Material.Cyan, Material.Shade100)}
     Drag.active: mouseArea.drag.active
+
+        // if (effect_type == "stereo_EQ" || effect_type == "mono_EQ"){
+        // else if (effect_type == "delay"){
 
     function hide_sliders(leave_selected) {
         // console.log("hiding sliders");
@@ -93,15 +99,16 @@ Rectangle {
     }
 
     function expand_clicked () {
+        patch_bay.currentMode = PatchBay.Details;
         if (effect_type == "stereo_EQ" || effect_type == "mono_EQ"){
-            mainStack.push("EQWidget.qml", {"effect": effect_id});
+            patchStack.push("EQWidget.qml", {"effect": effect_id});
         }
         else if (effect_type == "delay"){
-            mainStack.push(editDelay);
+            patchStack.push(editDelay);
         }
         else if (effect_type == "mono_reverb" || effect_type == "stereo_reverb" || effect_type == "true_stereo_reverb")
         {
-            mainStack.push("ReverbBrowser.qml", {"effect": effect_id, 
+            patchStack.push("ReverbBrowser.qml", {"effect": effect_id, 
             "top_folder": "file:///audio/reverbs",
             "after_file_selected": (function(name) { 
                 // console.log("got new reveb file");
@@ -111,7 +118,7 @@ Rectangle {
             });
         }
         else if (effect_type == "mono_cab" || effect_type == "stereo_cab" || effect_type == "true_stereo_cab"){
-            mainStack.push("ReverbBrowser.qml", {"effect": effect_id, 
+            patchStack.push("ReverbBrowser.qml", {"effect": effect_id, 
             "top_folder": "file:///audio/cabs",
             "after_file_selected": (function(name) { 
                 // console.log("got new reveb file");
@@ -207,16 +214,22 @@ Rectangle {
     }
 
     Label {
+        width: rect.width-4
         anchors.top: parent.top
         anchors.topMargin: 8
         anchors.horizontalCenter: parent.horizontalCenter
-        text: effect_id.replace("_", " ")
+        text: effect_id.replace(/_/g, " ")
+        horizontalAlignment: Text.AlignHCenter
+        wrapMode: Text.Wrap
         height: 36
         color: effect_color
+        lineHeight: 0.9
         font {
             // pixelSize: fontSizeMedium
-            pixelSize: 23
+            family: mainFont.name
+            pixelSize: 17
             capitalization: Font.AllUppercase
+            letterSpacing: -1
         }
     }
     //
@@ -246,7 +259,9 @@ Rectangle {
                 // else sliders on left
                 // selected changes z via binding
                 if (rect.x > 582){
-                    sliders = editGeneric.createObject(patch_bay, {x: Math.max(rect.x - 600, 50) , y: 0});
+                    if (! no_sliders){
+                        sliders = editGeneric.createObject(patch_bay, {x: Math.max(rect.x - 600, 50) , y: 0});
+                    }
                     if (rect.x + 130 > 1200){
                         action_icons.x = rect.x - 90; // bound max
                     }
@@ -254,7 +269,9 @@ Rectangle {
                         action_icons.x = rect.x + 130;
                     }
                 } else {
-                    sliders = editGeneric.createObject(patch_bay, {x: Math.min(rect.x + 220, 790) , y: 0});
+                    if (! no_sliders){
+                        sliders = editGeneric.createObject(patch_bay, {x: Math.min(rect.x + 220, 790) , y: 0});
+                    }
                     action_icons.x = rect.x - 90; // and min
                     if (rect.x - 90 < 10){
                         action_icons.x = rect.x + 130; // bound max
@@ -413,8 +430,21 @@ Rectangle {
                 width:500
                 Column {
                     width: 500
-                    spacing: 35
+                    spacing: 25
                     anchors.centerIn: parent
+
+                    Switch {
+                        text: qsTr("BYPASS")
+                        font.pixelSize: baseFontSize
+                        height: 20
+                        width: 190
+                        checked: currentEffects[effect_id]["enabled"].value
+                        onClicked: {
+                            knobs.set_bypass(effect_id, checked); 
+                            // mycanvas.requestPaint();
+                        }
+                    }
+
 
 					Repeater {
 						model: Object.keys(currentEffects[effect_id]["controls"])
@@ -424,6 +454,7 @@ Rectangle {
 						}
 					}
                 }
+                
             }
         }
 

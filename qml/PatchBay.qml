@@ -12,6 +12,8 @@ import "polyconst.js" as Constants
  */
 
     Item {
+        x: 0
+        y: 0
         id: patch_bay
         width: 1280
         height: 548
@@ -41,6 +43,10 @@ import "polyconst.js" as Constants
         function externalRefresh() {
             mycanvas.requestPaint();
             return updateCounter.value;
+        }
+
+        Component.onCompleted: {
+            title_footer.patch_single = patch_bay;
         }
 
         // Column {
@@ -165,6 +171,9 @@ import "polyconst.js" as Constants
                     }
                     // console.log("added", index, item.effect_id);
                     effect_map[item.effect_id] = item;
+                    if (!selected_effect){
+                        selected_effect = item;
+                    }
                     // console.log(Object.keys(effect_map)); //[item.effect_id]);
                 }
             }
@@ -304,6 +313,7 @@ import "polyconst.js" as Constants
                 spacing: 15
                 IconButton {
                     icon.name: "connect"
+                    visible: selected_effect && (selected_effect.effect_type != "output")
                     width: 56
                     height: 56
                     onClicked: {
@@ -340,27 +350,32 @@ import "polyconst.js" as Constants
                 }
                 IconButton {
                     id: expandMode
+                    visible: selected_effect && (selected_effect.has_ui)
                     icon.name: "view"
                     width: 56
                     height: 56
-                    checked: true
-                    Material.background: "white"
-                    Material.foreground: Constants.accent_color
-                    radius: 28
-                }
-                IconButton {
-                    id: helpMode
-                    icon.name: "help"
-                    width: 56
-                    height: 56
                     onClicked: {
-                        console.log("clicked:");
+                        selected_effect.hide_sliders(true);
+                        selected_effect.expand_clicked();
                     }
                     Material.background: "white"
                     Material.foreground: Constants.accent_color
                     radius: 28
                 }
+                // IconButton {
+                //     id: helpMode
+                //     icon.name: "help"
+                //     width: 56
+                //     height: 56
+                //     onClicked: {
+                //         console.log("clicked:");
+                //     }
+                //     Material.background: "white"
+                //     Material.foreground: Constants.accent_color
+                //     radius: 28
+                // }
                 IconButton {
+                    visible: selected_effect && (selected_effect.effect_type != "input" && selected_effect.effect_type != "output")
                     id: deleteMode
                     icon.name: "delete"
                     width: 56
