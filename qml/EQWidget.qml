@@ -898,13 +898,9 @@ import QtQuick.Controls.Material 2.3
                 Switch {
                     text: qsTr("EQ")
 					font.pixelSize: baseFontSize
-                    bottomPadding: 0
                     // height: 20
                     // implicitWidth: 100
                     width: 175
-                    leftPadding: 0
-                    topPadding: 0
-                    rightPadding: 0
                     checked: eq_enabled
                     onClicked: {
                         knobs.ui_knob_change(effect, "enable", checked | 0); // force to int
@@ -915,11 +911,7 @@ import QtQuick.Controls.Material 2.3
                 Switch {
                     text: "BAND " + (time_scale.selected_point + 1)
 					font.pixelSize: baseFontSize
-                    bottomPadding: 0
                     width: 175
-                    leftPadding: 0
-                    topPadding: 0
-                    rightPadding: 0
                     checked: time_scale.eq_data[time_scale.selected_point]["enabled"]
                     onClicked: {
                         // time_scale.eq_data[time_scale.selected_point]["enabled"] = checked;

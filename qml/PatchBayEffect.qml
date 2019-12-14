@@ -73,8 +73,16 @@ Rectangle {
             knobs.select_effect(false, effect_id)
             patch_bay.list_effect_id = effect_id;
             patch_bay.list_source = false;
+            var source_port_pair = connectSourcePort.name.split("/")
+            var source_port_type = effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]]
 
-            var k = Object.keys(effectPrototypes[effect_type]["inputs"])
+            var k;
+            if (source_port_type == "AudioPort"){
+                k = Object.keys(effectPrototypes[effect_type]["inputs"])
+            }
+            else{
+                k = Object.keys(effectPrototypes[effect_type]["controls"])
+            }
             if (k.length > 1 )
             {
                 mainStack.push(portSelection);
@@ -430,13 +438,12 @@ Rectangle {
                 width:500
                 Column {
                     width: 500
-                    spacing: 25
+                    spacing: 20
                     anchors.centerIn: parent
 
                     Switch {
                         text: qsTr("BYPASS")
                         font.pixelSize: baseFontSize
-                        height: 20
                         width: 190
                         checked: currentEffects[effect_id]["enabled"].value
                         onClicked: {

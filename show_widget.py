@@ -82,11 +82,22 @@ effect_prototypes ={
                 "outputs": {"output": "AudioPort"},
             "controls":{"drive": ["drive", 5, 0, 10], "blend": ["tape vs tube", 10, -10, 10]},
             },
-
-        "lfo": {"inputs": {},
-                "outputs": {"output": "ControlPort"},
-            "controls":{"drive": ["drive", 5, 0, 10], "blend": ["tape vs tube", 10, -10, 10]},
-            },
+        "lfo": {'inputs': {'reset': 'CVPort'},
+            'outputs': {'output': 'CVPort'},
+            'controls': {'tempo': ['Tempo', 120.0, 1.0, 320.0],
+                'tempoMultiplier': ['Tempo Multiplier', 1.0, 0.0078125, 32.0],
+                'waveForm': ['Wave Form', 0, 0, 5], 'phi0': ['Phi0', 0, 0.0, 6.28]}},
+        "env_follower": {'controls': {'ATIME': ['Attack Time', 0.01, 0.001, 15.0],
+              'CDIRECTION': ['Invert', 0, 0, 1],
+              'CMAXV': ['Maximum Value', 1.0, 0.0, 1.0],
+              'CMINV': ['Minimum Value', 0.0, 0.0, 1.0],
+              'DTIME': ['Decay Time', 1.0, 0.001, 30.0],
+              'PEAKRMS': ['Peak/RMS', 0.0, 0.0, 1.0],
+              'SATURATION': ['Saturation', 1.0, 0.0, 2.0],
+              'THRESHOLD': ['Threshold', 0.0, 0.0, 1.0]},
+              'inputs': {'INPUT': 'AudioPort'},
+              'outputs': {#'CTL_OUT': 'ControlPort',
+                  'CV_OUT': 'CVPort'}},
         "mono_reverb": {"inputs": {"in": "AudioPort"},
                 "outputs": {"out": "AudioPort"},
                 "controls":{"gain": ["gain", 0, -24, 24], "ir": ["/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1]},
@@ -474,14 +485,20 @@ class Knobs(QObject):
             # highlight effects given source port
             global current_source_port
             current_source_port = "/".join((effect_id, port_name))
+            connect_source_port.name = current_source_port
+            out_port_type = effect_prototypes[current_effects[effect_id]["effect_type"]]["outputs"][port_name]
             for id, effect in current_effects.items():
                 effect["highlight"] = False
                 if id != effect_id:
-                    for input_port, style in effect_prototypes[effect["effect_type"]]["inputs"].items():
-                        if style == effect_prototypes[current_effects[effect_id]["effect_type"]]["outputs"][port_name]:
-                            # highlight and break
+                    if out_port_type in ["CVPort", "ControlPort"]: # looking for controls
+                        if len(current_effects[id]["controls"]) > 0:
                             effect["highlight"] = True
-                            break
+                    else:
+                        for input_port, style in effect_prototypes[effect["effect_type"]]["inputs"].items():
+                            if style == out_port_type:
+                                # highlight and break
+                                effect["highlight"] = True
+                                break
         else:
             # if target disable highlight
             for id, effect in current_effects.items():
@@ -526,7 +543,14 @@ class Knobs(QObject):
         if is_source:
             selected_effect_ports.setStringList(list(effect_prototypes[effect_type]["outputs"].keys()))
         else:
-            selected_effect_ports.setStringList(list(effect_prototypes[effect_type]["inputs"].keys()))
+            # source_port_pair = connectSourcePort.split("/")
+            # var source_port_type = effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]]
+            s_effect_id, s_port = connect_source_port.name.split("/")
+            source_port_type = effect_prototypes[current_effects[s_effect_id]["effect_type"]]["outputs"][s_port]
+            if source_port_type == "AudioPort":
+                selected_effect_ports.setStringList(list(effect_prototypes[effect_type]["inputs"].keys()))
+            else:
+                selected_effect_ports.setStringList(list(effect_prototypes[effect_type]["controls"].keys()))
 
     @Slot(str)
     def list_connected(self, effect_id):
@@ -795,7 +819,9 @@ effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
         "mono_EQ": "http://gareus.org/oss/lv2/fil4#mono",
         "stereo_EQ": "http://gareus.org/oss/lv2/fil4#stereo",
         "filter": "http://drobilla.net/plugins/fomp/mvclpf1",
-        "lfo": "http://kxstudio.sf.net/carla/plugins/lfo"}
+        "lfo": "http://avwlv2.sourceforge.net/plugins/avw/lfo_tempo",
+        "env_follower": "http://ssj71.github.io/infamousPlugins/plugs.html#envfollowerCV",
+        }
 
 inv_effect_type_map = {v:k for k, v in effect_type_map.items()}
 
@@ -817,6 +843,7 @@ if __name__ == "__main__":
     update_counter = PolyValue("update counter", 0, 0, 500000)
     command_status = [PolyValue("command status", -1, -10, 100000), PolyValue("command status", -1, -10, 100000)]
     delay_num_bars = PolyValue("Num bars", 1, 1, 16)
+    connect_source_port = PolyValue("", 1, 1, 16) # for sharing what type the selected source is
     # midi_channel = PolyValue("channel", pedal_state["midi_channel"], 1, 16)
     # input_level = PolyValue("input level", pedal_state["input_level"], -80, 10)
     # knobs.set_input_level(pedal_state["input_level"], write=False)
@@ -840,6 +867,7 @@ if __name__ == "__main__":
     context.setContextProperty("currentPreset", current_preset)
     context.setContextProperty("commandStatus", command_status)
     context.setContextProperty("delayNumBars", delay_num_bars)
+    context.setContextProperty("connectSourcePort", connect_source_port)
     # context.setContextProperty("midiChannel", midi_channel)
     # context.setContextProperty("isLoading", is_loading)
     # # context.setContextProperty("inputLevel", input_level)

@@ -132,13 +132,32 @@ def ingen_recv_thread( ) :
 def parse_ingen(to_parse):
     g = rdflib.Graph()
     g.parse(StringIO(to_parse), format="n3")
-    # print("parsing", to_parse)
+    print("parsing", to_parse)
     for t in g.triples([None, NS.rdf.type, NS.patch.Put]):
         response = t[0]
-        subject  = str(g.value(response, NS.patch.subject, None))[13:]
+        r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
+        subject  = r_subject[6:]
         body     = g.value(response, NS.patch.body, None)
         if body is not None:
             # p = list(g.triples([body, None, None]))
+            if r_subject == "/engine":
+                max_load = 0
+                mean_load = 0
+                min_load = 0
+                send = False
+                for p in g.triples([body, None, None]):
+                    if p[1] == NS.ingen.maxRunLoad:
+                        send = True
+                        max_load = float(p[2])
+                    elif p[1] == NS.ingen.meanRunLoad:
+                        mean_load = float(p[2])
+                        send = True
+                    elif p[1] == NS.ingen.minRunLoad:
+                        min_load = float(p[2])
+                        send = True
+                print("load subject", subject, max_load, mean_load, min_load)
+                if send:
+                    ui_queue.put(("dsp_load", max_load, mean_load, min_load))
             if (body, NS.rdf.type, NS.ingen.Block) in g:
                 # print("response is", t[0], "subject is", subject, "body is", body)
                 # adding new block
@@ -188,9 +207,9 @@ def parse_ingen(to_parse):
             elif (body, NS.ingen.enabled, None) in g:
                 # setting value
                 value = g.value(body, NS.ingen.enabled, None)
-                print("in put enabled", subject, "value", value)
+                # print("in put enabled", subject, "value", value)
                 print("in put enabled", subject, "value", value, "b value", bool(value))
-                print("to parse", to_parse)
+                # print("to parse", to_parse)
                 ui_queue.put(("enabled_change", subject, bool(value)))
 
     for t in g.triples([None, NS.rdf.type, NS.patch.Set]):
@@ -237,7 +256,8 @@ def start_send_thread():
     t = ExceptionThread(target=DestinationThread)
     t.start()
 
-server = "tcp://192.168.1.140:16180"
+# server = "tcp://192.168.1.140:16180"
+server = "tcp://192.168.1.139:16180"
 ingen = ingen.Remote(server)
 
 # """
