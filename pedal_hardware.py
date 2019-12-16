@@ -31,24 +31,35 @@ max_knob_speed = 20
 
 input_queue = queue.Queue()
 
+PEDAL_VERSION = 10
+
 def effect_on(t=0.01):
     # global is_on
     # echo 1 > /sys/class/gpio/gpio131/value
     # echo 0 > /sys/class/gpio/gpio131/value
-    with open('/sys/class/gpio/gpio130/value', 'w') as f:
-        f.write("1")
-    time.sleep(t)
-    with open('/sys/class/gpio/gpio130/value', 'w') as f:
-        f.write("0")
+    if PEDAL_VERSION < 10:
+        with open('/sys/class/gpio/gpio130/value', 'w') as f:
+            f.write("1")
+        time.sleep(t)
+        with open('/sys/class/gpio/gpio130/value', 'w') as f:
+            f.write("0")
+    else:
+        with open('/sys/class/gpio/gpio130/value', 'w') as f:
+            f.write("1")
+
     # is_on = True
 
 def effect_off(t=0.01):
     # global is_on
-    with open('/sys/class/gpio/gpio131/value', 'w') as f:
-        f.write("1")
-    time.sleep(t)
-    with open('/sys/class/gpio/gpio131/value', 'w') as f:
-        f.write("0")
+    if PEDAL_VERSION < 10:
+        with open('/sys/class/gpio/gpio131/value', 'w') as f:
+            f.write("1")
+        time.sleep(t)
+        with open('/sys/class/gpio/gpio131/value', 'w') as f:
+            f.write("0")
+    else:
+        with open('/sys/class/gpio/gpio130/value', 'w') as f:
+            f.write("0")
     # is_on = False
 
 def setup_bypass():
@@ -66,6 +77,7 @@ def setup_bypass():
         f.write("out")
     global bypass_setup
     bypass_setup = True
+    effect_on()
 
 # from threading import Timer
 # """Thanks to https://gist.github.com/walkermatt/2871026"""
@@ -122,14 +134,17 @@ def process_input():
                 switch_is_down[0] = True
                 global tap_down_timestamp
                 tap_down_timestamp = e.timestamp()
+                foot_callback("tap_down", tap_down_timestamp)
             if e.code == 48 and e.value == 1: # step
                 switch_is_down[1] = True
                 global step_down_timestamp
                 step_down_timestamp = e.timestamp()
+                foot_callback("step_down", step_down_timestamp)
             if e.code == 46 and e.value == 1: # bypass
                 switch_is_down[2] = True
                 global bypass_down_timestamp
                 bypass_down_timestamp = e.timestamp()
+                foot_callback("bypass_down", bypass_down_timestamp)
 
             # each action clears the others states if multiple
             if e.code == 30 and e.value == 0: # tap up
@@ -201,8 +216,10 @@ def add_hardware_listeners():
     # # 
     # for knob in "left", "right":
     #     on_knob_change(knob)
-    t = threading.Thread(target=input_worker)
-    t.start()
+    import platform
+    if platform.system() == "Linux":
+        t = threading.Thread(target=input_worker)
+        t.start()
 
 # if __name__ == "__main__":
 #     main()

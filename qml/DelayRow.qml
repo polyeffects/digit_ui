@@ -37,6 +37,11 @@ Item {
         onMoved: {
             knobs.ui_knob_change(current_effect, row_param, value);
         }
+        onPressedChanged: {
+            if (pressed){
+                knobs.set_knob_current_effect(current_effect, row_param);
+            }
+        }
     }
 
    Text {

@@ -4,6 +4,7 @@ from signal import signal, SIGINT, SIGTERM
 from time import sleep
 from sys import exit
 from collections import OrderedDict
+from enum import Enum
 # import random
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer, QThreadPool, QRunnable
@@ -25,6 +26,7 @@ import resource_rc
 
 import patch_bay_model
 import ingen_wrapper
+import pedal_hardware
 
 worker_pool = QThreadPool()
 EXIT_PROCESS = [False]
@@ -98,6 +100,15 @@ effect_prototypes ={
               'inputs': {'INPUT': 'AudioPort'},
               'outputs': {#'CTL_OUT': 'ControlPort',
                   'CV_OUT': 'CVPort'}},
+        "foot_switch_a": {'inputs': {},
+            'outputs': {'out': 'CVPort'},
+            'controls': {'in': ['In', 0.0, 0.0, 1.0]}},
+        "foot_switch_b": {'inputs': {},
+            'outputs': {'out': 'CVPort'},
+            'controls': {'in': ['In', 0.0, 0.0, 1.0]}},
+        "foot_switch_c": {'inputs': {},
+            'outputs': {'out': 'CVPort'},
+            'controls': {'in': ['In', 0.0, 0.0, 1.0]}},
         "mono_reverb": {"inputs": {"in": "AudioPort"},
                 "outputs": {"out": "AudioPort"},
                 "controls":{"gain": ["gain", 0, -24, 24], "ir": ["/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1]},
@@ -624,7 +635,6 @@ class Knobs(QObject):
         # print(x, y, z)
         if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
             current_effects[effect_name]["controls"][parameter].value = value
-            # send_core_message("knob_change", (effect_name, parameter, value))
             ingen_wrapper.set_parameter_value("/main/"+effect_name+"/"+parameter, value)
         else:
             print("effect not found")
@@ -728,6 +738,15 @@ class Knobs(QObject):
         worker.emitter.done.connect(self.on_worker_done)
         worker_pool.start(worker)
 
+    def set_knob_current_effect(self, effect_id, parameter):
+        # get current value and update encoder / cache.
+        knob = "left"
+        if knob_map[knob].effect != effect_id:
+            knob_map[knob].effect = effect_id
+            knob_map[knob].parameter = parameter
+            knob_map[knob].rmin = currentEffects[effect_id]["controls"][parameter].rmin
+            knob_map[knob].rmax = currentEffects[effect_id]["controls"][parameter].rmax
+
 
 def io_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
@@ -751,6 +770,119 @@ def add_io():
     # if patch_bay_model.patch_bay_singleton is not None:
     #     patch_bay_model.patch_bay_singleton.endInsert()
     # context.setContextProperty("currentEffects", current_effects) # might be slow
+
+class Encoder():
+    # name, min, max, value
+    def __init__(self, starteffect="", startparameter="", s_speed=1):
+        self.effect = starteffect
+        self.parameter = startparameter
+        self.speed = s_speed
+        self.rmin = 0
+        self.rmax = 1
+
+knob_map = {"left": Encoder(s_speed=0.1), "right": Encoder(s_speed=2)}
+
+def handle_encoder_change(is_left, change):
+    # increase or decrease the current knob value depending on knob speed
+    # knob_value = knob_value + (change * knob_speed)
+    normal_speed = 48.0
+    knob = "left"
+    knob_effect = knob_map[knob].effect
+    knob_parameter = knob_map[knob].parameter
+    value = current_effects[knob_effect]["controls"][knob_parameter]
+    if is_left:
+        knob_speed = knob_map["left"].speed
+    else:
+        knob_speed = knob_map["right"].speed
+    # base speed * speed multiplier
+    base_speed = (abs(knob_map[knob].rmin) + abs(knob_map[knob].rmax)) / normal_speed
+    value = value + (change * knob_speed * base_speed)
+    # print("knob value is", value)
+    # knob change handles clamping
+    knobs.ui_knob_change(knob_effect, knob_parameter, value)
+
+def set_bpm(bpm):
+    current_bpm.value = bpm
+    # host.transport_bpm(bpm)
+    # send_ui_message("bpm_change", (bpm, ))
+    # print("setting tempo", bpm)
+
+### Assignable actions
+# 
+
+Actions = Enum("Actions", """set_value
+set_value_down
+tap
+set_tempo
+toggle_pedal
+select_preset
+next_preset
+previous_preset
+next_action_group previous_action_group
+toggle_effect
+""")
+foot_action_groups = [{"tap_up":[Actions.set_value] , "step_up": [Actions.set_value], "bypass_up":[Actions.toggle_pedal],
+    "tap_down":[Actions.set_value_down] , "step_down": [Actions.set_value_down], #"bypass_down":[Actions.se],
+    "tap_step_up": [Actions.previous_preset], "step_bypass_up": [Actions.next_preset]}]
+current_action_group = 0
+
+def send_to_footswitch_blocks(switch_name, value=0):
+    # send to all foot switch blocks
+    if "tap" in switch_name:
+        foot_switch_name = "foot_switch_a"
+    if "step" in switch_name:
+        foot_switch_name = "foot_switch_b"
+    if "bypass" in switch_name:
+        foot_switch_name = "foot_switch_c"
+
+    for effect_id, effect in current_effects.items():
+        if effect["effect_type"] == "foot_switch":
+            if foot_switch_name in effect_id:
+                knobs.ui_knob_change(effect_id, "in", value)
+
+def handle_foot_change(switch_name, timestamp):
+    action = foot_action_groups[current_action_group][switch_name][0]
+    params = None
+    if len(foot_action_groups[current_action_group][switch_name]) > 1:
+        params = foot_action_groups[current_action_group][switch_name][1:]
+    if action is Actions.tap:
+        handle_tap(timestamp)
+    elif action is Actions.toggle_pedal:
+        handle_bypass()
+
+    elif action is Actions.set_value:
+        send_to_footswitch_nodes(switch_name, 0)
+    elif action is Actions.set_value_down:
+        send_to_footswitch_blocks(switch_name, 1)
+    elif action is Actions.select_preset:
+        pass
+
+    elif action is Actions.next_preset:
+        next_preset()
+
+    elif action is Actions.previous_preset:
+        previous_preset()
+
+    elif action is Actions.toggle_effect:
+        pass
+
+start_tap_time = None
+## tap callback is called by hardware button from the GPIO checking thread
+def handle_tap(timestamp):
+    global start_tap_time
+    current_tap = timestamp
+    if start_tap_time is not None:
+        # just use this and previous to calculate BPM
+        # BPM must be in range 30-250
+        d = current_tap - start_tap_time
+        # 120 bpm, 0.5 seconds per tap
+        bpm = 60 / d
+        if bpm > 30 and bpm < 350:
+            # set host BPM
+            set_bpm(bpm)
+
+    # record start time
+    start_tap_time = current_tap
 
 def process_ui_messages():
     # pop from queue
@@ -784,7 +916,13 @@ def process_ui_messages():
                 print("got add", m)
                 if (effect_name not in current_effects and effect_type in inv_effect_type_map):
                     print("adding ", m)
-                    from_backend_new_effect(effect_name, inv_effect_type_map[effect_type], x, y)
+                    if effect_type == "http://drobilla.net/plugins/blop/interpolator":
+                        mapped_type = effect_name.rstrip("123456789")
+                        if mapped_type in effect_type_map:
+                            from_backend_new_effect(effect_name, mapped_type, x, y)
+                    else:
+                        from_backend_new_effect(effect_name, inv_effect_type_map[effect_type], x, y)
+                        ingen_wrapper.ingen.get("/engine")
             elif m[0] == "remove_plugin":
                 effect_name = m[1]
                 if (effect_name in current_effects):
@@ -795,6 +933,11 @@ def process_ui_messages():
                 if (effect_name in current_effects):
                     # print("adding ", m)
                     current_effects[effect_name]["enabled"].value = bool(is_enabled)
+            elif m[0] == "dsp_load":
+                max_load, mean_load, min_load = m[1:]
+                dsp_load.rmin = min_load
+                dsp_load.rmax = max_load
+                dsp_load.value = mean_load
             elif m[0] == "add_port":
                 pass
             elif m[0] == "remove_port":
@@ -821,6 +964,9 @@ effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
         "filter": "http://drobilla.net/plugins/fomp/mvclpf1",
         "lfo": "http://avwlv2.sourceforge.net/plugins/avw/lfo_tempo",
         "env_follower": "http://ssj71.github.io/infamousPlugins/plugs.html#envfollowerCV",
+        "foot_switch_a": "http://drobilla.net/plugins/blop/interpolator",
+        "foot_switch_b": "http://drobilla.net/plugins/blop/interpolator",
+        "foot_switch_c": "http://drobilla.net/plugins/blop/interpolator",
         }
 
 inv_effect_type_map = {v:k for k, v in effect_type_map.items()}
@@ -843,6 +989,7 @@ if __name__ == "__main__":
     update_counter = PolyValue("update counter", 0, 0, 500000)
     command_status = [PolyValue("command status", -1, -10, 100000), PolyValue("command status", -1, -10, 100000)]
     delay_num_bars = PolyValue("Num bars", 1, 1, 16)
+    dsp_load = PolyValue("DSP Load", 0, 0, 0.3)
     connect_source_port = PolyValue("", 1, 1, 16) # for sharing what type the selected source is
     # midi_channel = PolyValue("channel", pedal_state["midi_channel"], 1, 16)
     # input_level = PolyValue("input level", pedal_state["input_level"], -80, 10)
@@ -863,6 +1010,7 @@ if __name__ == "__main__":
     context.setContextProperty("effectPrototypes", effect_prototypes)
     context.setContextProperty("updateCounter", update_counter)
     context.setContextProperty("currentBPM", current_bpm)
+    context.setContextProperty("dspLoad", dsp_load)
     # context.setContextProperty("pluginState", plugin_state)
     context.setContextProperty("currentPreset", current_preset)
     context.setContextProperty("commandStatus", command_status)
@@ -872,11 +1020,15 @@ if __name__ == "__main__":
     # context.setContextProperty("isLoading", is_loading)
     # # context.setContextProperty("inputLevel", input_level)
     # context.setContextProperty("presetList", preset_list_model)
-    print("starting recv thread")
     engine.load(QUrl("qml/TestWrapper.qml")) # XXX 
-    ingen_wrapper.start_recv_thread(ui_messages)
     print("starting send thread")
     ingen_wrapper.start_send_thread()
+    print("starting recv thread")
+    ingen_wrapper.start_recv_thread(ui_messages)
+
+    pedal_hardware.foot_callback = handle_foot_change
+    pedal_hardware.encoder_change_callback = handle_encoder_change
+    pedal_hardware.add_hardware_listeners()
     try:
         add_io()
     except Exception as e:

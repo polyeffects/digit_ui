@@ -256,8 +256,8 @@ def start_send_thread():
     t = ExceptionThread(target=DestinationThread)
     t.start()
 
-# server = "tcp://192.168.1.140:16180"
-server = "tcp://192.168.1.139:16180"
+server = "tcp://192.168.1.140:16180"
+# server = "tcp://192.168.1.139:16180"
 ingen = ingen.Remote(server)
 
 # """
