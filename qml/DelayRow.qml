@@ -39,6 +39,7 @@ Item {
         }
         onPressedChanged: {
             if (pressed){
+                value = value;
                 knobs.set_knob_current_effect(current_effect, row_param);
             }
         }

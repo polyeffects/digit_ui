@@ -24,9 +24,12 @@ Rectangle {
     property bool caught: false
     property string effect_id
     property string effect_type
-    property color effect_color: Constants.audio_color
+    property color effect_color: effect_id in currentEffects && currentEffects[effect_id]["enabled"].value > 0 ? Constants.audio_color : Constants.outline_color
     property bool highlight: false
     property bool selected: false
+    property Rectangle cv_area: cv_rec
+    property Column inputs: input_rec
+    property Column outputs: output_rec
     property bool no_sliders: ["mono_EQ", "stereo_EQ", "input", "output"].indexOf(effect_type) >= 0
     property bool has_ui: ["mono_EQ", "stereo_EQ", "mono_reverb", "stereo_reverb", "true_stereo_reverb",
         "mono_cab", "stereo_cab", "true_stereo_cab"].indexOf(effect_type) >= 0
@@ -74,16 +77,18 @@ Rectangle {
             patch_bay.list_effect_id = effect_id;
             patch_bay.list_source = false;
             var source_port_pair = connectSourcePort.name.split("/")
-            var source_port_type = effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]]
+            var source_port_type = effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
 
             var k;
-            if (source_port_type == "AudioPort"){
-                k = Object.keys(effectPrototypes[effect_type]["inputs"])
+            var matched = 0;
+            k = Object.keys(effectPrototypes[effect_type]["inputs"])
+            for (var i in k) {
+                console.log("port name is ", i);
+                if (effectPrototypes[effect_type]["inputs"][k[i]][1] == source_port_type){
+                    matched++;
+                }
             }
-            else{
-                k = Object.keys(effectPrototypes[effect_type]["controls"])
-            }
-            if (k.length > 1 )
+            if (matched > 1 )
             {
                 mainStack.push(portSelection);
             } 
@@ -163,12 +168,22 @@ Rectangle {
         // }
     }
 
+    function isAudio(item){
+        return effectPrototypes[effect_type]["inputs"][item][1] == "AudioPort"
+    }
+
+    function isCV(item){
+        return effectPrototypes[effect_type]["inputs"][item][1] == "CVPort"
+    }
+
     border { width:2; color: selected ? Constants.accent_color : Constants.outline_color}
 
     Column {
+        id: output_rec
         width:5
         y:20
         anchors.left: parent.left
+        spacing: 4
         Repeater {
             id: outputRep
             model: Object.keys(effectPrototypes[effect_type]["outputs"]) 
@@ -177,18 +192,20 @@ Rectangle {
                 anchors.leftMargin: 0
                 width: 2
                 height: 8
-                color: Constants.audio_color
+                color: effectPrototypes[effect_type]["outputs"][modelData][1] == "AudioPort" ? Constants.audio_color : Constants.cv_color
             }
         }
     }
 
     Column {
+        id: input_rec
         width:5
         anchors.right: parent.right
+        spacing: 4
         y:20
         Repeater {
             id: inputRep
-            model: Object.keys(effectPrototypes[effect_type]["inputs"]) 
+            model: Object.keys(effectPrototypes[effect_type]["inputs"]).filter(isAudio) 
             Rectangle {
                 anchors.right: parent.right
                 anchors.rightMargin: 0
@@ -200,6 +217,7 @@ Rectangle {
 	}
 
     Rectangle {
+        id: cv_rec
         visible: Object.keys(effectPrototypes[effect_type]["controls"]).length > 0
         anchors.verticalCenter: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
@@ -207,12 +225,12 @@ Rectangle {
         height: 30
         radius: 15
         color: Constants.background_color
-        border { width:2; color: Constants.control_color}
+        border { width:2; color: Constants.cv_color}
         Label {
             anchors.centerIn: parent
             text: Object.keys(effectPrototypes[effect_type]["controls"]).length
             // height: 15
-            color: Constants.control_color
+            color: Constants.cv_color
             font {
                 // pixelSize: fontSizeMedium
                 pixelSize: 18

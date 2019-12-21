@@ -198,25 +198,33 @@ import "polyconst.js" as Constants
                 id: mycanvas
                 function findConnections(drawContext){ 
                     // iterate over items in rep1, adding to dictionary of effect_id : patchbayeffect
+                    // source and targets are the wrong way round XXX 
                     console.log("finding connection", Object.keys(portConnections));
                     for (var source_effect_port_str in portConnections){ 
                         console.log("key ", source_effect_port_str);
                         var source_effect_port = source_effect_port_str.split("/");
                         var targets = portConnections[source_effect_port_str];
                         console.log("drawing connection 1", source_effect_port[0], portConnections[source_effect_port_str]);
+                        
                         for (var target in targets){
-                             console.log("drawing connection 2 targets", targets[0][0]);
-                             console.log("drawing connection 2 obj", effect_map[source_effect_port[0]], effect_map[targets[target][0]]);
-                             console.log("drawing connection 2 keys", source_effect_port[0], targets[target][0]);
-                             //effect_map[source_effect_port[0]], effect_map[targets[target][0]]
-                             drawConnection(drawContext, effect_map[source_effect_port[0]], effect_map[targets[target][0]]);
+                            console.log("drawing connection 2 targets", targets[0][0]);
+                            console.log("drawing connection 2 obj", effect_map[source_effect_port[0]], effect_map[targets[target][0]]);
+                            console.log("drawing connection 2 keys", source_effect_port[0], targets[target][0]);
+                            var target_port_type = effectPrototypes[currentEffects[targets[target][0]]["effect_type"]]["outputs"][targets[target][1]][1]
+                            console.log("target_port_type", target_port_type);
+                            //effect_map[source_effect_port[0]], effect_map[targets[target][0]]
+                            drawConnection(drawContext, effect_map[source_effect_port[0]], effect_map[targets[target][0]], target_port_type);
                         } 
                     }
                 }
 
-                function drawConnection( drawContext, outputPort, inputPort ) {
-                    var start   = getCanvasCoordinates( inputPort, 0, 10)
-                    var end     = getCanvasCoordinates( outputPort,  outputPort.width, 10) 
+                function drawConnection( drawContext, targetPort, sourcePort, source_port_type ) {
+                    if (source_port_type == "AudioPort"){
+                        var start   = getCanvasCoordinates( targetPort.inputs, 0, 4)
+                    } else {
+                        var start   = getCanvasCoordinates( targetPort.cv_area, targetPort.cv_area.width / 2, targetPort.cv_area.height - 2)
+                    }
+                    var end     = getCanvasCoordinates( sourcePort.outputs,  0, 4) 
                     if( start.x > end.x ) {
                         var tmp = start;
                         start = end;
@@ -229,10 +237,20 @@ import "polyconst.js" as Constants
 
                     drawContext.lineWidth   = 2;
                     if (patch_bay.isMoving){
-                        drawContext.strokeStyle = setColorAlpha(outputPort.effect_color, 0.2);
+                        drawContext.strokeStyle = setColorAlpha(sourcePort.outline_color, 0.2);
                     } else
                     {
-                        drawContext.strokeStyle = outputPort.effect_color;
+                        if (source_port_type == "CVPort"){
+                            drawContext.strokeStyle = Constants.cv_color;
+                        } 
+                        else if (source_port_type == "AudioPort"){
+                            drawContext.strokeStyle = Constants.audio_color;
+                        }
+                        else if (source_port_type == "ControlPort"){
+                            drawContext.strokeStyle = Constants.control_color;
+                        } else {
+                            drawContext.strokeStyle = Constants.accent_color;
+                        }
                     }
                     drawContext.beginPath();
                     drawContext.moveTo( start.x, start.y );
@@ -323,6 +341,22 @@ import "polyconst.js" as Constants
                     Material.background: "white"
                     Material.foreground: Constants.accent_color
                     radius: 28
+
+                    Label {
+                        visible: title_footer.show_help 
+                        x: -92
+                        y: 19 
+                        text: "connect"
+                        horizontalAlignment: Text.AlignRight
+                        width: 82
+                        height: 9
+                        z: 1
+                        color: "white"
+                        font {
+                            pixelSize: 14
+                            capitalization: Font.AllUppercase
+                        }
+                    }
                 }
                 IconButton {
                     id: disconnectMode
@@ -335,6 +369,22 @@ import "polyconst.js" as Constants
                     Material.background: "white"
                     Material.foreground: Constants.accent_color
                     radius: 28
+
+                    Label {
+                        visible: title_footer.show_help 
+                        x: -92
+                        y: 19 
+                        text: "disconnect"
+                        horizontalAlignment: Text.AlignRight
+                        width: 82
+                        height: 9
+                        z: 1
+                        color: "white"
+                        font {
+                            pixelSize: 14
+                            capitalization: Font.AllUppercase
+                        }
+                    }
                 }
                 IconButton {
                     icon.name: "move"
@@ -347,6 +397,21 @@ import "polyconst.js" as Constants
                     Material.background: "white"
                     Material.foreground: Constants.accent_color
                     radius: 28
+                    Label {
+                        visible: title_footer.show_help 
+                        x: -92
+                        y: 19 
+                        text: "move"
+                        horizontalAlignment: Text.AlignRight
+                        width: 82
+                        height: 9
+                        z: 1
+                        color: "white"
+                        font {
+                            pixelSize: 14
+                            capitalization: Font.AllUppercase
+                        }
+                    }
                 }
                 IconButton {
                     id: expandMode
@@ -361,6 +426,21 @@ import "polyconst.js" as Constants
                     Material.background: "white"
                     Material.foreground: Constants.accent_color
                     radius: 28
+                    Label {
+                        visible: title_footer.show_help 
+                        x: -92
+                        y: 19 
+                        text: "main controls"
+                        horizontalAlignment: Text.AlignRight
+                        width: 82
+                        height: 9
+                        z: 1
+                        color: "white"
+                        font {
+                            pixelSize: 14
+                            capitalization: Font.AllUppercase
+                        }
+                    }
                 }
                 // IconButton {
                 //     id: helpMode
@@ -386,6 +466,21 @@ import "polyconst.js" as Constants
                     Material.background: "white"
                     Material.foreground: Constants.accent_color
                     radius: 28
+                    Label {
+                        visible: title_footer.show_help 
+                        x: -92
+                        y: 19 
+                        text: "delete"
+                        horizontalAlignment: Text.AlignRight
+                        width: 82
+                        height: 9
+                        z: 1
+                        color: "white"
+                        font {
+                            pixelSize: 14
+                            capitalization: Font.AllUppercase
+                        }
+                    }
                 }
             }
         }
@@ -418,14 +513,14 @@ import "polyconst.js" as Constants
                     delegate: ItemDelegate {
                         width: parent.width
                         height: 50
-                        text: edit
+                        text: edit.split("|")[1]
                         bottomPadding: 0
                         font.pixelSize: fontSizeMedium
                         topPadding: 0
                         onClicked: {
                             // set this as the current port
                             // and update valid targets
-                            knobs.set_current_port(list_source, list_effect_id, edit);
+                            knobs.set_current_port(list_source, list_effect_id, edit.split("|")[0]);
                             rep1.model.items_changed();
                             mycanvas.requestPaint();
                             mainStack.pop();

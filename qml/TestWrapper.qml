@@ -9,7 +9,7 @@ import "polyconst.js" as Constants
 ApplicationWindow {
 
     Material.theme: Material.Dark
-    Material.primary: Constants.control_color
+    Material.primary: Constants.cv_color
     Material.accent: Constants.accent_color
     Material.background: "black"
     // Material.buttonColor: "grey"

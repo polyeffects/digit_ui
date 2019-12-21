@@ -65,9 +65,8 @@ def set_plugin_position(effect_id, x, y):
 
 def add_plugin(effect_id, effect_url):
     # put /main/tone <http://drobilla.net/plugins/mda/Shepard>'
-		
-    q.put((ingen.put, "/main/"+effect_id, """ingen:canvasX "200.0"^^xsd:float ;
-    ingen:canvasY "200.0"^^xsd:float ;
+    q.put((ingen.put, "/main/"+effect_id, """ingen:canvasX "900.0"^^xsd:float ;
+    ingen:canvasY "150.0"^^xsd:float ;
     a ingen:Block ;
     lv2:prototype """ + "<" + effect_url + ">"))
 
@@ -132,7 +131,7 @@ def ingen_recv_thread( ) :
 def parse_ingen(to_parse):
     g = rdflib.Graph()
     g.parse(StringIO(to_parse), format="n3")
-    print("parsing", to_parse)
+    # print("parsing", to_parse)
     for t in g.triples([None, NS.rdf.type, NS.patch.Put]):
         response = t[0]
         r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
@@ -256,8 +255,13 @@ def start_send_thread():
     t = ExceptionThread(target=DestinationThread)
     t.start()
 
-server = "tcp://192.168.1.140:16180"
-# server = "tcp://192.168.1.139:16180"
+import platform
+if platform.system() == "Linux":
+    # server = "tcp://127.0.0.1:16180"
+    server = "unix:///tmp/ingen.sock"
+else:
+    server = "tcp://192.168.1.140:16180"
+    # server = "tcp://192.168.1.139:16180"
 ingen = ingen.Remote(server)
 
 # """
