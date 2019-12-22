@@ -2,7 +2,6 @@ import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
-import QtQuick.Shapes 1.11
 
 import Poly 1.0
 import "polyconst.js" as Constants
@@ -178,22 +177,6 @@ import "polyconst.js" as Constants
                 }
             }
 
-            // Shape {
-            //     width: parent.width
-            //     height: parent.height
-            //     ShapePath {
-            //         strokeWidth: 1
-            //         strokeColor: "red"
-            //         // strokeStyle: ShapePath.DashLine
-            //         // dashPattern: [ 1, 4 ]
-            //         // startX: rep1.itemAt(0).children[0].x; startY: rep1.itemAt(0).children[0].y
-            //         startX: 20; startY: 20  
-            //         PathLine { x: rep1.itemAt(current_index).x; y: rep1.itemAt(current_index).y}
-            //         // PathLine { x: 100; y: 100}
-            //     }
-            //     z: 5
-            // }
-
             Canvas {
                 id: mycanvas
                 function findConnections(drawContext){ 
@@ -332,12 +315,12 @@ import "polyconst.js" as Constants
                 x: 1043
                 id: action_icons
                 z: 6
-                spacing: 15
+                spacing: 25
                 IconButton {
                     icon.name: "connect"
                     visible: selected_effect && (selected_effect.effect_type != "output")
-                    width: 56
-                    height: 56
+                    width: 60
+                    height: 60
                     onClicked: {
                         selected_effect.connect_clicked();
                         currentMode = PatchBay.Connect;
@@ -365,8 +348,8 @@ import "polyconst.js" as Constants
                 IconButton {
                     id: disconnectMode
                     icon.name: "disconnect"
-                    width: 56
-                    height: 56
+                    width: 60
+                    height: 60
                     onClicked: {
                         selected_effect.disconnect_clicked()
                     }
@@ -392,8 +375,8 @@ import "polyconst.js" as Constants
                 }
                 IconButton {
                     icon.name: "move"
-                    width: 56
-                    height: 56
+                    width: 60
+                    height: 60
                     onClicked: {
                         currentMode = PatchBay.Move;
                         selected_effect.hide_sliders(false);
@@ -421,8 +404,8 @@ import "polyconst.js" as Constants
                     id: expandMode
                     visible: selected_effect && (selected_effect.has_ui)
                     icon.name: "view"
-                    width: 56
-                    height: 56
+                    width: 60
+                    height: 60
                     onClicked: {
                         selected_effect.hide_sliders(true);
                         selected_effect.expand_clicked();
@@ -462,8 +445,8 @@ import "polyconst.js" as Constants
                     visible: selected_effect && (selected_effect.effect_type != "input" && selected_effect.effect_type != "output")
                     id: deleteMode
                     icon.name: "delete"
-                    width: 56
-                    height: 56
+                    width: 60
+                    height: 60
                     onClicked: {
                         selected_effect.delete_clicked()
                     }

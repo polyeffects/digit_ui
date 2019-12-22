@@ -11,7 +11,7 @@ import "polyconst.js" as Constants
 
 Rectangle {
     id: rect
-    width: 114
+    width: (effect_id.length * 1.6) + 100
     height: 68
     radius: 6
     // color: patch_bay.delete_mode ? Qt.rgba(0.9,0.0,0.0,1.0) : Qt.rgba(0.3,0.3,0.3,1.0)  
@@ -244,20 +244,21 @@ Rectangle {
     Label {
         width: rect.width-4
         anchors.top: parent.top
-        anchors.topMargin: 8
+        anchors.topMargin: 4
         anchors.horizontalCenter: parent.horizontalCenter
         text: effect_id.replace(/_/g, " ")
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.Wrap
-        height: 36
         color: effect_color
-        lineHeight: 0.9
+        lineHeight: 0.65
+        fontSizeMode: Text.Fit 
+        minimumPixelSize: 18
         font {
             // pixelSize: fontSizeMedium
             family: mainFont.name
-            pixelSize: 17
+            pixelSize: 32
             capitalization: Font.AllUppercase
-            letterSpacing: -1
+            letterSpacing: 0
         }
     }
     //

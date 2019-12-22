@@ -14,22 +14,25 @@ ApplicationWindow {
     Material.background: "black"
     // Material.buttonColor: "grey"
     contentOrientation: Qt.LandscapeOrientation
-
+    
+    property bool onDevice: Qt.platform.os == "linux" 
     readonly property int baseFontSize: 20 
     readonly property int tabHeight: 60 
     readonly property int fontSizeExtraSmall: baseFontSize * 0.8
     readonly property int fontSizeMedium: baseFontSize * 1.5
     readonly property int fontSizeLarge: baseFontSize * 2
     readonly property int fontSizeExtraLarge: baseFontSize * 5
-    width: 1280
-    height: 720
+    width: onDevice ? 720 : 1280 
+    height: onDevice ? 1280 : 720
     title: "Digit 2"
     visible: true
     // FontLoad0er { source: "ionicons.ttf" }
     //00
-    FontLoader { id: mainFont; source: "fonts/Dosis-VF.ttf" }
+    // FontLoader { id: mainFont; source: "fonts/Dosis-VF.ttf" }
+    // FontLoader { id: mainFont; source: "fonts/SourceSerifPro-Semibold.ttf" }
+    FontLoader { id: mainFont; source: "fonts/Dosis-SemiBold.ttf" }
     font.family: mainFont.name
-    font.weight: Font.Medium
+    font.weight: Font.DemiBold
     Component {
         id: mainView
         // PatchBay {
@@ -136,8 +139,19 @@ ApplicationWindow {
     //     })
 
     // }
-    StackView {
-        id: mainStack
-        initialItem: mainView
+    //
+    Item {
+        transform: Rotation {
+            angle: onDevice ? -90 : 0
+            // origin.y: 720 / 2
+            origin.x: 1280 / 2
+            origin.y: 1280 / 2
+        } 
+        width: 1280//Screen.height
+        height: 720//Screen.wid
+        StackView {
+            id: mainStack
+            initialItem: mainView
+        }
     }
 }
