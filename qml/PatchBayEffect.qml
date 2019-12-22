@@ -81,11 +81,13 @@ Rectangle {
 
             var k;
             var matched = 0;
+            var matched_id = 0;
             k = Object.keys(effectPrototypes[effect_type]["inputs"])
             for (var i in k) {
                 console.log("port name is ", i);
                 if (effectPrototypes[effect_type]["inputs"][k[i]][1] == source_port_type){
                     matched++;
+                    matched_id = i;
                 }
             }
             if (matched > 1 )
@@ -93,7 +95,7 @@ Rectangle {
                 mainStack.push(portSelection);
             } 
             else {
-                knobs.set_current_port(false, effect_id, k[0]);
+                knobs.set_current_port(false, effect_id, k[matched_id]);
                 rep1.model.items_changed();
                 patch_bay.externalRefresh();
             }

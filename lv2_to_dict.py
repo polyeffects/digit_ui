@@ -45,7 +45,7 @@ def parse_ttl(ttl_file, uri, name="placeholder"):
     # {sc["lv2:symbol"][0] : [sc["lv2:name"][0], sc["lv2:default"][0], sc["lv2:minimum"][0], sc["lv2:maximum"][0]]}
     c = [a for a in rdf_dict.values() if "lv2:symbol" in a and (set(a["rdf:type"]) == set(["lv2:ControlPort", "lv2:InputPort"]) or set(a["rdf:type"]) == set(["lv2:CVPort", "lv2:InputPort"]))]
     controls = dict([[sc["lv2:symbol"][0], [sc["lv2:name"][0], sc["lv2:default"][0] if "lv2:default" in sc else 0.5, sc["lv2:minimum"][0] if "lv2:minimum" in sc else 0.0,
-        sc["lv2:maximum"][0] if "lv2:maxium" in sc else 1.0]] for sc in c])
+        sc["lv2:maximum"][0] if "lv2:maximum" in sc else 1.0]] for sc in c])
     i_a = [[a["lv2:symbol"][0], [a["lv2:name"][0], "AudioPort"]] for a in rdf_dict.values() if "lv2:symbol" in a and set(a["rdf:type"]) == set(["lv2:AudioPort", "lv2:InputPort"])]
     i_cv = [[a["lv2:symbol"][0], [a["lv2:name"][0], "CVPort"]] for a in rdf_dict.values() if "lv2:symbol" in a and set(a["rdf:type"]) == set(["lv2:CVPort", "lv2:InputPort"])]
     inputs = dict(i_a + i_cv)

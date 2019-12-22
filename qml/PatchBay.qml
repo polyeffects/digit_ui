@@ -254,7 +254,11 @@ import "polyconst.js" as Constants
                     }
                     drawContext.beginPath();
                     drawContext.moveTo( start.x, start.y );
-                    drawContext.bezierCurveTo( start.x + sizeX / 4 , start.y, end.x - sizeX / 4, end.y, end.x, end.y );
+                    if (source_port_type == "AudioPort"){
+                        drawContext.bezierCurveTo( start.x + sizeX / 2.0 , start.y, end.x - sizeX / 2.0, end.y, end.x, end.y );
+                    } else {
+                        drawContext.bezierCurveTo( start.x, start.y + 50, end.x - sizeX / 2, end.y, end.x, end.y );
+                    }
                     drawContext.stroke();
                     return true;
                 }
