@@ -86,9 +86,17 @@ def set_file(effect_id, file_name, is_cab):
     file_name = urllib.parse.quote(file_name[len("file://"):])
     print("setting file", effect_id, file_name, is_cab)
     if is_cab:
-        q.put((ingen.put, effect_id, "patch:property <http://gareus.org/oss/lv2/convoLV2#impulse> ; patch:value <file://"+ file_name +">"))
+        body = """[
+             a patch:Set ;
+             patch:property <http://gareus.org/oss/lv2/convoLV2#impulse>;
+             patch:value <file://"""+ file_name "> ]"
+        q.put((ingen.set, effect_id+"/control", "http://drobilla.net/ns/ingen#activity", body))
     else:
-        q.put((ingen.put, effect_id, "patch:property <http://polyeffects.com/lv2/polyconvo#ir> ; patch:value <file://"+ file_name +">"))
+        body = """[
+             a patch:Set ;
+             patch:property <http://polyeffects.com/lv2/polyconvo#ir>;
+             patch:value <file://"""+ file_name "> ]"
+        q.put((ingen.set, effect_id+"/control", "http://drobilla.net/ns/ingen#activity", body))
 
 def get_valid_filename(s):
     """
