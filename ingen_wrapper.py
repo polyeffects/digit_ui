@@ -3,12 +3,12 @@ from ingen import NS
 from queue import Queue
 import rdflib
 import queue
-import time
+import time, re
 import threading
 from io import StringIO as StringIO
 import traceback
 import logging
-
+import urllib.parse
 
 class ExceptionThread(threading.Thread):
     def __init__(self, *args, **kwargs):
@@ -83,16 +83,33 @@ def add_output(port_id, x, y):
 
 def set_file(effect_id, file_name, is_cab):
     effect_id = "/main/"+effect_id
+    file_name = urllib.parse.quote(file_name[len("file://"):])
+    print("setting file", effect_id, file_name, is_cab)
     if is_cab:
         q.put((ingen.put, effect_id, "patch:property <http://gareus.org/oss/lv2/convoLV2#impulse> ; patch:value <file://"+ file_name +">"))
     else:
         q.put((ingen.put, effect_id, "patch:property <http://polyeffects.com/lv2/polyconvo#ir> ; patch:value <file://"+ file_name +">"))
 
+def get_valid_filename(s):
+    """
+    Return the given string converted to a string that can be used for a clean
+    filename. Remove leading and trailing spaces; convert other spaces to
+    underscores; and remove anything that is not an alphanumeric, dash,
+    underscore, or dot.
+    >>> get_valid_filename("john's portrait in 2004.jpg")
+    'johns_portrait_in_2004.jpg'
+    """
+    s = str(s).strip().replace(' ', '_')
+    return re.sub(r'(?u)[^-\w.]', '', s)
+
 def save_pedalboard(name):
-    q.put((ingen.copy, "/main/", "file:///home/loki/Documents/small_delay.ingen"))
+    clean_filename = get_valid_filename(name)
+    if len(clean_filename) > 0:
+        q.put((ingen.copy, "/main/", "file:///mnt/presets/"+clean_filename+".ingen"))
 
 def load_pedalboard(name):
-    q.put((ingen.copy, "file:///home/loki/Documents/small_delay.ingen", "/main/"))
+    print("loading pedalboard", name)
+    q.put((ingen.copy, name, "/main/"))
 
 def remove_plugin(effect_id):
     q.put((ingen.delete, effect_id))
@@ -119,6 +136,7 @@ def get_parameter_value():
 def ingen_recv_thread( ) :
     while True :
         if _FINISH:
+            ingen._FINISH = True
             break
         r = ingen.recv()
         for s in r.split("\n\n"):
@@ -131,7 +149,7 @@ def ingen_recv_thread( ) :
 def parse_ingen(to_parse):
     g = rdflib.Graph()
     g.parse(StringIO(to_parse), format="n3")
-    # print("parsing", to_parse)
+    print("parsing", to_parse)
     for t in g.triples([None, NS.rdf.type, NS.patch.Put]):
         response = t[0]
         r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
@@ -172,11 +190,11 @@ def parse_ingen(to_parse):
                         x = float(p[2])
                 print("x", x, "y", y, "plugin", plugin, "subject", subject)
                 ui_queue.put(("add_plugin", subject, plugin, x, y))
-            elif (body, NS.ingen.value, None) in g:
-                # setting value
-                value = str(g.value(body, NS.ingen.value, None))
-                print("value", value, "subject", subject)
-                ui_queue.put(("value_change", subject, value))
+            # elif (body, NS.ingen.value, None) in g:
+            #     # setting value
+            #     value = str(g.value(body, NS.ingen.value, None))
+            #     print("value", value, "subject", subject)
+            #     ui_queue.put(("value_change", subject, value))
             elif (body, NS.rdf.type, NS.ingen.Arc) in g:
                 head = ""
                 tail = ""
@@ -251,9 +269,11 @@ def start_recv_thread(r_q):
     r_thread = ExceptionThread(target=ingen_recv_thread)
     r_thread.start()
 
+s_thread = None
 def start_send_thread():
-    t = ExceptionThread(target=DestinationThread)
-    t.start()
+    global s_thread
+    s_thread = ExceptionThread(target=DestinationThread)
+    s_thread.start()
 
 import platform
 if platform.system() == "Linux":
@@ -262,6 +282,7 @@ if platform.system() == "Linux":
 else:
     server = "tcp://192.168.1.140:16180"
     # server = "tcp://192.168.1.139:16180"
+server = "tcp://192.168.1.140:16180"
 ingen = ingen.Remote(server)
 
 # """

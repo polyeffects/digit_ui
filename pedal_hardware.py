@@ -205,12 +205,13 @@ def input_worker():
         if not bypass_setup:
             setup_bypass()
         # print("looping")
-        for key, mask in selector.select():
+        for key, mask in selector.select(0.2):
             device = key.fileobj
             for event in device.read():
                 # print(event)
                 input_queue.put(event)
 
+hw_thread = None
 def add_hardware_listeners():
     # # check if switches or pots have changed
     # # 
@@ -218,8 +219,9 @@ def add_hardware_listeners():
     #     on_knob_change(knob)
     import platform
     if platform.system() == "Linux":
-        t = threading.Thread(target=input_worker)
-        t.start()
+        global hw_thread
+        hw_thread = threading.Thread(target=input_worker)
+        hw_thread.start()
 
 # if __name__ == "__main__":
 #     main()

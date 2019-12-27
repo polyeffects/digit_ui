@@ -182,19 +182,19 @@ import "polyconst.js" as Constants
                 function findConnections(drawContext){ 
                     // iterate over items in rep1, adding to dictionary of effect_id : patchbayeffect
                     // source and targets are the wrong way round XXX 
-                    console.log("finding connection", Object.keys(portConnections));
+                    // console.log("finding connection", Object.keys(portConnections));
                     for (var source_effect_port_str in portConnections){ 
-                        console.log("key ", source_effect_port_str);
+                        // console.log("key ", source_effect_port_str);
                         var source_effect_port = source_effect_port_str.split("/");
                         var targets = portConnections[source_effect_port_str];
-                        console.log("drawing connection 1", source_effect_port[0], portConnections[source_effect_port_str]);
+                        // console.log("drawing connection 1", source_effect_port[0], portConnections[source_effect_port_str]);
                         
                         for (var target in targets){
-                            console.log("drawing connection 2 targets", targets[0][0]);
-                            console.log("drawing connection 2 obj", effect_map[source_effect_port[0]], effect_map[targets[target][0]]);
-                            console.log("drawing connection 2 keys", source_effect_port[0], targets[target][0]);
+                            // console.log("drawing connection 2 targets", targets[0][0]);
+                            // console.log("drawing connection 2 obj", effect_map[source_effect_port[0]], effect_map[targets[target][0]]);
+                            // console.log("drawing connection 2 keys", source_effect_port[0], targets[target][0]);
                             var target_port_type = effectPrototypes[currentEffects[targets[target][0]]["effect_type"]]["outputs"][targets[target][1]][1]
-                            console.log("target_port_type", target_port_type);
+                            // console.log("target_port_type", target_port_type);
                             //effect_map[source_effect_port[0]], effect_map[targets[target][0]]
                             drawConnection(drawContext, effect_map[source_effect_port[0]], effect_map[targets[target][0]], target_port_type);
                         } 
@@ -219,21 +219,23 @@ import "polyconst.js" as Constants
 
 
                     drawContext.lineWidth   = 2;
+                    var line_color;  
+                    if (source_port_type == "CVPort"){
+                        line_color = Constants.cv_color;
+                    } 
+                    else if (source_port_type == "AudioPort"){
+                        line_color = Constants.audio_color;
+                    }
+                    else if (source_port_type == "ControlPort"){
+                        line_color = Constants.control_color;
+                    } else {
+                        line_color = Constants.accent_color;
+                    }
+
                     if (patch_bay.isMoving){
-                        drawContext.strokeStyle = setColorAlpha(sourcePort.outline_color, 0.2);
-                    } else
-                    {
-                        if (source_port_type == "CVPort"){
-                            drawContext.strokeStyle = Constants.cv_color;
-                        } 
-                        else if (source_port_type == "AudioPort"){
-                            drawContext.strokeStyle = Constants.audio_color;
-                        }
-                        else if (source_port_type == "ControlPort"){
-                            drawContext.strokeStyle = Constants.control_color;
-                        } else {
-                            drawContext.strokeStyle = Constants.accent_color;
-                        }
+                        drawContext.strokeStyle = Constants.outline_color;
+                    } else {
+                        drawContext.strokeStyle = line_color;
                     }
                     drawContext.beginPath();
                     drawContext.moveTo( start.x, start.y );
@@ -407,7 +409,7 @@ import "polyconst.js" as Constants
                     width: 60
                     height: 60
                     onClicked: {
-                        selected_effect.hide_sliders(true);
+                        selected_effect.hide_sliders(false);
                         selected_effect.expand_clicked();
                     }
                     Material.background: "white"

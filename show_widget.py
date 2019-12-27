@@ -7,15 +7,17 @@ from collections import OrderedDict
 from enum import Enum
 # import random
 from PySide2.QtGui import QGuiApplication
-from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer, QThreadPool, QRunnable
+from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer, QThreadPool, QRunnable, qWarning, qCritical, qDebug
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 from PySide2.QtGui import QIcon
 # # compiled QML files, compile with pyside2-rcc
 # import qml.qml
 
 sys._excepthook = sys.excepthook
-def exception_hook(exctype, value, traceback):
-    sys._excepthook(exctype, value, traceback)
+def exception_hook(exctype, value, tb):
+    print("except hook 1 got a thing!") #, exctype, value, traceback)
+    traceback.print_exception(exctype, value, tb)
+    sys._excepthook(exctype, value, tb)
     sys.exit(1)
 sys.excepthook = exception_hook
 
@@ -114,15 +116,15 @@ effect_prototypes = {
                            'in': ['Input', 'AudioPort'],
                            'res_mod': ['Resonance Mod', 'CVPort']},
                 'outputs': {'out': ['Output', 'AudioPort']}},
-     'foot_switch_a': {'controls': {'in': ['Control Input', 0.5, 0.0, 1.0]},
+     'foot_switch_a': {'controls': {'input': ['Footswitch Input', 0.5, 0.0, 1.0]},
                        'inputs': {},
-                       'outputs': {'out': ['Out', 'CVPort']}},
-     'foot_switch_b': {'controls': {'in': ['Control Input', 0.5, 0.0, 1.0]},
+                       'outputs': {'output': ['Out', 'CVPort']}},
+     'foot_switch_b': {'controls': {'input': ['Footswitch Input', 0.5, 0.0, 1.0]},
                        'inputs': {},
-                       'outputs': {'out': ['Out', 'CVPort']}},
-     'foot_switch_c': {'controls': {'in': ['Control Input', 0.5, 0.0, 1.0]},
+                       'outputs': {'output': ['Out', 'CVPort']}},
+     'foot_switch_c': {'controls': {'input': ['Footswitch Input', 0.5, 0.0, 1.0]},
                        'inputs': {},
-                       'outputs': {'out': ['Out', 'CVPort']}},
+                       'outputs': {'output': ['Out', 'CVPort']}},
 
      'lfo': {'controls': {'phi0': ['Phi0', 0, 0.0, 6.28],
                           'reset': ['Reset', 0.0, -1.0, 1.0],
@@ -477,6 +479,17 @@ selected_effect_ports = QStringListModel()
 selected_effect_ports.setStringList(["val1", "val2"])
 seq_num = 10
 
+def load_preset(name):
+    # delete existing blocks
+    to_delete = current_effects.keys()
+    port_connections.clear()
+    for effect_id in to_delete:
+        if effect_id in ["out_1", "out_2", "out_3", "out_4", "in_1", "in_2", "in_3", "in_4"]:
+            pass # disconnect ports? 
+        else:
+            knobs.remove_effect(effect_id)
+    ingen_wrapper.load_pedalboard(name)
+
 def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
     # print("from backend new effect", effect_name, effect_type)
@@ -498,11 +511,24 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
 
 def from_backend_remove_effect(effect_name):
     # called by engine code when effect is removed
+    if effect_name not in current_effects:
+        return
+    print("### from backend removing effect")
     if patch_bay_model.patch_bay_singleton is not None:
         patch_bay_model.patch_bay_singleton.startRemove(effect_name)
+    for source_port, targets in list(port_connections.items()):
+        s_effect, s_port = source_port.split("/")
+        if s_effect == effect_name:
+            del port_connections[source_port]
+        else:
+            port_connections[source_port] = [[e, p] for e, p in port_connections[source_port] if e != effect_name]
     current_effects.pop(effect_name)
+    context.setContextProperty("currentEffects", current_effects) # might be slow
+    context.setContextProperty("portConnections", port_connections)
+    print("### from backend removing effect setting portConnections")
     if patch_bay_model.patch_bay_singleton is not None:
         patch_bay_model.patch_bay_singleton.endRemove()
+    update_counter.value+=1
 
 def from_backend_add_connection(head, tail):
     print("head ", head, "tail", tail)
@@ -714,10 +740,8 @@ class Knobs(QObject):
     @Slot(str)
     def remove_effect(self, effect_id):
         # calls backend to remove effect
-        # TODO actually call backend.
         print("remove effect", effect_id)
         ingen_wrapper.remove_plugin("/main/"+effect_id)
-        # from_backend_remove_effect(effect_id)
 
     @Slot(str, str, 'double')
     def ui_knob_change(self, effect_name, parameter, value):
@@ -739,9 +763,16 @@ class Knobs(QObject):
     @Slot(str)
     def ui_load_preset_by_name(self, preset_file):
         # print("loading", preset_file)
-        outfile = preset_file[7:] # strip file:// prefix
-        load_preset(outfile)
+        # outfile = preset_file[7:] # strip file:// prefix
+        load_preset(preset_file+"/main.ttl")
         update_counter.value+=1
+
+    @Slot(str)
+    def ui_save_pedalboard(self, pedalboard_name):
+        # print("saving", preset_name)
+        # TODO add folders
+        current_preset.name = pedalboard_name
+        ingen_wrapper.save_pedalboard(pedalboard_name)
 
     @Slot()
     def ui_copy_irs(self):
@@ -830,8 +861,9 @@ class Knobs(QObject):
     @Slot(str, str)
     def set_knob_current_effect(self, effect_id, parameter):
         # get current value and update encoder / cache.
+        qDebug("setting knob current effect" + parameter)
         knob = "left"
-        if knob_map[knob].effect != effect_id:
+        if not (knob_map[knob].effect == effect_id and knob_map[knob].parameter == parameter):
             knob_map[knob].effect = effect_id
             knob_map[knob].parameter = parameter
             knob_map[knob].rmin = current_effects[effect_id]["controls"][parameter].rmin
@@ -870,16 +902,20 @@ class Encoder():
         self.rmin = 0
         self.rmax = 1
 
-knob_map = {"left": Encoder(s_speed=0.1), "right": Encoder(s_speed=2)}
+knob_map = {"left": Encoder(s_speed=0.2), "right": Encoder(s_speed=1)}
 
 def handle_encoder_change(is_left, change):
+    print(is_left, change)
+    qDebug("encoder change "+ str(is_left) + str(change))
     # increase or decrease the current knob value depending on knob speed
     # knob_value = knob_value + (change * knob_speed)
-    normal_speed = 48.0
+    normal_speed = 24.0
     knob = "left"
     knob_effect = knob_map[knob].effect
     knob_parameter = knob_map[knob].parameter
-    value = current_effects[knob_effect]["controls"][knob_parameter]
+    if not knob_effect or knob_effect not in current_effects:
+        return
+    value = current_effects[knob_effect]["controls"][knob_parameter].value
     if is_left:
         knob_speed = knob_map["left"].speed
     else:
@@ -912,12 +948,21 @@ next_action_group previous_action_group
 toggle_effect
 """)
 foot_action_groups = [{"tap_up":[Actions.set_value] , "step_up": [Actions.set_value], "bypass_up":[Actions.toggle_pedal],
-    "tap_down":[Actions.set_value_down] , "step_down": [Actions.set_value_down], #"bypass_down":[Actions.se],
+    "tap_down":[Actions.set_value_down] , "step_down": [Actions.set_value_down], "bypass_down":[Actions.set_value_down],
     "tap_step_up": [Actions.previous_preset], "step_bypass_up": [Actions.next_preset]}]
 current_action_group = 0
 
+def handle_bypass():
+    # global bypass
+    pedal_bypassed.value = not pedal_bypassed.value
+    if pedal_bypassed.value:
+        pedal_hardware.effect_off()
+    else:
+        pedal_hardware.effect_on()
+
 def send_to_footswitch_blocks(switch_name, value=0):
     # send to all foot switch blocks
+    qDebug("sending to switch_name "+str(switch_name) + "value" + str(value))
     if "tap" in switch_name:
         foot_switch_name = "foot_switch_a"
     if "step" in switch_name:
@@ -926,11 +971,14 @@ def send_to_footswitch_blocks(switch_name, value=0):
         foot_switch_name = "foot_switch_c"
 
     for effect_id, effect in current_effects.items():
-        if effect["effect_type"] == "foot_switch":
+        if "foot_switch" in effect["effect_type"]:
             if foot_switch_name in effect_id:
-                knobs.ui_knob_change(effect_id, "in", value)
+                qDebug("sending knob change from foot switch "+effect_id + "value" + str(float(value)))
+                knobs.ui_knob_change(effect_id, "input", float(value))
 
 def handle_foot_change(switch_name, timestamp):
+    print(switch_name, timestamp)
+    qDebug("foot change "+ str(switch_name) + str(timestamp))
     action = foot_action_groups[current_action_group][switch_name][0]
     params = None
     if len(foot_action_groups[current_action_group][switch_name]) > 1:
@@ -941,17 +989,19 @@ def handle_foot_change(switch_name, timestamp):
         handle_bypass()
 
     elif action is Actions.set_value:
-        send_to_footswitch_nodes(switch_name, 0)
+        send_to_footswitch_blocks(switch_name, 0)
     elif action is Actions.set_value_down:
         send_to_footswitch_blocks(switch_name, 1)
     elif action is Actions.select_preset:
         pass
 
     elif action is Actions.next_preset:
-        next_preset()
+        qDebug("next preset")
+        #next_preset()
 
     elif action is Actions.previous_preset:
-        previous_preset()
+        qDebug("previous preset")
+        # previous_preset()
 
     elif action is Actions.toggle_effect:
         pass
@@ -1006,7 +1056,7 @@ def process_ui_messages():
                 print("got add", m)
                 if (effect_name not in current_effects and effect_type in inv_effect_type_map):
                     print("adding ", m)
-                    if effect_type == "http://drobilla.net/plugins/blop/interpolator":
+                    if effect_type == "http://avwlv2.sourceforge.net/plugins/avw/controltocv":
                         mapped_type = effect_name.rstrip("123456789")
                         if mapped_type in effect_type_map:
                             from_backend_new_effect(effect_name, mapped_type, x, y)
@@ -1054,9 +1104,9 @@ effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
         "filter": "http://drobilla.net/plugins/fomp/mvclpf1",
         "lfo": "http://avwlv2.sourceforge.net/plugins/avw/lfo_tempo",
         "env_follower": "http://ssj71.github.io/infamousPlugins/plugs.html#envfollowerCV",
-        "foot_switch_a": "http://drobilla.net/plugins/blop/interpolator",
-        "foot_switch_b": "http://drobilla.net/plugins/blop/interpolator",
-        "foot_switch_c": "http://drobilla.net/plugins/blop/interpolator",
+        "foot_switch_a": "http://avwlv2.sourceforge.net/plugins/avw/controltocv",
+        "foot_switch_b": "http://avwlv2.sourceforge.net/plugins/avw/controltocv",
+        "foot_switch_c": "http://avwlv2.sourceforge.net/plugins/avw/controltocv",
         "slew_limiter": "http://avwlv2.sourceforge.net/plugins/avw/slew",
         "square_distortion": "http://ssj71.github.io/infamousPlugins/plugs.html#hip2b",
         "control_to_midi": "http://ssj71.github.io/infamousPlugins/plugs.html#mindi",
@@ -1088,7 +1138,10 @@ if __name__ == "__main__":
     connect_source_port = PolyValue("", 1, 1, 16) # for sharing what type the selected source is
     # midi_channel = PolyValue("channel", pedal_state["midi_channel"], 1, 16)
     # input_level = PolyValue("input level", pedal_state["input_level"], -80, 10)
+    midi_channel = PolyValue("channel", 1, 1, 16)
+    input_level = PolyValue("input level", 0, -80, 10)
     # knobs.set_input_level(pedal_state["input_level"], write=False)
+    pedal_bypassed = PolyBool(False)
 
     available_effects = QStringListModel()
     available_effects.setStringList(list(effect_type_map.keys()))
@@ -1106,14 +1159,14 @@ if __name__ == "__main__":
     context.setContextProperty("updateCounter", update_counter)
     context.setContextProperty("currentBPM", current_bpm)
     context.setContextProperty("dspLoad", dsp_load)
-    # context.setContextProperty("pluginState", plugin_state)
+    context.setContextProperty("isPedalBypassed", pedal_bypassed)
     context.setContextProperty("currentPreset", current_preset)
     context.setContextProperty("commandStatus", command_status)
     context.setContextProperty("delayNumBars", delay_num_bars)
     context.setContextProperty("connectSourcePort", connect_source_port)
-    # context.setContextProperty("midiChannel", midi_channel)
+    context.setContextProperty("midiChannel", midi_channel)
     # context.setContextProperty("isLoading", is_loading)
-    # # context.setContextProperty("inputLevel", input_level)
+    context.setContextProperty("inputLevel", input_level)
     # context.setContextProperty("presetList", preset_list_model)
     engine.load(QUrl("qml/TestWrapper.qml")) # XXX 
     print("starting send thread")
@@ -1124,6 +1177,7 @@ if __name__ == "__main__":
     pedal_hardware.foot_callback = handle_foot_change
     pedal_hardware.encoder_change_callback = handle_encoder_change
     pedal_hardware.add_hardware_listeners()
+    # qWarning("logging with qwarning")
     try:
         add_io()
     except Exception as e:
@@ -1134,9 +1188,10 @@ if __name__ == "__main__":
         sys.exit()
 
     sys._excepthook = sys.excepthook
-    def exception_hook(exctype, value, traceback):
+    def exception_hook(exctype, value, tb):
         print("except hook got a thing!")
-        sys._excepthook(exctype, value, traceback)
+        traceback.print_exception(exctype, value, tb)
+        sys._excepthook(exctype, value, tb)
         sys.exit(1)
     sys.excepthook = exception_hook
     # try:
@@ -1149,10 +1204,13 @@ if __name__ == "__main__":
 
     def signalHandler(sig, frame):
         if sig in (SIGINT, SIGTERM):
-            # print("frontend got signal")
+            qWarning("frontend got signal")
             # global EXIT_PROCESS
             EXIT_PROCESS[0] = True
             ingen_wrapper._FINISH = True
+            ingen_wrapper.ingen._FINISH = True
+            pedal_hardware.EXIT_THREADS = True
+            ingen_wrapper.ingen.sock.close()
     signal(SIGINT,  signalHandler)
     signal(SIGTERM, signalHandler)
     initial_preset = False
@@ -1165,14 +1223,27 @@ if __name__ == "__main__":
             app.processEvents()
             # print("processing ui messages")
             process_ui_messages()
+            pedal_hardware.process_input()
         except Exception as e:
-            print("########## e is:", e)
+            qCritical("########## e is:", e)
             ex_type, ex_value, tb = sys.exc_info()
             error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
             print("EXception is:", error)
             sys.exit()
         sleep(0.01)
 
+    qWarning("mainloop exited")
+    ingen_wrapper.s_thread.join()
+    qWarning("s_thread exited")
+    if pedal_hardware.hw_thread is not None:
+        qWarning("hw_thread joining")
+        pedal_hardware.hw_thread.join()
+        qWarning("hw_thread exited")
+    ingen_wrapper.r_thread.join()
+    qWarning("r_thread exited")
+    app.exit()
+    sys.exit()
+    qWarning("sys exit called")
         # if not initial_preset:
         #     load_preset("/presets/Default Preset.json")
         #     update_counter.value+=1

@@ -236,7 +236,7 @@ Item {
             }
 
             IconButton {
-                x: 14 
+                x: 34 
                 y: 646
                 icon.width: 15
                 icon.height: 25

@@ -964,6 +964,14 @@ import QtQuick.Controls.Material 2.3
                                 time_scale.eq_data[time_scale.selected_point]["q"], 
                                 time_scale.eq_data[time_scale.selected_point]["gain"]);
                             mycanvas.requestPaint();
+                        } else {
+                            if (time_scale.selected_point == 0){
+                                knobs.set_knob_current_effect(effect, "LSq");
+                            } else if (time_scale.selected_point == 5){
+                                knobs.set_knob_current_effect(effect, "HSq");
+                            } else {
+                                knobs.set_knob_current_effect(effect, "q"+time_scale.selected_point);
+                            }
                         }
                     }
                 }

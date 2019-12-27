@@ -25,6 +25,8 @@ try:
 except ImportError:
     from io import StringIO as StringIO
 
+_FINISH = False
+
 class NS:
     atom   = rdflib.Namespace('http://lv2plug.in/ns/ext/atom#')
     ingen  = rdflib.Namespace('http://drobilla.net/ns/ingen#')
@@ -156,7 +158,7 @@ class Remote(Interface):
     def recv(self):
         'Read from socket until a null terminator is received'
         msg = u''
-        while True:
+        while not _FINISH:
             chunk = self.sock.recv(1, 0)
             if not chunk or chunk[0] == 0:  # End of transmission
                 break

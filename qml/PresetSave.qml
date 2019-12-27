@@ -113,7 +113,8 @@ import QtQuick.VirtualKeyboard 2.1
                         // Layout.fillHeight: true
                         height: 650
                         width: 500
-						top_folder: "file:///presets/"
+						top_folder: "file:///mnt/presets/"
+                        current_selected: ""
 						after_file_selected: (function(name) { 
 							console.log("loading preset file");
 							console.log("file  is", name.toString());
@@ -166,7 +167,7 @@ import QtQuick.VirtualKeyboard 2.1
                         text: "OVERWRITE"
 						width: 300
                         onClicked: { // save preset and close browser
-							knobs.ui_save_preset(currentPreset.name);
+							knobs.ui_save_pedalboard(currentPreset.name);
 							mainStack.pop()
 						}
                     }
@@ -288,7 +289,7 @@ import QtQuick.VirtualKeyboard 2.1
                         text: "SAVE"
                         enabled: new_preset_name.text.length > 0
 						onClicked: {
-							knobs.ui_save_preset(new_preset_name.text);
+							knobs.ui_save_pedalboard(new_preset_name.text);
 							mainStack.pop()
 						}
                     }
@@ -432,7 +433,7 @@ import QtQuick.VirtualKeyboard 2.1
                         // Layout.fillHeight: true
                         height: 650
                         width: 500
-						top_folder: "file:///presets/"
+						top_folder: "file:///mnt/presets/"
 						after_file_selected: (function(name) { 
 							console.log("mapping preset file");
 							knobs.map_preset(preset_widget.map_index, name.toString());

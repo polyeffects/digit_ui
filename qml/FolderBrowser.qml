@@ -101,7 +101,12 @@ import Qt.labs.folderlistmodel 2.2
                 icon.name: fileIsDir ? "md-folder-open" : false // or md-folder
                 onClicked: {
                     if (fileIsDir) {
-                        folderListModel.folder = fileURL
+                        if (fileURL.toString().endsWith(".ingen")){
+                            mainRect.current_selected = fileURL
+                            mainRect.after_file_selected(fileURL)
+                        } else {
+                            folderListModel.folder = fileURL
+                        }
                     }
                     else
                     {

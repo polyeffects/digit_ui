@@ -48,6 +48,7 @@ Rectangle {
         if (leave_selected){
             selected = false;
             patch_bay.currentMode = PatchBay.Select;
+            patch_bay.selected_effect = null;
         }
     }
 
@@ -84,7 +85,7 @@ Rectangle {
             var matched_id = 0;
             k = Object.keys(effectPrototypes[effect_type]["inputs"])
             for (var i in k) {
-                console.log("port name is ", i);
+                // console.log("port name is ", i);
                 if (effectPrototypes[effect_type]["inputs"][k[i]][1] == source_port_type){
                     matched++;
                     matched_id = i;
@@ -107,10 +108,9 @@ Rectangle {
         // delete current effect
         // console.log("clicked", display);
         // rep1.model.remove_effect(display)
+        hide_sliders(true);
         console.log("deleting", effect_id);
         knobs.remove_effect(effect_id);
-        patch_bay.externalRefresh();
-        hide_sliders(true);
     }
 
     function expand_clicked () {
@@ -127,7 +127,7 @@ Rectangle {
             "top_folder": "file:///audio/reverbs",
             "after_file_selected": (function(name) { 
                 // console.log("got new reveb file");
-                // console.log("file is", name.toString());
+                console.log("file is", name.toString());
                 knobs.update_ir(effect_id, name.toString());
                 })
             });
@@ -271,7 +271,7 @@ Rectangle {
         onPressed: {
             // check mode: move, delete, connect, open
             rect.beginDrag = Qt.point(rect.x, rect.y);
-			console.log("effect proto", Object.keys(effectPrototypes[effect_type]["inputs"]))
+			// console.log("effect proto", Object.keys(effectPrototypes[effect_type]["inputs"]))
 
             if (patch_bay.currentMode == PatchBay.Connect){
                 connect_clicked();
@@ -328,7 +328,6 @@ Rectangle {
 				patch_bay.isMoving = false;
 				patch_bay.externalRefresh();
 				knobs.move_effect(effect_id, rect.x, rect.y)
-			
 			}
 
             // if(!rect.caught) {
