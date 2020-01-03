@@ -60,7 +60,7 @@ def set_bypass(effect_id, active):
 def set_parameter_value(port, value):
     #ingen.set("/main/tone/output", "ingen:value", "0.8") 
     # ingen.set(port, "ingen:value", str(value))
-    q.put((ingen.put, port, "ingen:value "+ str(value)))
+    q.put((ingen.set, port, "http://drobilla.net/ns/ingen#value", str(value)))
 
 def set_plugin_position(effect_id, x, y):
     q.put((ingen.put, "/main/"+effect_id, 'ingen:canvasX "%s"^^xsd:float; ingen:canvasY "%s"^^xsd:float' % (x, y)))
@@ -158,20 +158,29 @@ def ingen_recv_thread( ) :
                     a = ingen._get_prefixes_string() + s
                     parse_ingen(a)
 
+all_connected = False
+# connected_ports = set()
 def connect_jack_port(port):
-    if platform.system() == "Linux":
-        port_map = {"out_1": "ingen:out_1 system:playback_3",
-                "out_2": "ingen:out_2 system:playback_4",
-                "out_3": "ingen:out_3 system:playback_6",
-                "out_4": "ingen:out_4 system:playback_8",
-                "in_1": "system:capture_2 ingen:in_1",
-                "in_2": "system:capture_4 ingen:in_2",
-                "in_3": "system:capture_3 ingen:in_3",
-                "in_4": "system:capture_5 ingen:in_4"
-                }
-        if port in port_map:
-            command = ["/usr/bin/jack_connect",  *port_map[port].split()]
-            ret_var = subprocess.run(command)
+    global all_connected
+    if not all_connected:
+        if platform.system() == "Linux":
+            port_map = {"out_1": "ingen:out_1 system:playback_3",
+                    "out_2": "ingen:out_2 system:playback_4",
+                    "out_3": "ingen:out_3 system:playback_6",
+                    "out_4": "ingen:out_4 system:playback_8",
+                    "in_1": "system:capture_2 ingen:in_1",
+                    "in_2": "system:capture_4 ingen:in_2",
+                    "in_3": "system:capture_3 ingen:in_3",
+                    "in_4": "system:capture_5 ingen:in_4"
+                    }
+            # if connected_ports == set(port_map.keys()):
+            #     all_connected = True
+            if port in port_map:
+                # connected_ports.add(port)
+                command = ["/usr/bin/jack_connect",  *port_map[port].split()]
+                ret_var = subprocess.run(command)
+                if ret_var.returncode == 1: # already connected 1 is a fail in unix return codes
+                    all_connected = True
 
 def parse_ingen(to_parse):
     g = rdflib.Graph()
@@ -224,11 +233,11 @@ def parse_ingen(to_parse):
                 if ir is not None:
                     ui_queue.put(("set_file", subject, ir))
 
-            # elif (body, NS.ingen.value, None) in g:
-            #     # setting value
-            #     value = str(g.value(body, NS.ingen.value, None))
-            #     print("value", value, "subject", subject)
-            #     ui_queue.put(("value_change", subject, value))
+            elif (body, NS.ingen.value, None) in g:
+                # setting value
+                value = str(g.value(body, NS.ingen.value, None))
+                print("value", value, "subject", subject)
+                ui_queue.put(("value_change", subject, value))
             elif (body, NS.rdf.type, NS.ingen.Arc) in g:
                 head = ""
                 tail = ""
@@ -268,11 +277,11 @@ def parse_ingen(to_parse):
     for t in g.triples([None, NS.rdf.type, NS.patch.Set]):
         response = t[0]
         subject  = str(g.value(response, NS.patch.subject, None))[13:]
-        if (response, NS.patch.property, NS.ingen.value) in g:
-            value = g.value(response, NS.patch.value, None)
-            print("in set subject", subject, "value", value)
-            ui_queue.put(("value_change", subject, value))
-        elif (response, NS.patch.property, NS.ingen.enabled) in g:
+        # if (response, NS.patch.property, NS.ingen.value) in g:
+        #     value = g.value(response, NS.patch.value, None)
+        #     print("in set subject", subject, "value", value)
+        #     ui_queue.put(("value_change", subject, value))
+        if (response, NS.patch.property, NS.ingen.enabled) in g:
             value = g.value(response, NS.patch.value, None)
             print("in set enabled", subject, "value", value, "b value", bool(value))
             ui_queue.put(("enabled_change", subject, bool(value)))
