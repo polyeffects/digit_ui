@@ -4,11 +4,12 @@ from queue import Queue
 import rdflib
 import queue
 import time, re
-import threading
+import threading, subprocess
 from io import StringIO as StringIO
 import traceback
 import logging
 import urllib.parse
+import platform
 
 class ExceptionThread(threading.Thread):
     def __init__(self, *args, **kwargs):
@@ -24,6 +25,7 @@ class ExceptionThread(threading.Thread):
 q = Queue()
 _FINISH = False
 ui_queue = None
+ir_url = rdflib.URIRef("http://polyeffects.com/lv2/polyconvo#ir")
 
 def get_timed_interruptable(q, timeout):
     stoploop = time.monotonic() + timeout - 1
@@ -89,14 +91,16 @@ def set_file(effect_id, file_name, is_cab):
         body = """[
              a patch:Set ;
              patch:property <http://gareus.org/oss/lv2/convoLV2#impulse>;
-             patch:value <file://"""+ file_name "> ]"
+             patch:value <file://"""+ file_name + "> ]"
         q.put((ingen.set, effect_id+"/control", "http://drobilla.net/ns/ingen#activity", body))
+        q.put((ingen.set, effect_id, "http://polyeffects.com/lv2/polyconvo#ir", "<"+file_name+">")) # for UI persist
     else:
         body = """[
              a patch:Set ;
              patch:property <http://polyeffects.com/lv2/polyconvo#ir>;
-             patch:value <file://"""+ file_name "> ]"
+             patch:value <file://"""+ file_name + "> ]"
         q.put((ingen.set, effect_id+"/control", "http://drobilla.net/ns/ingen#activity", body))
+        q.put((ingen.set, effect_id, "http://polyeffects.com/lv2/polyconvo#ir", "<"+file_name+">")) # for UI persist
 
 def get_valid_filename(s):
     """
@@ -154,10 +158,25 @@ def ingen_recv_thread( ) :
                     a = ingen._get_prefixes_string() + s
                     parse_ingen(a)
 
+def connect_jack_port(port):
+    if platform.system() == "Linux":
+        port_map = {"out_1": "ingen:out_1 system:playback_3",
+                "out_2": "ingen:out_2 system:playback_4",
+                "out_3": "ingen:out_3 system:playback_6",
+                "out_4": "ingen:out_4 system:playback_8",
+                "in_1": "system:capture_2 ingen:in_1",
+                "in_2": "system:capture_4 ingen:in_2",
+                "in_3": "system:capture_3 ingen:in_3",
+                "in_4": "system:capture_5 ingen:in_4"
+                }
+        if port in port_map:
+            command = ["/usr/bin/jack_connect",  *port_map[port].split()]
+            ret_var = subprocess.run(command)
+
 def parse_ingen(to_parse):
     g = rdflib.Graph()
     g.parse(StringIO(to_parse), format="n3")
-    print("parsing", to_parse)
+    # print("parsing", to_parse)
     for t in g.triples([None, NS.rdf.type, NS.patch.Put]):
         response = t[0]
         r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
@@ -189,15 +208,22 @@ def parse_ingen(to_parse):
                 x = 0
                 y = 0
                 plugin = ""
+                ir = None
                 for p in g.triples([body, None, None]):
+                    print("got a block, triples are ")
                     if p[1] == NS.lv2.prototype:
                         plugin = str(p[2])
                     elif p[1] == NS.ingen.canvasY:
                         y = float(p[2])
                     elif p[1] == NS.ingen.canvasX:
                         x = float(p[2])
+                    elif p[1] == ir_url:
+                        ir = str(p[2])
                 print("x", x, "y", y, "plugin", plugin, "subject", subject)
                 ui_queue.put(("add_plugin", subject, plugin, x, y))
+                if ir is not None:
+                    ui_queue.put(("set_file", subject, ir))
+
             # elif (body, NS.ingen.value, None) in g:
             #     # setting value
             #     value = str(g.value(body, NS.ingen.value, None))
@@ -213,7 +239,7 @@ def parse_ingen(to_parse):
                         tail = str(p[2])
                 print("arc head", head, "tail", tail)
                 ui_queue.put(("add_connection", head[7:], tail[7:]))
-            elif (body, NS.lv2.name, None) in g:
+            elif (body, NS.rdf.type, NS.lv2.AudioPort) in g:
                 # setting value
                 is_in = None
                 is_audio = None
@@ -226,9 +252,11 @@ def parse_ingen(to_parse):
                     elif p[2] == NS.lv2.AudioPort:
                         is_audio = True
                 if is_in is not None and is_audio:
-                    print("port is_in", is_in, "subject", subject)
-                else:
-                    print("None! port is_in", is_in, "subject", subject)
+                    print("connecting jack port", is_in, "subject", subject)
+                    # connect to jack port
+                    connect_jack_port(subject)
+                # else:
+                #     print("None! port is_in", is_in, "subject", subject)
             elif (body, NS.ingen.enabled, None) in g:
                 # setting value
                 value = g.value(body, NS.ingen.enabled, None)
@@ -283,14 +311,13 @@ def start_send_thread():
     s_thread = ExceptionThread(target=DestinationThread)
     s_thread.start()
 
-import platform
 if platform.system() == "Linux":
     # server = "tcp://127.0.0.1:16180"
     server = "unix:///tmp/ingen.sock"
 else:
-    server = "tcp://192.168.1.140:16180"
-    # server = "tcp://192.168.1.139:16180"
-server = "tcp://192.168.1.140:16180"
+    # server = "tcp://192.168.1.140:16180"
+    server = "tcp://192.168.1.139:16180"
+# server = "tcp://192.168.1.140:16180"
 ingen = ingen.Remote(server)
 
 # """

@@ -105,19 +105,26 @@ class Remote(Interface):
         self.model       = rdflib.Graph()
         self.ns_manager  = rdflib.namespace.NamespaceManager(self.model)
         self.ns_manager.bind('server', self.server_base)
+        connected = False
         for (k, v) in NS.__dict__.items():
             if not k.startswith("__"):
                 self.ns_manager.bind(k, v)
-        if uri.startswith('unix://'):
-            self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            self.sock.connect(uri[len('unix://'):])
-        elif uri.startswith('tcp://'):
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            parsed = re.split('[:/]', uri[len('tcp://'):])
-            addr = (parsed[0], int(parsed[1]))
-            self.sock.connect(addr)
-        else:
-            raise Exception('Unsupported server URI `%s' % uri)
+        while not connected:
+            try:
+                if uri.startswith('unix://'):
+                    self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                    self.sock.connect(uri[len('unix://'):])
+                    connected = True
+                elif uri.startswith('tcp://'):
+                    self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    parsed = re.split('[:/]', uri[len('tcp://'):])
+                    addr = (parsed[0], int(parsed[1]))
+                    self.sock.connect(addr)
+                    connected = True
+                else:
+                    raise Exception('Unsupported server URI `%s' % uri)
+            except ConnectionError as e:
+                pass
 
         # Parse error description from Ingen bundle for pretty printing
         bundle = ingen_bundle_path()

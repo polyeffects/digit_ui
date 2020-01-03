@@ -1,7 +1,7 @@
 # digit main
 from collections import defaultdict
 # import Adafruit_BBIO.GPIO as GPIO
-import time, queue, threading
+import time, queue, threading, json
 # from Adafruit_BBIO.Encoder import RotaryEncoder, eQEP2, eQEP0
 # left_encoder = RotaryEncoder(eQEP0)
 # right_encoder = RotaryEncoder(eQEP2)
@@ -30,8 +30,14 @@ knob_prev={"left":127, "right":127}
 max_knob_speed = 20
 
 input_queue = queue.Queue()
+hardware_info = {}
+try:
+    with open("/pedal_state/hardware_info.json") as f:
+        hardware_info = json.load(f)
+except:
+    hardware_info = {"revision": 9, "pedal": "digit"}
 
-PEDAL_VERSION = 10
+PEDAL_VERSION = hardware_info["revision"]
 
 def effect_on(t=0.01):
     # global is_on
@@ -180,10 +186,16 @@ def process_input():
                     switch_is_down[1] = False
                     switch_is_down[2] = False
             if e.type == 2: # knob
-                if e.code == 1: # left
-                    encoder_change_callback(True, e.value)
-                if e.code == 0: # right
-                    encoder_change_callback(False, e.value)
+                if PEDAL_VERSION < 10:
+                    if e.code == 1: # left
+                        encoder_change_callback(True, e.value)
+                    if e.code == 0: # right
+                        encoder_change_callback(False, e.value)
+                else:
+                    if e.code == 0: # left
+                        encoder_change_callback(True, -e.value)
+                    if e.code == 1: # right
+                        encoder_change_callback(False, -e.value)
     except queue.Empty:
         pass
 

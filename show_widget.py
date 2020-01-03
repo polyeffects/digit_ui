@@ -189,12 +189,12 @@ effect_prototypes = {
                               'sec4': ['Section 4', 1, 0, 1]},
                  'inputs': {'in': ['In', 'AudioPort']},
                  'outputs': { 'out': ['Out', 'AudioPort']}},
-     'mono_cab': {'controls': {'gain': ['Output Gain', 0.0, -24.0, 24.0],
+     'mono_cab': {'controls': {'gain': ['Output Gain', 0.0, -40.0, 4.0],
                             "ir": ["/audio/cabs/1x12cab.wav", 0, 0, 1]},
                   'inputs': {'gain': ['Output Gain', 'CVPort'],
                              'in': ['In', 'AudioPort']},
                   'outputs': {'out': ['Out', 'AudioPort']}},
-     'mono_reverb': {'controls': {'gain': ['Output Gain', 0.0, -24.0, 24.0],
+     'mono_reverb': {'controls': {'gain': ['Output Gain', 0.0, -40.0, 4.0],
                                  "ir": ["/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1]},
                      'inputs': {'gain': ['Output Gain', 'CVPort'],
                                 'in': ['In', 'AudioPort']},
@@ -278,26 +278,26 @@ effect_prototypes = {
                               'inR': ['In Right', 'AudioPort']},
                    'outputs': {'outL': ['Out Left', 'AudioPort'],
                                'outR': ['Out Right', 'AudioPort']}},
-     'stereo_cab': {'controls': {'gain': ['Output Gain', 0.0, -24.0, 24.0],
+     'stereo_cab': {'controls': {'gain': ['Output Gain', 0.0, -40.0, 4.0],
                             "ir": ["/audio/cabs/1x12cab.wav", 0, 0, 1]},
                     'inputs': {'gain': ['Output Gain', 'CVPort'],
                                'in': ['In', 'AudioPort']},
                     'outputs': {'out_1': ['OutL', 'AudioPort'],
                                 'out_2': ['OutR', 'AudioPort']}},
-     'stereo_reverb': {'controls': {'gain': ['Output Gain', 0.0, -24.0, 24.0],
+     'stereo_reverb': {'controls': {'gain': ['Output Gain', 0.0, -40.0, 4.0],
                                  "ir": ["/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1]},
                        'inputs': {'gain': ['Output Gain', 'CVPort'],
                                   'in': ['In', 'AudioPort']},
                        'outputs': {'out_1': ['OutL', 'AudioPort'],
                                    'out_2': ['OutR', 'AudioPort']}},
-     'true_stereo_cab': {'controls': {'gain': ['Gain', 0.0, -24.0, 24.0],
+     'true_stereo_cab': {'controls': {'gain': ['Gain', 0.0, -40.0, 4.0],
                             "ir": ["/audio/cabs/1x12cab.wav", 0, 0, 1]},
                          'inputs': {'gain': ['Gain', 'CVPort'],
                                     'in_1': ['InL', 'AudioPort'],
                                     'in_2': ['InR', 'AudioPort']},
                          'outputs': {'out_1': ['OutL', 'AudioPort'],
                                      'out_2': ['OutR', 'AudioPort']}},
-     'true_stereo_reverb': {'controls': {'gain': ['Output Gain', 0.0, -24.0, 24.0],
+     'true_stereo_reverb': {'controls': {'gain': ['Output Gain', 0.0, -40.0, 4.0],
                                  "ir": ["/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1]},
                             'inputs': {'gain': ['Output Gain', 'CVPort'],
                                        'in_1': ['InL', 'AudioPort'],
@@ -758,6 +758,7 @@ class Knobs(QObject):
         effect_type = current_effects[effect_id]["effect_type"]
         if effect_type in ["mono_reverb", "stereo_reverb", "true_stereo_reverb"]:
             is_cab = False
+        current_effects[effect_id]["controls"]["ir"].name = ir_file
         ingen_wrapper.set_file(effect_id, ir_file, is_cab)
 
     @Slot(str)
@@ -779,8 +780,8 @@ class Knobs(QObject):
         # print("copy irs from USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
-        command = """cd /media/reverbs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/audio/reverbs --parents;
-        cd /media/cabs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/audio/cabs --parents"""
+        command = """cd /media/reverbs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/reverbs --parents;
+        cd /media/cabs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/cabs --parents"""
         # copy all wavs in /usb/reverbs and /usr/cabs to /audio/reverbs and /audio/cabs
         command_status[0].value = -1
         self.launch_subprocess(command)
@@ -790,7 +791,7 @@ class Knobs(QObject):
         # print("copy presets from USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
-        command = """cd /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/presets --parents"""
+        command = """cd /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/mnt/presets --parents"""
         command_status[0].value = -1
         self.launch_subprocess(command)
 
@@ -799,7 +800,7 @@ class Knobs(QObject):
         # print("copy presets to USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
-        command = """cd /presets; mkdir -p /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/media/presets --parents;sudo umount /media"""
+        command = """cd /mnt/presets; mkdir -p /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/media/presets --parents;sudo umount /media"""
         command_status[0].value = -1
         self.launch_subprocess(command)
 
@@ -976,6 +977,12 @@ def send_to_footswitch_blocks(switch_name, value=0):
                 qDebug("sending knob change from foot switch "+effect_id + "value" + str(float(value)))
                 knobs.ui_knob_change(effect_id, "input", float(value))
 
+def next_preset():
+    jump_to_preset(True, 1)
+
+def previous_preset():
+    jump_to_preset(True, -1)
+
 def handle_foot_change(switch_name, timestamp):
     print(switch_name, timestamp)
     qDebug("foot change "+ str(switch_name) + str(timestamp))
@@ -1080,6 +1087,14 @@ def process_ui_messages():
                 dsp_load.value = mean_load
             elif m[0] == "add_port":
                 pass
+            elif m[0] == "set_file":
+                effect_name, ir_file = m[1:]
+                try:
+                    if (effect_name in current_effects) and ("ir" in current_effects[effect_name]["controls"]):
+                        current_effects[effect_name]["controls"]["ir"].name = ir_file
+                        qDebug("setting knob file " + ir_file)
+                except ValueError:
+                    pass
             elif m[0] == "remove_port":
                 pass
             elif m[0] == "exit":
@@ -1095,7 +1110,7 @@ effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
         "mono_cab": "http://gareus.org/oss/lv2/convoLV2#Mono",
         "stereo_cab": "http://gareus.org/oss/lv2/convoLV2#MonoToStereo",
         "true_stereo_cab": "http://gareus.org/oss/lv2/convoLV2#Stereo",
-        "mixer": "http://gareus.org/oss/lv2/matrixmixer#i4o4",
+        # "mixer": "http://gareus.org/oss/lv2/matrixmixer#i4o4",
         "warmth": "http://moddevices.com/plugins/tap/tubewarmth",
         "reverse": "http://moddevices.com/plugins/tap/reflector",
         "saturator": "http://moddevices.com/plugins/tap/sigmoid",
@@ -1108,8 +1123,8 @@ effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
         "foot_switch_b": "http://avwlv2.sourceforge.net/plugins/avw/controltocv",
         "foot_switch_c": "http://avwlv2.sourceforge.net/plugins/avw/controltocv",
         "slew_limiter": "http://avwlv2.sourceforge.net/plugins/avw/slew",
-        "square_distortion": "http://ssj71.github.io/infamousPlugins/plugs.html#hip2b",
-        "control_to_midi": "http://ssj71.github.io/infamousPlugins/plugs.html#mindi",
+        # "square_distortion": "http://ssj71.github.io/infamousPlugins/plugs.html#hip2b",
+        # "control_to_midi": "http://ssj71.github.io/infamousPlugins/plugs.html#mindi",
         "pan": "http://avwlv2.sourceforge.net/plugins/avw/vcpanning",
         "mix_vca": "http://avwlv2.sourceforge.net/plugins/avw/vcaexp_audio",
         }

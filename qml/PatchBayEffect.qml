@@ -58,6 +58,8 @@ Rectangle {
          * if we are, then we're a current target
          */
         if (!highlight){
+            selected = true
+            patch_bay.selected_effect = rect
             hide_sliders(false);
             knobs.select_effect(true, effect_id)
             patch_bay.list_effect_id = effect_id;
@@ -74,6 +76,8 @@ Rectangle {
                 patch_bay.externalRefresh();
             }
         } else {
+            patch_bay.selected_effect.selected = false;
+
             knobs.select_effect(false, effect_id)
             patch_bay.list_effect_id = effect_id;
             patch_bay.list_source = false;
@@ -324,11 +328,14 @@ Rectangle {
         onReleased: {
             // var in_x = rect.x;
             // var in_y = rect.y;
-            if (patch_bay.currentMode == PatchBay.Move){
+           
+            if (rect.beginDrag != Qt.point(rect.x, rect.y)){
 				patch_bay.isMoving = false;
 				patch_bay.externalRefresh();
 				knobs.move_effect(effect_id, rect.x, rect.y)
-			}
+            }
+            // if (patch_bay.currentMode == PatchBay.Move){
+			// }
 
             // if(!rect.caught) {
             // // clamp to bounds
