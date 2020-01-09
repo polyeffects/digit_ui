@@ -37,7 +37,7 @@ Item {
                     GlowingLabel {
                         // color: "#ffffff"
                         text: qsTr("DIGIT FIRMWARE 2.0")
-                        color: Constants.accent_color
+                        color: accent_color
                     }
 
                     Button {

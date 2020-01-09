@@ -55,7 +55,7 @@ import "polyconst.js" as Constants
         //     Rectangle {
         //         x: 0
         //         y: 0
-        //         color: Constants.accent_color
+        //         color: accent_color
         //         width: 58
         //         height: 36
         //         border { width:1; color: "white"}
@@ -105,7 +105,7 @@ import "polyconst.js" as Constants
         //     Rectangle {
         //         x: 0
         //         y: 0
-        //         color: Constants.accent_color
+        //         color: accent_color
         //         width: 58
         //         height: 36
         //         border { width:1; color: "white"}
@@ -229,7 +229,7 @@ import "polyconst.js" as Constants
                     else if (source_port_type == "ControlPort"){
                         line_color = Constants.control_color;
                     } else {
-                        line_color = Constants.accent_color;
+                        line_color = accent_color;
                     }
 
                     if (patch_bay.isMoving){
@@ -302,6 +302,10 @@ import "polyconst.js" as Constants
                 anchors.fill: parent
                 color: "#90000000"
                 visible: patch_bay.currentMode == PatchBay.Sliders
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {}
+                }
             }
 
             // bottom buttons
@@ -328,7 +332,7 @@ import "polyconst.js" as Constants
                         currentMode = PatchBay.Connect;
                     }
                     Material.background: "white"
-                    Material.foreground: Constants.accent_color
+                    Material.foreground: accent_color
                     radius: 28
 
                     Label {
@@ -356,7 +360,7 @@ import "polyconst.js" as Constants
                         selected_effect.disconnect_clicked()
                     }
                     Material.background: "white"
-                    Material.foreground: Constants.accent_color
+                    Material.foreground: accent_color
                     radius: 28
 
                     Label {
@@ -384,7 +388,7 @@ import "polyconst.js" as Constants
                         selected_effect.hide_sliders(false);
                     }
                     Material.background: "white"
-                    Material.foreground: Constants.accent_color
+                    Material.foreground: accent_color
                     radius: 28
                     Label {
                         visible: title_footer.show_help 
@@ -413,7 +417,7 @@ import "polyconst.js" as Constants
                         selected_effect.expand_clicked();
                     }
                     Material.background: "white"
-                    Material.foreground: Constants.accent_color
+                    Material.foreground: accent_color
                     radius: 28
                     Label {
                         visible: title_footer.show_help 
@@ -440,7 +444,7 @@ import "polyconst.js" as Constants
                 //         console.log("clicked:");
                 //     }
                 //     Material.background: "white"
-                //     Material.foreground: Constants.accent_color
+                //     Material.foreground: accent_color
                 //     radius: 28
                 // }
                 IconButton {
@@ -453,7 +457,7 @@ import "polyconst.js" as Constants
                         selected_effect.delete_clicked()
                     }
                     Material.background: "white"
-                    Material.foreground: Constants.accent_color
+                    Material.foreground: accent_color
                     radius: 28
                     Label {
                         visible: title_footer.show_help 

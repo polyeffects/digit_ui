@@ -80,6 +80,7 @@ effect_prototypes = {
                       'Feedback_4': ['Feedback', 0.3, 0, 1],
                       'Warp_2': ['Warp', 0, -1, 1]},
          'inputs': {'Amp_5': ['Amp', 'CVPort'],
+                    'BPM_0': ['BPM', 'ControlPort'],
                     'DelayT60_3': ['Glide', 'CVPort'],
                     'Delay_1': ['Time', 'CVPort'],
                     'FeedbackSm_6': ['Tone', 'CVPort'],
@@ -106,7 +107,7 @@ effect_prototypes = {
                                   #'CTL_OUT': ['Control Out', 'ControlPort'],
                                   'CV_OUT': ['CV Out', 'CVPort']}},
      'filter': {'controls': {'exp_fm_gain': ['Exp. FM gain', 0.5, 0.0, 10.0],
-                             'freq': ['Frequency', 440.0, 1e-06, 1.0],
+                             'freq': ['Frequency', 440.0, 20, 20000],
                              'in_gain': ['Input gain', 0.0, -60.0, 10.0],
                              'out_gain': ['Output gain', 0.0, -15.0, 15.0],
                              'res': ['Resonance', 0.5, 0.0, 1.0],
@@ -116,16 +117,25 @@ effect_prototypes = {
                            'in': ['Input', 'AudioPort'],
                            'res_mod': ['Resonance Mod', 'CVPort']},
                 'outputs': {'out': ['Output', 'AudioPort']}},
-     'foot_switch_a': {'controls': {'input': ['Footswitch Input', 0.5, 0.0, 1.0]},
-                       'inputs': {},
-                       'outputs': {'output': ['Out', 'CVPort']}},
-     'foot_switch_b': {'controls': {'input': ['Footswitch Input', 0.5, 0.0, 1.0]},
-                       'inputs': {},
-                       'outputs': {'output': ['Out', 'CVPort']}},
-     'foot_switch_c': {'controls': {'input': ['Footswitch Input', 0.5, 0.0, 1.0]},
-                       'inputs': {},
-                       'outputs': {'output': ['Out', 'CVPort']}},
+     'foot_switch_a': {'controls': {'bpm': ['BPM', 120.0, 35.0, 350.0],
+                          'latching': ['Is Latching', 0.0, 0.0, 1.0],
+                          'value': ['value', 0.0, 0.0, 1.0]},
+                         'inputs': {},
+                         'outputs': {'bpm_out': ['BPM Out', 'ControlPort'],
+                                     'out': ['Value Out', 'CVPort']}},
 
+     'foot_switch_b': {'controls': {'bpm': ['BPM', 120.0, 35.0, 350.0],
+                          'latching': ['Is Latching', 0.0, 0.0, 1.0],
+                          'value': ['value', 0.0, 0.0, 1.0]},
+                         'inputs': {},
+                         'outputs': {'bpm_out': ['BPM Out', 'ControlPort'],
+                                     'out': ['Value Out', 'CVPort']}},
+     'foot_switch_c': {'controls': {'bpm': ['BPM', 120.0, 35.0, 350.0],
+                          'latching': ['Is Latching', 0.0, 0.0, 1.0],
+                          'value': ['value', 0.0, 0.0, 1.0]},
+                         'inputs': {},
+                         'outputs': {'bpm_out': ['BPM Out', 'ControlPort'],
+                                     'out': ['Value Out', 'CVPort']}},
      'lfo': {'controls': {'phi0': ['Phi0', 0, 0.0, 6.28],
                           'reset': ['Reset', 0.0, -1.0, 1.0],
                           'tempo': ['Tempo', 120.0, 1.0, 320.0],
@@ -134,7 +144,9 @@ effect_prototypes = {
                                               0.0078125,
                                               32.0],
                           'waveForm': ['Wave Form', 0, 0, 5]},
-             'inputs': {'reset': ['Reset', 'CVPort']},
+             'inputs': {'reset': ['Reset', 'CVPort'],
+                    'tempo': ['BPM', 'ControlPort']
+                 },
              'outputs': {'output': ['Output', 'CVPort']}},
      'mix_vca': {'controls': {'gain1': ['Gain Offset', 0, 0, 1],
                               'gain1Data': ['Main Gain', 0.0, -1.0, 1.0],
@@ -234,8 +246,7 @@ effect_prototypes = {
                                         'UP': ['Up', 0.02, -0.5, 1.0],
                                         'WETDRY': ['Wet/Dry Mix', 0.7, 0.0, 1.0]},
                            'inputs': {'INPUT': ['Audio In', 'AudioPort']},
-                           'outputs': {'LATENCY': ['Latency', 'ControlPort'],
-                                       'OUTPUT': ['Audio Out', 'AudioPort']}},
+                           'outputs': {'OUTPUT': ['Audio Out', 'AudioPort']}},
      'stereo_EQ': {'controls': {'HPQ': ['HighPass Resonance', 0.7, 0.0, 1.4],
                                 'HPfreq': ['Highpass Frequency', 20.0, 5.0, 1250.0],
                                 'HSfreq': ['Highshelf Frequency',
@@ -309,7 +320,73 @@ effect_prototypes = {
                 'inputs': {'blend': ['Tape--Tube Blend', 'CVPort'],
                            'drive': ['Drive', 'CVPort'],
                            'input': ['Input', 'AudioPort']},
-                'outputs': {'output': ['Output', 'AudioPort']}}}
+                'outputs': {'output': ['Output', 'AudioPort']}},
+    'amp_bass_svt40': {'controls': {'BASS': ['BASS', 0.5, 0.0, 1.0],
+                                 'CABSWITCH': ['CABSWITCH', 0.0, 0.0, 1.0],
+                                 'HIGHSWITCH': ['HIGHSWITCH', 0.0, 0.0, 1.0],
+                                 'LOWSWITCH': ['LOWSWITCH', 1.0, 0.0, 2.0],
+                                 'MIDDLE': ['MIDDLE', 0.5, 0.0, 1.0],
+                                 'MIDSWITCH': ['MIDSWITCH', 1.0, 0.0, 2.0],
+                                 'TREBLE': ['TREBLE', 0.5, 0.0, 1.0],
+                                 'VOLUME': ['VOLUME', 0.2, 0.0, 1.0]},
+                    'inputs': {'in': ['In', 'AudioPort']},
+                    'outputs': {'out': ['Out', 'AudioPort']}},
+     'amp_bass_venue': {'controls': {'BASS': ['BASS', 0.5, 0.0, 1.0],
+                                     'CAB': ['CAB', 0.0, 0.0, 1.0],
+                                     'MID': ['MID', 0.5, 0.0, 1.0],
+                                     'TREBLE': ['TREBLE', 0.5, 0.0, 1.0],
+                                     'VOLUME': ['VOLUME', 0.5, 0.0, 1.0]},
+                        'inputs': {'in': ['In', 'AudioPort']},
+                        'outputs': {'out': ['Out', 'AudioPort']}},
+     'auto_swell': {'controls': {'DOWNTIME': ['DOWNTIME', 5.0, 0.0, 1000],
+                                 'TRESHOLD': ['THRESHOLD', 1.0, 0.0, 10],
+                                 'UPTIME': ['UPTIME', 100, 0.0, 1000]},
+                    'inputs': {'TRESHOLD': ['THRESHOLD', 'CVPort'],
+                               'in': ['In', 'AudioPort']},
+                    'outputs': {'out': ['Out', 'AudioPort']}},
+     'freeze': {'controls': {'DRONE_GAIN': ['Drone Gain', 0.5, 0.0, 2.0],
+                             'RELEASE': ['Release', 0.5, 0.01, 3.0],
+                             'STICK_IT': ['Freeze', 0, 0, 1]},
+                'inputs': {'INPUT': ['Audio In', 'AudioPort'],
+                           'STICK_IT': ['Freeze', 'CVPort']},
+                'outputs': {'OUTPUT': ['Audio Out', 'AudioPort']}},
+     'power_amp_cream': {'controls': {'BASS': ['BASS', 0.5, 0.0, 1.0],
+                                      'LEVEL': ['LEVEL', 0.5, 0.0, 1.0],
+                                      'TREBLE': ['TREBLE', 0.5, 0.0, 1.0],
+                                      'VOLUME': ['VOLUME', 0.5, 0.0, 1.0]},
+                         'inputs': {'in': ['In', 'AudioPort']},
+                         'outputs': {'out': ['Out', 'AudioPort']}},
+     'power_amp_plexi': {'controls': {'BASS': ['BASS', 0.5, 0.0, 1.0],
+                                      'MASTER': ['MASTER', 0.4, 0.0, 1.0],
+                                      'MID': ['MID', 0.5, 0.0, 1.0],
+                                      'PRESENSE': ['PRESENSE', 0.15, 0.0, 1.0],
+                                      'TREBLE': ['TREBLE', 0.5, 0.0, 1.0],
+                                      'VOLUME': ['VOLUME', 0.15, 0.0, 1.0]},
+                         'inputs': {'in': ['In', 'AudioPort']},
+                         'outputs': {'out': ['Out', 'AudioPort']}},
+     'power_amp_super': {'controls': {'BASS': ['BASS', 0.5, 0.0, 1.0],
+                                      'GAIN': ['GAIN', 0.15, 0.0, 1.0],
+                                      'TREBLE': ['TREBLE', 0.5, 0.0, 1.0],
+                                      'VOLUME': ['VOLUME', 0.25, 0.0, 1.0]},
+                         'inputs': {'in': ['In', 'AudioPort']},
+                         'outputs': {'out': ['Out', 'AudioPort']}},
+     'turntable_stop': {'controls': {'DCURVE': ['Decay Curve', 0.0, -10.0, 10.0],
+                                     'DTIME': ['Decay Time', 0.5, 0.01, 10.0],
+                                     'PULL_THE_PLUG': ['Pull the Plug', 0, 0, 1]},
+                        'inputs': {'DTIME': ['Decay Time', 'CVPort'],
+                                   'INPUT': ['Audio In', 'AudioPort'],
+                                   'PULL_THE_PLUG': ['Pull the Plug', 'CVPort']},
+                        'outputs': {'OUTPUT': ['Audio Out', 'AudioPort']}},
+     'whammy': {'controls': {'EXPRESSION': ['Expression', 0.0, 0.0, 1.0],
+                             'FINISH': ['Finish', 12, -36, 24],
+                             'LOCK': ['Lock Mode', 1, 0, 2],
+                             'MODE': ['Mode', 0, 0, 2],
+                             'START': ['Start', 0, -36, 24]},
+                'inputs': {'EXPRESSION': ['Expression', 'CVPort'],
+                           'FINISH': ['Finish', 'CVPort'],
+                           'INPUT': ['Audio In', 'AudioPort'],
+                           'START': ['Start', 'CVPort']},
+                'outputs': { 'OUTPUT': ['Audio Out', 'AudioPort']}}}
 
 
 def clamp(v, min_value, max_value):
@@ -469,7 +546,7 @@ def jump_to_preset(is_inc, num):
         else:
             return
     # load_preset("/presets/"+p_list[current_preset.value]+".json")
-    print("load preset here") # TODO
+    # print("load preset here") # TODO
 
 def write_pedal_state():
     with open("/pedal_state/state.json", "w") as f:
@@ -481,13 +558,28 @@ seq_num = 10
 
 def load_preset(name):
     # delete existing blocks
-    to_delete = current_effects.keys()
-    port_connections.clear()
+    to_delete = list(current_effects.keys())
     for effect_id in to_delete:
         if effect_id in ["out_1", "out_2", "out_3", "out_4", "in_1", "in_2", "in_3", "in_4"]:
-            pass # disconnect ports? 
+            pass
         else:
             knobs.remove_effect(effect_id)
+
+    for effect_id in to_delete:
+        if effect_id in ["out_1", "out_2", "out_3", "out_4", "in_1", "in_2", "in_3", "in_4"]:
+            # remove connections from IO ports
+            if "out_" in effect_id:
+                ##
+                for source_port, targets in list(port_connections.items()):
+                    s_effect, s_port = source_port.split("/")
+                    # print("port_connectinons are ", port_connections, effect_id, s_effect, source_port)
+                    if s_effect == effect_id:
+                        # print("port_connectinons are ", port_connections)
+                        if len(port_connections[source_port]) > 0:
+                            ingen_wrapper.disconnect_plugin("/main/"+effect_id)
+                            # print("disconnect port", effect_id)
+                            # qDebug("disconnecting port " + effect_id)
+    port_connections.clear()
     ingen_wrapper.load_pedalboard(name)
 
 def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
@@ -513,7 +605,7 @@ def from_backend_remove_effect(effect_name):
     # called by engine code when effect is removed
     if effect_name not in current_effects:
         return
-    print("### from backend removing effect")
+    # print("### from backend removing effect")
     if patch_bay_model.patch_bay_singleton is not None:
         patch_bay_model.patch_bay_singleton.startRemove(effect_name)
     for source_port, targets in list(port_connections.items()):
@@ -525,17 +617,17 @@ def from_backend_remove_effect(effect_name):
     current_effects.pop(effect_name)
     context.setContextProperty("currentEffects", current_effects) # might be slow
     context.setContextProperty("portConnections", port_connections)
-    print("### from backend removing effect setting portConnections")
+    # print("### from backend removing effect setting portConnections")
     if patch_bay_model.patch_bay_singleton is not None:
         patch_bay_model.patch_bay_singleton.endRemove()
     update_counter.value+=1
 
 def from_backend_add_connection(head, tail):
-    print("head ", head, "tail", tail)
+    # print("head ", head, "tail", tail)
     current_source_port = head[6:]
     if len(current_source_port.split("/")) == 1:
         s_effect = current_source_port
-        print("## s_effect", s_effect)
+        # print("## s_effect", s_effect)
         if s_effect not in current_effects:
             return
         s_effect_type = current_effects[s_effect]["effect_type"]
@@ -544,7 +636,7 @@ def from_backend_add_connection(head, tail):
         elif s_effect_type == "input":
             s_port = "output"
         current_source_port = s_effect + "/" + s_port
-        print("## current_source_port", current_source_port)
+        # print("## current_source_port", current_source_port)
 
     effect_id_port_name = tail[6:].split("/")
     if len(effect_id_port_name) == 1:
@@ -566,14 +658,14 @@ def from_backend_add_connection(head, tail):
     if [t_effect, t_port] not in port_connections[current_source_port]:
         port_connections[current_source_port].append([t_effect, t_port])
 
-    print("port_connections is", port_connections)
+    # print("port_connections is", port_connections)
     # global context
     context.setContextProperty("portConnections", port_connections)
     update_counter.value+=1
 
 
 def from_backend_disconnect(head, tail):
-    print("head ", head, "tail", tail)
+    # print("head ", head, "tail", tail)
     current_source_port = head[6:]
     if len(current_source_port.split("/")) == 1:
         s_effect = current_source_port
@@ -595,10 +687,10 @@ def from_backend_disconnect(head, tail):
     else:
         t_effect, t_port = effect_id_port_name
 
-    print("before port_connections is", port_connections)
+    # print("before port_connections is", port_connections)
     if current_source_port in port_connections and [t_effect, t_port] in port_connections[current_source_port]:
         port_connections[current_source_port].pop(port_connections[current_source_port].index([t_effect, t_port]))
-    print("after port_connections is", port_connections)
+    # print("after port_connections is", port_connections)
     # global context
     context.setContextProperty("portConnections", port_connections)
     update_counter.value+=1
@@ -606,7 +698,7 @@ def from_backend_disconnect(head, tail):
 class Knobs(QObject):
     @Slot(bool, str, str)
     def set_current_port(self, is_source, effect_id, port_name):
-        print("port name is", port_name)
+        # print("port name is", port_name)
         # if source highlight targets
         if is_source:
             # set current source port
@@ -668,7 +760,7 @@ class Knobs(QObject):
     @Slot(bool, str)
     def select_effect(self, is_source, effect_id):
         effect_type = current_effects[effect_id]["effect_type"]
-        print("selecting effect type", effect_type)
+        # print("selecting effect type", effect_type)
         if is_source:
             ports = [k+'|'+v[0] for k,v in effect_prototypes[effect_type]["outputs"].items()]
             selected_effect_ports.setStringList(ports)
@@ -687,14 +779,14 @@ class Knobs(QObject):
             for c_effect, c_port in connected:
                 if c_effect == effect_id or s_effect == effect_id:
                     ports.append(s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
-        print("connected ports:", ports)
+        # print("connected ports:", ports)
         selected_effect_ports.setStringList(ports)
 
     @Slot(str)
     def disconnect_port(self, port_pair):
         target_pair, source_pair = port_pair.split("---")
         t_effect, t_port = target_pair.split("/")
-        print("### disconnect, port pair", port_pair)
+        # print("### disconnect, port pair", port_pair)
 
         s_effect, s_port = source_pair.split("/")
         s_effect_type = current_effects[s_effect]["effect_type"]
@@ -716,7 +808,7 @@ class Knobs(QObject):
         # TODO actually call backend.
         global seq_num
         seq_num = seq_num + 1
-        print("add new effect", effect_type)
+        # print("add new effect", effect_type)
         # if there's existing effects of this type, increment the ID
         effect_name = effect_type+str(1)
         for i in range(1, 1000):
@@ -750,7 +842,7 @@ class Knobs(QObject):
             current_effects[effect_name]["controls"][parameter].value = value
             ingen_wrapper.set_parameter_value("/main/"+effect_name+"/"+parameter, value)
         else:
-            print("effect not found")
+            print("effect not found", effect_name, parameter, value, effect_name in current_effects)
 
     @Slot(str, str)
     def update_ir(self, effect_id, ir_file):
@@ -766,6 +858,7 @@ class Knobs(QObject):
         # print("loading", preset_file)
         # outfile = preset_file[7:] # strip file:// prefix
         load_preset(preset_file+"/main.ttl")
+        current_preset.name = preset_file.strip("/").split("/")[-1][:-6]
         update_counter.value+=1
 
     @Slot(str)
@@ -862,7 +955,7 @@ class Knobs(QObject):
     @Slot(str, str)
     def set_knob_current_effect(self, effect_id, parameter):
         # get current value and update encoder / cache.
-        qDebug("setting knob current effect" + parameter)
+        # qDebug("setting knob current effect" + parameter)
         knob = "left"
         if not (knob_map[knob].effect == effect_id and knob_map[knob].parameter == parameter):
             knob_map[knob].effect = effect_id
@@ -903,11 +996,11 @@ class Encoder():
         self.rmin = 0
         self.rmax = 1
 
-knob_map = {"left": Encoder(s_speed=0.2), "right": Encoder(s_speed=1)}
+knob_map = {"left": Encoder(s_speed=0.05), "right": Encoder(s_speed=1)}
 
 def handle_encoder_change(is_left, change):
-    print(is_left, change)
-    qDebug("encoder change "+ str(is_left) + str(change))
+    # print(is_left, change)
+    # qDebug("encoder change "+ str(is_left) + str(change))
     # increase or decrease the current knob value depending on knob speed
     # knob_value = knob_value + (change * knob_speed)
     normal_speed = 24.0
@@ -961,9 +1054,9 @@ def handle_bypass():
     else:
         pedal_hardware.effect_on()
 
-def send_to_footswitch_blocks(switch_name, value=0):
+def send_to_footswitch_blocks(timestamp, switch_name, value=0):
     # send to all foot switch blocks
-    qDebug("sending to switch_name "+str(switch_name) + "value" + str(value))
+    # qDebug("sending to switch_name "+str(switch_name) + "value" + str(value))
     if "tap" in switch_name:
         foot_switch_name = "foot_switch_a"
     if "step" in switch_name:
@@ -971,11 +1064,18 @@ def send_to_footswitch_blocks(switch_name, value=0):
     if "bypass" in switch_name:
         foot_switch_name = "foot_switch_c"
 
+    bpm = None
+    if value == 1:
+        bpm = handle_tap(foot_switch_name, timestamp)
+
     for effect_id, effect in current_effects.items():
         if "foot_switch" in effect["effect_type"]:
             if foot_switch_name in effect_id:
-                qDebug("sending knob change from foot switch "+effect_id + "value" + str(float(value)))
-                knobs.ui_knob_change(effect_id, "input", float(value))
+                if bpm is not None:
+                    # qDebug("sending knob change from foot switch "+effect_id + "bpm" + str(float(bpm)))
+                    knobs.ui_knob_change(effect_id, "bpm", float(bpm))
+                # qDebug("sending knob change from foot switch "+effect_id + "value" + str(float(value)))
+                knobs.ui_knob_change(effect_id, "value", float(value))
 
 def next_preset():
     jump_to_preset(True, 1)
@@ -984,21 +1084,21 @@ def previous_preset():
     jump_to_preset(True, -1)
 
 def handle_foot_change(switch_name, timestamp):
-    print(switch_name, timestamp)
-    qDebug("foot change "+ str(switch_name) + str(timestamp))
+    # print(switch_name, timestamp)
+    # qDebug("foot change "+ str(switch_name) + str(timestamp))
     action = foot_action_groups[current_action_group][switch_name][0]
     params = None
     if len(foot_action_groups[current_action_group][switch_name]) > 1:
         params = foot_action_groups[current_action_group][switch_name][1:]
     if action is Actions.tap:
-        handle_tap(timestamp)
+        pass
     elif action is Actions.toggle_pedal:
         handle_bypass()
 
     elif action is Actions.set_value:
-        send_to_footswitch_blocks(switch_name, 0)
+        send_to_footswitch_blocks(timestamp, switch_name, 0)
     elif action is Actions.set_value_down:
-        send_to_footswitch_blocks(switch_name, 1)
+        send_to_footswitch_blocks(timestamp, switch_name, 1)
     elif action is Actions.select_preset:
         pass
 
@@ -1013,30 +1113,33 @@ def handle_foot_change(switch_name, timestamp):
     elif action is Actions.toggle_effect:
         pass
 
-start_tap_time = None
+start_tap_time = {"foot_switch_a":None, "foot_switch_b":None, "foot_switch_c":None}
 ## tap callback is called by hardware button from the GPIO checking thread
-def handle_tap(timestamp):
-    global start_tap_time
+def handle_tap(footswitch, timestamp):
     current_tap = timestamp
-    if start_tap_time is not None:
+    bpm = None
+    if start_tap_time[footswitch] is not None:
         # just use this and previous to calculate BPM
         # BPM must be in range 30-250
-        d = current_tap - start_tap_time
+        d = current_tap - start_tap_time[footswitch]
         # 120 bpm, 0.5 seconds per tap
         bpm = 60 / d
         if bpm > 30 and bpm < 350:
             # set host BPM
             set_bpm(bpm)
+        else:
+            bpm = None
 
     # record start time
-    start_tap_time = current_tap
+    start_tap_time[footswitch] = current_tap
+    return bpm
 
 def process_ui_messages():
     # pop from queue
     try:
         while not EXIT_PROCESS[0]:
             m = ui_messages.get(block=False)
-            print("got ui message", m)
+            # print("got ui message", m)
             if m[0] == "value_change":
                 # print("got value change in process_ui")
                 effect_name_parameter, value = m[1:]
@@ -1060,10 +1163,10 @@ def process_ui_messages():
                 from_backend_disconnect(head, tail)
             elif m[0] == "add_plugin":
                 effect_name, effect_type, x, y = m[1:5]
-                print("got add", m)
+                # print("got add", m)
                 if (effect_name not in current_effects and effect_type in inv_effect_type_map):
-                    print("adding ", m)
-                    if effect_type == "http://avwlv2.sourceforge.net/plugins/avw/controltocv":
+                    # print("adding ", m)
+                    if effect_type == "http://polyeffects.com/lv2/polyfoot":
                         mapped_type = effect_name.rstrip("123456789")
                         if mapped_type in effect_type_map:
                             from_backend_new_effect(effect_name, mapped_type, x, y)
@@ -1092,7 +1195,7 @@ def process_ui_messages():
                 try:
                     if (effect_name in current_effects) and ("ir" in current_effects[effect_name]["controls"]):
                         current_effects[effect_name]["controls"]["ir"].name = ir_file
-                        qDebug("setting knob file " + ir_file)
+                        # qDebug("setting knob file " + ir_file)
                 except ValueError:
                     pass
             elif m[0] == "remove_port":
@@ -1119,15 +1222,69 @@ effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
         "filter": "http://drobilla.net/plugins/fomp/mvclpf1",
         "lfo": "http://avwlv2.sourceforge.net/plugins/avw/lfo_tempo",
         "env_follower": "http://ssj71.github.io/infamousPlugins/plugs.html#envfollowerCV",
-        "foot_switch_a": "http://avwlv2.sourceforge.net/plugins/avw/controltocv",
-        "foot_switch_b": "http://avwlv2.sourceforge.net/plugins/avw/controltocv",
-        "foot_switch_c": "http://avwlv2.sourceforge.net/plugins/avw/controltocv",
+        "foot_switch_a": "http://polyeffects.com/lv2/polyfoot",
+        "foot_switch_b": "http://polyeffects.com/lv2/polyfoot",
+        "foot_switch_c": "http://polyeffects.com/lv2/polyfoot",
         "slew_limiter": "http://avwlv2.sourceforge.net/plugins/avw/slew",
         # "square_distortion": "http://ssj71.github.io/infamousPlugins/plugs.html#hip2b",
         # "control_to_midi": "http://ssj71.github.io/infamousPlugins/plugs.html#mindi",
         "pan": "http://avwlv2.sourceforge.net/plugins/avw/vcpanning",
         "mix_vca": "http://avwlv2.sourceforge.net/plugins/avw/vcaexp_audio",
+        # "whammy":"http://ssj71.github.io/infamousPlugins/plugs.html#ewham",
+        "turntable_stop":"http://ssj71.github.io/infamousPlugins/plugs.html#powercut",
+        "amp_bass_svt40":"http://guitarix.sourceforge.net/plugins/gx_ampegsvt_#_ampegsvt_",
+        "amp_bass_venue":"http://guitarix.sourceforge.net/plugins/gx_voxbass_#_voxbass_",
+        "power_amp_cream":"http://guitarix.sourceforge.net/plugins/gx_CreamMachine_#_CreamMachine_",
+        "power_amp_plexi":"http://guitarix.sourceforge.net/plugins/gx_plexi_#_plexi_",
+        "power_amp_super":"http://guitarix.sourceforge.net/plugins/gx_supersonic_#_supersonic_",
+        "auto_swell": "http://guitarix.sourceforge.net/plugins/gx_slowgear_#_slowgear_",
+        "freeze": "http://ssj71.github.io/infamousPlugins/plugs.html#stuck"
         }
+
+# effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
+#         "mono_reverb": "http://polyeffects.com/lv2/polyconvo#Mono",
+#         "stereo_reverb": "http://polyeffects.com/lv2/polyconvo#MonoToStereo",
+#         "true_stereo_reverb": "http://polyeffects.com/lv2/polyconvo#Stereo",
+#         "mono_cab": "http://gareus.org/oss/lv2/convoLV2#Mono",
+#         "stereo_cab": "http://gareus.org/oss/lv2/convoLV2#MonoToStereo",
+#         "true_stereo_cab": "http://gareus.org/oss/lv2/convoLV2#Stereo",
+#         # "mixer": "http://gareus.org/oss/lv2/matrixmixer#i4o4",
+#         "warmth": "http://moddevices.com/plugins/tap/tubewarmth",
+#         "reverse": "http://moddevices.com/plugins/tap/reflector",
+#         "saturator": "http://moddevices.com/plugins/tap/sigmoid",
+#         "mono_EQ": "http://gareus.org/oss/lv2/fil4#mono",
+#         "stereo_EQ": "http://gareus.org/oss/lv2/fil4#stereo",
+#         "filter": "http://drobilla.net/plugins/fomp/mvclpf1",
+#         "lfo": "http://avwlv2.sourceforge.net/plugins/avw/lfo_tempo",
+#         "env_follower": "http://ssj71.github.io/infamousPlugins/plugs.html#envfollowerCV",
+#         "foot_switch_a": "http://polyeffects.com/lv2/polyfoot",
+#         "foot_switch_b": "http://polyeffects.com/lv2/polyfoot",
+#         "foot_switch_c": "http://polyeffects.com/lv2/polyfoot",
+#         "slew_limiter": "http://avwlv2.sourceforge.net/plugins/avw/slew",
+#         # "square_distortion": "http://ssj71.github.io/infamousPlugins/plugs.html#hip2b",
+#         # "control_to_midi": "http://ssj71.github.io/infamousPlugins/plugs.html#mindi",
+#         "pan": "http://avwlv2.sourceforge.net/plugins/avw/vcpanning",
+#         "mix_vca": "http://avwlv2.sourceforge.net/plugins/avw/vcaexp_audio",
+#         # "whammy":"http://ssj71.github.io/infamousPlugins/plugs.html#ewham",
+#         "turntable_stop":"http://ssj71.github.io/infamousPlugins/plugs.html#powercut",
+#         "amp_bass_svt40":"http://guitarix.sourceforge.net/plugins/gx_ampegsvt_#_ampegsvt_",
+#         "amp_bass_venue":"http://guitarix.sourceforge.net/plugins/gx_voxbass_#_voxbass_",
+#         "power_amp_cream":"http://guitarix.sourceforge.net/plugins/gx_CreamMachine_#_CreamMachine_",
+#         "power_amp_plexi":"http://guitarix.sourceforge.net/plugins/gx_plexi_#_plexi_",
+#         "power_amp_super":"http://guitarix.sourceforge.net/plugins/gx_supersonic_#_supersonic_",
+#         "auto_swell": "http://guitarix.sourceforge.net/plugins/gx_slowgear_#_slowgear_",
+#         "freeze": "http://ssj71.github.io/infamousPlugins/plugs.html#stuck",
+#         "mono_compressor": "http://gareus.org/oss/lv2/darc#mono",
+#         "stereo_compressor": "http://gareus.org/oss/lv2/darc#stereo",
+# http://drobilla.net/plugins/fomp/cs_phaser1
+# http://drobilla.net/plugins/fomp/cs_phaser1_lfo
+# http://drobilla.net/plugins/fomp/cs_chorus1
+# http://drobilla.net/plugins/fomp/triple_chorus
+# http://drobilla.net/plugins/mda/ThruZero
+# http://gareus.org/oss/lv2/b_whirl#simple
+#         }
+
+
 
 inv_effect_type_map = {v:k for k, v in effect_type_map.items()}
 
@@ -1161,6 +1318,9 @@ if __name__ == "__main__":
     available_effects = QStringListModel()
     available_effects.setStringList(list(effect_type_map.keys()))
     engine = QQmlApplicationEngine()
+    current_pedal_model = PolyValue("digit", 0, -1, 1)
+    # accent_color = PolyValue("#8BB8E8", 0, -1, 1)
+    accent_color = PolyValue("#FF75D0", 0, -1, 1)
 
     qmlRegisterType(patch_bay_model.PatchBayModel, 'Poly', 1, 0, 'PatchBayModel')
     # Expose the object to QML.
@@ -1182,6 +1342,8 @@ if __name__ == "__main__":
     context.setContextProperty("midiChannel", midi_channel)
     # context.setContextProperty("isLoading", is_loading)
     context.setContextProperty("inputLevel", input_level)
+    context.setContextProperty("currentPedalModel", current_pedal_model)
+    context.setContextProperty("accent_color", accent_color.name)
     # context.setContextProperty("presetList", preset_list_model)
     engine.load(QUrl("qml/TestWrapper.qml")) # XXX 
     print("starting send thread")
@@ -1240,7 +1402,7 @@ if __name__ == "__main__":
             process_ui_messages()
             pedal_hardware.process_input()
         except Exception as e:
-            qCritical("########## e is:", e)
+            qCritical("########## e is:"+ str(e))
             ex_type, ex_value, tb = sys.exc_info()
             error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
             print("EXception is:", error)

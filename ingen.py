@@ -59,6 +59,9 @@ class Interface:
     def disconnect(self, tail, head):
         pass
 
+    def disconnect_all(self, subject):
+        pass
+
     def delete(self, subject):
         pass
 
@@ -317,6 +320,17 @@ class Remote(Interface):
 		ingen:head <%s> ;
 	] .
 ''' % (tail, head))
+
+    def disconnect_all(self, subject):
+        return self.send('''
+[]
+	a patch:Delete ;
+	patch:subject </main> ;
+	patch:body [
+		a ingen:Arc ;
+		ingen:incidentTo <%s>
+	] .
+''' % subject)
 
     def delete(self, subject):
         return self.send('''

@@ -182,7 +182,7 @@ Rectangle {
         return effectPrototypes[effect_type]["inputs"][item][1] == "CVPort"
     }
 
-    border { width:2; color: selected ? Constants.accent_color : Constants.outline_color}
+    border { width:2; color: selected ? accent_color : Constants.outline_color}
 
     Column {
         id: output_rec
@@ -217,7 +217,7 @@ Rectangle {
                 anchors.rightMargin: 0
                 width: 2
                 height: 8
-                color: highlight ? Constants.accent_color : Constants.audio_color
+                color: highlight ? accent_color : Constants.audio_color
             }
         }
 	}
@@ -291,6 +291,9 @@ Rectangle {
                 // if we're past left of center sliders on right
                 // else sliders on left
                 // selected changes z via binding
+                if (sliders){
+                    sliders.destroy();
+                }
                 if (rect.x > 582){
                     if (! no_sliders){
                         sliders = editGeneric.createObject(patch_bay, {x: Math.max(rect.x - 600, 50) , y: 0});
