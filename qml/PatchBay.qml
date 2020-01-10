@@ -487,6 +487,7 @@ import "polyconst.js" as Constants
             id: portSelection
             Item {
                 id: portSelectionCon
+                y: 50
                 height:700
                 width:1280
 
@@ -494,7 +495,7 @@ import "polyconst.js" as Constants
                     color: "#ffffff"
                     text: "Choose Port"
                     font {
-                        pixelSize: fontSizeLarge
+                        pixelSize: fontSizeLarge * 1.2
                     }
                     anchors.top: parent.top
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -502,18 +503,19 @@ import "polyconst.js" as Constants
 
                 ListView {
                     width: 400
+                    spacing: 5
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top: parent.top
-                    anchors.topMargin: 50
+                    anchors.topMargin: 90
                     anchors.bottom: parent.bottom
                     clip: true
                     delegate: ItemDelegate {
                         width: parent.width
-                        height: 50
+                        height: 90
                         text: edit.split("|")[1]
-                        bottomPadding: 0
-                        font.pixelSize: fontSizeMedium
-                        topPadding: 0
+                        bottomPadding: 2
+                        font.pixelSize: fontSizeLarge
+                        topPadding: 2
                         onClicked: {
                             // set this as the current port
                             // and update valid targets
@@ -534,17 +536,25 @@ import "polyconst.js" as Constants
                 }
             
                 
-
-                Button {
-                    font {
-                        pixelSize: fontSizeMedium
-                    }
+                IconButton {
+                    x: 34 
+                    y: 596
+                    icon.width: 15
+                    icon.height: 25
+                    width: 119
+                    height: 62
                     text: "BACK"
-                    anchors.right: parent.right
-                    anchors.rightMargin: 10
-                    anchors.topMargin: 10
-                    width: 100
-                    height: 100
+                    font {
+                        pixelSize: 24
+                    }
+                    flat: false
+                    icon.name: "back"
+                    Material.background: "white"
+                    Material.foreground: Constants.outline_color
+                    HelpLabel {
+                        text: "back"
+                    }
+
                     onClicked: mainStack.pop()
                 }
             }
@@ -554,6 +564,7 @@ import "polyconst.js" as Constants
             id: disconnectPortSelection
             Item {
                 id: disPortSelectionCon
+                y: 50
                 height:700
                 width:1280
 
@@ -561,7 +572,7 @@ import "polyconst.js" as Constants
                     color: "#ffffff"
                     text: "Disconnect Port"
                     font {
-                        pixelSize: fontSizeLarge
+                        pixelSize: fontSizeLarge * 1.2
                     }
                     anchors.top: parent.top
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -569,18 +580,19 @@ import "polyconst.js" as Constants
 
                 ListView {
                     width: 400
+                    spacing: 5
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top: parent.top
-                    anchors.topMargin: 50
+                    anchors.topMargin: 90
                     anchors.bottom: parent.bottom
                     clip: true
                     delegate: ItemDelegate {
                         width: parent.width
-                        height: 50
+                        height: 90
                         text: edit
-                        bottomPadding: 0
-                        font.pixelSize: fontSizeMedium
-                        topPadding: 0
+                        bottomPadding: 2
+                        font.pixelSize: fontSizeLarge
+                        topPadding: 2
                         onClicked: {
                             // set this as the current port
                             // and update valid targets
@@ -604,19 +616,28 @@ import "polyconst.js" as Constants
                 }
             
                 
-
-                Button {
-                    font {
-                        pixelSize: fontSizeMedium
-                    }
+                IconButton {
+                    x: 34 
+                    y: 596
+                    icon.width: 15
+                    icon.height: 25
+                    width: 119
+                    height: 62
                     text: "BACK"
-                    anchors.right: parent.right
-                    anchors.rightMargin: 10
-                    anchors.topMargin: 10
-                    width: 100
-                    height: 100
+                    font {
+                        pixelSize: 24
+                    }
+                    flat: false
+                    icon.name: "back"
+                    Material.background: "white"
+                    Material.foreground: Constants.outline_color
+                    HelpLabel {
+                        text: "back"
+                    }
+
                     onClicked: mainStack.pop()
                 }
+
             }
         }
 

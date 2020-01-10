@@ -261,7 +261,7 @@ Rectangle {
         anchors.top: parent.top
         anchors.topMargin: 4
         anchors.horizontalCenter: parent.horizontalCenter
-        text: effect_id.replace(/_/g, " ")
+        text: rsplit(effect_id, "/", 1)[1].replace(/_/g, " ")
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.Wrap
         color: effect_color
