@@ -47,9 +47,9 @@ def DestinationThread( ) :
             items = get_timed_interruptable(q, 1)
             func = items[0]
             args = items[1:]
-            print("sending args", args)
+            # print("sending args", args)
             func(*args)
-            print("sent")
+            # print("sent")
         except queue.Empty:
             pass
 
