@@ -94,10 +94,10 @@ import Qt.labs.folderlistmodel 2.2
 
             delegate: ItemDelegate {
                 width: parent.width
-                height: 60
+                height: 90
                 text: remove_suffix(fileName)
                 font.bold: fileIsDir ? true : false
-                font.pixelSize: fontSizeMedium
+                font.pixelSize: fontSizeLarge
                 icon.name: fileIsDir ? "md-folder-open" : false // or md-folder
                 onClicked: {
                     if (fileIsDir) {

@@ -4,30 +4,16 @@ import rdflib
 from pprint import pprint
 import sys, subprocess
 
-effect_type_map = { "delay": "http://polyeffects.com/lv2/digit_delay",
-        "mono_reverb": "http://polyeffects.com/lv2/polyconvo#Mono",
-        "stereo_reverb": "http://polyeffects.com/lv2/polyconvo#MonoToStereo",
-        "true_stereo_reverb": "http://polyeffects.com/lv2/polyconvo#Stereo",
-        "mono_cab": "http://gareus.org/oss/lv2/convoLV2#Mono",
-        "stereo_cab": "http://gareus.org/oss/lv2/convoLV2#MonoToStereo",
-        "true_stereo_cab": "http://gareus.org/oss/lv2/convoLV2#Stereo",
-        # "mixer": "http://gareus.org/oss/lv2/matrixmixer#i4o4",
-        "warmth": "http://moddevices.com/plugins/tap/tubewarmth",
-        "reverse": "http://moddevices.com/plugins/tap/reflector",
-        "saturator": "http://moddevices.com/plugins/tap/sigmoid",
-        "mono_EQ": "http://gareus.org/oss/lv2/fil4#mono",
-        "stereo_EQ": "http://gareus.org/oss/lv2/fil4#stereo",
-        "filter": "http://drobilla.net/plugins/fomp/mvclpf1",
-        "lfo": "http://avwlv2.sourceforge.net/plugins/avw/lfo_tempo",
-        "env_follower": "http://ssj71.github.io/infamousPlugins/plugs.html#envfollowerCV",
-        "foot_switch_a": "http://drobilla.net/plugins/blop/interpolator",
-        "foot_switch_b": "http://drobilla.net/plugins/blop/interpolator",
-        "foot_switch_c": "http://drobilla.net/plugins/blop/interpolator",
-        "slew_limiter": "http://avwlv2.sourceforge.net/plugins/avw/slew",
-        "square_distortion": "http://ssj71.github.io/infamousPlugins/plugs.html#hip2b",
-        "control_to_midi": "http://ssj71.github.io/infamousPlugins/plugs.html#mindi",
-        "pan": "http://avwlv2.sourceforge.net/plugins/avw/vcpanning",
-        "mix_vca": "http://avwlv2.sourceforge.net/plugins/avw/vcaexp_audio",
+effect_type_map = { "mono_compressor": "http://gareus.org/oss/lv2/darc#mono",
+        "stereo_compressor": "http://gareus.org/oss/lv2/darc#stereo",
+        "phaser": "http://drobilla.net/plugins/fomp/cs_phaser1",
+        "phaser_lfo": "http://drobilla.net/plugins/fomp/cs_phaser1_lfo",
+        "chorus": "http://drobilla.net/plugins/fomp/cs_chorus1",
+        "triple_chorus": "http://drobilla.net/plugins/fomp/triple_chorus",
+        "thruzero_flange": "http://drobilla.net/plugins/mda/ThruZero",
+        "rotary": "http://gareus.org/oss/lv2/b_whirl#simple",
+        "attenuverter":"http://drobilla.net/plugins/blop/product",
+        "tempo_ratio": "http://drobilla.net/plugins/blop/ratio",
         }
 
 def parse_ttl(ttl_file, uri, name="placeholder"):
@@ -43,11 +29,14 @@ def parse_ttl(ttl_file, uri, name="placeholder"):
 
     # [a for a in rdf_dict.values() if "lv2:symbol" in a and a["rdf:type"] == ["lv2:ControlPort", "lv2:InputPort"]]
     # {sc["lv2:symbol"][0] : [sc["lv2:name"][0], sc["lv2:default"][0], sc["lv2:minimum"][0], sc["lv2:maximum"][0]]}
-    c = [a for a in rdf_dict.values() if "lv2:symbol" in a and (set(a["rdf:type"]) == set(["lv2:ControlPort", "lv2:InputPort"]) or set(a["rdf:type"]) == set(["lv2:CVPort", "lv2:InputPort"]))]
+    c = [a for a in rdf_dict.values() if "lv2:symbol" in a and (set(a["rdf:type"]).issuperset(set(["lv2:ControlPort", "lv2:InputPort"])) or
+        set(a["rdf:type"]).issuperset(set(["lv2:CVPort", "lv2:InputPort"])))]
     controls = dict([[sc["lv2:symbol"][0], [sc["lv2:name"][0], sc["lv2:default"][0] if "lv2:default" in sc else 0.5, sc["lv2:minimum"][0] if "lv2:minimum" in sc else 0.0,
         sc["lv2:maximum"][0] if "lv2:maximum" in sc else 1.0]] for sc in c])
-    i_a = [[a["lv2:symbol"][0], [a["lv2:name"][0], "AudioPort"]] for a in rdf_dict.values() if "lv2:symbol" in a and set(a["rdf:type"]) == set(["lv2:AudioPort", "lv2:InputPort"])]
-    i_cv = [[a["lv2:symbol"][0], [a["lv2:name"][0], "CVPort"]] for a in rdf_dict.values() if "lv2:symbol" in a and set(a["rdf:type"]) == set(["lv2:CVPort", "lv2:InputPort"])]
+    i_a = [[a["lv2:symbol"][0], [a["lv2:name"][0], "AudioPort"]] for a in rdf_dict.values() if "lv2:symbol" in a and set(a["rdf:type"]).issuperset(set(["lv2:AudioPort",
+        "lv2:InputPort"]))]
+    i_cv = [[a["lv2:symbol"][0], [a["lv2:name"][0], "CVPort"]] for a in rdf_dict.values() if "lv2:symbol" in a and set(a["rdf:type"]).issuperset(set(["lv2:CVPort",
+        "lv2:InputPort"]))]
     inputs = dict(i_a + i_cv)
     outputs = dict([[a["lv2:symbol"][0], [a["lv2:name"][0], [b for b in a["rdf:type"] if b != "lv2:OutputPort"][0][4:]]] for a in rdf_dict.values() if "lv2:symbol" in a and "lv2:OutputPort" in
         a["rdf:type"]])

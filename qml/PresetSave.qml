@@ -3,7 +3,8 @@ import QtQuick.Controls 2.3
 // import QtQuick.Window 2.2
 import Qt.labs.folderlistmodel 2.2
 import QtQuick.VirtualKeyboard 2.1
-// import QtQuick.Controls.Material 2.3
+import "polyconst.js" as Constants
+import QtQuick.Controls.Material 2.3
 
 // ApplicationWindow {
 //     visible: true
@@ -72,19 +73,23 @@ import QtQuick.VirtualKeyboard 2.1
                     }
                 }
 
-				Button {
-					text: "BACK"
-					anchors.right: parent.right
-					anchors.rightMargin: 10
-					anchors.topMargin: 10
-					width: 100
-					height: 100
-					onClicked: mainStack.pop()
-					font {
-						pixelSize: fontSizeMedium
-					}
-					// onClicked: is_system_preset ? presetStack.push(choosePresetFolder) : presetStack.push(newOrOverwrite) 
-				}
+                IconButton {
+                    x: 34 
+                    y: 646
+                    icon.width: 15
+                    icon.height: 25
+                    width: 119
+                    height: 62
+                    text: "BACK"
+                    font {
+                        pixelSize: 24
+                    }
+                    flat: false
+                    icon.name: "back"
+                    Material.background: "white"
+                    Material.foreground: Constants.outline_color
+                    onClicked: mainStack.pop()
+                }
             }
         }
 
@@ -133,18 +138,23 @@ import QtQuick.VirtualKeyboard 2.1
                     //     text: "LOAD"
                     //     onClicked: presetStack.push(setPresetName) // load preset and close
                     // }
-					Button {
-						font {
-							pixelSize: fontSizeMedium
-						}
-						text: "BACK"
-						anchors.right: parent.right
-						anchors.rightMargin: 10
-						anchors.topMargin: 10
-						width: 100
-						height: 100
+                    IconButton {
+                        x: 34 
+                        y: 646
+                        icon.width: 15
+                        icon.height: 25
+                        width: 119
+                        height: 62
+                        text: "BACK"
+                        font {
+                            pixelSize: 24
+                        }
+                        flat: false
+                        icon.name: "back"
+                        Material.background: "white"
+                        Material.foreground: Constants.outline_color
                         onClicked: presetStack.pop()
-					}
+                    }
                 }
             // }
         }
@@ -181,18 +191,24 @@ import QtQuick.VirtualKeyboard 2.1
                         onClicked: presetStack.push(choosePresetFolder)
                     }
                 }
-				Button {
-					font {
-						pixelSize: fontSizeMedium
-					}
-					text: "BACK"
-					anchors.right: parent.right
-					anchors.rightMargin: 10
-					anchors.topMargin: 10
-					width: 100
-					height: 100
-					onClicked: presetStack.pop()
-				}
+
+                IconButton {
+                    x: 34 
+                    y: 646
+                    icon.width: 15
+                    icon.height: 25
+                    width: 119
+                    height: 62
+                    text: "BACK"
+                    font {
+                        pixelSize: 24
+                    }
+                    flat: false
+                    icon.name: "back"
+                    Material.background: "white"
+                    Material.foreground: Constants.outline_color
+                    onClicked: presetStack.pop()
+                }
             }
         }
 
@@ -236,18 +252,24 @@ import QtQuick.VirtualKeyboard 2.1
                         width: 500
                         onClicked: presetStack.push(setPresetName)
                     }
-					Button {
-						font {
-							pixelSize: fontSizeMedium
-						}
-						text: "BACK"
-						anchors.right: parent.right
-						anchors.rightMargin: 10
-						anchors.topMargin: 10
-						width: 100
-						height: 100
-						onClicked: presetStack.pop()
-					}
+
+                    IconButton {
+                        x: 34 
+                        y: 646
+                        icon.width: 15
+                        icon.height: 25
+                        width: 119
+                        height: 62
+                        text: "BACK"
+                        font {
+                            pixelSize: 24
+                        }
+                        flat: false
+                        icon.name: "back"
+                        Material.background: "white"
+                        Material.foreground: Constants.outline_color
+                        onClicked: presetStack.pop()
+                    }
                 }
             // }
         }
@@ -304,18 +326,24 @@ import QtQuick.VirtualKeyboard 2.1
 
 					visible: Qt.inputMethod.visible
 				}
-				Button {
-					font {
-						pixelSize: fontSizeMedium
-					}
-					text: "BACK"
-					anchors.right: parent.right
-					anchors.rightMargin: 10
-					anchors.topMargin: 10
-					width: 100
-					height: 100
-					onClicked: presetStack.pop()
-				}
+
+                IconButton {
+                    x: 34 
+                    y: 646
+                    icon.width: 15
+                    icon.height: 25
+                    width: 119
+                    height: 62
+                    text: "BACK"
+                    font {
+                        pixelSize: 24
+                    }
+                    flat: false
+                    icon.name: "back"
+                    Material.background: "white"
+                    Material.foreground: Constants.outline_color
+                    onClicked: presetStack.pop()
+                }
             }
         }
 
@@ -390,21 +418,24 @@ import QtQuick.VirtualKeyboard 2.1
                 //         onClicked: presetStack.push(choosePresetFolder)
                 //     }
                 // }
-				Button {
-					font {
-						pixelSize: fontSizeMedium
-					}
-					text: "BACK"
-					anchors.right: parent.right
-					anchors.rightMargin: 20
-					anchors.topMargin: 20
-					width: 100
-					height: 100
-                    onClicked: {
-                        knobs.save_preset_list()
-                        presetStack.pop()
+                IconButton {
+                    x: 34 
+                    y: 646
+                    icon.width: 15
+                    icon.height: 25
+                    width: 119
+                    height: 62
+                    text: "BACK"
+                    font {
+                        pixelSize: 24
                     }
-				}
+                    flat: false
+                    icon.name: "back"
+                    Material.background: "white"
+                    Material.foreground: Constants.outline_color
+                    onClicked: presetStack.pop()
+                }
+
             }
         }
 
@@ -450,18 +481,23 @@ import QtQuick.VirtualKeyboard 2.1
                     //     text: "LOAD"
                     //     onClicked: presetStack.push(setPresetName) // load preset and close
                     // }
-					Button {
-						font {
-							pixelSize: fontSizeMedium
-						}
-						text: "BACK"
-						anchors.right: parent.right
-						anchors.rightMargin: 10
-						anchors.topMargin: 10
-						width: 100
-						height: 100
+                    IconButton {
+                        x: 34 
+                        y: 646
+                        icon.width: 15
+                        icon.height: 25
+                        width: 119
+                        height: 62
+                        text: "BACK"
+                        font {
+                            pixelSize: 24
+                        }
+                        flat: false
+                        icon.name: "back"
+                        Material.background: "white"
+                        Material.foreground: Constants.outline_color
                         onClicked: presetStack.pop()
-					}
+                    }
                 }
             // }
         }
