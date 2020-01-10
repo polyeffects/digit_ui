@@ -52,12 +52,22 @@ Rectangle {
         }
     }
 
+    function rsplit(str, sep, maxsplit) {
+        var split = str.split(sep);
+        return maxsplit ? [ split.slice(0, -maxsplit).join(sep) ].concat(split.slice(-maxsplit)) : split;
+    }
+
     function connect_clicked() {
         /*
          * on click, check if we are highlight, if not find source ports 
          * if we are, then we're a current target
          */
         if (!highlight){
+            var k = Object.keys(effectPrototypes[effect_type]["outputs"])
+            if (k.length == 0){
+                return;
+            }
+
             selected = true
             patch_bay.selected_effect = rect
             hide_sliders(false);
@@ -65,12 +75,11 @@ Rectangle {
             patch_bay.list_effect_id = effect_id;
             patch_bay.list_source = true;
 
-            var k = Object.keys(effectPrototypes[effect_type]["outputs"])
             if (k.length > 1 )
             {
                 mainStack.push(portSelection);
             } 
-            else {
+            else if (k.length == 1) {
                 knobs.set_current_port(true, effect_id, k[0]);
                 rep1.model.items_changed();
                 patch_bay.externalRefresh();
@@ -81,15 +90,17 @@ Rectangle {
             knobs.select_effect(false, effect_id)
             patch_bay.list_effect_id = effect_id;
             patch_bay.list_source = false;
-            var source_port_pair = connectSourcePort.name.split("/")
+            var source_port_pair = rsplit(connectSourcePort.name, "/", 1)
             var source_port_type = effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
 
             var k;
             var matched = 0;
             var matched_id = 0;
+            // console.log("source port ", source_port_pair);
+            // console.log("source port ", effect_id);
             k = Object.keys(effectPrototypes[effect_type]["inputs"])
             for (var i in k) {
-                // console.log("port name is ", i);
+                // console.log("port name is ", i[k]);
                 if (effectPrototypes[effect_type]["inputs"][k[i]][1] == source_port_type){
                     matched++;
                     matched_id = i;
@@ -99,7 +110,7 @@ Rectangle {
             {
                 mainStack.push(portSelection);
             } 
-            else {
+            else if (matched == 1){
                 knobs.set_current_port(false, effect_id, k[matched_id]);
                 rep1.model.items_changed();
                 patch_bay.externalRefresh();
@@ -113,7 +124,7 @@ Rectangle {
         // console.log("clicked", display);
         // rep1.model.remove_effect(display)
         hide_sliders(true);
-        console.log("deleting", effect_id);
+        // console.log("deleting", effect_id);
         knobs.remove_effect(effect_id);
     }
 
@@ -131,7 +142,7 @@ Rectangle {
             "top_folder": "file:///audio/reverbs",
             "after_file_selected": (function(name) { 
                 // console.log("got new reveb file");
-                console.log("file is", name.toString());
+                // console.log("file is", name.toString());
                 knobs.update_ir(effect_id, name.toString());
                 })
             });

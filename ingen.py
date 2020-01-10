@@ -44,6 +44,9 @@ class Interface:
     def put(self, subject, body):
         pass
 
+    def put_internal(self, subject, body):
+        pass
+
     def patch(self, subject, remove, add):
         pass
 
@@ -202,14 +205,11 @@ class Remote(Interface):
         raise Error(fmt, cause)
 
     def send(self, msg):
+        if type(msg) == list:
+            msg = '\n'.join(msg)
+
         # Send message to server
-        payload = msg
-        if sys.version_info[0] == 3:
-            payload = bytes(msg, 'utf-8')
-        self.sock.send(self.msgencode(msg))
-        # Receive response and parse into a model
-        # response_str = self._get_prefixes_string() + self.recv()
-        # return response_str
+        self.sock.sendall(self.msgencode(msg) + b'\0')
 
     def parse_response(self, response_str):
         response_model = rdflib.Graph(namespace_manager=self.ns_manager)
@@ -271,6 +271,17 @@ class Remote(Interface):
 []
 	a patch:Put ;
 	patch:subject <%s> ;
+	patch:body [
+%s
+	] .
+''' % (subject, body))
+
+    def put_internal(self, subject, body):
+        return self.send('''
+[]
+	a patch:Put ;
+	patch:subject <%s> ;
+    patch:context ingen:internalContext ;
 	patch:body [
 %s
 	] .

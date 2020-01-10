@@ -26,8 +26,8 @@ q = Queue()
 _FINISH = False
 ui_queue = None
 ir_url = rdflib.URIRef("http://polyeffects.com/lv2/polyconvo#ir")
-to_delete = set()
-to_delete_lock = threading.Lock()
+# to_delete = set()
+# to_delete_lock = threading.Lock()
 
 def get_timed_interruptable(q, timeout):
     stoploop = time.monotonic() + timeout - 1
@@ -47,16 +47,9 @@ def DestinationThread( ) :
             items = get_timed_interruptable(q, 1)
             func = items[0]
             args = items[1:]
-            if func == ingen.copy:
-                # wait until delete actions have finished
-                if len(to_delete) != 0 and q.qsize() > 0:
-                    print("sleeping", to_delete, "len q is", q.qsize())
-                    time.sleep(0.05)
-                    q.put(items)
-                else:
-                    func(*args)
-            else:
-                func(*args)
+            print("sending args", args)
+            func(*args)
+            print("sent")
         except queue.Empty:
             pass
 
@@ -65,7 +58,7 @@ def set_bypass(effect_id, active):
 	# patch:subject </main/digit_delay> ;
 	# patch:property ingen:enabled ;
 	# patch:value false .
-    effect_id = "/main/"+effect_id
+    effect_id = "/main/sub1"+effect_id
     q.put((ingen.put, effect_id, "ingen:enabled "+ str(active).lower()))
 
 def set_parameter_value(port, value):
@@ -73,29 +66,45 @@ def set_parameter_value(port, value):
     # ingen.set(port, "ingen:value", str(value))
     q.put((ingen.set, port, "http://drobilla.net/ns/ingen#value", str(value)))
 
+def get_state(path):
+    #ingen.set("/main/tone/output", "ingen:value", "0.8") 
+    # ingen.set(port, "ingen:value", str(value))
+    q.put((ingen.get, path))
+
 def set_plugin_position(effect_id, x, y):
-    q.put((ingen.put, "/main/"+effect_id, 'ingen:canvasX "%s"^^xsd:float; ingen:canvasY "%s"^^xsd:float' % (x, y)))
+    q.put((ingen.put, effect_id, 'ingen:canvasX "%s"^^xsd:float; ingen:canvasY "%s"^^xsd:float' % (x, y)))
 
 def add_plugin(effect_id, effect_url):
     # put /main/tone <http://drobilla.net/plugins/mda/Shepard>'
-    q.put((ingen.put, "/main/"+effect_id, """ingen:canvasX "900.0"^^xsd:float ;
+    print("backend adding effect_id", effect_id)
+    q.put((ingen.put, effect_id, """ingen:canvasX "900.0"^^xsd:float ;
     ingen:canvasY "150.0"^^xsd:float ;
     a ingen:Block ;
     lv2:prototype """ + "<" + effect_url + ">"))
 
+def add_sub_graph(effect_id):
+    # put /main/tone <http://drobilla.net/plugins/mda/Shepard>'
+    print("backend adding sub_graph", effect_id)
+    q.put((ingen.put_internal, effect_id, """ingen:enabled true ;
+    ingen:polyphony "1"^^xsd:int ;
+    a ingen:Graph"""
+    ))
+
 def add_input(port_id, x, y):
     # put /main/left_in 'a lv2:InputPort ; a lv2:AudioPort'
-    q.put((ingen.put, "/main/"+port_id, """ingen:canvasX "%s"^^xsd:float ;
+    #XXX
+    q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
     ingen:canvasY "%s"^^xsd:float ;
     a lv2:InputPort ; a lv2:AudioPort""" % (x, y)))
 
 def add_output(port_id, x, y):
-    q.put((ingen.put, "/main/"+port_id, """ingen:canvasX "%s"^^xsd:float ;
+    #XXX
+    q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
     ingen:canvasY "%s"^^xsd:float ;
     a lv2:OutputPort ; a lv2:AudioPort""" % (x, y)))
 
 def set_file(effect_id, file_name, is_cab):
-    effect_id = "/main/"+effect_id
+    effect_id = effect_id
     file_name = urllib.parse.quote(file_name[len("file://"):])
     # print("setting file", effect_id, file_name, is_cab)
     if is_cab:
@@ -125,20 +134,23 @@ def get_valid_filename(s):
     s = str(s).strip().replace(' ', '_')
     return re.sub(r'(?u)[^-\w.]', '', s)
 
-def save_pedalboard(name):
+def save_pedalboard(name, current_sub_graph):
     clean_filename = get_valid_filename(name)
     if len(clean_filename) > 0:
-        q.put((ingen.copy, "/main/", "file:///mnt/presets/"+clean_filename+".ingen"))
+        q.put((ingen.copy, current_sub_graph, "file:///mnt/presets/"+clean_filename+".ingen"))
+        # q.put((ingen.copy, "/main", "file:///mnt/presets/"+clean_filename+".ingen"))
 
-def load_pedalboard(name):
+def load_pedalboard(name, current_sub_graph):
     print("loading pedalboard", name)
-    q.put((ingen.copy, name, "/main/"))
+    q.put((ingen.copy, name, current_sub_graph))
+    # q.put((ingen.copy, name, "/main"))
+
 
 def remove_plugin(effect_id):
     # add to delete list, copies wait for delete
-    with to_delete_lock:
-        to_delete.add(effect_id[6:])
-        print("added to to delete", effect_id[6:])
+    # with to_delete_lock:
+    #     to_delete.add(effect_id[6:])
+    #     print("added to to delete", effect_id[6:])
     q.put((ingen.delete, effect_id))
 
 def connect_port(src_port, target_port):
@@ -178,17 +190,17 @@ def ingen_recv_thread( ) :
                     parse_ingen(a)
 
 connected_ports = set()
-def connect_jack_port(port):
+def connect_jack_port(port, x, y):
     if port not in connected_ports:
         if platform.system() == "Linux":
-            port_map = {"out_1": "ingen:out_1 system:playback_3",
-                    "out_2": "ingen:out_2 system:playback_4",
-                    "out_3": "ingen:out_3 system:playback_6",
-                    "out_4": "ingen:out_4 system:playback_8",
-                    "in_1": "system:capture_2 ingen:in_1",
-                    "in_2": "system:capture_4 ingen:in_2",
-                    "in_3": "system:capture_3 ingen:in_3",
-                    "in_4": "system:capture_5 ingen:in_4"
+            port_map = {"/main/out_1": "ingen:out_1 system:playback_3",
+                    "/main/out_2": "ingen:out_2 system:playback_4",
+                    "/main/out_3": "ingen:out_3 system:playback_6",
+                    "/main/out_4": "ingen:out_4 system:playback_8",
+                    "/main/in_1": "system:capture_2 ingen:in_1",
+                    "/main/in_2": "system:capture_4 ingen:in_2",
+                    "/main/in_3": "system:capture_3 ingen:in_3",
+                    "/main/in_4": "system:capture_5 ingen:in_4"
                     }
             # if connected_ports == set(port_map.keys()):
             #     all_connected = True
@@ -196,6 +208,20 @@ def connect_jack_port(port):
                 connected_ports.add(port)
                 command = ["/usr/bin/jack_connect",  *port_map[port].split()]
                 ret_var = subprocess.run(command)
+            else:
+                # check if it's a sub module io we need to connect
+                port_suffix = port.rsplit("/", 1)[1]
+                io_ports = ['in_1', 'in_2', 'in_3', 'in_4', 'out_1', 'out_2', 'out_3', 'out_4']
+                if port_suffix in io_ports:
+                    plugin = ""
+                    if "in" in port_suffix:
+                        #connect to in
+                        plugin = "input"
+                        connect_port("/main/"+port_suffix, port)
+                    else:
+                        connect_port(port, "/main/"+port_suffix)
+                        plugin = "output"
+                    ui_queue.put(("add_plugin", port, plugin, x, y))
 
 def parse_ingen(to_parse):
     g = rdflib.Graph()
@@ -204,7 +230,7 @@ def parse_ingen(to_parse):
     for t in g.triples([None, NS.rdf.type, NS.patch.Put]):
         response = t[0]
         r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
-        subject  = r_subject[6:]
+        subject  = r_subject #[6:]
         body     = g.value(response, NS.patch.body, None)
         if body is not None:
             # p = list(g.triples([body, None, None]))
@@ -268,17 +294,24 @@ def parse_ingen(to_parse):
                 is_in = None
                 is_audio = None
                 # print("lv2.name", str(subject))
-                for p in g.triples([body, NS.rdf.type, None]):
+                x = None
+                y = None
+                for p in g.triples([body, None, None]):
                     if p[2] == NS.lv2.OutputPort:
                         is_in = False
                     elif p[2] == NS.lv2.InputPort:
                         is_in = True
                     elif p[2] == NS.lv2.AudioPort:
                         is_audio = True
+                    elif p[1] == NS.ingen.canvasY:
+                        y = float(p[2])
+                    elif p[1] == NS.ingen.canvasX:
+                        x = float(p[2])
                 if is_in is not None and is_audio:
                     # print("connecting jack port", is_in, "subject", subject)
                     # connect to jack port
-                    connect_jack_port(subject)
+                    if x is not None and y is not None:
+                        connect_jack_port(subject, x, y)
                 # else:
                 #     print("None! port is_in", is_in, "subject", subject)
             elif (body, NS.ingen.enabled, None) in g:
@@ -291,7 +324,7 @@ def parse_ingen(to_parse):
 
     for t in g.triples([None, NS.rdf.type, NS.patch.Set]):
         response = t[0]
-        subject  = str(g.value(response, NS.patch.subject, None))[13:]
+        subject  = str(g.value(response, NS.patch.subject, None))[7:]
         # if (response, NS.patch.property, NS.ingen.value) in g:
         #     value = g.value(response, NS.patch.value, None)
         #     print("in set subject", subject, "value", value)
@@ -306,16 +339,16 @@ def parse_ingen(to_parse):
         if body is None:
             subject  = g.value(response, NS.patch.subject, None)
             if subject is not None:
-                subject = str(subject)[13:]
+                subject = str(subject)[7:]
                 # print("in delete subject", subject)
                 try:
                     # print("trying to in delete subject", subject, "to_delete", to_delete)
-                    with to_delete_lock:
-                        to_delete.remove(subject)
-                    print("queued remove, removed from to_delete", subject)
+                    # with to_delete_lock:
+                    #     to_delete.remove(subject)
+                    # print("queued remove, removed from to_delete", subject)
                     ui_queue.put(("remove_plugin", subject))
                 except KeyError:
-                    print("didn't find subject ", subject, "in to_delete", to_delete)
+                    # print("didn't find subject ", subject, "in to_delete", to_delete)
                     pass
         elif (body, NS.rdf.type, NS.ingen.Arc) in g:
             head = ""
@@ -326,7 +359,7 @@ def parse_ingen(to_parse):
                 elif p[1] == NS.ingen.tail:
                     tail = str(p[2])
             if head and tail:
-                # print("in remove arc head", head, "tail", tail)
+                print("in remove arc head", head, "tail", tail)
                 ui_queue.put(("remove_connection", head[7:], tail[7:]))
 
 r_thread = None

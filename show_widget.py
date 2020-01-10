@@ -35,6 +35,8 @@ EXIT_PROCESS = [False]
 ui_messages = queue.Queue()
 
 current_source_port = None
+current_sub_graph = "/main/sub1/"
+sub_graphs = set(["/main/sub1"])
 # current_effects = OrderedDict()
 current_effects = {}
 # current_effects["delay1"] = {"x": 20, "y": 30, "effect_type": "delay", "controls": {}, "highlight": False}
@@ -556,31 +558,51 @@ selected_effect_ports = QStringListModel()
 selected_effect_ports.setStringList(["val1", "val2"])
 seq_num = 10
 
-def load_preset(name):
+sub_graph_suffix = 0
+def add_inc_sub_graph(actually_add=True):
+    global sub_graph_suffix
+    sub_graph_suffix = sub_graph_suffix + 1
+    name = "/main/sub"+str(sub_graph_suffix)+"/"
+    global current_sub_graph
+    current_sub_graph = name
+    sub_graphs.add(name.rstrip("/"))
+    if actually_add:
+        add_sub_graph(name)
+    return name
+
+def add_sub_graph(name):
+    ingen_wrapper.add_sub_graph(name.rstrip("/"))
+    global current_sub_graph
+    current_sub_graph = name
+    sub_graphs.add(name.rstrip("/"))
+
+def delete_sub_graph(name):
+    name = name.rstrip("/")
+    if name in sub_graphs:
+        ingen_wrapper.remove_plugin(name)
+        sub_graphs.remove(name)
+
+def load_preset(name, initial=False):
     # delete existing blocks
+    port_connections.clear()
     to_delete = list(current_effects.keys())
     for effect_id in to_delete:
-        if effect_id in ["out_1", "out_2", "out_3", "out_4", "in_1", "in_2", "in_3", "in_4"]:
+        if effect_id in ["/main/out_1", "/main/out_2", "/main/out_3", "/main/out_4", "/main/in_1", "/main/in_2", "/main/in_3", "/main/in_4"]:
             pass
         else:
-            knobs.remove_effect(effect_id)
-
-    for effect_id in to_delete:
-        if effect_id in ["out_1", "out_2", "out_3", "out_4", "in_1", "in_2", "in_3", "in_4"]:
-            # remove connections from IO ports
-            if "out_" in effect_id:
-                ##
-                for source_port, targets in list(port_connections.items()):
-                    s_effect, s_port = source_port.split("/")
-                    # print("port_connectinons are ", port_connections, effect_id, s_effect, source_port)
-                    if s_effect == effect_id:
-                        # print("port_connectinons are ", port_connections)
-                        if len(port_connections[source_port]) > 0:
-                            ingen_wrapper.disconnect_plugin("/main/"+effect_id)
-                            # print("disconnect port", effect_id)
-                            # qDebug("disconnecting port " + effect_id)
-    port_connections.clear()
-    ingen_wrapper.load_pedalboard(name)
+            if patch_bay_model.patch_bay_singleton is not None:
+                patch_bay_model.patch_bay_singleton.startRemove(effect_id)
+            current_effects.pop(effect_id)
+            if patch_bay_model.patch_bay_singleton is not None:
+                patch_bay_model.patch_bay_singleton.endRemove()
+    if not initial:
+        print("deleting sub graph", current_sub_graph)
+        delete_sub_graph(current_sub_graph)
+    add_inc_sub_graph(False)
+    print("adding inc sub graph", current_sub_graph)
+    ingen_wrapper.load_pedalboard(name, current_sub_graph.rstrip("/"))
+    context.setContextProperty("currentEffects", current_effects) # might be slow
+    context.setContextProperty("portConnections", port_connections)
 
 def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
@@ -609,7 +631,7 @@ def from_backend_remove_effect(effect_name):
     if patch_bay_model.patch_bay_singleton is not None:
         patch_bay_model.patch_bay_singleton.startRemove(effect_name)
     for source_port, targets in list(port_connections.items()):
-        s_effect, s_port = source_port.split("/")
+        s_effect, s_port = source_port.rsplit("/", 1)
         if s_effect == effect_name:
             del port_connections[source_port]
         else:
@@ -624,8 +646,8 @@ def from_backend_remove_effect(effect_name):
 
 def from_backend_add_connection(head, tail):
     # print("head ", head, "tail", tail)
-    current_source_port = head[6:]
-    if len(current_source_port.split("/")) == 1:
+    current_source_port = head
+    if current_source_port.rsplit("/", 1)[0] in sub_graphs:
         s_effect = current_source_port
         # print("## s_effect", s_effect)
         if s_effect not in current_effects:
@@ -637,19 +659,31 @@ def from_backend_add_connection(head, tail):
             s_port = "output"
         current_source_port = s_effect + "/" + s_port
         # print("## current_source_port", current_source_port)
+    else:
+        if current_source_port.rsplit("/", 1)[0] == "/main":
+            return
+        # print("## current_source_port not in sub graph", current_source_port, sub_graphs)
 
-    effect_id_port_name = tail[6:].split("/")
-    if len(effect_id_port_name) == 1:
-        t_effect = effect_id_port_name[0]
+
+    effect_id_port_name = tail.rsplit("/", 1)
+    if effect_id_port_name[0] in sub_graphs :
+        t_effect = tail
         if t_effect not in current_effects:
             return
         t_effect_type = current_effects[t_effect]["effect_type"]
+        t_port = None
         if t_effect_type == "output":
             t_port = "input"
         elif t_effect_type == "input":
             t_port = "output"
+        # print("## tail in sub_graph", tail, t_effect, t_port)
+        if t_port is None:
+            return
     else:
+        if effect_id_port_name[0] == "/main":
+            return
         t_effect, t_port = effect_id_port_name
+        # print("## tail not in sub_graph", tail, t_effect, t_port, sub_graphs)
         if t_effect not in current_effects:
             return
 
@@ -666,8 +700,8 @@ def from_backend_add_connection(head, tail):
 
 def from_backend_disconnect(head, tail):
     # print("head ", head, "tail", tail)
-    current_source_port = head[6:]
-    if len(current_source_port.split("/")) == 1:
+    current_source_port = head
+    if current_source_port.rsplit("/", 1)[0] in sub_graphs:
         s_effect = current_source_port
         s_effect_type = current_effects[s_effect]["effect_type"]
         if s_effect_type == "output":
@@ -676,9 +710,9 @@ def from_backend_disconnect(head, tail):
             s_port = "output"
         current_source_port = s_effect + "/" + s_port
 
-    effect_id_port_name = tail[6:].split("/")
-    if len(effect_id_port_name) == 1:
-        t_effect = effect_id_port_name[0]
+    effect_id_port_name = tail.rsplit("/", 1)
+    if effect_id_port_name[0] in sub_graphs:
+        t_effect = tail
         t_effect_type = current_effects[t_effect]["effect_type"]
         if t_effect_type == "output":
             t_port = "input"
@@ -698,7 +732,7 @@ def from_backend_disconnect(head, tail):
 class Knobs(QObject):
     @Slot(bool, str, str)
     def set_current_port(self, is_source, effect_id, port_name):
-        # print("port name is", port_name)
+        print("port name is", port_name, "effect id", effect_id)
         # if source highlight targets
         if is_source:
             # set current source port
@@ -707,7 +741,10 @@ class Knobs(QObject):
             global current_source_port
             current_source_port = "/".join((effect_id, port_name))
             connect_source_port.name = current_source_port
-            out_port_type = effect_prototypes[current_effects[effect_id]["effect_type"]]["outputs"][port_name][1]
+            try:
+                out_port_type = effect_prototypes[current_effects[effect_id]["effect_type"]]["outputs"][port_name][1]
+            except KeyError:
+                return
             for id, effect in current_effects.items():
                 effect["highlight"] = False
                 if id != effect_id:
@@ -732,19 +769,19 @@ class Knobs(QObject):
             #     port_connections[current_source_port].append([effect_id, port_name])
 
 
-            s_effect, s_port = current_source_port.split("/")
+            s_effect, s_port = current_source_port.rsplit("/", 1)
             s_effect_type = current_effects[s_effect]["effect_type"]
             t_effect_type = current_effects[effect_id]["effect_type"]
             if t_effect_type == "output" or t_effect_type == "input":
                 if s_effect_type == "output" or s_effect_type == "input":
-                    ingen_wrapper.connect_port("/main/"+s_effect, "/main/"+effect_id)
+                    ingen_wrapper.connect_port(s_effect, effect_id)
                 else:
-                    ingen_wrapper.connect_port("/main/"+current_source_port, "/main/"+effect_id)
+                    ingen_wrapper.connect_port(current_source_port, effect_id)
             else:
                 if s_effect_type == "output" or s_effect_type == "input":
-                    ingen_wrapper.connect_port("/main/"+s_effect, "/main/"+effect_id+"/"+port_name)
+                    ingen_wrapper.connect_port(s_effect, effect_id+"/"+port_name)
                 else:
-                    ingen_wrapper.connect_port("/main/"+current_source_port, "/main/"+effect_id+"/"+port_name)
+                    ingen_wrapper.connect_port(current_source_port, effect_id+"/"+port_name)
 
 
             # if [effect_id, port_name] not in inv_port_connections:
@@ -765,7 +802,7 @@ class Knobs(QObject):
             ports = [k+'|'+v[0] for k,v in effect_prototypes[effect_type]["outputs"].items()]
             selected_effect_ports.setStringList(ports)
         else:
-            s_effect_id, s_port = connect_source_port.name.split("/")
+            s_effect_id, s_port = connect_source_port.name.rsplit("/", 1)
             source_port_type = effect_prototypes[current_effects[s_effect_id]["effect_type"]]["outputs"][s_port][1]
             ports = [k+'|'+v[0] for k,v in effect_prototypes[effect_type]["inputs"].items() if v[1] == source_port_type]
             selected_effect_ports.setStringList(ports)
@@ -774,7 +811,7 @@ class Knobs(QObject):
     def list_connected(self, effect_id):
         ports = []
         for source_port, connected in port_connections.items():
-            s_effect, s_port = source_port.split("/")
+            s_effect, s_port = source_port.rsplit("/", 1)
             # connections where we are target
             for c_effect, c_port in connected:
                 if c_effect == effect_id or s_effect == effect_id:
@@ -785,22 +822,22 @@ class Knobs(QObject):
     @Slot(str)
     def disconnect_port(self, port_pair):
         target_pair, source_pair = port_pair.split("---")
-        t_effect, t_port = target_pair.split("/")
+        t_effect, t_port = target_pair.rsplit("/", 1)
         # print("### disconnect, port pair", port_pair)
 
-        s_effect, s_port = source_pair.split("/")
+        s_effect, s_port = source_pair.rsplit("/", 1)
         s_effect_type = current_effects[s_effect]["effect_type"]
         t_effect_type = current_effects[t_effect]["effect_type"]
         if t_effect_type == "output" or t_effect_type == "input":
             if s_effect_type == "output" or s_effect_type == "input":
-                ingen_wrapper.disconnect_port("/main/"+s_effect, "/main/"+t_effect)
+                ingen_wrapper.disconnect_port(s_effect, t_effect)
             else:
-                ingen_wrapper.disconnect_port("/main/"+source_pair, "/main/"+t_effect)
+                ingen_wrapper.disconnect_port(source_pair, t_effect)
         else:
             if s_effect_type == "output" or s_effect_type == "input":
-                ingen_wrapper.disconnect_port("/main/"+s_effect, "/main/"+target_pair)
+                ingen_wrapper.disconnect_port(s_effect, target_pair)
             else:
-                ingen_wrapper.disconnect_port("/main/"+source_pair, "/main/"+target_pair)
+                ingen_wrapper.disconnect_port(source_pair, target_pair)
 
     @Slot(str)
     def add_new_effect(self, effect_type):
@@ -810,10 +847,10 @@ class Knobs(QObject):
         seq_num = seq_num + 1
         # print("add new effect", effect_type)
         # if there's existing effects of this type, increment the ID
-        effect_name = effect_type+str(1)
+        effect_name = current_sub_graph+effect_type+str(1)
         for i in range(1, 1000):
-            if effect_type+str(i) not in current_effects:
-                effect_name = effect_type+str(i)
+            if current_sub_graph+effect_type+str(i) not in current_effects:
+                effect_name = current_sub_graph+effect_type+str(i)
                 break
         ingen_wrapper.add_plugin(effect_name, effect_type_map[effect_type])
         # from_backend_new_effect(effect_name, effect_type)
@@ -833,14 +870,14 @@ class Knobs(QObject):
     def remove_effect(self, effect_id):
         # calls backend to remove effect
         print("remove effect", effect_id)
-        ingen_wrapper.remove_plugin("/main/"+effect_id)
+        ingen_wrapper.remove_plugin(effect_id)
 
     @Slot(str, str, 'double')
     def ui_knob_change(self, effect_name, parameter, value):
         # print(x, y, z)
         if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
             current_effects[effect_name]["controls"][parameter].value = value
-            ingen_wrapper.set_parameter_value("/main/"+effect_name+"/"+parameter, value)
+            ingen_wrapper.set_parameter_value(effect_name+"/"+parameter, value)
         else:
             print("effect not found", effect_name, parameter, value, effect_name in current_effects)
 
@@ -866,7 +903,7 @@ class Knobs(QObject):
         # print("saving", preset_name)
         # TODO add folders
         current_preset.name = pedalboard_name
-        ingen_wrapper.save_pedalboard(pedalboard_name)
+        ingen_wrapper.save_pedalboard(pedalboard_name, current_sub_graph)
 
     @Slot()
     def ui_copy_irs(self):
@@ -976,13 +1013,13 @@ def add_io():
     # if patch_bay_model.patch_bay_singleton is not None:
     #     patch_bay_model.patch_bay_singleton.startInsert()
     for i in range(1,5):
-        ingen_wrapper.add_input("in_"+str(i), x=1192, y=(80*i))
+        ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
         # io_new_effect("input"+str(i), "input", x=1200, y=(80 * i))
-        from_backend_new_effect("in_"+str(i), "input", x=1192, y=(80 * i))
+        # from_backend_new_effect("/main/in_"+str(i), "input", x=1192, y=(80 * i))
     for i in range(1,5):
-        ingen_wrapper.add_output("out_"+str(i), x=-20, y=(80 * i))
+        ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
         # io_new_effect("output"+str(i), "output", x=50, y=(80 * i))
-        from_backend_new_effect("out_"+str(i), "output", x=-20, y=(80 * i))
+        # from_backend_new_effect("/main/out_"+str(i), "output", x=-20, y=(80 * i))
     # if patch_bay_model.patch_bay_singleton is not None:
     #     patch_bay_model.patch_bay_singleton.endInsert()
     # context.setContextProperty("currentEffects", current_effects) # might be slow
@@ -1143,7 +1180,7 @@ def process_ui_messages():
             if m[0] == "value_change":
                 # print("got value change in process_ui")
                 effect_name_parameter, value = m[1:]
-                effect_name, parameter = effect_name_parameter.split("/")
+                effect_name, parameter = effect_name_parameter.rsplit("/", 1)
                 try:
                     if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
                         current_effects[effect_name]["controls"][parameter].value = float(value)
@@ -1164,12 +1201,14 @@ def process_ui_messages():
             elif m[0] == "add_plugin":
                 effect_name, effect_type, x, y = m[1:5]
                 # print("got add", m)
-                if (effect_name not in current_effects and effect_type in inv_effect_type_map):
+                if (effect_name not in current_effects and (effect_type in inv_effect_type_map or effect_type in ("input", "output"))):
                     # print("adding ", m)
                     if effect_type == "http://polyeffects.com/lv2/polyfoot":
                         mapped_type = effect_name.rstrip("123456789")
                         if mapped_type in effect_type_map:
                             from_backend_new_effect(effect_name, mapped_type, x, y)
+                    elif effect_type in ("input", "output"):
+                        from_backend_new_effect(effect_name, effect_type, x, y)
                     else:
                         from_backend_new_effect(effect_name, inv_effect_type_map[effect_type], x, y)
                         ingen_wrapper.ingen.get("/engine")
@@ -1392,7 +1431,10 @@ if __name__ == "__main__":
     signal(SIGTERM, signalHandler)
     initial_preset = False
     print("starting UI")
-    ingen_wrapper.ingen.get("/main")
+    load_preset("file:///mnt/presets/Default_Preset.ingen/main.ttl", True)
+    time.sleep(0.2)
+    ingen_wrapper.get_state("/main")
+    # load_preset("file:///mnt/presets/Default_Preset.ingen/main.ttl", False)
     # ingen_wrapper._FINISH = True
     while not EXIT_PROCESS[0]:
         # print("processing events")

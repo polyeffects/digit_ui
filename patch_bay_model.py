@@ -41,18 +41,18 @@ class PatchBayModel(QAbstractListModel):
         # psutil.cpu_percent(percpu=True)
 
     def startInsert(self):
-        print("start insert")
+        # print("start insert")
         self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount())
 
     def endInsert(self):
-        print("end insert")
+        # print("end insert")
         self.__order = dict(enumerate(local_effects.keys()))
         self.endInsertRows()
 
     def startRemove(self, effect_id):
         current_row = list(local_effects.keys()).index(effect_id)
         self.beginRemoveRows(QModelIndex(), current_row, current_row)
-        print(effect_id, " removing.")
+        # print(effect_id, " removing.")
 
     def endRemove(self):
         self.endRemoveRows()

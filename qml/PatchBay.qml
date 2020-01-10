@@ -48,6 +48,10 @@ import "polyconst.js" as Constants
             title_footer.patch_single = patch_bay;
         }
 
+        function rsplit(str, sep, maxsplit) {
+            var split = str.split(sep);
+            return maxsplit ? [ split.slice(0, -maxsplit).join(sep) ].concat(split.slice(-maxsplit)) : split;
+        }
         // Column {
         //     x: 0
         //     y: 0
@@ -185,7 +189,7 @@ import "polyconst.js" as Constants
                     // console.log("finding connection", Object.keys(portConnections));
                     for (var source_effect_port_str in portConnections){ 
                         // console.log("key ", source_effect_port_str);
-                        var source_effect_port = source_effect_port_str.split("/");
+                        var source_effect_port = rsplit(source_effect_port_str, "/", 1);
                         var targets = portConnections[source_effect_port_str];
                         // console.log("drawing connection 1", source_effect_port[0], portConnections[source_effect_port_str]);
                         
@@ -581,7 +585,7 @@ import "polyconst.js" as Constants
                             // set this as the current port
                             // and update valid targets
                             //knobs.set_current_port(list_source, list_effect_id, edit);
-                            console.log("disconnect", edit);
+                            // console.log("disconnect", edit);
                             knobs.disconnect_port(edit);
                             mycanvas.requestPaint();
                             // rep1.model.add_effect(edit)
