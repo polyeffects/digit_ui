@@ -58,7 +58,6 @@ def set_bypass(effect_id, active):
 	# patch:subject </main/digit_delay> ;
 	# patch:property ingen:enabled ;
 	# patch:value false .
-    effect_id = "/main/sub1"+effect_id
     q.put((ingen.put, effect_id, "ingen:enabled "+ str(active).lower()))
 
 def set_parameter_value(port, value):
