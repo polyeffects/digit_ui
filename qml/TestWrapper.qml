@@ -10,7 +10,7 @@ ApplicationWindow {
 
     Material.theme: Material.Dark
     Material.primary: Constants.cv_color
-    Material.accent: accent_color
+    Material.accent: accent_color.name
     Material.background: "black"
     // Material.buttonColor: "grey"
     contentOrientation: Qt.LandscapeOrientation

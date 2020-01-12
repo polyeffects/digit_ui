@@ -4,16 +4,15 @@ import rdflib
 from pprint import pprint
 import sys, subprocess
 
-effect_type_map = { "mono_compressor": "http://gareus.org/oss/lv2/darc#mono",
-        "stereo_compressor": "http://gareus.org/oss/lv2/darc#stereo",
-        "phaser": "http://drobilla.net/plugins/fomp/cs_phaser1",
-        "phaser_lfo": "http://drobilla.net/plugins/fomp/cs_phaser1_lfo",
-        "chorus": "http://drobilla.net/plugins/fomp/cs_chorus1",
-        "triple_chorus": "http://drobilla.net/plugins/fomp/triple_chorus",
-        "thruzero_flange": "http://drobilla.net/plugins/mda/ThruZero",
-        "rotary": "http://gareus.org/oss/lv2/b_whirl#simple",
-        "attenuverter":"http://drobilla.net/plugins/blop/product",
-        "tempo_ratio": "http://drobilla.net/plugins/blop/ratio",
+effect_type_map = { # "mono_compressor": "http://gareus.org/oss/lv2/darc#mono",
+        # "stereo_compressor": "http://gareus.org/oss/lv2/darc#stereo",
+        "phaser": "http://jpcima.sdf1.org/lv2/stone-phaser",
+        "stereo_phaser": "http://jpcima.sdf1.org/lv2/stone-phaser-stereo",
+        "j_chorus": "https://chrisarndt.de/plugins/ykchorus",
+        # "thruzero_flange": "http://drobilla.net/plugins/mda/ThruZero",
+        # "rotary": "http://gareus.org/oss/lv2/b_whirl#simple",
+        # "attenuverter":"http://drobilla.net/plugins/blop/product",
+        # "tempo_ratio": "http://drobilla.net/plugins/blop/ratio",
         }
 
 def parse_ttl(ttl_file, uri, name="placeholder"):

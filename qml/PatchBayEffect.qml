@@ -193,7 +193,7 @@ Rectangle {
         return effectPrototypes[effect_type]["inputs"][item][1] == "CVPort"
     }
 
-    border { width:2; color: selected ? accent_color : Constants.outline_color}
+    border { width:2; color: selected ? accent_color.name : Constants.outline_color}
 
     Column {
         id: output_rec
@@ -228,7 +228,7 @@ Rectangle {
                 anchors.rightMargin: 0
                 width: 2
                 height: 8
-                color: highlight ? accent_color : Constants.audio_color
+                color: highlight ? accent_color.name : Constants.audio_color
             }
         }
 	}
@@ -343,8 +343,8 @@ Rectangle {
             // var in_x = rect.x;
             // var in_y = rect.y;
            
+            patch_bay.isMoving = false;
             if (rect.beginDrag != Qt.point(rect.x, rect.y)){
-				patch_bay.isMoving = false;
 				patch_bay.externalRefresh();
 				knobs.move_effect(effect_id, rect.x, rect.y)
             }
@@ -483,7 +483,7 @@ Rectangle {
                     anchors.centerIn: parent
 
                     Switch {
-                        text: qsTr("BYPASS")
+                        text: qsTr("")
                         font.pixelSize: baseFontSize
                         width: 190
                         checked: currentEffects[effect_id]["enabled"].value

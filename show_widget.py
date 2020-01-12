@@ -5,6 +5,7 @@ from time import sleep
 from sys import exit
 from collections import OrderedDict
 from enum import Enum
+import urllib.parse
 # import random
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer, QThreadPool, QRunnable, qWarning, qCritical, qDebug
@@ -658,13 +659,6 @@ effect_prototypes_models = {"digit": {
                            'INPUT': ['Audio In', 'AudioPort'],
                            'START': ['Start', 'CVPort']},
                 'outputs': { 'OUTPUT': ['Audio Out', 'AudioPort']}},
- 'chorus': {'controls': {'delay': ['Delay', 0.0, 0.0, 30.0],
-                         'mod_amp_1': ['Mod Amplitude 1', 0.0, 0.0, 10.0],
-                         'mod_amp_2': ['Mod Amplitude 2', 0.0, 0.0, 3.0],
-                         'mod_freq_1': ['Mod Frequency 1', 0.5, 0.003, 10.0],
-                         'mod_freq_2': ['Mod Frequency 2', 0.5, 0.01, 30.0]},
-            'inputs': {'in': ['Input', 'AudioPort']},
-            'outputs': {'out': ['Output', 'AudioPort']}},
  'mono_compressor': {'controls': {'Ratio': ['Ratio', 0.0, 0.0, 1.0],
                                   'attack': ['Attack Time', 0.01, 0.001, 0.1],
                                   'hold': ['Hold', 0, 0, 1],
@@ -676,31 +670,6 @@ effect_prototypes_models = {"digit": {
                                                 -10.0]},
                      'inputs': {'in': ['In', 'AudioPort']},
                      'outputs': {'out': ['Out', 'AudioPort']}},
- 'phaser': {'controls': {'exp_fm': ['Exp FM', 0.5, 0.0, 1.0],
-                         'exp_fm_gain': ['Exp FM gain', 0.0, 0.0, 10.0],
-                         'fb_gain': ['Feedback gain', 0.0, -1.0, 1.0],
-                         'fm': ['FM', 0.5, 0.0, 1.0],
-                         'freq': ['Frequency', 0.0, -6.0, 6.0],
-                         'in_gain': ['Input gain', 0.0, -40.0, 10.0],
-                         'lin_fm': ['Lin FM', 0.5, 0.0, 1.0],
-                         'lin_fm_gain': ['Lin FM gain', 0.0, 0.0, 10.0],
-                         'out_mix': ['Output mix', 0.0, -1.0, 1.0],
-                         'sections': ['Sections', 1.0, 1.0, 30.0]},
-            'inputs': {'exp_fm': ['Exp FM', 'CVPort'],
-                       'fm': ['FM', 'CVPort'],
-                       'in': ['Input', 'AudioPort'],
-                       'lin_fm': ['Lin FM', 'CVPort']},
-            'outputs': {'out': ['Output', 'AudioPort']}},
- 'phaser_lfo': {'controls': {'fb_gain': ['Feedback gain', 0.0, -1.0, 1.0],
-                             'freq': ['Frequency', 0.0, -6.0, 6.0],
-                             'in_gain': ['Input gain', 0.0, -40.0, 10.0],
-                             'lfo_freq': ['LFO frequency', 0.5, 0.01, 30.0],
-                             'lfo_waveform': ['LFO waveform', 0.0, -1.0, 1.0],
-                             'mod_gain': ['Modulation gain', 0.5, 0.0, 10.0],
-                             'out_mix': ['Output mix', 0.0, -1.0, 1.0],
-                             'sections': ['Sections', 0.5, 1.0, 30.0]},
-                'inputs': {'in': ['Input', 'AudioPort']},
-                'outputs': {'out': ['Output', 'AudioPort']}},
  'rotary': {'controls': {'drumlvl': ['Drum Level', 0.0, -20.0, 20.0],
                          'drumwidth': ['Drum Stereo Width', 1.0, 0.0, 2.0],
                          'enable': ['Enable', 1, 0, 1],
@@ -735,6 +704,70 @@ effect_prototypes_models = {"digit": {
                               'numerator': ['Tempo', 120.0, 5.0, 300.0]},
                        'inputs': {'denominator': ['Tempo', 'ControlPort']},
                  'outputs': {'ratio': ['Ratio', 'ControlPort']}},
+ 'j_chorus': {'controls': {u'chorus_1_enable': [u'Chorus 1 On/Off',
+                                                1.0,
+                                                0.0,
+                                                1.0],
+                           u'chorus_1_lfo_rate': [u'Chorus 1 LFO Rate',
+                                                  5.0,
+                                                  0.1,
+                                                  10.0],
+                           u'chorus_2_enable': [u'Chorus 2 On/Off',
+                                                0.0,
+                                                0.0,
+                                                1.0],
+                           u'chorus_2_lfo_rate': [u'Chorus 2 LFO Rate',
+                                                  8.3,
+                                                  0.1,
+                                                  10.0]},
+              'inputs': {u'lv2_audio_in_1': [u'Audio Input 1', 'AudioPort'],
+                         u'lv2_audio_in_2': [u'Audio Input 2', 'AudioPort']},
+              'outputs': {u'lv2_audio_out_1': [u'Audio Output 1',
+                                               u'AudioPort'],
+                          u'lv2_audio_out_2': [u'Audio Output 2',
+                                               u'AudioPort']}},
+ 'phaser': {'controls': {u'color': [u'Color', 1, 0, 1],
+                         u'feedback_depth': [u'Feedback depth', 75, 0, 99],
+                         u'feedback_hpf_cutoff': [u'Feedback bass cut',
+                                                  500.0,
+                                                  10.0,
+                                                  5000.0],
+                         u'lfo_frequency': [u'LFO frequency',
+                                            0.2,
+                                            0.01,
+                                            5.0],
+                         u'lv2_enabled': [u'Enabled', 1, 0, 1],
+                         u'mix': [u'Dry/wet mix', 50, 0, 100]},
+            'inputs': {u'lv2_audio_in_1': [u'Audio Input 1', 'AudioPort']},
+            'outputs': {u'lv2_audio_out_1': [u'Audio Output 1',
+                                             u'AudioPort']}},
+ 'stereo_phaser': {'controls': {u'color': [u'Color', 1, 0, 1],
+                                u'feedback_depth': [u'Feedback depth',
+                                                    75,
+                                                    0,
+                                                    99],
+                                u'feedback_hpf_cutoff': [u'Feedback bass cut',
+                                                         500.0,
+                                                         10.0,
+                                                         5000.0],
+                                u'lfo_frequency': [u'LFO frequency',
+                                                   0.2,
+                                                   0.01,
+                                                   5.0],
+                                u'lv2_enabled': [u'Enabled', 1, 0, 1],
+                                u'mix': [u'Dry/wet mix', 50, 0, 100],
+                                u'stereo_phase': [u'Stereo phase',
+                                                  0,
+                                                  -180,
+                                                  180]},
+                   'inputs': {u'lv2_audio_in_1': [u'Audio Input 1',
+                                                  'AudioPort'],
+                              u'lv2_audio_in_2': [u'Audio Input 2',
+                                                  'AudioPort']},
+                   'outputs': {u'lv2_audio_out_1': [u'Audio Output 1',
+                                                    u'AudioPort'],
+                               u'lv2_audio_out_2': [u'Audio Output 2',
+                                                    u'AudioPort']}},
  'thruzero_flange': {'controls': {'depth': ['Depth', 0.43, 0.0, 1.0],
                                   'depth_mod': ['Depth Mod', 1.0, 0.0, 1.0],
                                   'feedback': ['Feedback', 0.3, 0.0, 1.0],
@@ -743,25 +776,7 @@ effect_prototypes_models = {"digit": {
                      'inputs': {'left_in': ['Left In', 'AudioPort'],
                                 'right_in': ['Right In', 'AudioPort']},
                      'outputs': {'left_out': ['Left Out', 'AudioPort'],
-                                 'right_out': ['Right Out', 'AudioPort']}},
- 'triple_chorus': {'controls': {'delay': ['Delay', 0.0, 0.0, 30.0],
-                                'mod_amp_1': ['Mod Amplitude 1',
-                                              0.0,
-                                              0.0,
-                                              10.0],
-                                'mod_amp_2': ['Mod Amplitude 2', 0.0, 0.0, 3.0],
-                                'mod_freq_1': ['Mod Frequency 1',
-                                               0.5,
-                                               0.003,
-                                               10.0],
-                                'mod_freq_2': ['Mod Frequency 2',
-                                               0.5,
-                                               0.01,
-                                               30.0]},
-                   'inputs': {'in': ['Input', 'AudioPort']},
-                   'outputs': {'out1': ['Output1', 'AudioPort'],
-                               'out2': ['Output2', 'AudioPort'],
-                               'out3': ['Output3', 'AudioPort']}}}}
+                                 'right_out': ['Right Out', 'AudioPort']}}}}
 
 
 
@@ -977,6 +992,8 @@ def load_preset(name, initial=False):
     ingen_wrapper.load_pedalboard(name, current_sub_graph.rstrip("/"))
     context.setContextProperty("currentEffects", current_effects) # might be slow
     context.setContextProperty("portConnections", port_connections)
+    time.sleep(0.1)
+    ingen_wrapper.get_state("/engine")
 
 def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
@@ -1188,8 +1205,10 @@ class Knobs(QObject):
             s_effect, s_port = source_port.rsplit("/", 1)
             # connections where we are target
             for c_effect, c_port in connected:
-                if c_effect == effect_id or s_effect == effect_id:
-                    ports.append(s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
+                if c_effect == effect_id:
+                    ports.append(s_effect.rsplit("/", 1)[1]+"==="+s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
+                elif s_effect == effect_id:
+                    ports.append(c_effect.rsplit("/", 1)[1]+"==="+s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
         # print("connected ports:", ports)
         selected_effect_ports.setStringList(ports)
 
@@ -1277,7 +1296,7 @@ class Knobs(QObject):
         # print("saving", preset_name)
         # TODO add folders
         current_preset.name = pedalboard_name
-        ingen_wrapper.save_pedalboard(pedalboard_name, current_sub_graph)
+        ingen_wrapper.save_pedalboard(current_pedal_model.name, pedalboard_name, current_sub_graph.rstrip("/"))
 
     @Slot()
     def ui_copy_irs(self):
@@ -1295,7 +1314,7 @@ class Knobs(QObject):
         # print("copy presets from USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
-        command = """cd /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/mnt/presets --parents"""
+        command = """cd /media/presets; find . -iname "*.ingen" -type d -print0 | xargs -0 cp -r --target-directory=/mnt/presets --parents"""
         command_status[0].value = -1
         self.launch_subprocess(command)
 
@@ -1304,7 +1323,7 @@ class Knobs(QObject):
         # print("copy presets to USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
-        command = """cd /mnt/presets; mkdir -p /media/presets; find . -iname "*.json" -type f -print0 | xargs -0 cp --target-directory=/media/presets --parents;sudo umount /media"""
+        command = """cd /mnt/presets; mkdir -p /media/presets; find . -iname "*.ingen" -type d -print0 | xargs -0 cp -r --target-directory=/media/presets --parents;sudo umount /media"""
         command_status[0].value = -1
         self.launch_subprocess(command)
 
@@ -1374,6 +1393,9 @@ class Knobs(QObject):
             knob_map[knob].rmin = current_effects[effect_id]["controls"][parameter].rmin
             knob_map[knob].rmax = current_effects[effect_id]["controls"][parameter].rmax
 
+    @Slot(str)
+    def set_pedal_model(self, pedal_model):
+        change_pedal_model(pedal_model)
 
 def io_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
@@ -1585,7 +1607,7 @@ def process_ui_messages():
                         from_backend_new_effect(effect_name, effect_type, x, y)
                     else:
                         from_backend_new_effect(effect_name, inv_effect_type_map[effect_type], x, y)
-                        ingen_wrapper.ingen.get("/engine")
+                        ingen_wrapper.get_state("/engine")
             elif m[0] == "remove_plugin":
                 effect_name = m[1]
                 if (effect_name in current_effects):
@@ -1607,7 +1629,11 @@ def process_ui_messages():
                 effect_name, ir_file = m[1:]
                 try:
                     if (effect_name in current_effects) and ("ir" in current_effects[effect_name]["controls"]):
-                        current_effects[effect_name]["controls"]["ir"].name = ir_file
+                        if current_effects[effect_name]["controls"]["ir"].name != ir_file:
+                            current_effects[effect_name]["controls"]["ir"].name = ir_file
+                            effect_type = current_effects[effect_name]["effect_type"]
+                            if effect_type in ["mono_reverb", "stereo_reverb", "true_stereo_reverb"]:
+                                knobs.update_ir(effect_name, urllib.parse.unquote(ir_file))
                         # qDebug("setting knob file " + ir_file)
                 except ValueError:
                     pass
@@ -1643,12 +1669,14 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "mix_vca": "http://avwlv2.sourceforge.net/plugins/avw/vcaexp_audio",
         "turntable_stop":"http://ssj71.github.io/infamousPlugins/plugs.html#powercut",
         "amp_bass_svt40":"http://guitarix.sourceforge.net/plugins/gx_ampegsvt_#_ampegsvt_",
-        "amp_bass_venue":"http://guitarix.sourceforge.net/plugins/gx_voxbass_#_voxbass_",
+        # "amp_bass_venue":"http://guitarix.sourceforge.net/plugins/gx_voxbass_#_voxbass_",
         "power_amp_cream":"http://guitarix.sourceforge.net/plugins/gx_CreamMachine_#_CreamMachine_",
-        "power_amp_plexi":"http://guitarix.sourceforge.net/plugins/gx_plexi_#_plexi_",
+        # "power_amp_plexi":"http://guitarix.sourceforge.net/plugins/gx_plexi_#_plexi_",
         "power_amp_super":"http://guitarix.sourceforge.net/plugins/gx_supersonic_#_supersonic_",
         "auto_swell": "http://guitarix.sourceforge.net/plugins/gx_slowgear_#_slowgear_",
-        "freeze": "http://ssj71.github.io/infamousPlugins/plugs.html#stuck"
+        "freeze": "http://ssj71.github.io/infamousPlugins/plugs.html#stuck",
+        "attenuverter":"http://drobilla.net/plugins/blop/product",
+        "tempo_ratio": "http://drobilla.net/plugins/blop/ratio",
     },
     "beebo" : { "delay": "http://polyeffects.com/lv2/digit_delay",
         "warmth": "http://moddevices.com/plugins/tap/tubewarmth",
@@ -1671,14 +1699,13 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "freeze": "http://ssj71.github.io/infamousPlugins/plugs.html#stuck",
         "mono_compressor": "http://gareus.org/oss/lv2/darc#mono",
         "stereo_compressor": "http://gareus.org/oss/lv2/darc#stereo",
-        "phaser": "http://drobilla.net/plugins/fomp/cs_phaser1",
-        "phaser_lfo": "http://drobilla.net/plugins/fomp/cs_phaser1_lfo",
-        "chorus": "http://drobilla.net/plugins/fomp/cs_chorus1",
-        "triple_chorus": "http://drobilla.net/plugins/fomp/triple_chorus",
         "thruzero_flange": "http://drobilla.net/plugins/mda/ThruZero",
         "rotary": "http://gareus.org/oss/lv2/b_whirl#simple",
         "attenuverter":"http://drobilla.net/plugins/blop/product",
         "tempo_ratio": "http://drobilla.net/plugins/blop/ratio",
+        "phaser": "http://jpcima.sdf1.org/lv2/stone-phaser",
+        "stereo_phaser": "http://jpcima.sdf1.org/lv2/stone-phaser-stereo",
+        "j_chorus": "https://chrisarndt.de/plugins/ykchorus",
         }}
 
 
@@ -1687,7 +1714,7 @@ effect_type_map = {}
 effect_prototypes = {}
 inv_effect_type_map = {}
 
-def change_pedal_model(name):
+def change_pedal_model(name, initial=False):
 
     global inv_effect_type_map
     global effect_type_map
@@ -1702,6 +1729,11 @@ def change_pedal_model(name):
 
     inv_effect_type_map = {v:k for k, v in effect_type_map.items()}
     current_pedal_model.name = name
+    if not initial:
+        if current_pedal_model.name == "digit":
+            knobs.ui_load_preset_by_name("file:///mnt/presets/digit/Default_Preset.ingen")
+        elif current_pedal_model.name == "beebo":
+            knobs.ui_load_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
 
 if __name__ == "__main__":
 
@@ -1742,7 +1774,7 @@ if __name__ == "__main__":
     # global context
     context = engine.rootContext()
     context.setContextProperty("knobs", knobs)
-    change_pedal_model("beebo")
+    change_pedal_model("digit", True)
     context.setContextProperty("available_effects", available_effects)
     context.setContextProperty("selectedEffectPorts", selected_effect_ports)
     context.setContextProperty("portConnections", port_connections)
@@ -1759,7 +1791,7 @@ if __name__ == "__main__":
     # context.setContextProperty("isLoading", is_loading)
     context.setContextProperty("inputLevel", input_level)
     context.setContextProperty("currentPedalModel", current_pedal_model)
-    context.setContextProperty("accent_color", accent_color.name)
+    context.setContextProperty("accent_color", accent_color)
     # context.setContextProperty("presetList", preset_list_model)
     engine.load(QUrl("qml/TestWrapper.qml")) # XXX 
     print("starting send thread")
@@ -1809,9 +1841,9 @@ if __name__ == "__main__":
     initial_preset = False
     print("starting UI")
     if current_pedal_model.name == "digit":
-        load_preset("file:///mnt/presets/Default_Preset.ingen/main.ttl", True)
+        load_preset("file:///mnt/presets/digit/Default_Preset.ingen/main.ttl", True)
     elif current_pedal_model.name == "beebo":
-        load_preset("file:///mnt/presets/Empty.ingen/main.ttl", True)
+        load_preset("file:///mnt/presets/beebo/Empty.ingen/main.ttl", True)
     time.sleep(0.2)
     ingen_wrapper.get_state("/main")
     # load_preset("file:///mnt/presets/Default_Preset.ingen/main.ttl", False)

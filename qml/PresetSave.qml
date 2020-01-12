@@ -62,15 +62,15 @@ import QtQuick.Controls.Material 2.3
 						}
                     }
 
-                    Button {
-                        text: "MAP"
-						width: 300
-						// height: 500
-                        onClicked: presetStack.push(mapPresets)
-						font {
-							pixelSize: fontSizeLarge
-						}
-                    }
+                    // Button {
+                    //     text: "MAP"
+						// width: 300
+						// // height: 500
+                    //     onClicked: presetStack.push(mapPresets)
+						// font {
+							// pixelSize: fontSizeLarge
+						// }
+                    // }
                 }
 
                 IconButton {
@@ -118,7 +118,7 @@ import QtQuick.Controls.Material 2.3
                         // Layout.fillHeight: true
                         height: 650
                         width: 500
-						top_folder: "file:///mnt/presets/"
+						top_folder: "file:///mnt/presets/"+currentPedalModel.name+"/"
                         current_selected: ""
 						after_file_selected: (function(name) { 
 							console.log("loading preset file");
@@ -464,7 +464,8 @@ import QtQuick.Controls.Material 2.3
                         // Layout.fillHeight: true
                         height: 650
                         width: 500
-						top_folder: "file:///mnt/presets/"
+						top_folder: "file:///mnt/presets/"+currentPedalModel.name+"/"
+                        current_selected: ""
 						after_file_selected: (function(name) { 
 							console.log("mapping preset file");
 							knobs.map_preset(preset_widget.map_index, name.toString());

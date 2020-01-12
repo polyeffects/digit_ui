@@ -59,7 +59,7 @@ import "polyconst.js" as Constants
         //     Rectangle {
         //         x: 0
         //         y: 0
-        //         color: accent_color
+        //         color: accent_color.name
         //         width: 58
         //         height: 36
         //         border { width:1; color: "white"}
@@ -109,7 +109,7 @@ import "polyconst.js" as Constants
         //     Rectangle {
         //         x: 0
         //         y: 0
-        //         color: accent_color
+        //         color: accent_color.name
         //         width: 58
         //         height: 36
         //         border { width:1; color: "white"}
@@ -233,7 +233,7 @@ import "polyconst.js" as Constants
                     else if (source_port_type == "ControlPort"){
                         line_color = Constants.control_color;
                     } else {
-                        line_color = accent_color;
+                        line_color = accent_color.name;
                     }
 
                     if (patch_bay.isMoving){
@@ -336,7 +336,7 @@ import "polyconst.js" as Constants
                         currentMode = PatchBay.Connect;
                     }
                     Material.background: "white"
-                    Material.foreground: accent_color
+                    Material.foreground: accent_color.name
                     radius: 28
 
                     Label {
@@ -364,7 +364,7 @@ import "polyconst.js" as Constants
                         selected_effect.disconnect_clicked()
                     }
                     Material.background: "white"
-                    Material.foreground: accent_color
+                    Material.foreground: accent_color.name
                     radius: 28
 
                     Label {
@@ -392,7 +392,7 @@ import "polyconst.js" as Constants
                         selected_effect.hide_sliders(false);
                     }
                     Material.background: "white"
-                    Material.foreground: accent_color
+                    Material.foreground: accent_color.name
                     radius: 28
                     Label {
                         visible: title_footer.show_help 
@@ -421,7 +421,7 @@ import "polyconst.js" as Constants
                         selected_effect.expand_clicked();
                     }
                     Material.background: "white"
-                    Material.foreground: accent_color
+                    Material.foreground: accent_color.name
                     radius: 28
                     Label {
                         visible: title_footer.show_help 
@@ -448,7 +448,7 @@ import "polyconst.js" as Constants
                 //         console.log("clicked:");
                 //     }
                 //     Material.background: "white"
-                //     Material.foreground: accent_color
+                //     Material.foreground: accent_color.name
                 //     radius: 28
                 // }
                 IconButton {
@@ -461,7 +461,7 @@ import "polyconst.js" as Constants
                         selected_effect.delete_clicked()
                     }
                     Material.background: "white"
-                    Material.foreground: accent_color
+                    Material.foreground: accent_color.name
                     radius: 28
                     Label {
                         visible: title_footer.show_help 
@@ -579,7 +579,7 @@ import "polyconst.js" as Constants
                 }
 
                 ListView {
-                    width: 400
+                    width: 700
                     spacing: 5
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top: parent.top
@@ -589,16 +589,17 @@ import "polyconst.js" as Constants
                     delegate: ItemDelegate {
                         width: parent.width
                         height: 90
-                        text: edit
+                        text: edit.split("===")[0].replace(/_/g, " ")
                         bottomPadding: 2
                         font.pixelSize: fontSizeLarge
+                        font.capitalization: Font.AllUppercase
                         topPadding: 2
                         onClicked: {
                             // set this as the current port
                             // and update valid targets
                             //knobs.set_current_port(list_source, list_effect_id, edit);
                             // console.log("disconnect", edit);
-                            knobs.disconnect_port(edit);
+                            knobs.disconnect_port(edit.split("===")[1]);
                             mycanvas.requestPaint();
                             // rep1.model.add_effect(edit)
                             // knobs.ui_add_effect(edit)

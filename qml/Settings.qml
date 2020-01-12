@@ -36,7 +36,7 @@ Item {
                     // height:parent.height
                     GlowingLabel {
                         // color: "#ffffff"
-                        text: qsTr("DIGIT FIRMWARE 2.0")
+                        text: currentPedalModel.name+" FIRMWARE 2.4"
                         color: accent_color
                     }
 
@@ -89,6 +89,21 @@ Item {
                         font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
                         onClicked: knobs.copy_logs()
+                    }
+
+                    Button {
+                        flat: false
+                        text: currentPedalModel.name == "beebo" ? "Change to Digit" : "Change to Beebo"
+                        font.pixelSize: baseFontSize
+                        // show screen explaining to put USB flash drive in
+						onClicked: {
+							if(currentPedalModel.name == "beebo"){
+								knobs.set_pedal_model("digit");
+							} else {
+								knobs.set_pedal_model("beebo");
+							}
+						}
+
                     }
 
 

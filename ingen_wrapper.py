@@ -133,10 +133,10 @@ def get_valid_filename(s):
     s = str(s).strip().replace(' ', '_')
     return re.sub(r'(?u)[^-\w.]', '', s)
 
-def save_pedalboard(name, current_sub_graph):
+def save_pedalboard(pedal_name, name, current_sub_graph):
     clean_filename = get_valid_filename(name)
     if len(clean_filename) > 0:
-        q.put((ingen.copy, current_sub_graph, "file:///mnt/presets/"+clean_filename+".ingen"))
+        q.put((ingen.copy, current_sub_graph, "file:///mnt/presets/"+pedal_name+"/"+clean_filename+".ingen"))
         # q.put((ingen.copy, "/main", "file:///mnt/presets/"+clean_filename+".ingen"))
 
 def load_pedalboard(name, current_sub_graph):
