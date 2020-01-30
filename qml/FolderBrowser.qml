@@ -96,9 +96,9 @@ import Qt.labs.folderlistmodel 2.2
                 width: parent.width
                 height: 90
                 text: remove_suffix(fileName)
-                font.bold: fileIsDir ? true : false
+                font.bold: fileIsDir && !fileURL.toString().endsWith(".ingen") ? true : false
                 font.pixelSize: fontSizeLarge
-                icon.name: fileIsDir ? "md-folder-open" : false // or md-folder
+                icon.name: fileIsDir && !fileURL.toString().endsWith(".ingen") ? "md-folder-open" : false // or md-folder
                 onClicked: {
                     if (fileIsDir) {
                         if (fileURL.toString().endsWith(".ingen")){

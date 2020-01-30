@@ -62,15 +62,15 @@ import QtQuick.Controls.Material 2.3
 						}
                     }
 
-                    // Button {
-                    //     text: "MAP"
-						// width: 300
-						// // height: 500
-                    //     onClicked: presetStack.push(mapPresets)
-						// font {
-							// pixelSize: fontSizeLarge
-						// }
-                    // }
+                    Button {
+                        text: "SET LIST"
+						width: 300
+						// height: 500
+                        onClicked: presetStack.push(mapPresets)
+						font {
+							pixelSize: fontSizeLarge
+						}
+                    }
                 }
 
                 IconButton {
@@ -188,7 +188,8 @@ import QtQuick.Controls.Material 2.3
 						}
                         text: "CREATE NEW"
 						width: 300
-                        onClicked: presetStack.push(choosePresetFolder)
+                        // onClicked: presetStack.push(choosePresetFolder)
+                        onClicked: presetStack.push(setPresetName)
                     }
                 }
 
@@ -237,7 +238,7 @@ import QtQuick.Controls.Material 2.3
                         // Layout.fillHeight: true
                         height: 400
                         width: 500
-						top_folder: "file:///presets"
+						top_folder: "file:///mnt/presets"
                     }
                     // create new folder
 
@@ -376,7 +377,7 @@ import QtQuick.Controls.Material 2.3
                     delegate: ItemDelegate {
                         width: parent.width
                         height: 50
-                        text: index + " " + edit
+                        text: index + " " + edit.slice(20, -6) // trim .ingen and /mnt/preset
                         bottomPadding: 10
                         font.pixelSize: fontSizeMedium
                         topPadding: 10
@@ -433,7 +434,10 @@ import QtQuick.Controls.Material 2.3
                     icon.name: "back"
                     Material.background: "white"
                     Material.foreground: Constants.outline_color
-                    onClicked: presetStack.pop()
+                    onClicked: { 
+                        knobs.save_preset_list();
+                        presetStack.pop();
+                    }
                 }
 
             }

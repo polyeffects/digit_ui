@@ -11,6 +11,23 @@ Item {
     property real beat_msec: 60 / currentBPM.value * 1000
     property real current_footer_value: 0
     property bool show_footer_value: false
+    property real currentPresetNum: currentPreset.value
+
+    onCurrentPresetNumChanged: {
+        console.log("presetnumchanged", currentPreset.value);
+        if (patch_single.currentMode != PatchBay.Select){
+            console.log("hiding sliders");
+            if (patchStack.currentItem instanceof PatchBay) 
+            {
+                // patch_single.selected_effect.hide_sliders(true);
+            }
+            else {
+                // console.log("not instance of patchbay");
+                // patch_single.selected_effect.hide_sliders(true);
+                patchStack.pop()
+            }
+        }
+    }
 
     width: 1280
     height: 720

@@ -46,13 +46,7 @@ port_connections = {} # key is port, value is list of ports
 
 context = None
 
-preset_list = []
-try:
-    with open("/pedal_state/preset_list.json") as f:
-        preset_list = json.load(f)
-except:
-    preset_list = ["Akg eq ed", "Back at u"]
-preset_list_model = QStringListModel(preset_list)
+
 
 patch_bay_model.local_effects = current_effects
     # effect = {"parameters", "inputs", "outputs", "effect_type", "id", "x", "y"}
@@ -104,7 +98,7 @@ effect_prototypes_models = {"digit": {
                                    'DTIME': ['Decay Time', 1.0, 0.001, 30.0],
                                    'PEAKRMS': ['Peak/RMS', 0.0, 0.0, 1.0],
                                    'SATURATION': ['Saturation', 1.0, 0.0, 2.0],
-                                   'THRESHOLD': ['Threshold', 0.0, 0.0, 1.0]},
+                                   'THRESHOLD': ['Threshold', 0.0, 0.0, 0.5]},
                       'inputs': {'INPUT': ['Audio In', 'AudioPort']},
                       'outputs': {#'CTL_IN': ['Input Level', 'ControlPort'],
                                   #'CTL_OUT': ['Control Out', 'ControlPort'],
@@ -122,6 +116,8 @@ effect_prototypes_models = {"digit": {
                 'outputs': {'out': ['Output', 'AudioPort']}},
      'foot_switch_a': {'controls': {'bpm': ['BPM', 120.0, 35.0, 350.0],
                           'latching': ['Is Latching', 0.0, 0.0, 1.0],
+                          'on_v': ['On Value', 1.0, -1.0, 100.0],
+                          'off_v': ['Off Value', 0.0, -1.0, 100.0],
                           'value': ['value', 0.0, 0.0, 1.0]},
                          'inputs': {},
                          'outputs': {'bpm_out': ['BPM Out', 'ControlPort'],
@@ -129,12 +125,16 @@ effect_prototypes_models = {"digit": {
 
      'foot_switch_b': {'controls': {'bpm': ['BPM', 120.0, 35.0, 350.0],
                           'latching': ['Is Latching', 0.0, 0.0, 1.0],
+                          'on_v': ['On Value', 1.0, -1.0, 100.0],
+                          'off_v': ['Off Value', 0.0, -1.0, 100.0],
                           'value': ['value', 0.0, 0.0, 1.0]},
                          'inputs': {},
                          'outputs': {'bpm_out': ['BPM Out', 'ControlPort'],
                                      'out': ['Value Out', 'CVPort']}},
      'foot_switch_c': {'controls': {'bpm': ['BPM', 120.0, 35.0, 350.0],
                           'latching': ['Is Latching', 0.0, 0.0, 1.0],
+                          'on_v': ['On Value', 1.0, -1.0, 100.0],
+                          'off_v': ['Off Value', 0.0, -1.0, 100.0],
                           'value': ['value', 0.0, 0.0, 1.0]},
                          'inputs': {},
                          'outputs': {'bpm_out': ['BPM Out', 'ControlPort'],
@@ -342,7 +342,7 @@ effect_prototypes_models = {"digit": {
                         'inputs': {'in': ['In', 'AudioPort']},
                         'outputs': {'out': ['Out', 'AudioPort']}},
      'auto_swell': {'controls': {'DOWNTIME': ['DOWNTIME', 5.0, 0.0, 1000],
-                                 'TRESHOLD': ['THRESHOLD', 1.0, 0.0, 10],
+                                 'TRESHOLD': ['THRESHOLD', 1.0, 0.0, 1],
                                  'UPTIME': ['UPTIME', 100, 0.0, 1000]},
                     'inputs': {'TRESHOLD': ['THRESHOLD', 'CVPort'],
                                'in': ['In', 'AudioPort']},
@@ -446,7 +446,7 @@ effect_prototypes_models = {"digit": {
                                    'DTIME': ['Decay Time', 1.0, 0.001, 30.0],
                                    'PEAKRMS': ['Peak/RMS', 0.0, 0.0, 1.0],
                                    'SATURATION': ['Saturation', 1.0, 0.0, 2.0],
-                                   'THRESHOLD': ['Threshold', 0.0, 0.0, 1.0]},
+                                   'THRESHOLD': ['Threshold', 0.0, 0.0, 0.5]},
                       'inputs': {'INPUT': ['Audio In', 'AudioPort']},
                       'outputs': {#'CTL_IN': ['Input Level', 'ControlPort'],
                                   #'CTL_OUT': ['Control Out', 'ControlPort'],
@@ -464,6 +464,8 @@ effect_prototypes_models = {"digit": {
                 'outputs': {'out': ['Output', 'AudioPort']}},
      'foot_switch_a': {'controls': {'bpm': ['BPM', 120.0, 35.0, 350.0],
                           'latching': ['Is Latching', 0.0, 0.0, 1.0],
+                          'on_v': ['On Value', 1.0, -1.0, 100.0],
+                          'off_v': ['Off Value', 0.0, -1.0, 100.0],
                           'value': ['value', 0.0, 0.0, 1.0]},
                          'inputs': {},
                          'outputs': {'bpm_out': ['BPM Out', 'ControlPort'],
@@ -471,12 +473,16 @@ effect_prototypes_models = {"digit": {
 
      'foot_switch_b': {'controls': {'bpm': ['BPM', 120.0, 35.0, 350.0],
                           'latching': ['Is Latching', 0.0, 0.0, 1.0],
+                          'on_v': ['On Value', 1.0, -1.0, 100.0],
+                          'off_v': ['Off Value', 0.0, -1.0, 100.0],
                           'value': ['value', 0.0, 0.0, 1.0]},
                          'inputs': {},
                          'outputs': {'bpm_out': ['BPM Out', 'ControlPort'],
                                      'out': ['Value Out', 'CVPort']}},
      'foot_switch_c': {'controls': {'bpm': ['BPM', 120.0, 35.0, 350.0],
                           'latching': ['Is Latching', 0.0, 0.0, 1.0],
+                          'on_v': ['On Value', 1.0, -1.0, 100.0],
+                          'off_v': ['Off Value', 0.0, -1.0, 100.0],
                           'value': ['value', 0.0, 0.0, 1.0]},
                          'inputs': {},
                          'outputs': {'bpm_out': ['BPM Out', 'ControlPort'],
@@ -631,7 +637,7 @@ effect_prototypes_models = {"digit": {
                            'input': ['Input', 'AudioPort']},
                 'outputs': {'output': ['Output', 'AudioPort']}},
      'auto_swell': {'controls': {'DOWNTIME': ['DOWNTIME', 5.0, 0.0, 1000],
-                                 'TRESHOLD': ['THRESHOLD', 1.0, 0.0, 10],
+                                 'TRESHOLD': ['THRESHOLD', 1.0, 0.0, 1],
                                  'UPTIME': ['UPTIME', 100, 0.0, 1000]},
                     'inputs': {'TRESHOLD': ['THRESHOLD', 'CVPort'],
                                'in': ['In', 'AudioPort']},
@@ -675,7 +681,9 @@ effect_prototypes_models = {"digit": {
                          'enable': ['Enable', 1, 0, 1],
                          'hornlvl': ['Horn Level', 0.0, -20.0, 20.0],
                          'rt_speed': ['Motors Ac/Dc', 4, 0, 8]},
-            'inputs': {'in': ['Input', 'AudioPort']},
+            'inputs': {'in': ['Input', 'AudioPort'],
+                         'enable': ['Enable', "CVPort"],
+                         'rt_speed': ['Motors Ac Dc', "CVPort"]},
             'outputs': {'left': ['Left Output', 'AudioPort'],
                         'right': ['Right Output', 'AudioPort']}},
  'stereo_compressor': {'controls': {'Ratio': ['Ratio', 0.0, 0.0, 1.0],
@@ -721,6 +729,8 @@ effect_prototypes_models = {"digit": {
                                                   0.1,
                                                   10.0]},
               'inputs': {u'lv2_audio_in_1': [u'Audio Input 1', 'AudioPort'],
+                           u'chorus_2_enable': [u'2 Enable', "CVPort"],
+                           u'chorus_1_enable': [u'1 Enable', "CVPort"],
                          u'lv2_audio_in_2': [u'Audio Input 2', 'AudioPort']},
               'outputs': {u'lv2_audio_out_1': [u'Audio Output 1',
                                                u'AudioPort'],
@@ -736,7 +746,6 @@ effect_prototypes_models = {"digit": {
                                             0.2,
                                             0.01,
                                             5.0],
-                         u'lv2_enabled': [u'Enabled', 1, 0, 1],
                          u'mix': [u'Dry/wet mix', 50, 0, 100]},
             'inputs': {u'lv2_audio_in_1': [u'Audio Input 1', 'AudioPort']},
             'outputs': {u'lv2_audio_out_1': [u'Audio Output 1',
@@ -754,7 +763,6 @@ effect_prototypes_models = {"digit": {
                                                    0.2,
                                                    0.01,
                                                    5.0],
-                                u'lv2_enabled': [u'Enabled', 1, 0, 1],
                                 u'mix': [u'Dry/wet mix', 50, 0, 100],
                                 u'stereo_phase': [u'Stereo phase',
                                                   0,
@@ -774,6 +782,11 @@ effect_prototypes_models = {"digit": {
                                   'mix': ['Mix', 0.47, 0.0, 1.0],
                                   'rate': ['Rate', 0.3, 0.0, 1.0]},
                      'inputs': {'left_in': ['Left In', 'AudioPort'],
+                                'depth': ['Depth', "CVPort"],
+                                  'depth_mod': ['Depth Mod', "CVPort"],
+                                  'feedback': ['Feedback', "CVPort"],
+                                  'mix': ['Mix', "CVPort"],
+                                  'rate': ['Rate', "CVPort"],
                                 'right_in': ['Right In', 'AudioPort']},
                      'outputs': {'left_out': ['Left Out', 'AudioPort'],
                                  'right_out': ['Right Out', 'AudioPort']}}}}
@@ -791,6 +804,20 @@ def insert_row(model, row):
 def remove_row(model, row):
     i = model.stringList().index(row)
     model.removeRows(i, 1)
+
+preset_list = []
+preset_list_model = QStringListModel(preset_list)
+def load_preset_list():
+    global preset_list
+    try:
+        with open("/mnt/pedal_state/"+current_pedal_model.name+"_preset_list.json") as f:
+            preset_list = json.load(f)
+    except:
+        if current_pedal_model.name == "digit":
+            preset_list = ["file:///mnt/presets/digit/Default_Preset.ingen"]
+        elif current_pedal_model.name == "beebo":
+            preset_list = ["file:///mnt/presets/beebo/Empty.ingen"]
+    preset_list_model.setStringList(preset_list)
 
 class MyEmitter(QObject):
     # setting up custom signal
@@ -936,8 +963,8 @@ def jump_to_preset(is_inc, num):
             current_preset.value = num
         else:
             return
-    # load_preset("/presets/"+p_list[current_preset.value]+".json")
-    # print("load preset here") # TODO
+    print("jumping to preset ", p_list[current_preset.value], "num is", num)
+    knobs.ui_load_preset_by_name(p_list[current_preset.value])
 
 def write_pedal_state():
     with open("/pedal_state/state.json", "w") as f:
@@ -1356,19 +1383,22 @@ class Knobs(QObject):
     def set_preset_list_length(self, v):
         if v > len(preset_list_model.stringList()):
             # print("inserting new row in preset list", v)
-            insert_row(preset_list_model, "Default Preset")
+            if current_pedal_model.name == "digit":
+                insert_row(preset_list_model, "file:///mnt/presets/digit/Default_Preset.ingen")
+            elif current_pedal_model.name == "beebo":
+                insert_row(preset_list_model, "file:///mnt/presets/beebo/Empty.ingen")
         else:
             # print("removing row in preset list", v)
             preset_list_model.removeRows(v, 1)
 
     @Slot(int, str)
     def map_preset(self, v, name):
-        current_name = name[16:-5] # strip file://presets/ prefix
-        preset_list_model.setData(preset_list_model.index(v), current_name)
+        preset_list_model.setData(preset_list_model.index(v), name)
 
     @Slot()
     def save_preset_list(self):
-        with open("/pedal_state/preset_list.json", "w") as f:
+        print("saving preset list")
+        with open("/mnt/pedal_state/"+current_pedal_model.name+"_preset_list.json", "w") as f:
             json.dump(preset_list_model.stringList(), f)
 
     @Slot(int)
@@ -1536,12 +1566,10 @@ def handle_foot_change(switch_name, timestamp):
         pass
 
     elif action is Actions.next_preset:
-        qDebug("next preset")
-        #next_preset()
+        next_preset()
 
     elif action is Actions.previous_preset:
-        qDebug("previous preset")
-        # previous_preset()
+        previous_preset()
 
     elif action is Actions.toggle_effect:
         pass
@@ -1676,7 +1704,7 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "auto_swell": "http://guitarix.sourceforge.net/plugins/gx_slowgear_#_slowgear_",
         "freeze": "http://ssj71.github.io/infamousPlugins/plugs.html#stuck",
         "attenuverter":"http://drobilla.net/plugins/blop/product",
-        "tempo_ratio": "http://drobilla.net/plugins/blop/ratio",
+        # "tempo_ratio": "http://drobilla.net/plugins/blop/ratio",
     },
     "beebo" : { "delay": "http://polyeffects.com/lv2/digit_delay",
         "warmth": "http://moddevices.com/plugins/tap/tubewarmth",
@@ -1702,7 +1730,7 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "thruzero_flange": "http://drobilla.net/plugins/mda/ThruZero",
         "rotary": "http://gareus.org/oss/lv2/b_whirl#simple",
         "attenuverter":"http://drobilla.net/plugins/blop/product",
-        "tempo_ratio": "http://drobilla.net/plugins/blop/ratio",
+        # "tempo_ratio": "http://drobilla.net/plugins/blop/ratio",
         "phaser": "http://jpcima.sdf1.org/lv2/stone-phaser",
         "stereo_phaser": "http://jpcima.sdf1.org/lv2/stone-phaser-stereo",
         "j_chorus": "https://chrisarndt.de/plugins/ykchorus",
@@ -1722,7 +1750,7 @@ def change_pedal_model(name, initial=False):
     effect_type_map = effect_type_maps[name]
     effect_prototypes = effect_prototypes_models[name]
 
-    available_effects.setStringList(list(effect_type_map.keys()))
+    available_effects.setStringList(sorted(effect_type_map.keys()))
     context.setContextProperty("effectPrototypes", effect_prototypes)
     accent_color_models = {"beebo": "#8BB8E8", "digit": "#FF75D0"}
     accent_color.name = accent_color_models[name]
@@ -1734,6 +1762,7 @@ def change_pedal_model(name, initial=False):
             knobs.ui_load_preset_by_name("file:///mnt/presets/digit/Default_Preset.ingen")
         elif current_pedal_model.name == "beebo":
             knobs.ui_load_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
+    load_preset_list()
 
 if __name__ == "__main__":
 
@@ -1763,7 +1792,7 @@ if __name__ == "__main__":
     pedal_bypassed = PolyBool(False)
 
     available_effects = QStringListModel()
-    available_effects.setStringList(list(effect_type_map.keys()))
+    available_effects.setStringList(sorted(effect_type_map.keys()))
     engine = QQmlApplicationEngine()
     current_pedal_model = PolyValue("digit", 0, -1, 1)
     # accent_color = PolyValue("#8BB8E8", 0, -1, 1)
@@ -1792,7 +1821,7 @@ if __name__ == "__main__":
     context.setContextProperty("inputLevel", input_level)
     context.setContextProperty("currentPedalModel", current_pedal_model)
     context.setContextProperty("accent_color", accent_color)
-    # context.setContextProperty("presetList", preset_list_model)
+    context.setContextProperty("presetList", preset_list_model)
     engine.load(QUrl("qml/TestWrapper.qml")) # XXX 
     print("starting send thread")
     ingen_wrapper.start_send_thread()

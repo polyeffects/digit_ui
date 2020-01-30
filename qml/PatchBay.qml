@@ -191,6 +191,7 @@ import "polyconst.js" as Constants
                         // console.log("key ", source_effect_port_str);
                         var source_effect_port = rsplit(source_effect_port_str, "/", 1);
                         var targets = portConnections[source_effect_port_str];
+                        var source_index = effect_map[source_effect_port[0]].input_keys.indexOf(source_effect_port[1])
                         // console.log("drawing connection 1", source_effect_port[0], portConnections[source_effect_port_str]);
                         
                         for (var target in targets){
@@ -198,20 +199,22 @@ import "polyconst.js" as Constants
                             // console.log("drawing connection 2 obj", effect_map[source_effect_port[0]], effect_map[targets[target][0]]);
                             // console.log("drawing connection 2 keys", source_effect_port[0], targets[target][0]);
                             var target_port_type = effectPrototypes[currentEffects[targets[target][0]]["effect_type"]]["outputs"][targets[target][1]][1]
+
+                            var target_index = effect_map[targets[target][0]].output_keys.indexOf(targets[target][1])
                             // console.log("target_port_type", target_port_type);
                             //effect_map[source_effect_port[0]], effect_map[targets[target][0]]
-                            drawConnection(drawContext, effect_map[source_effect_port[0]], effect_map[targets[target][0]], target_port_type);
+                            drawConnection(drawContext, effect_map[source_effect_port[0]], effect_map[targets[target][0]], target_port_type, target_index, source_index);
                         } 
                     }
                 }
 
-                function drawConnection( drawContext, targetPort, sourcePort, source_port_type ) {
+                function drawConnection( drawContext, targetPort, sourcePort, source_port_type, source_index, target_index ) {
                     if (source_port_type == "AudioPort"){
-                        var start   = getCanvasCoordinates( targetPort.inputs, 0, 4)
+                        var start   = getCanvasCoordinates( targetPort.inputs, 0, 4+(target_index* 12))
                     } else {
                         var start   = getCanvasCoordinates( targetPort.cv_area, targetPort.cv_area.width / 2, targetPort.cv_area.height - 2)
                     }
-                    var end     = getCanvasCoordinates( sourcePort.outputs,  0, 4) 
+                    var end     = getCanvasCoordinates( sourcePort.outputs,  0, 4 + (source_index * 12)) 
                     if( start.x > end.x ) {
                         var tmp = start;
                         start = end;
@@ -236,11 +239,7 @@ import "polyconst.js" as Constants
                         line_color = accent_color.name;
                     }
 
-                    if (patch_bay.isMoving){
-                        drawContext.strokeStyle = Constants.outline_color;
-                    } else {
-                        drawContext.strokeStyle = line_color;
-                    }
+                    drawContext.strokeStyle = line_color;
                     drawContext.beginPath();
                     drawContext.moveTo( start.x, start.y );
                     if (source_port_type == "AudioPort"){

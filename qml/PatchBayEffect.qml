@@ -30,6 +30,17 @@ Rectangle {
     property Rectangle cv_area: cv_rec
     property Column inputs: input_rec
     property Column outputs: output_rec
+
+    function isAudio(item){
+        return effectPrototypes[effect_type]["inputs"][item][1] == "AudioPort"
+    }
+
+    function isCV(item){
+        return effectPrototypes[effect_type]["inputs"][item][1] == "CVPort"
+    }
+
+    property var input_keys: Object.keys(effectPrototypes[effect_type]["inputs"]).filter(isAudio) 
+    property var output_keys: Object.keys(effectPrototypes[effect_type]["outputs"])
     property bool no_sliders: ["mono_EQ", "stereo_EQ", "input", "output"].indexOf(effect_type) >= 0
     property bool has_ui: ["mono_EQ", "stereo_EQ", "mono_reverb", "stereo_reverb", "true_stereo_reverb",
         "mono_cab", "stereo_cab", "true_stereo_cab"].indexOf(effect_type) >= 0
@@ -52,6 +63,13 @@ Rectangle {
         }
     }
 
+    Component.onDestruction: {
+        // console.log("destroying patchbayeffect component");
+        selected = false;
+        patch_bay.currentMode = PatchBay.Select;
+        patch_bay.selected_effect = null;
+    }
+
     function rsplit(str, sep, maxsplit) {
         var split = str.split(sep);
         return maxsplit ? [ split.slice(0, -maxsplit).join(sep) ].concat(split.slice(-maxsplit)) : split;
@@ -63,7 +81,7 @@ Rectangle {
          * if we are, then we're a current target
          */
         if (!highlight){
-            var k = Object.keys(effectPrototypes[effect_type]["outputs"])
+            var k = output_keys;
             if (k.length == 0){
                 return;
             }
@@ -185,13 +203,6 @@ Rectangle {
         // }
     }
 
-    function isAudio(item){
-        return effectPrototypes[effect_type]["inputs"][item][1] == "AudioPort"
-    }
-
-    function isCV(item){
-        return effectPrototypes[effect_type]["inputs"][item][1] == "CVPort"
-    }
 
     border { width:2; color: selected ? accent_color.name : Constants.outline_color}
 
@@ -203,7 +214,7 @@ Rectangle {
         spacing: 4
         Repeater {
             id: outputRep
-            model: Object.keys(effectPrototypes[effect_type]["outputs"]) 
+            model: output_keys
             Rectangle {
                 anchors.left: parent.left
                 anchors.leftMargin: 0
@@ -222,7 +233,7 @@ Rectangle {
         y:20
         Repeater {
             id: inputRep
-            model: Object.keys(effectPrototypes[effect_type]["inputs"]).filter(isAudio) 
+            model: input_keys
             Rectangle {
                 anchors.right: parent.right
                 anchors.rightMargin: 0
@@ -307,7 +318,7 @@ Rectangle {
                 }
                 if (rect.x > 582){
                     if (! no_sliders){
-                        sliders = editGeneric.createObject(patch_bay, {x: Math.max(rect.x - 600, 50) , y: 0});
+                        sliders = editGeneric.createObject(rect, {x:Math.max(-600, 50-rect.x), y:-rect.y});
                     }
                     if (rect.x + 130 > 1200){
                         action_icons.x = rect.x - 90; // bound max
@@ -317,7 +328,7 @@ Rectangle {
                     }
                 } else {
                     if (! no_sliders){
-                        sliders = editGeneric.createObject(patch_bay, {x: Math.min(rect.x + 220, 790) , y: 0});
+                        sliders = editGeneric.createObject(rect, {x:Math.min(220, 790-rect.x), y:-rect.y});
                     }
                     action_icons.x = rect.x - 90; // and min
                     if (rect.x - 90 < 10){
@@ -383,7 +394,7 @@ Rectangle {
         Component {
             id: editDelay
             Item {
-                height:700
+                height:500
                 width:1280
                 Column {
                     width: 1100
@@ -399,73 +410,73 @@ Rectangle {
                     }
                     // property var parameter_map: {"LEVEL":"Amp_5", "TONE":"", "FEEDBACK": "", 
                     //                 "GLIDE": "", "WARP":""  }
-                    DelayRow {
-                        row_param: "Delay_1"
-						current_effect: effect_id
-                    }
-                    Row {
-                        height: 40
-                        spacing: 25
-
-                        Slider {
-                            title: "TIME (ms)" 
-                            width: 625
-							value: currentEffects[effect_id]["controls"]["Delay_1"].value
-							from: currentEffects[effect_id]["controls"]["Delay_1"].rmin
-							to: currentEffects[effect_id]["controls"]["Delay_1"].rmax
-                            onMoved: {
-								knobs.ui_knob_change(effect_id, "Delay_1", value);
-                            }
-
+                    Slider {
+                        id: num_bars
+                        title: "# BARS"
+                        width: 500
+                        height:40
+                        value: currentEffects[effect_id]["controls"]["Delay_1"].value
+                        from: currentEffects[effect_id]["controls"]["Delay_1"].rmin
+                        to: currentEffects[effect_id]["controls"]["Delay_1"].rmax
+                        stepSize: 1.0
+                        snapMode: Slider.SnapOnRelease
+                        onMoved: {
+                            // time is bars + sub division XXX
+                            knobs.ui_knob_change(effect_id, "Delay_1", num_bars.value+(note_subdivisions.value/4.0));
+                            
                         }
-
-                        SpinBox {
-                            value: currentEffects[effect_id]["controls"]["Delay_1"].value * (60 / currentBPM.value) * 1000
-                            from: currentEffects[effect_id]["controls"]["Delay_1"].rmin * (60 / currentBPM.value) * 1000
-                            to:  currentEffects[effect_id]["controls"]["Delay_1"].rmax * (60 / currentBPM.value) * 1000
-                            stepSize: 10
-                            // editable: true
-                            onValueModified: {
-								knobs.ui_knob_change(effect_id, "Delay_1", value / 1000 / (60 / currentBPM.value));
+                        onPressedChanged: {
+                            if (pressed){
+                                knobs.set_knob_current_effect(effect_id, "Delay_1");
                             }
                         }
+                        
                     }
-                    DelayRow {
-                        row_param: "Amp_5"
-						current_effect: effect_id
+                    // TODO add spin box for sub divisions
+                    // TODO add ms spin box + slider
+                    //
+                    SpinBox {
+                        id: note_subdivisions
+                        from: 0
+                        to: Object.keys(items).length - 1
+                        value: 1 // "1/4"
+
+                        property var items: {"1/4 .": 1.5, "1/4": 1, "1/3": 1/3.0, "1/8 .": 0.75, "1/8": 0.5, "1/16": 0.25}
+
+                        textFromValue: function(value) {
+                            var k = Object.keys(items)
+                            for (var i in k) {
+                                if (items[k[i]] == value){
+                                    return k[i];
+                                }
+                            }
+                        }
+
+                        valueFromText: function(text) {
+                            return items[value];
+                        }
+                        onValueModified: {
+                            knobs.ui_knob_change(effect_id, "Delay_1", num_bars.value+(note_subdivisions.value/4.0));
+                        }
                     }
-                    DelayRow {
-                        row_param: "FeedbackSm_6"
-						current_effect: effect_id
-                    }
-                    DelayRow {
-                        row_param: "Feedback_4"
-						current_effect: effect_id
-                    }
-                    DelayRow {
-                        row_param: "DelayT60_3"
-						current_effect: effect_id
-                    }
-                    DelayRow {
-                        row_param: "Warp_2"
-						current_effect: effect_id
-                    }
-                    // DelayRow {
-                    //     row_param: "carla_level"
-                    // }
+
                 }
-                
 
-                Button {
-                    font {
-                        pixelSize: fontSizeMedium
-                    }
+                IconButton {
+                    x: 34 
+                    y: 596
+                    icon.width: 15
+                    icon.height: 25
+                    width: 119
+                    height: 62
                     text: "BACK"
-                    anchors.right: parent.right
-                    anchors.rightMargin: 10
-                    anchors.topMargin: 10
-                    width: 100
-                    height: 100
+                    font {
+                        pixelSize: 24
+                    }
+                    flat: false
+                    icon.name: "back"
+                    Material.background: "white"
+                    Material.foreground: Constants.outline_color
                     onClicked: mainStack.pop()
                 }
             }

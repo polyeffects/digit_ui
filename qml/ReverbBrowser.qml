@@ -120,6 +120,7 @@ Item {
                 text: remove_suffix(fileName)
                 font.bold: fileIsDir ? true : false
                 font.pixelSize: fontSizeMedium
+                highlighted: fileURL == mainRect.current_selected
                 icon.name: fileIsDir ? "md-folder-open" : false // or md-folder
                 onClicked: {
                     if (fileIsDir) {
