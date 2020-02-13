@@ -76,7 +76,7 @@ effect_prototypes_models = {"digit": {
                       'FeedbackSm_6': ['Tone', 0, 0, 1],
                       'Feedback_4': ['Feedback', 0.3, 0, 1],
                       'Warp_2': ['Warp', 0, -1, 1]},
-         'inputs': {'Amp_5': ['Amp', 'CVPort'],
+         'inputs': {'Amp_5': ['Level', 'CVPort'],
                     'BPM_0': ['BPM', 'ControlPort'],
                     'DelayT60_3': ['Glide', 'CVPort'],
                     'Delay_1': ['Time', 'CVPort'],
@@ -104,7 +104,7 @@ effect_prototypes_models = {"digit": {
                                   #'CTL_OUT': ['Control Out', 'ControlPort'],
                                   'CV_OUT': ['CV Out', 'CVPort']}},
      'filter': {'controls': {'exp_fm_gain': ['Exp. FM gain', 0.5, 0.0, 10.0],
-                             'freq': ['Frequency', 440.0, 20, 20000],
+                             'freq': ['Frequency', 440.0, 25, 18000],
                              'in_gain': ['Input gain', 0.0, -60.0, 10.0],
                              'out_gain': ['Output gain', 0.0, -15.0, 15.0],
                              'res': ['Resonance', 0.5, 0.0, 1.0],
@@ -304,14 +304,14 @@ effect_prototypes_models = {"digit": {
                                   'in': ['In', 'AudioPort']},
                        'outputs': {'out_1': ['OutL', 'AudioPort'],
                                    'out_2': ['OutR', 'AudioPort']}},
-     'true_stereo_cab': {'controls': {'gain': ['Gain', 0.0, -40.0, 4.0],
+     'quad_ir_cab': {'controls': {'gain': ['Gain', 0.0, -40.0, 4.0],
                             "ir": ["/audio/cabs/1x12cab.wav", 0, 0, 1]},
                          'inputs': {'gain': ['Gain', 'CVPort'],
                                     'in_1': ['InL', 'AudioPort'],
                                     'in_2': ['InR', 'AudioPort']},
                          'outputs': {'out_1': ['OutL', 'AudioPort'],
                                      'out_2': ['OutR', 'AudioPort']}},
-     'true_stereo_reverb': {'controls': {'gain': ['Output Gain', 0.0, -40.0, 4.0],
+     'quad_ir_reverb': {'controls': {'gain': ['Output Gain', 0.0, -40.0, 4.0],
                                  "ir": ["/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1]},
                             'inputs': {'gain': ['Output Gain', 'CVPort'],
                                        'in_1': ['InL', 'AudioPort'],
@@ -835,6 +835,20 @@ class MyWorker(QRunnable):
         ret_var = subprocess.call(self.command, shell=True)
         self.emitter.done.emit(ret_var)
 
+class MyTask(QRunnable):
+
+    def __init__(self, delay, command):
+        super(MyTask, self).__init__()
+        self.command = command
+        self.delay = delay
+        self.emitter = MyEmitter()
+
+    def run(self):
+        # run subprocesses, grab output
+        time.sleep(self.delay)
+        ret_var = self.command()
+        self.emitter.done.emit(ret_var)
+
 class PolyBool(QObject):
     # name, min, max, value
     def __init__(self, startval=False):
@@ -955,6 +969,9 @@ class PolyValue(QObject):
     rmax = Property(float, readRMax, setRMax, notify=rmax_changed)
 
 def jump_to_preset(is_inc, num):
+
+    if is_loading.value == True:
+        return
     p_list = preset_list_model.stringList()
     if is_inc:
         current_preset.value = (current_preset.value + num) % len(p_list)
@@ -999,6 +1016,9 @@ def delete_sub_graph(name):
         sub_graphs.remove(name)
 
 def load_preset(name, initial=False):
+    if is_loading.value == True:
+        return
+    is_loading.value = True
     # delete existing blocks
     port_connections.clear()
     to_delete = list(current_effects.keys())
@@ -1297,6 +1317,8 @@ class Knobs(QObject):
         # print(x, y, z)
         if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
             current_effects[effect_name]["controls"][parameter].value = value
+            # clamping here to make it a bit more obvious
+            value = clamp(value, current_effects[effect_name]["controls"][parameter].rmin, current_effects[effect_name]["controls"][parameter].rmax)
             ingen_wrapper.set_parameter_value(effect_name+"/"+parameter, value)
         else:
             print("effect not found", effect_name, parameter, value, effect_name in current_effects)
@@ -1305,13 +1327,15 @@ class Knobs(QObject):
     def update_ir(self, effect_id, ir_file):
         is_cab = True
         effect_type = current_effects[effect_id]["effect_type"]
-        if effect_type in ["mono_reverb", "stereo_reverb", "true_stereo_reverb"]:
+        if effect_type in ["mono_reverb", "stereo_reverb", "quad_ir_reverb"]:
             is_cab = False
         current_effects[effect_id]["controls"]["ir"].name = ir_file
         ingen_wrapper.set_file(effect_id, ir_file, is_cab)
 
     @Slot(str)
     def ui_load_preset_by_name(self, preset_file):
+        if is_loading.value == True:
+            return
         # print("loading", preset_file)
         # outfile = preset_file[7:] # strip file:// prefix
         load_preset(preset_file+"/main.ttl")
@@ -1324,6 +1348,7 @@ class Knobs(QObject):
         # TODO add folders
         current_preset.name = pedalboard_name
         ingen_wrapper.save_pedalboard(current_pedal_model.name, pedalboard_name, current_sub_graph.rstrip("/"))
+        self.launch_task(2, os.sync) # wait 2 seconds then sync to drive
 
     @Slot()
     def ui_copy_irs(self):
@@ -1400,9 +1425,15 @@ class Knobs(QObject):
         print("saving preset list")
         with open("/mnt/pedal_state/"+current_pedal_model.name+"_preset_list.json", "w") as f:
             json.dump(preset_list_model.stringList(), f)
+        os.sync()
 
     @Slot(int)
     def on_worker_done(self, ret_var):
+        # print("updating UI")
+        command_status[0].value = ret_var
+
+    @Slot(int)
+    def on_task_done(self, ret_var):
         # print("updating UI")
         command_status[0].value = ret_var
 
@@ -1410,6 +1441,12 @@ class Knobs(QObject):
         # print("launch_threadpool")
         worker = MyWorker(command)
         worker.emitter.done.connect(self.on_worker_done)
+        worker_pool.start(worker)
+
+    def launch_task(self, delay, command):
+        # print("launch_threadpool")
+        worker = MyTask(delay, command)
+        # worker.emitter.done.connect(self.on_worker_done)
         worker_pool.start(worker)
 
     @Slot(str, str)
@@ -1425,6 +1462,8 @@ class Knobs(QObject):
 
     @Slot(str)
     def set_pedal_model(self, pedal_model):
+        if is_loading.value == True:
+            return
         change_pedal_model(pedal_model)
 
 def io_new_effect(effect_name, effect_type, x=20, y=30):
@@ -1587,7 +1626,7 @@ def handle_tap(footswitch, timestamp):
         bpm = 60 / d
         if bpm > 30 and bpm < 350:
             # set host BPM
-            set_bpm(bpm)
+            pass
         else:
             bpm = None
 
@@ -1646,6 +1685,12 @@ def process_ui_messages():
                 if (effect_name in current_effects):
                     # print("adding ", m)
                     current_effects[effect_name]["enabled"].value = bool(is_enabled)
+            elif m[0] == "pedalboard_loaded":
+                subgraph, file_name = m[1:]
+                # disable loading sign
+                print ("pedalboard loaded", subgraph, file_name, current_sub_graph)
+                if subgraph == current_sub_graph.rstrip("/"):
+                    is_loading.value = False
             elif m[0] == "dsp_load":
                 max_load, mean_load, min_load = m[1:]
                 dsp_load.rmin = min_load
@@ -1660,7 +1705,7 @@ def process_ui_messages():
                         if current_effects[effect_name]["controls"]["ir"].name != ir_file:
                             current_effects[effect_name]["controls"]["ir"].name = ir_file
                             effect_type = current_effects[effect_name]["effect_type"]
-                            if effect_type in ["mono_reverb", "stereo_reverb", "true_stereo_reverb"]:
+                            if effect_type in ["mono_reverb", "stereo_reverb", "quad_ir_reverb"]:
                                 knobs.update_ir(effect_name, urllib.parse.unquote(ir_file))
                         # qDebug("setting knob file " + ir_file)
                 except ValueError:
@@ -1676,10 +1721,10 @@ def process_ui_messages():
 effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay",
         "mono_reverb": "http://polyeffects.com/lv2/polyconvo#Mono",
         "stereo_reverb": "http://polyeffects.com/lv2/polyconvo#MonoToStereo",
-        "true_stereo_reverb": "http://polyeffects.com/lv2/polyconvo#Stereo",
+        "quad_ir_reverb": "http://polyeffects.com/lv2/polyconvo#Stereo",
         "mono_cab": "http://gareus.org/oss/lv2/convoLV2#Mono",
         "stereo_cab": "http://gareus.org/oss/lv2/convoLV2#MonoToStereo",
-        "true_stereo_cab": "http://gareus.org/oss/lv2/convoLV2#Stereo",
+        "quad_ir_cab": "http://gareus.org/oss/lv2/convoLV2#Stereo",
         "warmth": "http://moddevices.com/plugins/tap/tubewarmth",
         "reverse": "http://moddevices.com/plugins/tap/reflector",
         "saturator": "http://moddevices.com/plugins/tap/sigmoid",
@@ -1743,7 +1788,6 @@ effect_prototypes = {}
 inv_effect_type_map = {}
 
 def change_pedal_model(name, initial=False):
-
     global inv_effect_type_map
     global effect_type_map
     global effect_prototypes
@@ -1790,6 +1834,7 @@ if __name__ == "__main__":
     input_level = PolyValue("input level", 0, -80, 10)
     # knobs.set_input_level(pedal_state["input_level"], write=False)
     pedal_bypassed = PolyBool(False)
+    is_loading = PolyBool(False)
 
     available_effects = QStringListModel()
     available_effects.setStringList(sorted(effect_type_map.keys()))
@@ -1817,7 +1862,7 @@ if __name__ == "__main__":
     context.setContextProperty("delayNumBars", delay_num_bars)
     context.setContextProperty("connectSourcePort", connect_source_port)
     context.setContextProperty("midiChannel", midi_channel)
-    # context.setContextProperty("isLoading", is_loading)
+    context.setContextProperty("isLoading", is_loading)
     context.setContextProperty("inputLevel", input_level)
     context.setContextProperty("currentPedalModel", current_pedal_model)
     context.setContextProperty("accent_color", accent_color)

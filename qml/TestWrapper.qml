@@ -13,7 +13,8 @@ ApplicationWindow {
     Material.accent: accent_color.name
     Material.background: "black"
     // Material.buttonColor: "grey"
-    contentOrientation: Qt.LandscapeOrientation
+    // contentOrientation: Qt.LandscapeOrientation
+    contentOrientation: Qt.InvertedLandscapeOrientation
     
     property bool onDevice: Qt.platform.os == "linux" 
     readonly property int baseFontSize: 20 

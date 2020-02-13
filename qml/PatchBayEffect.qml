@@ -30,6 +30,7 @@ Rectangle {
     property Rectangle cv_area: cv_rec
     property Column inputs: input_rec
     property Column outputs: output_rec
+	property real current_subdivision: 1.0 
 
     function isAudio(item){
         return effectPrototypes[effect_type]["inputs"][item][1] == "AudioPort"
@@ -42,7 +43,7 @@ Rectangle {
     property var input_keys: Object.keys(effectPrototypes[effect_type]["inputs"]).filter(isAudio) 
     property var output_keys: Object.keys(effectPrototypes[effect_type]["outputs"])
     property bool no_sliders: ["mono_EQ", "stereo_EQ", "input", "output"].indexOf(effect_type) >= 0
-    property bool has_ui: ["mono_EQ", "stereo_EQ", "mono_reverb", "stereo_reverb", "true_stereo_reverb",
+    property bool has_ui: ["mono_EQ", "stereo_EQ", "mono_reverb", "stereo_reverb", "true_stereo_reverb", "delay",
         "mono_cab", "stereo_cab", "true_stereo_cab"].indexOf(effect_type) >= 0
     property var sliders; 
     // border { width:2; color: Material.color(Material.Cyan, Material.Shade100)}
@@ -401,29 +402,39 @@ Rectangle {
                     spacing: 20
                     anchors.centerIn: parent
                 
-                    GlowingLabel {
-                        color: "#ffffff"
-                        text: effect_id
-                        font {
-                            pixelSize: fontSizeLarge
-                        }
-                    }
+					Label {
+						width: parent.width
+						height: 50
+						text: rsplit(effect_id, "/", 1)[1].replace(/_/g, " ")
+						horizontalAlignment: Text.AlignHCenter
+						wrapMode: Text.Wrap
+						color: effect_color
+						lineHeight: 0.9
+						fontSizeMode: Text.Fit 
+						minimumPixelSize: 18
+						font {
+							// pixelSize: fontSizeMedium
+							family: mainFont.name
+							pixelSize: 48
+							capitalization: Font.AllUppercase
+							letterSpacing: 0
+						}
+					}
                     // property var parameter_map: {"LEVEL":"Amp_5", "TONE":"", "FEEDBACK": "", 
                     //                 "GLIDE": "", "WARP":""  }
                     Slider {
                         id: num_bars
-                        title: "# BARS"
-                        width: 500
-                        height:40
-                        value: currentEffects[effect_id]["controls"]["Delay_1"].value
+                        title: "# BEATS"
+                        width: 1000
+                        height: 100
+                        value: Math.floor(currentEffects[effect_id]["controls"]["Delay_1"].value)
                         from: currentEffects[effect_id]["controls"]["Delay_1"].rmin
                         to: currentEffects[effect_id]["controls"]["Delay_1"].rmax
                         stepSize: 1.0
                         snapMode: Slider.SnapOnRelease
                         onMoved: {
-                            // time is bars + sub division XXX
-                            knobs.ui_knob_change(effect_id, "Delay_1", num_bars.value+(note_subdivisions.value/4.0));
-                            
+                            // time is bars + sub division 
+                            knobs.ui_knob_change(effect_id, "Delay_1", num_bars.value+(current_subdivision));
                         }
                         onPressedChanged: {
                             if (pressed){
@@ -432,53 +443,69 @@ Rectangle {
                         }
                         
                     }
-                    // TODO add spin box for sub divisions
                     // TODO add ms spin box + slider
-                    //
-                    SpinBox {
+                    ComboBox {
+						width: 500
+						height: 100
                         id: note_subdivisions
-                        from: 0
-                        to: Object.keys(items).length - 1
-                        value: 1 // "1/4"
+						textRole: "text"
 
-                        property var items: {"1/4 .": 1.5, "1/4": 1, "1/3": 1/3.0, "1/8 .": 0.75, "1/8": 0.5, "1/16": 0.25}
+						model: [{text: "on beat", value: 0},
+						{text: "2/3", value: 8/3.0}, {text: "1/3", value: 4/3.0}, {text: "1/8 .", value: 0.75},
+						{text: "PHI", value: 0.618},
+					   	{text: "1/8", value: 0.5},  {text: "1/16", value: 0.25}]
 
-                        textFromValue: function(value) {
-                            var k = Object.keys(items)
-                            for (var i in k) {
-                                if (items[k[i]] == value){
-                                    return k[i];
-                                }
+						Component.onCompleted: currentIndex = indexForValue(currentEffects[effect_id]["controls"]["Delay_1"].value % 1)
+                        onActivated: {
+							current_subdivision = model[currentIndex].value;
+                            knobs.ui_knob_change(effect_id, "Delay_1", num_bars.value+(current_subdivision));
+                        }
+
+						function indexForValue(value) {
+							for (var i = 0; i < model.length; ++i) {
+								if (model[i].value === value)
+								return i;
+							}
+							return -1;
+						}
+                    }
+
+					Label {
+						width: 500
+						height: 50
+                        text: (60.0 / currentEffects[effect_id]["controls"]["BPM_0"].value * currentEffects[effect_id]["controls"]["Delay_1"].value * 1000).toFixed(0) + " ms"
+						color: "white"
+						fontSizeMode: Text.Fit 
+						minimumPixelSize: 18
+						font {
+							// pixelSize: fontSizeMedium
+							family: mainFont.name
+							pixelSize: 32
+							capitalization: Font.AllUppercase
+							letterSpacing: 0
+						}
+					}
+
+                    Slider {
+                        title: "TIME (MS)"
+                        width: 1000
+                        height:100
+                        value: currentEffects[effect_id]["controls"]["Delay_1"].value
+                        from: currentEffects[effect_id]["controls"]["Delay_1"].rmin
+                        to: currentEffects[effect_id]["controls"]["Delay_1"].rmax
+                        onMoved: {
+                            // time is bars + sub division
+                            knobs.ui_knob_change(effect_id, "Delay_1", value);
+                        }
+                        onPressedChanged: {
+                            if (pressed){
+                                knobs.set_knob_current_effect(effect_id, "Delay_1");
                             }
                         }
-
-                        valueFromText: function(text) {
-                            return items[value];
-                        }
-                        onValueModified: {
-                            knobs.ui_knob_change(effect_id, "Delay_1", num_bars.value+(note_subdivisions.value/4.0));
-                        }
+                        
                     }
-
                 }
 
-                IconButton {
-                    x: 34 
-                    y: 596
-                    icon.width: 15
-                    icon.height: 25
-                    width: 119
-                    height: 62
-                    text: "BACK"
-                    font {
-                        pixelSize: 24
-                    }
-                    flat: false
-                    icon.name: "back"
-                    Material.background: "white"
-                    Material.foreground: Constants.outline_color
-                    onClicked: mainStack.pop()
-                }
             }
         }
 

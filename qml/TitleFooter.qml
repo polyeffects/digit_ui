@@ -42,6 +42,17 @@ Item {
         z: 1
         anchors.centerIn: parent
     }
+    Label {
+        // width: 1280
+        // height: 720
+        text: "LOADING"
+        font.pixelSize: 60
+        opacity: 0.3
+        color: "grey"
+        visible: isLoading.value
+        z: 1
+        anchors.centerIn: parent
+    }
 
     Rectangle {
         color: accent_color.name

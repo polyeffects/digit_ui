@@ -191,7 +191,6 @@ def ingen_recv_thread( ) :
 connected_ports = set()
 def connect_jack_port(port, x, y):
     if port not in connected_ports:
-        if platform.system() == "Linux":
             port_map = {"/main/out_1": "ingen:out_1 system:playback_3",
                     "/main/out_2": "ingen:out_2 system:playback_4",
                     "/main/out_3": "ingen:out_3 system:playback_6",
@@ -206,7 +205,8 @@ def connect_jack_port(port, x, y):
             if port in port_map:
                 connected_ports.add(port)
                 command = ["/usr/bin/jack_connect",  *port_map[port].split()]
-                ret_var = subprocess.run(command)
+                if platform.system() == "Linux":
+                    ret_var = subprocess.run(command)
             else:
                 # check if it's a sub module io we need to connect
                 port_suffix = port.rsplit("/", 1)[1]
@@ -332,6 +332,10 @@ def parse_ingen(to_parse):
             value = g.value(response, NS.patch.value, None)
             # print("in set enabled", subject, "value", value, "b value", bool(value))
             ui_queue.put(("enabled_change", subject, bool(value)))
+        elif (response, NS.patch.property, NS.ingen.file) in g:
+            value = g.value(response, NS.patch.value, None)
+            # print("in set enabled", subject, "value", value, "b value", bool(value))
+            ui_queue.put(("pedalboard_loaded", subject, str(value)))
     for t in g.triples([None, NS.rdf.type, NS.patch.Delete]):
         response = t[0]
         body     = g.value(response, NS.patch.body, None)
@@ -380,7 +384,7 @@ if platform.system() == "Linux":
     server = "unix:///tmp/ingen.sock"
 else:
     # server = "tcp://192.168.1.140:16180"
-    server = "tcp://192.168.1.139:16180"
+    server = "tcp://192.168.1.147:16180"
 # server = "tcp://192.168.1.140:16180"
 ingen = ingen.Remote(server)
 
