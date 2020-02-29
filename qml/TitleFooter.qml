@@ -42,16 +42,24 @@ Item {
         z: 1
         anchors.centerIn: parent
     }
-    Label {
-        // width: 1280
-        // height: 720
-        text: "LOADING"
-        font.pixelSize: 60
-        opacity: 0.3
-        color: "grey"
+
+    Rectangle {
+        z: 4
+        anchors.fill: parent
+        color: "#60000000"
         visible: isLoading.value
-        z: 1
-        anchors.centerIn: parent
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {}
+        }
+        Label {
+            text: "LOADING"
+            font.pixelSize: 90
+            // opacity: 0.8
+            color: "white"
+            visible: isLoading.value
+            anchors.centerIn: parent
+        }
     }
 
     Rectangle {

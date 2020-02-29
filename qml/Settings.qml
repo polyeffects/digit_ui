@@ -36,7 +36,7 @@ Item {
                     // height:parent.height
                     GlowingLabel {
                         // color: "#ffffff"
-                        text: currentPedalModel.name+" FIRMWARE 2.12"
+                        text: currentPedalModel.name+" FIRMWARE 2.16"
                         color: accent_color.name
                     }
 
@@ -245,6 +245,14 @@ Item {
                         font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
                         onClicked: mainStack.push("PerformanceMode.qml")
+                    }
+
+                    Button {
+                        flat: false
+                        text: "QA Check"
+                        font.pixelSize: baseFontSize
+                        // show screen explaining to put USB flash drive in
+                        onClicked: mainStack.push("QATest.qml")
                     }
 
                 }

@@ -1,6 +1,7 @@
 import QtQuick 2.4
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
+import QtQuick.VirtualKeyboard 2.1
 // list for inputs, outputs
 // each has a type, id, name.  icon? 
 // effect has name, internal name / class, id
@@ -400,11 +401,14 @@ Rectangle {
                 Column {
                     width: 1100
                     spacing: 20
-                    anchors.centerIn: parent
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
                 
 					Label {
+                        visible: !Qt.inputMethod.visible
 						width: parent.width
-						height: 50
+						height: 40
 						text: rsplit(effect_id, "/", 1)[1].replace(/_/g, " ")
 						horizontalAlignment: Text.AlignHCenter
 						wrapMode: Text.Wrap
@@ -423,10 +427,11 @@ Rectangle {
                     // property var parameter_map: {"LEVEL":"Amp_5", "TONE":"", "FEEDBACK": "", 
                     //                 "GLIDE": "", "WARP":""  }
                     Slider {
+                        visible: !Qt.inputMethod.visible
                         id: num_bars
                         title: "# BEATS"
                         width: 1000
-                        height: 100
+                        height: 90
                         value: Math.floor(currentEffects[effect_id]["controls"]["Delay_1"].value)
                         from: currentEffects[effect_id]["controls"]["Delay_1"].rmin
                         to: currentEffects[effect_id]["controls"]["Delay_1"].rmax
@@ -445,8 +450,9 @@ Rectangle {
                     }
                     // TODO add ms spin box + slider
                     ComboBox {
+                        visible: !Qt.inputMethod.visible
 						width: 500
-						height: 100
+						height: 90
                         id: note_subdivisions
 						textRole: "text"
 
@@ -470,13 +476,13 @@ Rectangle {
 						}
                     }
 
-					Label {
+                    TextField {
+                        inputMethodHints: Qt.ImhDigitsOnly
+                        validator: IntValidator{bottom: 0; top: 32000;}
 						width: 500
-						height: 50
-                        text: (60.0 / currentEffects[effect_id]["controls"]["BPM_0"].value * currentEffects[effect_id]["controls"]["Delay_1"].value * 1000).toFixed(0) + " ms"
+						height: 90
+                        text: (60.0 / currentEffects[effect_id]["controls"]["BPM_0"].value * currentEffects[effect_id]["controls"]["Delay_1"].value * 1000).toFixed(0) // + " ms"
 						color: "white"
-						fontSizeMode: Text.Fit 
-						minimumPixelSize: 18
 						font {
 							// pixelSize: fontSizeMedium
 							family: mainFont.name
@@ -484,12 +490,18 @@ Rectangle {
 							capitalization: Font.AllUppercase
 							letterSpacing: 0
 						}
-					}
+                        onTextEdited: {
+                            if (Number(text) > 0 && Number(text) < 32000){
+                                knobs.ui_knob_change(effect_id, "Delay_1", text * currentEffects[effect_id]["controls"]["BPM_0"].value / ( 1000 * 60)) ;
+                            }
+                        }
+                    }
 
                     Slider {
                         title: "TIME (MS)"
                         width: 1000
-                        height:100
+                        height:90
+                        visible: !Qt.inputMethod.visible
                         value: currentEffects[effect_id]["controls"]["Delay_1"].value
                         from: currentEffects[effect_id]["controls"]["Delay_1"].rmin
                         to: currentEffects[effect_id]["controls"]["Delay_1"].rmax
@@ -505,6 +517,17 @@ Rectangle {
                         
                     }
                 }
+				InputPanel {
+					id: inputPanel
+					// parent:mainWindow.contentItem
+					z: 1000002
+					anchors.bottom:parent.bottom
+					anchors.left: parent.left
+					anchors.right: parent.right
+                    height: 200
+
+					visible: Qt.inputMethod.visible
+				}
 
             }
         }

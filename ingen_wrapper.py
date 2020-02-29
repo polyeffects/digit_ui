@@ -10,6 +10,7 @@ import traceback
 import logging
 import urllib.parse
 import platform
+import os.path
 
 class ExceptionThread(threading.Thread):
     def __init__(self, *args, **kwargs):
@@ -382,6 +383,8 @@ def start_send_thread():
 if platform.system() == "Linux":
     # server = "tcp://127.0.0.1:16180"
     server = "unix:///tmp/ingen.sock"
+    while not os.path.exists("/tmp/ingen.sock"):
+        time.sleep(0.1)
 else:
     # server = "tcp://192.168.1.140:16180"
     server = "tcp://192.168.1.147:16180"

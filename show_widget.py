@@ -984,8 +984,22 @@ def jump_to_preset(is_inc, num):
     knobs.ui_load_preset_by_name(p_list[current_preset.value])
 
 def write_pedal_state():
-    with open("/pedal_state/state.json", "w") as f:
+    with open("/mnt/pedal_state/state.json", "w") as f:
         json.dump(pedal_state, f)
+    os.sync()
+
+def load_pedal_state():
+    global pedal_state
+    try:
+        with open("/mnt/pedal_state/state.json") as f:
+            pedal_state = json.load(f)
+            if "input_level" not in pedal_state:
+                pedal_state["input_level"] = 0
+            if "midi_channel" not in pedal_state:
+                pedal_state["midi_channel"] = 1
+    except:
+        pedal_state = {"input_level": 0, "midi_channel": 1}
+
 
 selected_effect_ports = QStringListModel()
 selected_effect_ports.setStringList(["val1", "val2"])
@@ -1015,8 +1029,8 @@ def delete_sub_graph(name):
         ingen_wrapper.remove_plugin(name)
         sub_graphs.remove(name)
 
-def load_preset(name, initial=False):
-    if is_loading.value == True:
+def load_preset(name, initial=False, force=False):
+    if is_loading.value == True and not force:
         return
     is_loading.value = True
     # delete existing blocks
@@ -1319,6 +1333,10 @@ class Knobs(QObject):
             current_effects[effect_name]["controls"][parameter].value = value
             # clamping here to make it a bit more obvious
             value = clamp(value, current_effects[effect_name]["controls"][parameter].rmin, current_effects[effect_name]["controls"][parameter].rmax)
+            # bit sketch but check if BPM here? XXX
+            if parameter == "bpm":
+                set_bpm(value)
+
             ingen_wrapper.set_parameter_value(effect_name+"/"+parameter, value)
         else:
             print("effect not found", effect_name, parameter, value, effect_name in current_effects)
@@ -1398,7 +1416,9 @@ class Knobs(QObject):
 
     @Slot(int)
     def set_input_level(self, level, write=True):
-        command = "amixer -- sset ADC1 "+str(level)+"db"""
+        command = "amixer -- sset ADC1 "+str(level)+"db"
+        command_status[0].value = subprocess.call(command, shell=True)
+        command = "amixer -- sset ADC2 "+str(level)+"db"
         command_status[0].value = subprocess.call(command, shell=True)
         if write:
             pedal_state["input_level"] = level
@@ -1509,6 +1529,17 @@ def handle_encoder_change(is_left, change):
     knob = "left"
     knob_effect = knob_map[knob].effect
     knob_parameter = knob_map[knob].parameter
+    if True: # qa_view:
+        if is_left:
+            qa_k = "left"
+        else:
+            qa_k = "right"
+        value = encoder_qa[qa_k].value
+        base_speed = 1 / normal_speed
+        knob_speed = 5
+        value = value + (change * knob_speed * base_speed)
+        encoder_qa[qa_k].value = value
+
     if not knob_effect or knob_effect not in current_effects:
         return
     value = current_effects[knob_effect]["controls"][knob_parameter].value
@@ -1519,6 +1550,7 @@ def handle_encoder_change(is_left, change):
     # base speed * speed multiplier
     base_speed = (abs(knob_map[knob].rmin) + abs(knob_map[knob].rmax)) / normal_speed
     value = value + (change * knob_speed * base_speed)
+
     # print("knob value is", value)
     # knob change handles clamping
     knobs.ui_knob_change(knob_effect, knob_parameter, value)
@@ -1565,6 +1597,9 @@ def send_to_footswitch_blocks(timestamp, switch_name, value=0):
         foot_switch_name = "foot_switch_b"
     if "bypass" in switch_name:
         foot_switch_name = "foot_switch_c"
+
+    if True: # qa_view
+        foot_switch_qa[foot_switch_name[-1]].value = value
 
     bpm = None
     if value == 1:
@@ -1818,21 +1853,21 @@ if __name__ == "__main__":
 
     update_counter = PolyValue("update counter", 0, 0, 500000)
     # read persistant state
-    # pedal_state = {}
-    # with open("/pedal_state/state.json") as f:
-    #     pedal_state = json.load(f)
+    pedal_state = {}
+    load_pedal_state()
     current_bpm = PolyValue("BPM", 120, 30, 250) # bit of a hack
     current_preset = PolyValue("Default Preset", 0, 0, 127)
     update_counter = PolyValue("update counter", 0, 0, 500000)
     command_status = [PolyValue("command status", -1, -10, 100000), PolyValue("command status", -1, -10, 100000)]
     delay_num_bars = PolyValue("Num bars", 1, 1, 16)
     dsp_load = PolyValue("DSP Load", 0, 0, 0.3)
+    foot_switch_qa = {"a":PolyValue("a", 0, 0, 1), "b":PolyValue("b", 0, 0, 1), "c":PolyValue("c", 0, 0, 1)}
+    encoder_qa = {"left":PolyValue("a", 0, 0, 1), "right":PolyValue("b", 0, 0, 1)}
     connect_source_port = PolyValue("", 1, 1, 16) # for sharing what type the selected source is
-    # midi_channel = PolyValue("channel", pedal_state["midi_channel"], 1, 16)
-    # input_level = PolyValue("input level", pedal_state["input_level"], -80, 10)
-    midi_channel = PolyValue("channel", 1, 1, 16)
-    input_level = PolyValue("input level", 0, -80, 10)
-    # knobs.set_input_level(pedal_state["input_level"], write=False)
+    midi_channel = PolyValue("channel", pedal_state["midi_channel"], 1, 16)
+    input_level = PolyValue("input level", pedal_state["input_level"], -80, 10)
+    print("### Input level is", input_level.value)
+    knobs.set_input_level(pedal_state["input_level"], write=False)
     pedal_bypassed = PolyBool(False)
     is_loading = PolyBool(False)
 
@@ -1867,6 +1902,8 @@ if __name__ == "__main__":
     context.setContextProperty("currentPedalModel", current_pedal_model)
     context.setContextProperty("accent_color", accent_color)
     context.setContextProperty("presetList", preset_list_model)
+    context.setContextProperty("footSwitchQA", foot_switch_qa)
+    context.setContextProperty("encoderQA", encoder_qa)
     engine.load(QUrl("qml/TestWrapper.qml")) # XXX 
     print("starting send thread")
     ingen_wrapper.start_send_thread()
@@ -1915,9 +1952,9 @@ if __name__ == "__main__":
     initial_preset = False
     print("starting UI")
     if current_pedal_model.name == "digit":
-        load_preset("file:///mnt/presets/digit/Default_Preset.ingen/main.ttl", True)
+        load_preset("file:///mnt/presets/digit/Default_Preset.ingen/main.ttl", True, True)
     elif current_pedal_model.name == "beebo":
-        load_preset("file:///mnt/presets/beebo/Empty.ingen/main.ttl", True)
+        load_preset("file:///mnt/presets/beebo/Empty.ingen/main.ttl", True, True)
     time.sleep(0.2)
     ingen_wrapper.get_state("/main")
     # load_preset("file:///mnt/presets/Default_Preset.ingen/main.ttl", False)
