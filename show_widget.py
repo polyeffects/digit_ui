@@ -1314,6 +1314,11 @@ class Knobs(QObject):
     def set_bypass(self, effect_name, is_active):
         ingen_wrapper.set_bypass(effect_name, is_active)
 
+    @Slot(str)
+    def set_description(self, description):
+        ingen_wrapper.set_description(current_sub_graph.rstrip("/"), description)
+        preset_description.name = description
+
     @Slot(str, int, int)
     def move_effect(self, effect_name, x, y):
         current_effects[effect_name]["x"] = x
@@ -1410,7 +1415,7 @@ class Knobs(QObject):
     def ui_update_firmware(self):
         # print("Updating firmware")
         # dpkg the debs in the folder
-        command = """sudo dpkg -i /media/*.deb"""
+        command = """sudo dpkg -i /media/*.deb;sudo shutdown -h 'now' """
         command_status[0].value = -1
         self.launch_subprocess(command)
 
@@ -1575,7 +1580,7 @@ previous_preset
 next_action_group previous_action_group
 toggle_effect
 """)
-foot_action_groups = [{"tap_up":[Actions.set_value] , "step_up": [Actions.set_value], "bypass_up":[Actions.toggle_pedal],
+foot_action_groups = [{"tap_up":[Actions.set_value] , "step_up": [Actions.set_value], "bypass_up":[Actions.set_value],
     "tap_down":[Actions.set_value_down] , "step_down": [Actions.set_value_down], "bypass_down":[Actions.set_value_down],
     "tap_step_up": [Actions.previous_preset], "step_bypass_up": [Actions.next_preset]}]
 current_action_group = 0
@@ -1587,6 +1592,9 @@ def handle_bypass():
         pedal_hardware.effect_off()
     else:
         pedal_hardware.effect_on()
+
+def hide_foot_switch_warning():
+    foot_switch_warning.value = False
 
 def send_to_footswitch_blocks(timestamp, switch_name, value=0):
     # send to all foot switch blocks
@@ -1605,6 +1613,7 @@ def send_to_footswitch_blocks(timestamp, switch_name, value=0):
     if value == 1:
         bpm = handle_tap(foot_switch_name, timestamp)
 
+    found_effect = False
     for effect_id, effect in current_effects.items():
         if "foot_switch" in effect["effect_type"]:
             if foot_switch_name in effect_id:
@@ -1613,6 +1622,16 @@ def send_to_footswitch_blocks(timestamp, switch_name, value=0):
                     knobs.ui_knob_change(effect_id, "bpm", float(bpm))
                 # qDebug("sending knob change from foot switch "+effect_id + "value" + str(float(value)))
                 knobs.ui_knob_change(effect_id, "value", float(value))
+                found_effect = True
+
+    if not found_effect and value == 0:
+        if foot_switch_name == "foot_switch_c":
+            handle_bypass()
+        else:
+            # show you're pressing a footswitch that isn't connected to anything
+            foot_switch_warning.value = True
+            QTimer.singleShot(2500, hide_foot_switch_warning)
+
 
 def next_preset():
     jump_to_preset(True, 1)
@@ -1731,6 +1750,9 @@ def process_ui_messages():
                 dsp_load.rmin = min_load
                 dsp_load.rmax = max_load
                 dsp_load.value = mean_load
+            elif m[0] == "set_comment":
+                description, subject = m[1:]
+                preset_description.name = description
             elif m[0] == "add_port":
                 pass
             elif m[0] == "set_file":
@@ -1866,10 +1888,12 @@ if __name__ == "__main__":
     connect_source_port = PolyValue("", 1, 1, 16) # for sharing what type the selected source is
     midi_channel = PolyValue("channel", pedal_state["midi_channel"], 1, 16)
     input_level = PolyValue("input level", pedal_state["input_level"], -80, 10)
+    preset_description = PolyValue("tap to write description", 0, 0, 1)
     print("### Input level is", input_level.value)
     knobs.set_input_level(pedal_state["input_level"], write=False)
     pedal_bypassed = PolyBool(False)
     is_loading = PolyBool(False)
+    foot_switch_warning = PolyBool(False)
 
     available_effects = QStringListModel()
     available_effects.setStringList(sorted(effect_type_map.keys()))
@@ -1904,6 +1928,8 @@ if __name__ == "__main__":
     context.setContextProperty("presetList", preset_list_model)
     context.setContextProperty("footSwitchQA", foot_switch_qa)
     context.setContextProperty("encoderQA", encoder_qa)
+    context.setContextProperty("footSwitchWarning", foot_switch_warning)
+    context.setContextProperty("pedalboardDescription", preset_description)
     engine.load(QUrl("qml/TestWrapper.qml")) # XXX 
     print("starting send thread")
     ingen_wrapper.start_send_thread()

@@ -43,6 +43,19 @@ Item {
         anchors.centerIn: parent
     }
 
+    Label {
+        // width: 1280
+        // height: 720
+        text: "You are pressing a footswitch that isn't connected to anything.\nAdd a footswitch module."
+        horizontalAlignment: Text.AlignHCenter
+        font.pixelSize: 40
+        // opacity: 0.9
+        color: "white"
+        visible: footSwitchWarning.value
+        z: 1
+        anchors.centerIn: parent
+    }
+
     Rectangle {
         z: 4
         anchors.fill: parent

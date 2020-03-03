@@ -2,6 +2,7 @@ import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
+import QtQuick.VirtualKeyboard 2.1
 
 import Poly 1.0
 import "polyconst.js" as Constants
@@ -308,6 +309,29 @@ import "polyconst.js" as Constants
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {}
+                }
+            }
+
+            Label {
+                id: pedalboard_description
+                y: 10
+                x: 120
+                width: 500
+                height: 100
+                color: "grey" // Constants.outline_color
+                text: pedalboardDescription.name
+                // onEditingFinished: {
+                //     knobs.set_description(text)
+                // }
+                font {
+                    pixelSize: fontSizeMedium
+                }
+                z: 2
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: { 
+                        mainStack.push(enterDescription);
+                    }
                 }
             }
 
@@ -641,6 +665,70 @@ import "polyconst.js" as Constants
             }
         }
 
+        Component {
+            id: enterDescription
+            Item {
+                y: 100
+                height:700
+                width:1280
+                Column {
+                    x: 100
+                    height:600
+                    width:1180
+                    Label {
+                        color: "#ffffff"
+                        text: "Preset Description"
+                        font {
+                            pixelSize: fontSizeLarge * 1.2
+                        }
+                        // anchors.top: parent.top
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+
+                    TextArea {
+                        width: 800
+                        height: 400
+                        text: pedalboardDescription.name
+                        onEditingFinished: {
+                            knobs.set_description(text)
+                        }
+                    }
+
+                    InputPanel {
+                        // parent:mainWindow.contentItem
+                        z: 1000002
+                        // anchors.bottom:parent.bottom
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        height: 200
+
+                        visible: Qt.inputMethod.visible
+                    }
+                }
+
+                IconButton {
+                    x: 34 
+                    y: 596
+                    icon.width: 15
+                    icon.height: 25
+                    width: 119
+                    height: 62
+                    text: "BACK"
+                    font {
+                        pixelSize: 24
+                    }
+                    flat: false
+                    icon.name: "back"
+                    Material.background: "white"
+                    Material.foreground: Constants.outline_color
+                    HelpLabel {
+                        text: "back"
+                    }
+
+                    onClicked: mainStack.pop()
+                }
+            }
+        }
         // Popup {
         //     id: portSelectionPopup
         //     property var ports: []

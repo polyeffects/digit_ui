@@ -61,6 +61,12 @@ def set_bypass(effect_id, active):
 	# patch:value false .
     q.put((ingen.put, effect_id, "ingen:enabled "+ str(active).lower()))
 
+def set_description(current_sub_graph, description):
+    #ingen.set("/main/tone/output", "ingen:value", "0.8") 
+    # ingen.set(port, "ingen:value", str(value))
+    # q.put((ingen.set, current_sub_graph, "http://www.w3.org/2000/01/rdf-schema#comment", description))
+    q.put((ingen.put, current_sub_graph+"/control", 'rdfs:comment """%s"""' % description))
+
 def set_parameter_value(port, value):
     #ingen.set("/main/tone/output", "ingen:value", "0.8") 
     # ingen.set(port, "ingen:value", str(value))
@@ -252,6 +258,9 @@ def parse_ingen(to_parse):
                 # print("load subject", subject, max_load, mean_load, min_load)
                 if send:
                     ui_queue.put(("dsp_load", max_load, mean_load, min_load))
+            if (body, NS.rdfs.comment, None) in g:
+                value = str(g.value(body, NS.rdfs.comment, None))
+                ui_queue.put(("set_comment", value, subject))
             if (body, NS.rdf.type, NS.ingen.Block) in g:
                 # print("response is", t[0], "subject is", subject, "body is", body)
                 # adding new block

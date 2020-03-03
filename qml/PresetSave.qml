@@ -294,7 +294,7 @@ import QtQuick.Controls.Material 2.3
                     }
 
                     TextField {
-                        validator: RegExpValidator { regExp: /^[0-9a-zA-F ]+$/}
+                        validator: RegExpValidator { regExp: /^[0-9a-zA-Z ]+$/}
 						id: new_preset_name
 						width: 250
 						height: 100

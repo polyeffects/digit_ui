@@ -46,6 +46,7 @@ Rectangle {
     property bool no_sliders: ["mono_EQ", "stereo_EQ", "input", "output"].indexOf(effect_type) >= 0
     property bool has_ui: ["mono_EQ", "stereo_EQ", "mono_reverb", "stereo_reverb", "true_stereo_reverb", "delay",
         "mono_cab", "stereo_cab", "true_stereo_cab"].indexOf(effect_type) >= 0
+    property bool is_io: ["input", "output"].indexOf(effect_type) >= 0
     property var sliders; 
     // border { width:2; color: Material.color(Material.Cyan, Material.Shade100)}
     Drag.active: mouseArea.drag.active
@@ -295,7 +296,8 @@ Rectangle {
         z: -1
         anchors.fill: parent
         // drag.target: patch_bay.current_mode == PatchBay.Move ? parent : undefined
-        drag.target: parent 
+        drag.target: !rect.is_io && patch_bay.currentMode == PatchBay.Move ? parent : undefined
+        // drag.target: parent 
         onPressed: {
             // check mode: move, delete, connect, open
             rect.beginDrag = Qt.point(rect.x, rect.y);
@@ -448,7 +450,6 @@ Rectangle {
                         }
                         
                     }
-                    // TODO add ms spin box + slider
                     ComboBox {
                         visible: !Qt.inputMethod.visible
 						width: 500
@@ -475,24 +476,38 @@ Rectangle {
 							return -1;
 						}
                     }
-
-                    TextField {
-                        inputMethodHints: Qt.ImhDigitsOnly
-                        validator: IntValidator{bottom: 0; top: 32000;}
-						width: 500
-						height: 90
-                        text: (60.0 / currentEffects[effect_id]["controls"]["BPM_0"].value * currentEffects[effect_id]["controls"]["Delay_1"].value * 1000).toFixed(0) // + " ms"
-						color: "white"
-						font {
-							// pixelSize: fontSizeMedium
-							family: mainFont.name
-							pixelSize: 32
-							capitalization: Font.AllUppercase
-							letterSpacing: 0
-						}
-                        onTextEdited: {
-                            if (Number(text) > 0 && Number(text) < 32000){
-                                knobs.ui_knob_change(effect_id, "Delay_1", text * currentEffects[effect_id]["controls"]["BPM_0"].value / ( 1000 * 60)) ;
+                    
+                    Row {
+                        TextField {
+                            inputMethodHints: Qt.ImhDigitsOnly
+                            validator: IntValidator{bottom: 0; top: 32000;}
+                            width: 500
+                            height: 90
+                            text: (60.0 / currentEffects[effect_id]["controls"]["BPM_0"].value * currentEffects[effect_id]["controls"]["Delay_1"].value * 1000).toFixed(0) // + " ms"
+                            color: "white"
+                            font {
+                                // pixelSize: fontSizeMedium
+                                family: mainFont.name
+                                pixelSize: 32
+                                capitalization: Font.AllUppercase
+                                letterSpacing: 0
+                            }
+                            onTextEdited: {
+                                if (Number(text) > 0 && Number(text) < 32000){
+                                    knobs.ui_knob_change(effect_id, "Delay_1", text * currentEffects[effect_id]["controls"]["BPM_0"].value / ( 1000 * 60)) ;
+                                }
+                            }
+                        }
+                        Label {
+                            text: "MILLISECONDS"
+                            height: 90
+                            verticalAlignment: Text.AlignVCenter
+                            font {
+                                // pixelSize: fontSizeMedium
+                                family: mainFont.name
+                                pixelSize: 32
+                                capitalization: Font.AllUppercase
+                                letterSpacing: 0
                             }
                         }
                     }
