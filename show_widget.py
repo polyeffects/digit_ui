@@ -1,4 +1,5 @@
 import sys, time, json, os.path, os, subprocess, queue, threading, traceback
+import platform
 os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
 from signal import signal, SIGINT, SIGTERM
 from time import sleep
@@ -972,6 +973,7 @@ def jump_to_preset(is_inc, num):
 
     if is_loading.value == True:
         return
+    # need to call frontend function to jump to home page
     p_list = preset_list_model.stringList()
     if is_inc:
         current_preset.value = (current_preset.value + num) % len(p_list)
@@ -1430,6 +1432,12 @@ class Knobs(QObject):
             write_pedal_state()
 
     @Slot(int)
+    def set_channel(self, channel):
+        midi_channel.value = channel
+        pedal_state["midi_channel"] = channel
+        write_pedal_state()
+
+    @Slot(int)
     def set_preset_list_length(self, v):
         if v > len(preset_list_model.stringList()):
             # print("inserting new row in preset list", v)
@@ -1503,11 +1511,11 @@ def add_io():
     # if patch_bay_model.patch_bay_singleton is not None:
     #     patch_bay_model.patch_bay_singleton.startInsert()
     for i in range(1,5):
-        ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
+        ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(100*i))
         # io_new_effect("input"+str(i), "input", x=1200, y=(80 * i))
         # from_backend_new_effect("/main/in_"+str(i), "input", x=1192, y=(80 * i))
     for i in range(1,5):
-        ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
+        ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(100 * i))
         # io_new_effect("output"+str(i), "output", x=50, y=(80 * i))
         # from_backend_new_effect("/main/out_"+str(i), "output", x=-20, y=(80 * i))
     # if patch_bay_model.patch_bay_singleton is not None:
@@ -1753,6 +1761,9 @@ def process_ui_messages():
             elif m[0] == "set_comment":
                 description, subject = m[1:]
                 preset_description.name = description
+            elif m[0] == "midi_pc":
+                program = m[1]
+                jump_to_preset(False, program)
             elif m[0] == "add_port":
                 pass
             elif m[0] == "set_file":
@@ -1865,6 +1876,43 @@ def change_pedal_model(name, initial=False):
             knobs.ui_load_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
     load_preset_list()
 
+def handle_MIDI_program_change():
+    # This is pretty dodgy... but I don't want to depend on jack in the main process as it'll slow down startup
+    # we need to wait here for ttymidi to be up
+    ttymidi_found = False
+    if platform.system() != "Linux":
+        return
+    while not ttymidi_found:
+        a = subprocess.run(["jack_lsp", "ttymidi"], capture_output=True)
+        if b"ttymidi" in a.stdout:
+            ttymidi_found = True
+        time.sleep(1)
+    p = subprocess.Popen('jack_midi_dump', stdout=subprocess.PIPE)
+    # Grab stdout line by line as it becomes available.  This will loop until 
+    time.sleep(2)
+    try:
+        command = ["/usr/bin/jack_connect",  "ttymidi:MIDI_in", "midi-monitor:input"]
+        ret_var = subprocess.run(command)
+        command = ["/usr/bin/jack_connect",  "ttymidi:MIDI_in", "ttymidi:MIDI_out"]
+        ret_var = subprocess.run(command)
+    except:
+        pass
+    # p terminates.
+    while p.poll() is None:
+        l = p.stdout.readline() # This blocks until it receives a newline.
+        if l[6] == b'c'[0]:
+            b = l.decode()
+            ig, b1, b2 = b.split()
+            channel = int("0x"+b1, 16) - 0xC0
+            program = int("0x"+b2, 16)
+            print(channel, program)
+            if channel == midi_channel.value - 1: # our channel
+                # put this in the queue
+                ui_messages.put(("midi_pc", program))
+    # When the subprocess terminates there might be unconsumed output 
+    # that still needs to be processed.
+    ignored = p.stdout.read()
+
 if __name__ == "__main__":
 
     print("in Main")
@@ -1939,6 +1987,8 @@ if __name__ == "__main__":
     pedal_hardware.foot_callback = handle_foot_change
     pedal_hardware.encoder_change_callback = handle_encoder_change
     pedal_hardware.add_hardware_listeners()
+    knobs.launch_task(0.5, handle_MIDI_program_change)
+
     # qWarning("logging with qwarning")
     try:
         add_io()

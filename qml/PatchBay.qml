@@ -30,6 +30,7 @@ import "polyconst.js" as Constants
         property int current_index: -1
         property bool isMoving: false
         property int currentMode: PatchBay.Select
+        property string current_help_text: "Tap or add a module"
         // relate to port selection popup
         property bool list_source: true
         property string list_effect_id
@@ -315,7 +316,9 @@ import "polyconst.js" as Constants
             Label {
                 id: pedalboard_description
                 y: 10
-                x: 120
+                anchors.horizontalCenter: parent.horizontalCenter
+                horizontalAlignment: Text.AlignHCenter
+                // x: 120
                 width: 500
                 height: 100
                 color: "grey" // Constants.outline_color
@@ -325,6 +328,9 @@ import "polyconst.js" as Constants
                 // }
                 font {
                     pixelSize: fontSizeMedium
+                    family: docFont.name
+                    weight: Font.Normal
+                    capitalization: Font.AllUppercase
                 }
                 z: 2
                 MouseArea {
@@ -357,6 +363,7 @@ import "polyconst.js" as Constants
                     onClicked: {
                         selected_effect.connect_clicked();
                         currentMode = PatchBay.Connect;
+                        current_help_text = Constants.help["connect_to"];
                     }
                     Material.background: "white"
                     Material.foreground: accent_color.name
@@ -412,6 +419,7 @@ import "polyconst.js" as Constants
                     height: 60
                     onClicked: {
                         currentMode = PatchBay.Move;
+                        current_help_text = Constants.help["move"];
                         selected_effect.hide_sliders(false);
                     }
                     Material.background: "white"
@@ -578,7 +586,10 @@ import "polyconst.js" as Constants
                         text: "back"
                     }
 
-                    onClicked: mainStack.pop()
+                    onClicked: { 
+                        current_help_text = ""
+                        mainStack.pop()
+                    }
                 }
             }
         }

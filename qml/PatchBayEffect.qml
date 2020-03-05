@@ -13,6 +13,7 @@ import "polyconst.js" as Constants
 Rectangle {
     id: rect
     width: (effect_id.length * 1.6) + 100
+    // height: is_io ? 80 : 68
     height: 68
     radius: 6
     // color: patch_bay.delete_mode ? Qt.rgba(0.9,0.0,0.0,1.0) : Qt.rgba(0.3,0.3,0.3,1.0)  
@@ -63,6 +64,7 @@ Rectangle {
             selected = false;
             patch_bay.currentMode = PatchBay.Select;
             patch_bay.selected_effect = null;
+            patch_bay.current_help_text = Constants.help["select"];
         }
     }
 
@@ -70,6 +72,7 @@ Rectangle {
         // console.log("destroying patchbayeffect component");
         selected = false;
         patch_bay.currentMode = PatchBay.Select;
+        patch_bay.current_help_text = Constants.help["select"];
         patch_bay.selected_effect = null;
     }
 
@@ -99,11 +102,13 @@ Rectangle {
             if (k.length > 1 )
             {
                 mainStack.push(portSelection);
+                patch_bay.current_help_text = Constants.help["connect_to"];
             } 
             else if (k.length == 1) {
                 knobs.set_current_port(true, effect_id, k[0]);
                 rep1.model.items_changed();
                 patch_bay.externalRefresh();
+                patch_bay.current_help_text = Constants.help["connect_to"];
             }
         } else {
             patch_bay.selected_effect.selected = false;
@@ -130,11 +135,13 @@ Rectangle {
             if (matched > 1 )
             {
                 mainStack.push(portSelection);
+                patch_bay.current_help_text = Constants.help["connect_from"];
             } 
             else if (matched == 1){
                 knobs.set_current_port(false, effect_id, k[matched_id]);
                 rep1.model.items_changed();
                 patch_bay.externalRefresh();
+                patch_bay.current_help_text = Constants.help["connect_from"];
             }
         }
 
@@ -153,12 +160,15 @@ Rectangle {
         patch_bay.currentMode = PatchBay.Details;
         if (effect_type == "stereo_EQ" || effect_type == "mono_EQ"){
             patchStack.push("EQWidget.qml", {"effect": effect_id});
+            patch_bay.current_help_text = Constants.help["eq_detail"];
         }
         else if (effect_type == "delay"){
             patchStack.push(editDelay);
+            patch_bay.current_help_text = Constants.help["delay_detail"];
         }
         else if (effect_type == "mono_reverb" || effect_type == "stereo_reverb" || effect_type == "true_stereo_reverb")
         {
+            patch_bay.current_help_text = Constants.help["reverb_detail"];
             patchStack.push("ReverbBrowser.qml", {"effect": effect_id, 
             "top_folder": "file:///audio/reverbs",
             "after_file_selected": (function(name) { 
@@ -169,6 +179,7 @@ Rectangle {
             });
         }
         else if (effect_type == "mono_cab" || effect_type == "stereo_cab" || effect_type == "true_stereo_cab"){
+            patch_bay.current_help_text = Constants.help["reverb_detail"];
             patchStack.push("ReverbBrowser.qml", {"effect": effect_id, 
             "top_folder": "file:///audio/cabs",
             "after_file_selected": (function(name) { 
@@ -343,6 +354,12 @@ Rectangle {
                     }
                 }
                 patch_bay.currentMode = PatchBay.Sliders;
+                if (has_ui){
+                    patch_bay.current_help_text = Constants.help["sliders_detail"];
+                }
+                else {
+                    patch_bay.current_help_text = Constants.help["sliders"];
+                }
             }
         }
         onDoubleClicked: {

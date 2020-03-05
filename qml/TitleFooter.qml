@@ -296,6 +296,29 @@ Item {
             }
         }
 
+        Label {
+            x: patch_single.currentMode != PatchBay.Select ? 170 : 34
+            y: 12
+            width: 400
+            height: 62
+            visible: !show_footer_value
+            // anchors.centerIn: parent
+            text: patch_single.current_help_text
+            // height: 15
+            color: "white"
+			wrapMode: Text.Wrap
+            lineHeight: 0.9
+            verticalAlignment: Text.AlignVCenter
+            font {
+                // pixelSize: fontSizeMedium
+                pixelSize: 24
+                letterSpacing: 0
+                // family: docFont.name
+                family: docFont.name
+                weight: Font.Normal
+                // capitalization: Font.AllUppercase
+            }
+        }
 
         IconButton {
             id: connectMode
@@ -328,6 +351,7 @@ Item {
                 capitalization: Font.AllUppercase
             }
         }
+
 
         IconButton {
             id: moveMode
@@ -455,6 +479,8 @@ Item {
                         // knobs.ui_add_effect(edit)
                         mainStack.pop()
                         patch_single.currentMode = PatchBay.Move;
+                        patch_single.current_help_text = Constants.help["move"];
+
                     }
                 }
                 ScrollIndicator.vertical: ScrollIndicator {
