@@ -289,7 +289,7 @@ Rectangle {
         text: rsplit(effect_id, "/", 1)[1].replace(/_/g, " ")
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.Wrap
-        color: effect_color
+        color: rect.is_io ? "white" : effect_color 
         lineHeight: 0.65
         fontSizeMode: Text.Fit 
         minimumPixelSize: 18

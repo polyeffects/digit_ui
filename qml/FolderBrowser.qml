@@ -95,9 +95,13 @@ import Qt.labs.folderlistmodel 2.2
             delegate: ItemDelegate {
                 width: parent.width
                 height: 90
-                text: remove_suffix(fileName)
-                font.bold: fileIsDir && !fileURL.toString().endsWith(".ingen") ? true : false
-                font.pixelSize: fontSizeLarge
+                text: remove_suffix(fileName).replace(/_/g, " ")
+                font {
+                    bold: fileIsDir && !fileURL.toString().endsWith(".ingen") ? true : false
+                    pixelSize: fontSizeLarge
+                    family: mainFont.name
+                    capitalization: Font.AllUppercase
+                }
                 icon.name: fileIsDir && !fileURL.toString().endsWith(".ingen") ? "md-folder-open" : false // or md-folder
                 onClicked: {
                     if (fileIsDir) {

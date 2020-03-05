@@ -1900,12 +1900,12 @@ def handle_MIDI_program_change():
     # p terminates.
     while p.poll() is None:
         l = p.stdout.readline() # This blocks until it receives a newline.
-        if l[6] == b'c'[0]:
+        if len(l) > 8 and l[6] == b'c'[0]:
             b = l.decode()
             ig, b1, b2 = b.split()
             channel = int("0x"+b1, 16) - 0xC0
             program = int("0x"+b2, 16)
-            print(channel, program)
+            # print(channel, program)
             if channel == midi_channel.value - 1: # our channel
                 # put this in the queue
                 ui_messages.put(("midi_pc", program))

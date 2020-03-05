@@ -332,7 +332,7 @@ import "polyconst.js" as Constants
                     weight: Font.Normal
                     capitalization: Font.AllUppercase
                 }
-                z: 2
+                z: 0
                 MouseArea {
                     anchors.fill: parent
                     onClicked: { 
@@ -415,6 +415,7 @@ import "polyconst.js" as Constants
                 }
                 IconButton {
                     icon.name: "move"
+                    visible: selected_effect && !(selected_effect.is_io)
                     width: 60
                     height: 60
                     onClicked: {
@@ -683,23 +684,33 @@ import "polyconst.js" as Constants
                 height:700
                 width:1280
                 Column {
-                    x: 100
+                    x: 0
                     height:600
-                    width:1180
+                    width:1280
                     Label {
-                        color: "#ffffff"
+                        color: accent_color.name
                         text: "Preset Description"
                         font {
                             pixelSize: fontSizeLarge * 1.2
+                            capitalization: Font.AllUppercase
                         }
                         // anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
 
                     TextArea {
+                        font {
+                            pixelSize: fontSizeMedium
+                            family: docFont.name
+                            weight: Font.Normal
+                            capitalization: Font.AllUppercase
+                        }
+                        horizontalAlignment: TextEdit.AlignHCenter
                         width: 800
                         height: 400
                         text: pedalboardDescription.name
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        inputMethodHints: Qt.ImhUppercaseOnly
                         onEditingFinished: {
                             knobs.set_description(text)
                         }
@@ -712,7 +723,7 @@ import "polyconst.js" as Constants
                         anchors.left: parent.left
                         anchors.right: parent.right
                         height: 200
-
+                        width: 1000
                         visible: Qt.inputMethod.visible
                     }
                 }
@@ -724,7 +735,7 @@ import "polyconst.js" as Constants
                     icon.height: 25
                     width: 119
                     height: 62
-                    text: "BACK"
+                    text: "DONE"
                     font {
                         pixelSize: 24
                     }
@@ -733,7 +744,7 @@ import "polyconst.js" as Constants
                     Material.background: "white"
                     Material.foreground: Constants.outline_color
                     HelpLabel {
-                        text: "back"
+                        text: "DONE"
                     }
 
                     onClicked: mainStack.pop()

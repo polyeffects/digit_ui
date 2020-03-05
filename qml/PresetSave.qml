@@ -104,19 +104,23 @@ import QtQuick.Controls.Material 2.3
 					height:700
 					width:1280
 
-					// anchors.centerIn: parent
-                    GlowingLabel {
-                        // color: "#ffffff"
-						y: 20
-						x: 400
-                        text: qsTr("Select Preset")
+                    Label {
+						y: 40
+                        color: accent_color.name
+                        text: "Select Preset"
+                        font {
+                            pixelSize: fontSizeLarge * 1.2
+                            capitalization: Font.AllUppercase
+                        }
+                        // anchors.top: parent.top
+                        anchors.horizontalCenter: parent.horizontalCenter
                     }
 
                     FolderBrowser {
-                        y: 60
+                        y: 100
 						x: 400
                         // Layout.fillHeight: true
-                        height: 650
+                        height: 600
                         width: 500
 						top_folder: "file:///mnt/presets/"+currentPedalModel.name+"/"
                         current_selected: ""
@@ -325,6 +329,7 @@ import QtQuick.Controls.Material 2.3
 					anchors.bottom:parent.bottom
 					anchors.left: parent.left
 					anchors.right: parent.right
+                    width: 1000
 
 					visible: Qt.inputMethod.visible
 				}
