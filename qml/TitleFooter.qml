@@ -448,39 +448,67 @@ Item {
             height:700
             width:1280
 
-            GlowingLabel {
-                color: "#ffffff"
-                text: "Add Effect"
+            Label {
+                y: 40
+                color: accent_color.name
+                text: "Add Module"
                 font {
                     pixelSize: fontSizeLarge * 1.2
                     capitalization: Font.AllUppercase
                 }
-                anchors.top: parent.top
+                // anchors.top: parent.top
                 anchors.horizontalCenter: parent.horizontalCenter
             }
 
             ListView {
-                width: 400
+                width: 1280
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: parent.top
-                anchors.topMargin: 75
+                anchors.topMargin: 120
                 anchors.bottom: parent.bottom
+                anchors.bottomMargin: 80
                 clip: true
-                delegate: ItemDelegate {
+                delegate: Item {
                     width: parent.width
-                    height: 75
-                    text: edit.replace(/_/g, " ")
-                    bottomPadding: 0
-                    font.pixelSize: fontSizeLarge
-                    font.capitalization: Font.AllUppercase
-                    topPadding: 0
-                    onClicked: {
-                        knobs.add_new_effect(edit)
-                        // knobs.ui_add_effect(edit)
-                        mainStack.pop()
-                        patch_single.currentMode = PatchBay.Move;
-                        patch_single.current_help_text = Constants.help["move"];
+                    height: 90
+                    Label {
+                        x: 34
+                        height: 80
+                        width: 200
+                        text: edit.replace(/_/g, " ")
+                        anchors.top: parent.top
+                        font {
+                            pixelSize: fontSizeLarge * 0.85
+                            family: mainFont.name
+                            weight: Font.DemiBold
+                            capitalization: Font.AllUppercase
+                        }
+                    }
+                    Label {
+                        x: 334
+                        width: 945
+                        height: 80
+                        text: effectPrototypes[edit]["description"]
+                        wrapMode: Text.Wrap
+                        anchors.top: parent.top
+                        font {
+                            pixelSize: fontSizeLarge  * 0.8
+                            family: docFont.name
+                            weight: Font.Normal
+                            // capitalization: Font.AllUppercase
+                        }
+                    }
 
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            knobs.add_new_effect(edit)
+                            // knobs.ui_add_effect(edit)
+                            mainStack.pop()
+                            patch_single.currentMode = PatchBay.Move;
+                            patch_single.current_help_text = Constants.help["move"];
+
+                        }
                     }
                 }
                 ScrollIndicator.vertical: ScrollIndicator {

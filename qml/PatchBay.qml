@@ -212,11 +212,11 @@ import "polyconst.js" as Constants
 
                 function drawConnection( drawContext, targetPort, sourcePort, source_port_type, source_index, target_index ) {
                     if (source_port_type == "AudioPort"){
-                        var start   = getCanvasCoordinates( targetPort.inputs, 0, 4+(target_index* 12))
+                        var start   = getCanvasCoordinates( targetPort.inputs, 0, 4+(target_index* 22))
                     } else {
                         var start   = getCanvasCoordinates( targetPort.cv_area, targetPort.cv_area.width / 2, targetPort.cv_area.height - 2)
                     }
-                    var end     = getCanvasCoordinates( sourcePort.outputs,  0, 4 + (source_index * 12)) 
+                    var end     = getCanvasCoordinates( sourcePort.outputs,  0, 4 + (source_index * 22)) 
                     if( start.x > end.x ) {
                         var tmp = start;
                         start = end;

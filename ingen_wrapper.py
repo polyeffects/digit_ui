@@ -113,7 +113,7 @@ def set_file(effect_id, file_name, is_cab):
     effect_id = effect_id
     file_name = urllib.parse.quote(file_name[len("file://"):])
     # print("setting file", effect_id, file_name, is_cab)
-    if is_cab:
+    if False:
         body = """[
              a patch:Set ;
              patch:property <http://gareus.org/oss/lv2/convoLV2#impulse>;

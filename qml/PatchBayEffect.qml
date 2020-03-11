@@ -225,15 +225,15 @@ Rectangle {
         width:5
         y:20
         anchors.left: parent.left
-        spacing: 4
+        spacing: 8
         Repeater {
             id: outputRep
             model: output_keys
             Rectangle {
                 anchors.left: parent.left
-                anchors.leftMargin: 0
-                width: 2
-                height: 8
+                anchors.leftMargin: -2
+                width: 3
+                height: 14
                 color: effectPrototypes[effect_type]["outputs"][modelData][1] == "AudioPort" ? Constants.audio_color : Constants.cv_color
             }
         }
@@ -243,16 +243,16 @@ Rectangle {
         id: input_rec
         width:5
         anchors.right: parent.right
-        spacing: 4
+        spacing: 8
         y:20
         Repeater {
             id: inputRep
             model: input_keys
             Rectangle {
                 anchors.right: parent.right
-                anchors.rightMargin: 0
-                width: 2
-                height: 8
+                anchors.rightMargin: -2
+                width: 3
+                height: 14
                 color: highlight ? accent_color.name : Constants.audio_color
             }
         }
