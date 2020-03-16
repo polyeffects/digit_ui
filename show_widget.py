@@ -153,7 +153,10 @@ effect_prototypes_models = {"digit": {
                                               1.0,
                                               0.0078125,
                                               32.0],
-                          'waveForm': ['Wave Form', 0, 0, 5]},
+                          'waveForm': ['Wave Form', 0, 0, 5],
+                          'level': ["Level", 1.0, -1.0, 1.0],
+                          'is_uni': ["Unipolar", 1.0, 0.0, 1.0],
+                          },
              'inputs': {'reset': ['Reset', 'CVPort'],
                     'tempo': ['BPM', 'ControlPort']
                  },
@@ -527,7 +530,10 @@ effect_prototypes_models = {"digit": {
                                               1.0,
                                               0.0078125,
                                               32.0],
-                          'waveForm': ['Wave Form', 0, 0, 5]},
+                          'waveForm': ['Wave Form', 0, 0, 5],
+                          'level': ["Level", 1.0, -1.0, 1.0],
+                          'is_uni': ["Unipolar", 1.0, 0.0, 1.0],
+                          },
              'inputs': {'reset': ['Reset', 'CVPort'],
                     'tempo': ['BPM', 'ControlPort']
                  },
