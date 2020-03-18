@@ -1,4 +1,4 @@
-import sys, time, json, os.path, os, subprocess, queue, threading, traceback
+import sys, time, json, os.path, os, subprocess, queue, threading, traceback, glob
 import platform
 os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
 from signal import signal, SIGINT, SIGTERM
@@ -1418,8 +1418,8 @@ class Knobs(QObject):
         # print("copy irs from USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
-        command = """cd /media/reverbs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/reverbs --parents;
-        cd /media/cabs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/cabs --parents"""
+        command = """if [ -d /media/reverbs ]; then cd /media/reverbs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/reverbs --parents; fi;
+        if [ -d /media/cabs ]; then cd /media/cabs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/cabs --parents; fi; """
         # copy all wavs in /usb/reverbs and /usr/cabs to /audio/reverbs and /audio/cabs
         command_status[0].value = -1
         self.launch_subprocess(command)
@@ -1455,9 +1455,13 @@ class Knobs(QObject):
     def ui_update_firmware(self):
         # print("Updating firmware")
         # dpkg the debs in the folder
-        command = """sudo dpkg -i /media/*.deb;sudo shutdown -h 'now' """
-        command_status[0].value = -1
-        self.launch_subprocess(command)
+        if len(glob.glob("/media/*.deb")) > 0:
+            command = """sudo dpkg -i /media/*.deb; sudo shutdown -h 'now'"""
+            command_status[0].value = -1
+            self.launch_subprocess(command)
+        else:
+            command_status[0].value = 1
+
 
     @Slot(int)
     def set_input_level(self, level, write=True):

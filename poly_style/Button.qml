@@ -40,12 +40,11 @@ import QtQuick.Controls 2.4
 import QtQuick.Controls.impl 2.4
 import QtQuick.Controls.Material 2.4
 import QtQuick.Controls.Material.impl 2.4
+import "../qml/polyconst.js" as Constants
 // import QtQuick.Shapes 1.11
 
 T.Button {
     id: control
-    property int radius: 20
-    // property bool has_border: false
 
     implicitWidth: Math.max(background ? background.implicitWidth : 0,
                             contentItem.implicitWidth + leftPadding + rightPadding)
@@ -59,8 +58,8 @@ T.Button {
     rightPadding: padding - 4
     spacing: 6
 
-    icon.width: 30
-    // icon.height: 30
+    icon.width: 24
+    icon.height: 24
 	flat: true
     icon.color: !enabled ? Material.hintTextColor :
         flat && highlighted ? Material.accentColor :
@@ -68,7 +67,7 @@ T.Button {
 
     Material.elevation: flat ? control.down || control.hovered ? 2 : 0
                              : control.down ? 8 : 2
-    // Material.background: flat ? "transparent" : undefined
+    Material.background: flat ? "transparent" : undefined
 
     contentItem: IconLabel {
         spacing: control.spacing
@@ -85,35 +84,60 @@ T.Button {
 
     // TODO: Add a proper ripple/ink effect for mouse/touch input and focus state
     background: Rectangle {
-        implicitWidth: 62
-        implicitHeight: 62
+        implicitWidth: 64
+        implicitHeight: 48
 
         // external vertical padding is 6 (to increase touch area)
-        // y: 6
+        y: 6
         width: parent.width
-        height: parent.height 
-        radius: control.radius
+        height: parent.height - 12
+        radius: 2
         color: !control.enabled ? control.Material.buttonDisabledColor :
                 control.highlighted ? control.Material.highlightedButtonColor : control.Material.buttonColor
-		border {width: control.highlighted || control.checked ? 3 : 0; color: control.checked ? control.Material.accentColor : "white"}
+		border { width:1; color: Constants.outline_color}
 
-        // PaddedRectangle {
-        //     y: parent.height - 4
-        //     width: parent.width
-        //     height: 4
-        //     radius: 2
-        //     topPadding: -2
-        //     clip: true
-        //     visible: control.checkable && (!control.highlighted || control.flat)
-        //     color: control.checked && control.enabled ? control.Material.accentColor : control.Material.secondaryTextColor
-        // }
+        PaddedRectangle {
+            y: parent.height - 4
+            width: parent.width
+            height: 4
+            radius: 2
+            topPadding: -2
+            clip: true
+            visible: control.checkable && (!control.highlighted || control.flat)
+            color: control.checked && control.enabled ? control.Material.accentColor : control.Material.secondaryTextColor
+        }
 
         // The layer is disabled when the button color is transparent so you can do
         // Material.background: "transparent" and get a proper flat button without needing
         // to set Material.elevation as well
-        // layer.enabled: control.enabled && control.Material.buttonColor.a > 0
-        // layer.effect: ElevationEffect {
-        //     elevation: control.Material.elevation
+        layer.enabled: control.enabled && control.Material.buttonColor.a > 0
+        layer.effect: ElevationEffect {
+            elevation: control.Material.elevation
+        }
+
+        // Shape {
+        //     width: 200
+        //     height: 150
+        //     anchors.centerIn: parent
+        //     ShapePath {
+        //         strokeWidth: 4
+        //         strokeColor: "red"
+        //         fillGradient: LinearGradient {
+        //             x1: 20; y1: 20
+        //             x2: 180; y2: 130
+        //             GradientStop { position: 0; color: "blue" }
+        //             GradientStop { position: 0.2; color: "green" }
+        //             GradientStop { position: 0.4; color: "red" }
+        //             GradientStop { position: 0.6; color: "yellow" }
+        //             GradientStop { position: 1; color: "cyan" }
+        //         }
+        //         strokeStyle: ShapePath.DashLine
+        //         dashPattern: [ 1, 4 ]
+        //         startX: 20; startY: 20
+        //         PathLine { x: 180; y: 130 }
+        //         PathLine { x: 20; y: 130 }
+        //         PathLine { x: 20; y: 20 }
+        //     }
         // }
 
         /*Ripple {

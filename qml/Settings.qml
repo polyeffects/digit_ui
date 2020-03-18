@@ -36,7 +36,7 @@ Item {
                     // height:parent.height
                     GlowingLabel {
                         // color: "#ffffff"
-                        text: currentPedalModel.name+" FIRMWARE 2.18"
+                        text: currentPedalModel.name+" FIRMWARE 2.20"
                         color: accent_color.name
                     }
 
@@ -617,7 +617,7 @@ Item {
                     text: "IRs copied sucessfully"
                     width: 300
                     wrapMode: Text.WordWrap
-                    visible: (commandStatus[0].value == 0 || commandStatus[1].value == 0) && (commandStatus[0].value >= 0 && commandStatus[1].value >= 0)
+                    visible: (commandStatus[0].value == 0)
                 }
 
                 Text {
@@ -629,11 +629,11 @@ Item {
                     width: 300
                     wrapMode: Text.WordWrap
                     textFormat: Text.PlainText
-                    visible: commandStatus[0].value > 0 && commandStatus[1].value > 0 
+                    visible: commandStatus[0].value > 0
                 }
 
                 BusyIndicator {
-                    running: commandStatus[0].value < 0 || commandStatus[1].value < 0 
+                    running: commandStatus[0].value < 0 
                 }
 
                 Text {
@@ -645,7 +645,7 @@ Item {
                     width: 300
                     wrapMode: Text.WordWrap
                     textFormat: Text.PlainText
-                    visible: commandStatus[0].value < 0 || commandStatus[1].value < 0 
+                    visible: commandStatus[0].value < 0 
                 }
 
             }

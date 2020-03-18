@@ -44,9 +44,9 @@ Rectangle {
 
     property var input_keys: Object.keys(effectPrototypes[effect_type]["inputs"]).filter(isAudio) 
     property var output_keys: Object.keys(effectPrototypes[effect_type]["outputs"])
-    property bool no_sliders: ["mono_EQ", "stereo_EQ", "input", "output"].indexOf(effect_type) >= 0
+    property bool no_sliders: ["mono_EQ", "stereo_EQ", "input", "output", "lfo"].indexOf(effect_type) >= 0
     property bool has_ui: ["mono_EQ", "stereo_EQ", "mono_reverb", "stereo_reverb", "true_stereo_reverb", "delay",
-        "mono_cab", "stereo_cab", "true_stereo_cab"].indexOf(effect_type) >= 0
+        "mono_cab", "stereo_cab", "true_stereo_cab", "lfo"].indexOf(effect_type) >= 0
     property bool is_io: ["input", "output"].indexOf(effect_type) >= 0
     property var sliders; 
     // border { width:2; color: Material.color(Material.Cyan, Material.Shade100)}
@@ -164,6 +164,10 @@ Rectangle {
         }
         else if (effect_type == "delay"){
             patchStack.push(editDelay);
+            patch_bay.current_help_text = Constants.help["delay_detail"];
+        }
+        else if (effect_type == "lfo"){
+            patchStack.push(editLfo);
             patch_bay.current_help_text = Constants.help["delay_detail"];
         }
         else if (effect_type == "mono_reverb" || effect_type == "stereo_reverb" || effect_type == "true_stereo_reverb")
@@ -563,6 +567,86 @@ Rectangle {
 
             }
         }
+
+        Component {
+            id: editLfo
+            Item {
+                z: 3
+                height:540
+                width:1280
+				Row {
+					x: 70
+					y: 100
+					height:540
+					width:1200
+					spacing: 50
+					Column {
+						width: 500
+						spacing: 20
+
+						Switch {
+							text: qsTr("")
+							font.pixelSize: baseFontSize
+							width: 190
+							checked: currentEffects[effect_id]["enabled"].value
+							onClicked: {
+								knobs.set_bypass(effect_id, checked); 
+								// mycanvas.requestPaint();
+							}
+						}
+
+						Repeater {
+							model: ["tempo", "tempoMultiplier", "level", "phi0", "is_uni"]
+							DelayRow {
+								row_param: modelData
+								current_effect: effect_id
+							}
+						}
+					}
+
+					Grid {
+						width: 600
+						spacing: 20
+						columns: 3
+						rows: 2
+
+						Repeater {
+							model: ["Sine.png", "Triangle.png", "Ramp.png", "Sawtooth.png", "Square.png", "Sample_Hold.png"]
+							IconButton {
+								icon.source: "../icons/digit/"+modelData
+								width: 180
+								height: 180
+								icon.width: 100
+								checked: index == Math.floor(currentEffects[effect_id]["controls"]["waveForm"].value)
+								onClicked: {
+									knobs.ui_knob_change(effect_id, "waveForm", index);
+								}
+								// Material.background: "white"
+								Material.foreground: accent_color.name
+								radius: 10
+								Label {
+									visible: title_footer.show_help 
+									x: 0
+									y: 20 
+									text: modelData
+									horizontalAlignment: Text.AlignHCenter
+									width: 180
+									height: 22
+									z: 1
+									color: accent_color.name
+									font {
+										pixelSize: 18
+										capitalization: Font.AllUppercase
+									}
+								}
+							}
+						}
+					}
+
+				}
+            }
+        }
+
 
         Component {
             id: editGeneric
