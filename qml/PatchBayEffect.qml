@@ -44,9 +44,9 @@ Rectangle {
 
     property var input_keys: Object.keys(effectPrototypes[effect_type]["inputs"]).filter(isAudio) 
     property var output_keys: Object.keys(effectPrototypes[effect_type]["outputs"])
-    property bool no_sliders: ["mono_EQ", "stereo_EQ", "input", "output", "lfo"].indexOf(effect_type) >= 0
+    property bool no_sliders: ["mono_EQ", "stereo_EQ", "input", "output", "lfo", 'algo_reverb', 'granular', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch'].indexOf(effect_type) >= 0
     property bool has_ui: ["mono_EQ", "stereo_EQ", "mono_reverb", "stereo_reverb", "true_stereo_reverb", "delay",
-        "mono_cab", "stereo_cab", "true_stereo_cab", "lfo"].indexOf(effect_type) >= 0
+	"mono_cab", "stereo_cab", "true_stereo_cab", "lfo", 'algo_reverb', 'granular', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch'].indexOf(effect_type) >= 0
     property bool is_io: ["input", "output"].indexOf(effect_type) >= 0
     property var sliders; 
     // border { width:2; color: Material.color(Material.Cyan, Material.Shade100)}
@@ -168,8 +168,12 @@ Rectangle {
         }
         else if (effect_type == "lfo"){
             patchStack.push(editLfo);
-            patch_bay.current_help_text = Constants.help["delay_detail"];
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
         }
+		else if (['algo_reverb', 'granular', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch'].indexOf(effect_type) >= 0){
+            patchStack.push(editClouds);
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+		}
         else if (effect_type == "mono_reverb" || effect_type == "stereo_reverb" || effect_type == "true_stereo_reverb")
         {
             patch_bay.current_help_text = Constants.help["reverb_detail"];
@@ -643,6 +647,72 @@ Rectangle {
 						}
 					}
 
+				}
+            }
+        }
+
+        Component {
+            id: editClouds
+            Item {
+                z: 3
+                height:540
+                width:1280
+				Row {
+					x: 70
+					y: 100
+					height:540
+					width:1200
+					spacing: 50
+					Column {
+						width: 600
+						spacing: 20
+
+						Switch {
+							text: qsTr("")
+							font.pixelSize: baseFontSize
+							width: 190
+							checked: currentEffects[effect_id]["enabled"].value
+							onClicked: {
+								knobs.set_bypass(effect_id, checked); 
+								// mycanvas.requestPaint();
+							}
+						}
+
+						Repeater {
+							model: ['blend_param', 'density_param', 'feedback_param', 'in_gain_param', 'pitch_param']
+							DelayRow {
+								row_param: modelData
+								current_effect: effect_id
+							}
+						}
+					}
+
+					Column {
+						width: 600
+						spacing: 20
+
+						Row {
+							width: 600
+							spacing: 20
+							EffectSwitch {
+								row_param: "freeze_param"
+								current_effect: effect_id
+							}
+							EffectSwitch {
+								row_param: "reverse_param"
+								current_effect: effect_id
+							}
+						}
+
+
+						Repeater {
+							model: ['position_param', 'reverb_param',  'size_param', 'spread_param', 'texture_param']
+							DelayRow {
+								row_param: modelData
+								current_effect: effect_id
+							}
+						}
+					}
 				}
             }
         }

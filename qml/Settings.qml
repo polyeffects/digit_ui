@@ -36,7 +36,7 @@ Item {
                     // height:parent.height
                     GlowingLabel {
                         // color: "#ffffff"
-                        text: currentPedalModel.name+" FIRMWARE 2.20"
+                        text: currentPedalModel.name+" FIRMWARE 2.21"
                         color: accent_color.name
                     }
 
