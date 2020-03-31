@@ -43,7 +43,7 @@ import "../qml/polyconst.js" as Constants
 T.Slider {
     id: control
     property string title
-    property color accent: accent_color.name
+    property color accent: Material.foreground
 
     implicitWidth: Math.max(background ? background.implicitWidth : 0,
                            (handle ? handle.implicitWidth : 0) + leftPadding + rightPadding)
@@ -72,8 +72,8 @@ T.Slider {
         // handlePressed: control.pressed
         // handleHovered: control.hovered
         id: handleRect
-        width: control.horizontal ? 25 : control.availableWidth - 5
-        height: control.horizontal ? control.availableHeight - 5 : 25
+        width: control.horizontal ? 25 : control.availableWidth - 1
+        height: control.horizontal ? control.availableHeight - 1 : 25
         radius: 3 
         color: accent
         scale: control.pressed ? 1.5 : 1
@@ -82,17 +82,6 @@ T.Slider {
         Behavior on scale {
             NumberAnimation {
                 duration: 250
-            }
-        }
-        Text {
-            anchors.centerIn: parent
-            text: control.value.toFixed(2)
-            // height: 15
-            color: "white"
-            font {
-                // pixelSize: fontSizeMedium
-                pixelSize: 11
-                capitalization: Font.AllUppercase
             }
         }
 
@@ -109,8 +98,8 @@ T.Slider {
     background: Rectangle {
         x: control.leftPadding + (control.horizontal ? 0 : (control.availableWidth - width) / 2)
         y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : 0)
-        implicitWidth: control.horizontal ? 200 : 48
-        implicitHeight: control.horizontal ? 48 : 200
+        implicitWidth: control.horizontal ? 420 : 56
+        implicitHeight: control.horizontal ? 56 : 420
         // width: control.horizontal ? control.availableWidth : 30
         // height: control.horizontal ? 30 : control.availableHeight
         width: control.availableWidth 
@@ -124,13 +113,13 @@ T.Slider {
             // anchors.centerIn: parent
             x: control.horizontal ? handle.width + padding : (parent.width - width) / 2
             y: control.horizontal ? (parent.height - height) / 2 : parent.height - 40 - (width / 2)
-            text: title
+            text: title + "  " + control.value.toFixed(2)
             // height: 15
             color: "white"
             rotation: control.horizontal ? 0 : 270
             font {
                 // pixelSize: fontSizeMedium
-                pixelSize: 18
+                pixelSize: 24
                 capitalization: Font.AllUppercase
             }
         }

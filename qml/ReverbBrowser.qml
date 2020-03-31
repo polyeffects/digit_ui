@@ -2,6 +2,7 @@ import QtQuick 2.9
 import QtQuick.Controls 2.3
 // import QtQuick.Window 2.2
 import Qt.labs.folderlistmodel 2.2
+import "polyconst.js" as Constants
 // import QtQuick.Controls.Material 2.3
 
 // ApplicationWindow {
@@ -42,9 +43,13 @@ Item {
        return x.replace(/\.[^/.]+$/, "") 
     }
 
+    ActionIcons {
+
+    }
+
     Label {
-        x: 15
-        y: 0
+        x: Constants.left_col + 15
+        y: 15
         text: display_name
         height: 45
         // height: 15
@@ -58,10 +63,10 @@ Item {
 
     Item {
         id: folderRect
-        x: 0
-        y: 50
+        x: Constants.left_col + 10
+        y: 60
         height: 450
-        width: 900
+        width: 850
 
 
         // width: parent.width

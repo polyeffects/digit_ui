@@ -81,9 +81,13 @@ import QtQuick.Controls.Material 2.3
 
 
         // Row {
+        //
+        ActionIcons {
+
+        }
         
         Item {
-            x: 40
+            x: 140
             width: 975
             height: parent.height
 
@@ -885,13 +889,13 @@ import QtQuick.Controls.Material 2.3
         }
         PolyFrame {
             // background: Material.background
-            x: 1040
-            width:200
+            x: 1120
+            width:140
             height:parent.height
             // Material.elevation: 2
 
             Column {
-                width:200
+                width:140
                 spacing: 20
                 height:parent.height
 
@@ -900,7 +904,7 @@ import QtQuick.Controls.Material 2.3
 					font.pixelSize: baseFontSize
                     // height: 20
                     // implicitWidth: 100
-                    width: 175
+                    width: 140
                     checked: eq_enabled
                     onClicked: {
                         knobs.ui_knob_change(effect, "enable", checked | 0); // force to int
@@ -911,7 +915,7 @@ import QtQuick.Controls.Material 2.3
                 Switch {
                     text: "BAND " + (time_scale.selected_point + 1)
 					font.pixelSize: baseFontSize
-                    width: 175
+                    width: 140
                     checked: time_scale.eq_data[time_scale.selected_point]["enabled"]
                     onClicked: {
                         // time_scale.eq_data[time_scale.selected_point]["enabled"] = checked;
@@ -929,6 +933,7 @@ import QtQuick.Controls.Material 2.3
 
 
                 Slider {
+                    x: 20
                     id: control
                     width: 60 
                     height: 300

@@ -42,11 +42,14 @@ Rectangle {
         return effectPrototypes[effect_type]["inputs"][item][1] == "CVPort"
     }
 
+	function isSpecialWarpsParam(item){
+		return ['int_osc', 'space_size', 'mode'].indexOf(item) < 0;
+	}
+
     property var input_keys: Object.keys(effectPrototypes[effect_type]["inputs"]).filter(isAudio) 
     property var output_keys: Object.keys(effectPrototypes[effect_type]["outputs"])
     property bool no_sliders: ["mono_EQ", "stereo_EQ", "input", "output", "lfo", 'algo_reverb', 'granular', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch'].indexOf(effect_type) >= 0
-    property bool has_ui: ["mono_EQ", "stereo_EQ", "mono_reverb", "stereo_reverb", "true_stereo_reverb", "delay",
-	"mono_cab", "stereo_cab", "true_stereo_cab", "lfo", 'algo_reverb', 'granular', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch'].indexOf(effect_type) >= 0
+    property bool has_ui: ['bitmangle', 'comparator', 'chebyschev_waveshaper', 'meta_modulation', 'wavefolder', 'vocoder', 'doppler_panner', 'twist_delay', 'frequency_shifter'].indexOf(effect_type) >= 0
     property bool is_io: ["input", "output"].indexOf(effect_type) >= 0
     property var sliders; 
     // border { width:2; color: Material.color(Material.Cyan, Material.Shade100)}
@@ -56,11 +59,19 @@ Rectangle {
         // else if (effect_type == "delay"){
 
     function hide_sliders(leave_selected) {
-        // console.log("hiding sliders");
-        if (sliders){
-            sliders.destroy();
-        }
+		patchStack.pop()
+
         if (leave_selected){
+            selected = false;
+            patch_bay.currentMode = PatchBay.Select;
+            patch_bay.selected_effect = null;
+            patch_bay.current_help_text = Constants.help["select"];
+        }
+    }
+
+    function back_action() {
+		patchStack.pop()
+		if (patchStack.currentItem instanceof PatchBay){
             selected = false;
             patch_bay.currentMode = PatchBay.Select;
             patch_bay.selected_effect = null;
@@ -174,6 +185,10 @@ Rectangle {
             patchStack.push(editClouds);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}
+		else if (['bitmangle', 'comparator', 'chebyschev_waveshaper', 'meta_modulation', 'wavefolder', 'vocoder', 'doppler_panner', 'twist_delay', 'frequency_shifter'].indexOf(effect_type) >= 0){
+            patchStack.push(editWarps);
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+		}
         else if (effect_type == "mono_reverb" || effect_type == "stereo_reverb" || effect_type == "true_stereo_reverb")
         {
             patch_bay.current_help_text = Constants.help["reverb_detail"];
@@ -200,9 +215,27 @@ Rectangle {
         else if (effect_type == "input" || effect_type == "output"){
             // pass
         } else {
-            // mainStack.push(editGeneric);
+			patch_bay.current_help_text = Constants.help["sliders"];
+            patchStack.push(editGeneric);
         }
     }
+
+	function show_warps_special_clicked(){
+		if (['bitmangle', 'comparator', 'chebyschev_waveshaper', 'meta_modulation', 'wavefolder', 'vocoder'].indexOf(effect_type) >= 0){
+            patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "int_osc", "icons": ["OFF.png", "Sine.png", "Sawtooth.png", "Triangle.png"]});
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+		} else if (effect_type == "twist_delay") {
+            patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "mode", "icons": ["Open FB Loop.png", "Dual Delay.png", "Tape Delay.png", "Ping Pong.png"]});
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+		} else if (effect_type == "frequency_shifter") {
+            patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "mode", "icons": ["OFF.png", "Sine.png", "2 Harmonics.png", "4 Harmonics.png"]});
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+		} else if (effect_type == "doppler_panner") {
+            patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "space_size", "icons": ["Small.png", "Medium.png", "Large.png", "XL.png"]});
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+		}
+	}
+
 
     function disconnect_clicked()
     {
@@ -336,38 +369,9 @@ Rectangle {
                 // if we're past left of center sliders on right
                 // else sliders on left
                 // selected changes z via binding
-                if (sliders){
-                    sliders.destroy();
-                }
-                if (rect.x > 582){
-                    if (! no_sliders){
-                        sliders = editGeneric.createObject(rect, {x:Math.max(-600, 50-rect.x), y:-rect.y});
-                    }
-                    if (rect.x + 130 > 1200){
-                        action_icons.x = rect.x - 90; // bound max
-                    }
-                    else {
-                        action_icons.x = rect.x + 130;
-                    }
-                } else {
-                    if (! no_sliders){
-                        sliders = editGeneric.createObject(rect, {x:Math.min(220, 790-rect.x), y:-rect.y});
-                    }
-                    action_icons.x = rect.x - 90; // and min
-                    if (rect.x - 90 < 10){
-                        action_icons.x = rect.x + 130; // bound max
-                    }
-                    else {
-                        action_icons.x = rect.x - 90; // bound max
-                    }
-                }
+				//
                 patch_bay.currentMode = PatchBay.Sliders;
-                if (has_ui){
-                    patch_bay.current_help_text = Constants.help["sliders_detail"];
-                }
-                else {
-                    patch_bay.current_help_text = Constants.help["sliders"];
-                }
+				expand_clicked();
             }
         }
         onDoubleClicked: {
@@ -423,62 +427,78 @@ Rectangle {
         Component {
             id: editDelay
             Item {
-                height:500
+                z: 3
+                height:540
                 width:1280
-                Column {
-                    width: 1100
-                    spacing: 20
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                
-					Label {
-                        visible: !Qt.inputMethod.visible
-						width: parent.width
-						height: 40
-						text: rsplit(effect_id, "/", 1)[1].replace(/_/g, " ")
-						horizontalAlignment: Text.AlignHCenter
-						wrapMode: Text.Wrap
-						color: effect_color
-						lineHeight: 0.9
-						fontSizeMode: Text.Fit 
-						minimumPixelSize: 18
-						font {
-							// pixelSize: fontSizeMedium
-							family: mainFont.name
-							pixelSize: 48
-							capitalization: Font.AllUppercase
-							letterSpacing: 0
+				
+				ActionIcons {
+
+				}
+
+				Column {
+					visible: !Qt.inputMethod.visible
+					x: 150
+					y: 65
+					width: 565
+					spacing: 20
+
+					Repeater {
+						model: ['Amp_5', 'FeedbackSm_6',  'DelayT60_3']
+						DelayRow {
+							row_param: modelData
+							current_effect: effect_id
+							Material.foreground: Constants.rainbow[index]
 						}
 					}
-                    // property var parameter_map: {"LEVEL":"Amp_5", "TONE":"", "FEEDBACK": "", 
-                    //                 "GLIDE": "", "WARP":""  }
-                    Slider {
-                        visible: !Qt.inputMethod.visible
-                        id: num_bars
-                        title: "# BEATS"
-                        width: 1000
-                        height: 90
-                        value: Math.floor(currentEffects[effect_id]["controls"]["Delay_1"].value)
-                        from: currentEffects[effect_id]["controls"]["Delay_1"].rmin
-                        to: currentEffects[effect_id]["controls"]["Delay_1"].rmax
-                        stepSize: 1.0
-                        snapMode: Slider.SnapOnRelease
-                        onMoved: {
-                            // time is bars + sub division 
-                            knobs.ui_knob_change(effect_id, "Delay_1", num_bars.value+(current_subdivision));
-                        }
-                        onPressedChanged: {
-                            if (pressed){
-                                knobs.set_knob_current_effect(effect_id, "Delay_1");
-                            }
-                        }
-                        
-                    }
+					Row { 
+						spacing: 50
+						RadioButton {
+							id: timeRadio
+							checked: true
+							text: qsTr("Time (MS)")
+						}
+						RadioButton {
+							id: beatsRadio
+							text: qsTr("Beats")
+						}
+					}
+
+					DelayRow {
+						visible: beatsRadio.checked
+						row_param: "BPM_0"
+						current_effect: effect_id
+						Material.foreground: Constants.rainbow[7]
+					}
+
+					DelayRow {
+						visible: timeRadio.checked
+						row_param: "Delay_1"
+						current_effect: effect_id
+						Material.foreground: Constants.rainbow[7]
+					}
+				}
+
+				Column {
+					x: 676
+					y: 65
+					width: 565
+					spacing: 20
+
+					Repeater {
+						model: ['Feedback_4', 'Warp_2']//, 'BPM_0', 'Delay_1',]
+						DelayRow {
+							visible: !Qt.inputMethod.visible
+							row_param: modelData
+							current_effect: effect_id
+							Material.foreground: Constants.rainbow[index+5]
+						}
+					}
+
                     ComboBox {
-                        visible: !Qt.inputMethod.visible
+						visible: beatsRadio.checked
+                        // visible: !Qt.inputMethod.visible
 						width: 500
-						height: 90
+						height: 60
                         id: note_subdivisions
 						textRole: "text"
 
@@ -490,7 +510,7 @@ Rectangle {
 						Component.onCompleted: currentIndex = indexForValue(currentEffects[effect_id]["controls"]["Delay_1"].value % 1)
                         onActivated: {
 							current_subdivision = model[currentIndex].value;
-                            knobs.ui_knob_change(effect_id, "Delay_1", num_bars.value+(current_subdivision));
+                            knobs.ui_knob_change(effect_id, "Delay_1", current_subdivision);
                         }
 
 						function indexForValue(value) {
@@ -501,19 +521,33 @@ Rectangle {
 							return -1;
 						}
                     }
-                    
+
                     Row {
+						visible: timeRadio.checked
+						spacing: 50
+                        Label {
+                            text: "MILLISECONDS"
+                            height: 60
+                            verticalAlignment: Text.AlignVCenter
+                            font {
+                                // pixelSize: fontSizeMedium
+                                family: mainFont.name
+                                pixelSize: 28
+                                capitalization: Font.AllUppercase
+                                letterSpacing: 0
+                            }
+                        }
                         TextField {
                             inputMethodHints: Qt.ImhDigitsOnly
                             validator: IntValidator{bottom: 0; top: 32000;}
-                            width: 500
-                            height: 90
+                            width: 121
+                            height: 60
                             text: (60.0 / currentEffects[effect_id]["controls"]["BPM_0"].value * currentEffects[effect_id]["controls"]["Delay_1"].value * 1000).toFixed(0) // + " ms"
                             color: "white"
                             font {
                                 // pixelSize: fontSizeMedium
                                 family: mainFont.name
-                                pixelSize: 32
+                                pixelSize: 28
                                 capitalization: Font.AllUppercase
                                 letterSpacing: 0
                             }
@@ -523,52 +557,22 @@ Rectangle {
                                 }
                             }
                         }
-                        Label {
-                            text: "MILLISECONDS"
-                            height: 90
-                            verticalAlignment: Text.AlignVCenter
-                            font {
-                                // pixelSize: fontSizeMedium
-                                family: mainFont.name
-                                pixelSize: 32
-                                capitalization: Font.AllUppercase
-                                letterSpacing: 0
-                            }
-                        }
                     }
-
-                    Slider {
-                        title: "TIME (MS)"
-                        width: 1000
-                        height:90
-                        visible: !Qt.inputMethod.visible
-                        value: currentEffects[effect_id]["controls"]["Delay_1"].value
-                        from: currentEffects[effect_id]["controls"]["Delay_1"].rmin
-                        to: currentEffects[effect_id]["controls"]["Delay_1"].rmax
-                        onMoved: {
-                            // time is bars + sub division
-                            knobs.ui_knob_change(effect_id, "Delay_1", value);
-                        }
-                        onPressedChanged: {
-                            if (pressed){
-                                knobs.set_knob_current_effect(effect_id, "Delay_1");
-                            }
-                        }
-                        
-                    }
-                }
+				}
 				InputPanel {
+					x: 150
+					y: 0
+					width: 1130
 					id: inputPanel
 					// parent:mainWindow.contentItem
-					z: 1000002
-					anchors.bottom:parent.bottom
-					anchors.left: parent.left
-					anchors.right: parent.right
-                    height: 200
+					// z: 1000002
+					// anchors.bottom:parent.bottom
+					// anchors.left: parent.left
+					// anchors.right: parent.right
+					height: 500
 
 					visible: Qt.inputMethod.visible
 				}
-
             }
         }
 
@@ -578,32 +582,27 @@ Rectangle {
                 z: 3
                 height:540
                 width:1280
+				
+				ActionIcons {
+
+				}
+
 				Row {
-					x: 70
+					x: 170
 					y: 100
 					height:540
-					width:1200
+					width:1110
 					spacing: 50
 					Column {
-						width: 500
+						width: 490
 						spacing: 20
-
-						Switch {
-							text: qsTr("")
-							font.pixelSize: baseFontSize
-							width: 190
-							checked: currentEffects[effect_id]["enabled"].value
-							onClicked: {
-								knobs.set_bypass(effect_id, checked); 
-								// mycanvas.requestPaint();
-							}
-						}
 
 						Repeater {
 							model: ["tempo", "tempoMultiplier", "level", "phi0", "is_uni"]
 							DelayRow {
 								row_param: modelData
 								current_effect: effect_id
+								Material.foreground: Constants.rainbow[index]
 							}
 						}
 					}
@@ -611,22 +610,22 @@ Rectangle {
 					Grid {
 						width: 600
 						spacing: 20
-						columns: 3
-						rows: 2
+						columns: 2
+						rows: 3
 
 						Repeater {
 							model: ["Sine.png", "Triangle.png", "Ramp.png", "Sawtooth.png", "Square.png", "Sample_Hold.png"]
 							IconButton {
 								icon.source: "../icons/digit/"+modelData
-								width: 180
-								height: 180
+								width: 114
+								height: 114
 								icon.width: 100
 								checked: index == Math.floor(currentEffects[effect_id]["controls"]["waveForm"].value)
 								onClicked: {
 									knobs.ui_knob_change(effect_id, "waveForm", index);
 								}
 								// Material.background: "white"
-								Material.foreground: accent_color.name
+								Material.foreground: "transparent"
 								radius: 10
 								Label {
 									visible: title_footer.show_help 
@@ -634,10 +633,10 @@ Rectangle {
 									y: 20 
 									text: modelData
 									horizontalAlignment: Text.AlignHCenter
-									width: 180
+									width: 114
 									height: 22
 									z: 1
-									color: accent_color.name
+									color: "white"
 									font {
 										pixelSize: 18
 										capitalization: Font.AllUppercase
@@ -653,99 +652,118 @@ Rectangle {
 
         Component {
             id: editClouds
-            Item {
-                z: 3
-                height:540
-                width:1280
-				Row {
-					x: 70
-					y: 100
-					height:540
-					width:1200
-					spacing: 50
-					Column {
-						width: 600
-						spacing: 20
+			Item {
+				z: 3
+				x: 0
+				height:540
+				width:1180
+				ActionIcons {
+				
+				}
+				Column {
+					x: 141
+					y: 65
+					width: 541
+					spacing: 20
 
-						Switch {
-							text: qsTr("")
-							font.pixelSize: baseFontSize
-							width: 190
-							checked: currentEffects[effect_id]["enabled"].value
-							onClicked: {
-								knobs.set_bypass(effect_id, checked); 
-								// mycanvas.requestPaint();
-							}
-						}
-
-						Repeater {
-							model: ['blend_param', 'density_param', 'feedback_param', 'in_gain_param', 'pitch_param']
-							DelayRow {
-								row_param: modelData
-								current_effect: effect_id
-							}
-						}
-					}
-
-					Column {
-						width: 600
-						spacing: 20
-
-						Row {
-							width: 600
-							spacing: 20
-							EffectSwitch {
-								row_param: "freeze_param"
-								current_effect: effect_id
-							}
-							EffectSwitch {
-								row_param: "reverse_param"
-								current_effect: effect_id
-							}
-						}
-
-
-						Repeater {
-							model: ['position_param', 'reverb_param',  'size_param', 'spread_param', 'texture_param']
-							DelayRow {
-								row_param: modelData
-								current_effect: effect_id
-							}
+					Repeater {
+						model: ['blend_param', 'density_param', 'feedback_param', 'in_gain_param', 'pitch_param']
+						DelayRow {
+							row_param: modelData
+							current_effect: effect_id
+							Material.foreground: Constants.rainbow[index]
 						}
 					}
 				}
-            }
+
+				Column {
+					x: 673
+					y: 65
+					width: 541
+					spacing: 20
+
+
+
+					Repeater {
+						model: ['position_param', 'reverb_param',  'size_param', 'spread_param', 'texture_param']
+						DelayRow {
+							row_param: modelData
+							current_effect: effect_id
+							Material.foreground: Constants.rainbow[index+5]
+						}
+					}
+				}
+				Column {
+					x: 1183
+					anchors.verticalCenter: parent.verticalCenter
+					width: 97
+					spacing: 40
+
+					EffectSwitch {
+						row_param: "freeze_param"
+						current_effect: effect_id
+						icon_source: "/clouds/Freeze.png"
+					}
+					EffectSwitch {
+						row_param: "reverse_param"
+						current_effect: effect_id
+						icon_source: "/clouds/Reverse.png"
+					}
+					// TODO add in link to shape selector
+				}
+			}
+        }
+
+        Component {
+            id: editWarps
+
+			Item {
+				z: 3
+				x: 0
+				height:540
+				width:1180
+				ActionIcons {
+				
+				}
+				Column {
+					x: 403
+					y: 65
+					width: 541
+					spacing: 20
+
+					Repeater {
+						model: Object.keys(currentEffects[effect_id]["controls"]).filter(isSpecialWarpsParam)
+						DelayRow {
+							row_param: modelData
+							current_effect: effect_id
+							Material.foreground: Constants.rainbow[index]
+						}
+					}
+				}
+			}
         }
 
 
         Component {
             id: editGeneric
             Item {
+				ActionIcons {
+
+				}
                 z: 3
-                height:540
-                width:500
+                height:546
+                width:1083
                 Column {
                     width: 500
                     spacing: 20
                     anchors.centerIn: parent
-
-                    Switch {
-                        text: qsTr("")
-                        font.pixelSize: baseFontSize
-                        width: 190
-                        checked: currentEffects[effect_id]["enabled"].value
-                        onClicked: {
-                            knobs.set_bypass(effect_id, checked); 
-                            // mycanvas.requestPaint();
-                        }
-                    }
-
 
 					Repeater {
 						model: Object.keys(currentEffects[effect_id]["controls"])
 						DelayRow {
 							row_param: modelData
 							current_effect: effect_id
+							Material.foreground: Constants.rainbow[index]
 						}
 					}
                 }

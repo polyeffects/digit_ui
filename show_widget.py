@@ -1517,7 +1517,11 @@ def delete_sub_graph(name):
 def load_preset(name, initial=False, force=False):
     if is_loading.value == True and not force:
         return
-    is_loading.value = True
+    if platform.system() != "Linux": # XXX remove
+        is_loading.value = False
+    else:
+        is_loading.value = True
+    # is_loading.value = True
     # delete existing blocks
     port_connections.clear()
     to_delete = list(current_effects.keys())
@@ -1910,6 +1914,8 @@ class Knobs(QObject):
 
     @Slot(int)
     def set_input_level(self, level, write=True):
+        if platform.system() != "Linux":
+            return
         command = "amixer -- sset ADC1 "+str(level)+"db"
         command_status[0].value = subprocess.call(command, shell=True)
         command = "amixer -- sset ADC2 "+str(level)+"db"

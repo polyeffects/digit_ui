@@ -284,15 +284,7 @@ Item {
             }
             onClicked: {
                 // mainStack.push("Settings.qml")
-                if (patchStack.currentItem instanceof PatchBay) 
-                {
-                    patch_single.selected_effect.hide_sliders(true);
-                }
-                else {
-                    // console.log("not instance of patchbay");
-                    patch_single.selected_effect.hide_sliders(true);
-                    patchStack.pop()
-                }
+				patch_single.selected_effect.back_action();
             }
         }
 
@@ -322,7 +314,7 @@ Item {
 
         IconButton {
             id: connectMode
-            icon.name: "connect"
+            icon.source: "../icons/digit/clouds/Connect.png"
             visible: patch_single.currentMode == PatchBay.Connect
             width: 56
             height: 56
@@ -356,7 +348,6 @@ Item {
         IconButton {
             id: moveMode
             visible: patch_single.currentMode == PatchBay.Move
-            icon.name: "move"
             width: 56
             height: 56
             x: 584
@@ -380,7 +371,7 @@ Item {
             width: 62
             height: 62
             flat: false
-            icon.name: "add"
+            icon.source: "../icons/digit/bottom_menu/Add.png"
             Material.background: accent_color.name
             onClicked: {
                 mainStack.push(addEffect);
@@ -397,7 +388,7 @@ Item {
             width: 62
             height: 62
             flat: false
-            icon.name: "save"
+            icon.source: "../icons/digit/bottom_menu/Presets.png"
             Material.background: accent_color.name
             onClicked: {
                 mainStack.push("PresetSave.qml")
@@ -413,7 +404,7 @@ Item {
             width: 62
             height: 62
             flat: false
-            icon.name: "help-circle"
+            icon.source: "../icons/digit/bottom_menu/Help.png"
             Material.background: accent_color.name
             onClicked: {
                 title_footer.show_help = !title_footer.show_help
@@ -430,7 +421,7 @@ Item {
             width: 62
             height: 62
             flat: false
-            icon.name: "settings"
+            icon.source: "../icons/digit/bottom_menu/Settings.png"
             Material.background: accent_color.name
             onClicked: {
                 mainStack.push("Settings.qml")

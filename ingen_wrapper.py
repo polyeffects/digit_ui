@@ -395,8 +395,8 @@ if platform.system() == "Linux":
     while not os.path.exists("/tmp/ingen.sock"):
         time.sleep(0.1)
 else:
-    # server = "tcp://192.168.1.140:16180"
-    server = "tcp://192.168.1.147:16180"
+    # server = "tcp://192.168.1.139:16180"
+    server = "tcp://192.168.1.125:16180"
 # server = "tcp://192.168.1.140:16180"
 ingen = ingen.Remote(server)
 

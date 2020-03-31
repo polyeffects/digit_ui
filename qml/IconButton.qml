@@ -45,6 +45,7 @@ import QtQuick.Controls.Material.impl 2.4
 T.Button {
     id: control
     property int radius: 20
+    property int extra_padding: 0
     // property bool has_border: false
 
     implicitWidth: Math.max(background ? background.implicitWidth : 0,
@@ -54,13 +55,15 @@ T.Button {
     baselineOffset: contentItem.y + contentItem.baselineOffset
 
     // external vertical padding is 6 (to increase touch area)
-    padding: 12
-    leftPadding: padding - 4
-    rightPadding: padding - 4
-    spacing: 6
+    padding: 0
+	topPadding: 5
+	bottomPadding: 5
+    leftPadding: 5 
+    rightPadding: 5 + extra_padding 
+    spacing: 0
 
-    icon.width: 30
-    // icon.height: 30
+    icon.width: 60
+    icon.height: 60
 	flat: true
     icon.color: !enabled ? Material.hintTextColor :
         flat && highlighted ? Material.accentColor :

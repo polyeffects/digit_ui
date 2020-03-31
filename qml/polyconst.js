@@ -4,6 +4,8 @@ var cv_color = "#80FFE8";
 var control_color = "#AC8EFF";
 var background_color = "#000000";
 var outline_color = "#4c4c4c"; 
+var left_col = 130; 
+var rainbow = ["#FF2C6B", "#FF7B8B", "#FF8540", "#FF9E45", "#FFD645", "#FFF84E", "#B1FF81", "#3ED279", "#4CCBC5", "#80FFE8", "#5CE2FF", "#00B2FF", "#74CBFC", "#2077EE", "#AC8EFF", "#E680FF", "#FF75D0"]
 
 var help = {"select": "Tap or add a module", "connect_to": "Tap a module to connect to", "connect_from": "Tap a module to connect from", "sliders_detail": "Tap the eye to see more. Tapping a slider assigns it to the knobs.", "sliders": "Tapping a slider assigns it to the knobs.", 
     "delay_detail": "Milliseconds doesn't reflect tap tempo", 

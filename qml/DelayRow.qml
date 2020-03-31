@@ -3,8 +3,8 @@ import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
 Item {
-    height: 40
-    width:  500
+    height: 62
+    width:  472
     property string row_param: "Amp_5"
     property string current_effect 
 
@@ -29,8 +29,8 @@ Item {
         y: 0
         visible: row_param != "ir"
         title: currentEffects[current_effect]["controls"][row_param].name
-        width: 500
-        height:40
+        width: 420
+        height:parent.height
         value: currentEffects[current_effect]["controls"][row_param].value
         from: currentEffects[current_effect]["controls"][row_param].rmin
         to: currentEffects[current_effect]["controls"][row_param].rmax
@@ -43,6 +43,19 @@ Item {
             }
         }
     }
+
+	IconButton {
+		x: 425
+        anchors.verticalCenter: parent.verticalCenter
+		icon.source: "../icons/digit/clouds/Knob.png"
+        visible: row_param != "ir"
+		width: 60
+		height: 60
+		onClicked: {
+			knobs.set_knob_current_effect(current_effect, row_param);
+		}
+		radius: 15
+	}
 
    Text {
         x: 10
