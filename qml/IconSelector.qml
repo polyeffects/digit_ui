@@ -40,6 +40,7 @@ Item {
                     y: 25 
                     text: remove_suffix(modelData)
                     horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.Wrap
                     width: 180
                     height: 22
                     z: 1

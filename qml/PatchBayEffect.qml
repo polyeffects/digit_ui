@@ -43,7 +43,7 @@ Rectangle {
     }
 
 	function isSpecialWarpsParam(item){
-		return ['int_osc', 'space_size', 'mode'].indexOf(item) < 0;
+		return ['int_osc', 'space_size', 'mode', 'algorithm', 'shape'].indexOf(item) < 0;
 	}
 
     property var input_keys: Object.keys(effectPrototypes[effect_type]["inputs"]).filter(isAudio) 
@@ -185,8 +185,12 @@ Rectangle {
             patchStack.push(editClouds);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}
-		else if (['bitmangle', 'comparator', 'chebyschev_waveshaper', 'meta_modulation', 'wavefolder', 'vocoder', 'doppler_panner', 'twist_delay', 'frequency_shifter'].indexOf(effect_type) >= 0){
+		else if (['bitmangle', 'comparator', 'chebyschev_waveshaper', 'wavefolder', 'vocoder', 'doppler_panner', 'twist_delay', 'frequency_shifter'].indexOf(effect_type) >= 0){
             patchStack.push(editWarps);
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+		}
+		else if (effect_type == 'meta_modulation'){
+            patchStack.push(editWarpsMeta, {"objectName":"editWarpsMeta"});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}
         else if (effect_type == "mono_reverb" || effect_type == "stereo_reverb" || effect_type == "true_stereo_reverb")
@@ -221,7 +225,7 @@ Rectangle {
     }
 
 	function show_warps_special_clicked(){
-		if (['bitmangle', 'comparator', 'chebyschev_waveshaper', 'meta_modulation', 'wavefolder', 'vocoder'].indexOf(effect_type) >= 0){
+		if (['bitmangle', 'comparator', 'chebyschev_waveshaper', 'wavefolder', 'vocoder'].indexOf(effect_type) >= 0){
             patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "int_osc", "icons": ["OFF.png", "Sine.png", "Sawtooth.png", "Triangle.png"]});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		} else if (effect_type == "twist_delay") {
@@ -232,6 +236,14 @@ Rectangle {
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		} else if (effect_type == "doppler_panner") {
             patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "space_size", "icons": ["Small.png", "Medium.png", "Large.png", "XL.png"]});
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+		} else if (effect_type == "meta_modulation") {
+			if (patchStack.currentItem.objectName == "editWarpsMeta"){
+				patchStack.push(editWarps);
+				patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+			} else {
+				patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "shape", "icons": ["OFF.png", "Sine.png", "Sawtooth.png", "Triangle.png"]});
+			}
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}
 	}
@@ -739,6 +751,27 @@ Rectangle {
 							Material.foreground: Constants.rainbow[index]
 						}
 					}
+				}
+			}
+        }
+
+        Component {
+            id: editWarpsMeta
+
+			Item {
+				z: 3
+				x: 0
+				height:540
+				width:1280
+				ActionIcons {
+				
+				}
+				IconSlider {
+					x: 175
+					y: 122
+					width: 1008
+					row_param: "algorithm"
+					current_effect: effect_id
 				}
 			}
         }
