@@ -26,7 +26,7 @@ import QtQuick.Controls.Material 2.3
         width: 800
         height: 550
         property string effect: "eq2"
-        property bool eq_enabled: currentEffects[effect]["controls"]["enable"].value
+        property bool eq_enabled: currentEffects[effect]["enabled"].value
         property int active_width: 975
         property int selected_point: 1
         property int point_updated: 1
@@ -87,7 +87,7 @@ import QtQuick.Controls.Material 2.3
         }
         
         Item {
-            x: 140
+            x: 160
             width: 975
             height: parent.height
 
@@ -809,19 +809,19 @@ import QtQuick.Controls.Material 2.3
                     grid_freq(ctx, 630, "630");
                     grid_line(ctx, 800);
                     grid_line(ctx, 1000);
-                    grid_freq(ctx, 1250, "1K25");
+                    grid_freq(ctx, 1250, "1250");
                     grid_line(ctx, 1600);
                     grid_line(ctx, 2000);
-                    grid_freq(ctx, 2500, "2K5");
+                    grid_freq(ctx, 2500, "2500");
                     grid_line(ctx, 3150);
                     grid_line(ctx, 4000);
-                    grid_freq(ctx, 5000, "5K");
+                    grid_freq(ctx, 5000, "5000");
                     grid_line(ctx, 6300);
                     grid_line(ctx, 8000);
-                    grid_freq(ctx, 10000, "10K");
+                    grid_freq(ctx, 10000, "10000");
                     grid_line(ctx, 12500);
                     grid_line(ctx, 16000);
-                    grid_freq(ctx, 20000, "20K");
+                    grid_freq(ctx, 20000, "20000");
                     // horizontal lines show db
                     // grid_db(ctx, 0, "0");
                     for (var i = -18; i < 19; i=i+6) {
@@ -898,19 +898,6 @@ import QtQuick.Controls.Material 2.3
                 width:140
                 spacing: 20
                 height:parent.height
-
-                Switch {
-                    text: qsTr("EQ")
-					font.pixelSize: baseFontSize
-                    // height: 20
-                    // implicitWidth: 100
-                    width: 140
-                    checked: eq_enabled
-                    onClicked: {
-                        knobs.ui_knob_change(effect, "enable", checked | 0); // force to int
-                        mycanvas.requestPaint();
-                    }
-                }
 
                 Switch {
                     text: "BAND " + (time_scale.selected_point + 1)

@@ -705,6 +705,14 @@ Rectangle {
 						}
 					}
 				}
+
+				Rectangle {
+					y: 0
+					x: 1183
+					width:2
+					height: 546
+					color: "white"
+				}
 				Column {
 					x: 1183
 					anchors.verticalCenter: parent.verticalCenter
@@ -722,6 +730,34 @@ Rectangle {
 						icon_source: "/clouds/Reverse.png"
 					}
 					// TODO add in link to shape selector
+					IconButton {
+						visible: effect_type == 'granular'
+						icon.source: "../icons/digit/clouds/Shapes.png"
+						width: 70
+						height: 70
+						icon.width: 60
+						onClicked: {
+							patchStack.push(editCloudsShape);
+							patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+						}
+						Material.foreground: accent_color.name
+						radius: 30
+						Label {
+							visible: title_footer.show_help 
+							x: -92
+							y: 19 
+							text: "select shape"
+							horizontalAlignment: Text.AlignRight
+							width: 82
+							height: 9
+							z: 1
+							color: "white"
+							font {
+								pixelSize: 14
+								capitalization: Font.AllUppercase
+							}
+						}
+					}
 				}
 			}
         }
@@ -772,6 +808,30 @@ Rectangle {
 					width: 1008
 					row_param: "algorithm"
 					current_effect: effect_id
+				}
+			}
+        }
+
+        Component {
+            id: editCloudsShape
+
+			Item {
+				z: 3
+				x: 0
+				height:540
+				width:1280
+				// ActionIcons {
+				
+				// }
+				IconSlider {
+					x: 175
+					y: 122
+					width: 1008
+					row_param: "texture_param"
+					icons: ['Square.png', 'ramp.png',  'sawtooth.png',  'Triangle.png', 'diffused triangle.png']
+					current_effect: effect_id
+					icon_path: "../icons/digit/clouds/"
+					only_top: true
 				}
 			}
         }

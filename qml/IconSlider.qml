@@ -47,6 +47,9 @@ T.Slider {
     property color accent: Material.foreground
     property string current_effect
     property string row_param: "int_osc"
+    property bool only_top: false
+    property var icons: ['Crossfade.png', 'Crossfold.png', 'Diode Ring Modulation.png', 'Digital Ring Modulation.png', 'Bitwise XOR Modulation.png', 'Octaver Comparator.png', 'Vocoder 1.png', 'Vocoder 2.png', 'Freeze.png']
+    property string  icon_path: "../icons/digit/warps/slider/"
 
     value: currentEffects[current_effect]["controls"][row_param].value
     from: currentEffects[current_effect]["controls"][row_param].rmin
@@ -65,7 +68,6 @@ T.Slider {
         }
     }
 
-    property var icons: ['Crossfade.png', 'Crossfold.png', 'Diode Ring Modulation.png', 'Digital Ring Modulation.png', 'Bitwise XOR Modulation.png', 'Octaver Comparator.png', 'Vocoder 1.png', 'Vocoder 2.png', 'Freeze.png']
 
     implicitWidth: Math.max(background ? background.implicitWidth : 0,
                            (handle ? handle.implicitWidth : 0) + leftPadding + rightPadding)
@@ -135,11 +137,11 @@ T.Slider {
             model: icons
             Image {
                 x: 2*control.leftPadding + (index  * ((main_line.width - 4*control.leftPadding) / (icons.length-1))) - (width / 2)
-                y: index % 2 == 0 ? -height + 16 + (parent.height / 2 ) : -16 + (parent.height / 2)
-                source: "../icons/digit/warps/slider/"+modelData
+                y: index % 2 == 0 || only_top ? -height + 16 + (parent.height / 2 ) : -16 + (parent.height / 2)
+                source: icon_path+modelData
                 Label {
                     x: -19 //- (parent.width / 2) + 30
-                    y: index % 2 == 0 ? -50 : parent.height - 15 //+ parent.height
+                    y: index % 2 == 0 || only_top ? -50 : parent.height - 15 //+ parent.height
                     text: remove_suffix(modelData)
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
