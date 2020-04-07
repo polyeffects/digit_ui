@@ -358,7 +358,7 @@ def parse_ingen(to_parse):
                     # print("trying to in delete subject", subject, "to_delete", to_delete)
                     # with to_delete_lock:
                     #     to_delete.remove(subject)
-                    # print("queued remove, removed from to_delete", subject)
+                    print("### queued remove", subject)
                     ui_queue.put(("remove_plugin", subject))
                 except KeyError:
                     # print("didn't find subject ", subject, "in to_delete", to_delete)

@@ -6,14 +6,14 @@ import "polyconst.js" as Constants
 Item { 
     // property PatchBayEffect selected_effect: patch_single.selected_effect
     width: Constants.left_col + 10
-    height: 520
+    height: 546
 
     Column {
         width: 100
         // visible: patch_single.currentMode == PatchBay.Sliders
         // y: 98
         anchors.top: parent.top
-        anchors.topMargin: 0
+        anchors.topMargin: patch_single.selected_effect && (patch_single.selected_effect.has_ui) ? 0 : 50
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 0
         x: 30
@@ -35,20 +35,8 @@ Item {
             Material.foreground: "transparent" 
             radius: 30
 
-            Label {
-                visible: title_footer.show_help 
-                x: -92
-                y: 19 
+            SideHelpLabel {
                 text: "enable"
-                horizontalAlignment: Text.AlignRight
-                width: 82
-                height: 9
-                z: 1
-                color: "white"
-                font {
-                    pixelSize: 14
-                    capitalization: Font.AllUppercase
-                }
             }
         }
 
@@ -67,20 +55,8 @@ Item {
             Material.foreground: "white"
             radius: 30
 
-            Label {
-                visible: title_footer.show_help 
-                x: -92
-                y: 19 
+            SideHelpLabel {
                 text: "connect"
-                horizontalAlignment: Text.AlignRight
-                width: 82
-                height: 9
-                z: 1
-                color: "white"
-                font {
-                    pixelSize: 14
-                    capitalization: Font.AllUppercase
-                }
             }
         }
         IconButton {
@@ -96,20 +72,8 @@ Item {
             Material.foreground: "white"
             radius: 30
 
-            Label {
-                visible: title_footer.show_help 
-                x: -92
-                y: 19 
+            SideHelpLabel {
                 text: "disconnect"
-                horizontalAlignment: Text.AlignRight
-                width: 82
-                height: 9
-                z: 1
-                color: "white"
-                font {
-                    pixelSize: 14
-                    capitalization: Font.AllUppercase
-                }
             }
         }
         IconButton {
@@ -126,20 +90,8 @@ Item {
             }
             Material.foreground: "white"
             radius: 30
-            Label {
-                visible: title_footer.show_help 
-                x: -92
-                y: 19 
+            SideHelpLabel {
                 text: "move"
-                horizontalAlignment: Text.AlignRight
-                width: 82
-                height: 9
-                z: 1
-                color: "white"
-                font {
-                    pixelSize: 14
-                    capitalization: Font.AllUppercase
-                }
             }
         }
 
@@ -156,20 +108,8 @@ Item {
             }
             Material.foreground: "white"
             radius: 30
-            Label {
-                visible: title_footer.show_help 
-                x: -92
-                y: 19 
+            SideHelpLabel {
                 text: "delete"
-                horizontalAlignment: Text.AlignRight
-                width: 82
-                height: 9
-                z: 1
-                color: "white"
-                font {
-                    pixelSize: 14
-                    capitalization: Font.AllUppercase
-                }
             }
         }
 
@@ -185,20 +125,8 @@ Item {
                 patch_single.selected_effect.show_warps_special_clicked();
             }
             radius: 30
-            Label {
-                visible: title_footer.show_help 
-                x: -92
-                y: 19 
+            SideHelpLabel {
                 text: "Mode"
-                horizontalAlignment: Text.AlignRight
-                width: 82
-                height: 9
-                z: 1
-                color: "white"
-                font {
-                    pixelSize: 14
-                    capitalization: Font.AllUppercase
-                }
             }
         }
     }

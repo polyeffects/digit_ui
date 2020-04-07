@@ -12,6 +12,7 @@ Item {
     property real current_footer_value: 0
     property bool show_footer_value: false
     property real currentPresetNum: currentPreset.value
+    property string title_text: ""
 
     onCurrentPresetNumChanged: {
         console.log("presetnumchanged", currentPreset.value);
@@ -84,7 +85,7 @@ Item {
 
         Label {
             // color: "#ffffff"
-            text: currentPreset.name
+            text: patch_single.currentMode != PatchBay.Details ? currentPreset.name.replace(/_/g, " ") : title_text
             elide: Text.ElideRight
             anchors.centerIn: parent
             anchors.bottomMargin: 25 
@@ -279,9 +280,6 @@ Item {
             Material.background: "white"
             Material.foreground: Constants.outline_color
             visible: patch_single.currentMode != PatchBay.Select
-            HelpLabel {
-                text: "back"
-            }
             onClicked: {
                 // mainStack.push("Settings.qml")
 				patch_single.selected_effect.back_action();
@@ -316,15 +314,15 @@ Item {
             id: connectMode
             icon.source: "../icons/digit/clouds/Connect.png"
             visible: patch_single.currentMode == PatchBay.Connect
-            width: 56
-            height: 56
+            width: 70
+            height: 70
             x: 584
             y: 12
             onClicked: {
                 patch_single.selected_effect.hide_sliders(true);
             }
-            Material.background: "white"
-            Material.foreground: accent_color.name
+            // Material.background: "white"
+            Material.foreground: "white"
             radius: 28
             HelpLabel {
                 text: "connect"
@@ -348,15 +346,16 @@ Item {
         IconButton {
             id: moveMode
             visible: patch_single.currentMode == PatchBay.Move
-            width: 56
-            height: 56
+            icon.source: "../icons/digit/clouds/Move.png"
+            width: 70
+            height: 70
             x: 584
-            y: 12
+            y: 8
             onClicked: {
                 patch_single.selected_effect.hide_sliders(true);
             }
-            Material.background: "white"
-            Material.foreground: accent_color.name
+            // Material.background: "white"
+            Material.foreground: "white"
             radius: 28
             HelpLabel {
                 text: "move"
@@ -367,7 +366,7 @@ Item {
         IconButton {
             visible: patch_single.currentMode == PatchBay.Select
             x: 961 
-            y: 12
+            y: 8
             width: 62
             height: 62
             flat: false
@@ -528,9 +527,6 @@ Item {
                 Material.background: "white"
                 Material.foreground: Constants.outline_color
                 onClicked: mainStack.pop()
-                HelpLabel {
-                    text: "Back"
-                }
             }
         }
     }

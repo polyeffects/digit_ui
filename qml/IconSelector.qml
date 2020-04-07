@@ -25,7 +25,7 @@ Item {
             IconButton {
                 icon.source: "../icons/digit/warps/"+modelData
                 width: 180
-                height: 219
+                height: 300
                 icon.width: 100
                 icon.height: 100
                 checked: index == Math.floor(currentEffects[effect_id]["controls"][row_param].value)
@@ -34,10 +34,11 @@ Item {
                 }
                 // Material.background: "white"
                 Material.foreground: "transparent"
+                Material.accent: "white"
                 radius: 10
                 Label {
                     x: 0
-                    y: 25 
+                    y: 30 
                     text: remove_suffix(modelData)
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap

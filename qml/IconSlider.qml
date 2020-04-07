@@ -141,7 +141,7 @@ T.Slider {
                 source: icon_path+modelData
                 Label {
                     x: -19 //- (parent.width / 2) + 30
-                    y: index % 2 == 0 || only_top ? -50 : parent.height - 15 //+ parent.height
+                    y: index % 2 == 0 && !only_top ? -70 : parent.height + 5 //+ parent.height
                     text: remove_suffix(modelData)
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter

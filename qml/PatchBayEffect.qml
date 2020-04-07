@@ -169,6 +169,8 @@ Rectangle {
 
     function expand_clicked () {
         patch_bay.currentMode = PatchBay.Details;
+		title_text = effect_type.replace(/_/g, " ")
+
         if (effect_type == "stereo_EQ" || effect_type == "mono_EQ"){
             patchStack.push("EQWidget.qml", {"effect": effect_id});
             patch_bay.current_help_text = Constants.help["eq_detail"];
@@ -218,6 +220,7 @@ Rectangle {
         }
         else if (effect_type == "input" || effect_type == "output"){
             // pass
+            patchStack.push(editIO);
         } else {
 			patch_bay.current_help_text = Constants.help["sliders"];
             patchStack.push(editGeneric);
@@ -232,7 +235,7 @@ Rectangle {
             patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "mode", "icons": ["Open FB Loop.png", "Dual Delay.png", "Tape Delay.png", "Ping Pong.png"]});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		} else if (effect_type == "frequency_shifter") {
-            patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "mode", "icons": ["OFF.png", "Sine.png", "2 Harmonics.png", "4 Harmonics.png"]});
+            patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "mode", "icons": ["OFF.png", "Sin.png", "2 Harmonics.png", "4 Harmonics.png"]});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		} else if (effect_type == "doppler_panner") {
             patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "space_size", "icons": ["Small.png", "Medium.png", "Large.png", "XL.png"]});
@@ -514,7 +517,7 @@ Rectangle {
                         id: note_subdivisions
 						textRole: "text"
 
-						model: [{text: "on beat", value: 0},
+						model: [{text: "1/4", value: 1},
 						{text: "2/3", value: 8/3.0}, {text: "1/3", value: 4/3.0}, {text: "1/8 .", value: 0.75},
 						{text: "PHI", value: 0.618},
 					   	{text: "1/8", value: 0.5},  {text: "1/16", value: 0.25}]
@@ -600,11 +603,11 @@ Rectangle {
 				}
 
 				Row {
-					x: 170
+					x: 250
 					y: 100
 					height:540
 					width:1110
-					spacing: 50
+					spacing: 100
 					Column {
 						width: 490
 						spacing: 20
@@ -638,6 +641,7 @@ Rectangle {
 								}
 								// Material.background: "white"
 								Material.foreground: "transparent"
+								Material.accent: "white"
 								radius: 10
 								Label {
 									visible: title_footer.show_help 
@@ -673,13 +677,13 @@ Rectangle {
 				
 				}
 				Column {
-					x: 141
+					x: 160
 					y: 65
 					width: 541
-					spacing: 20
+					spacing: 30
 
 					Repeater {
-						model: ['blend_param', 'density_param', 'feedback_param', 'in_gain_param', 'pitch_param']
+						model: ['blend_param', 'density_param', 'feedback_param', 'pitch_param']
 						DelayRow {
 							row_param: modelData
 							current_effect: effect_id
@@ -692,12 +696,12 @@ Rectangle {
 					x: 673
 					y: 65
 					width: 541
-					spacing: 20
+					spacing: 30
 
 
 
 					Repeater {
-						model: ['position_param', 'reverb_param',  'size_param', 'spread_param', 'texture_param']
+						model: effect_type == 'granular' ? ['position_param', 'reverb_param',  'size_param', 'spread_param'] : ['position_param', 'reverb_param',  'size_param', 'spread_param', 'texture_param'] 
 						DelayRow {
 							row_param: modelData
 							current_effect: effect_id
@@ -708,7 +712,7 @@ Rectangle {
 
 				Rectangle {
 					y: 0
-					x: 1183
+					x: 1170
 					width:2
 					height: 546
 					color: "white"
@@ -774,8 +778,8 @@ Rectangle {
 				
 				}
 				Column {
-					x: 403
-					y: 65
+					x: 450
+					anchors.verticalCenter: parent.verticalCenter
 					width: 541
 					spacing: 20
 
@@ -840,26 +844,81 @@ Rectangle {
         Component {
             id: editGeneric
             Item {
+                height:546
+				width: 1280
 				ActionIcons {
 
 				}
-                z: 3
-                height:546
-                width:1083
-                Column {
-                    width: 500
-                    spacing: 20
-                    anchors.centerIn: parent
+                // z: 3
+				Item {
+					x: 150
+					width: 1083
+					height: 546
 
-					Repeater {
-						model: Object.keys(currentEffects[effect_id]["controls"])
-						DelayRow {
-							row_param: modelData
-							current_effect: effect_id
-							Material.foreground: Constants.rainbow[index]
+					Grid {
+						spacing: 20
+						columns: 2
+						anchors.centerIn: parent
+
+						Repeater {
+							model: Object.keys(currentEffects[effect_id]["controls"])
+							DelayRow {
+								row_param: modelData
+								current_effect: effect_id
+								Material.foreground: Constants.rainbow[index]
+							}
 						}
 					}
-                }
+				
+				}
+                
+            }
+        }
+
+        Component {
+            id: editIO
+            Item {
+				height:546
+				width:1280
+				Row {
+					anchors.centerIn: parent
+					spacing: 40
+					IconButton {
+						icon.source: "../icons/digit/clouds/Connect.png"
+						rightPadding: 20
+						leftPadding: 0
+						visible: patch_bay.selected_effect && (patch_bay.selected_effect.effect_type != "output")
+						width: 110
+						height: 90
+						onClicked: {
+							connect_clicked();
+							patch_bay.currentMode = PatchBay.Connect;
+							patch_bay.current_help_text = Constants.help["connect_to"];
+						}
+						Material.foreground: "white"
+						radius: 30
+
+						SideHelpLabel {
+							text: "connect"
+						}
+					}
+					IconButton {
+						icon.source: "../icons/digit/clouds/Disconnect.png"
+						rightPadding: 20
+						leftPadding: 0
+						width: 110
+						height: 90
+						onClicked: {
+							disconnect_clicked();
+						}
+						Material.foreground: "white"
+						radius: 30
+
+						SideHelpLabel {
+							text: "disconnect"
+						}
+					}
+				}
                 
             }
         }

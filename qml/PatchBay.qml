@@ -418,9 +418,7 @@ import "polyconst.js" as Constants
                     flat: false
                     icon.name: "back"
                     Material.background: "white"
-                    HelpLabel {
-                        text: "back"
-                    }
+                    Material.foreground: Constants.outline_color
 
                     onClicked: { 
                         current_help_text = ""
@@ -501,9 +499,7 @@ import "polyconst.js" as Constants
                     flat: false
                     icon.name: "back"
                     Material.background: "white"
-                    HelpLabel {
-                        text: "back"
-                    }
+                    Material.foreground: Constants.outline_color
 
                     onClicked: mainStack.pop()
                 }
@@ -576,9 +572,7 @@ import "polyconst.js" as Constants
                     flat: false
                     icon.name: "back"
                     Material.background: "white"
-                    HelpLabel {
-                        text: "DONE"
-                    }
+                    Material.foreground: Constants.outline_color
 
                     onClicked: mainStack.pop()
                 }

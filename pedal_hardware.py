@@ -130,43 +130,41 @@ def set_master_time_sig():
 #     return footswitch_is_down[footswitch]
 
 # called from main thread
-initial_press = True
-switch_down = 1
-switch_up = 0
+initial_press = {30: True, 48: True, 46: True}
+switch_down = {30: 1, 48: 1, 46: 1}
+switch_up = {30: 0, 48: 0, 46: 0}
+
 def process_input():
     # pop from queue
     try:
         while True:
             # check if we get a down while other swtch is down, if so it's a multi press
             e = input_queue.get(block=False)
-            global initial_press
-            if initial_press == True and e.code in (30, 48, 46):
+            if e.code in (30, 48, 46) and initial_press[e.code] == True :
                 # pressed down, so this value must be down
-                global switch_down
-                global switch_up
-                switch_down = e.value
-                switch_up = 1 - e.value
-                initial_press = False
+                switch_down[e.code] = e.value
+                switch_up[e.code] = 1 - e.value
+                initial_press[e.code] = False
                 print("setting initial button state")
 
-            if e.code == 30 and e.value == switch_down: # tap down
+            if e.code == 30 and e.value == switch_down[e.code]: # tap down
                 switch_is_down[0] = True
                 global tap_down_timestamp
                 tap_down_timestamp = e.timestamp()
                 foot_callback("tap_down", tap_down_timestamp)
-            if e.code == 48 and e.value == switch_down: # step
+            elif e.code == 48 and e.value == switch_down[e.code]: # step
                 switch_is_down[1] = True
                 global step_down_timestamp
                 step_down_timestamp = e.timestamp()
                 foot_callback("step_down", step_down_timestamp)
-            if e.code == 46 and e.value == switch_down: # bypass
+            elif e.code == 46 and e.value == switch_down[e.code]: # bypass
                 switch_is_down[2] = True
                 global bypass_down_timestamp
                 bypass_down_timestamp = e.timestamp()
                 foot_callback("bypass_down", bypass_down_timestamp)
 
             # each action clears the others states if multiple
-            if e.code == 30 and e.value == switch_up: # tap up
+            elif e.code == 30 and e.value == switch_up[e.code]: # tap up
                 if switch_is_down[0] and not (switch_is_down[1] or switch_is_down[2]):
                     foot_callback("tap_up", tap_down_timestamp)
                     switch_is_down[0] = False
@@ -175,7 +173,7 @@ def process_input():
                     switch_is_down[0] = False
                     switch_is_down[1] = False
                     switch_is_down[2] = False
-            if e.code == 48 and e.value == switch_up: # step
+            elif e.code == 48 and e.value == switch_up[e.code]: # step
                 if switch_is_down[1] and not (switch_is_down[0] or switch_is_down[2]):
                     foot_callback("step_up", step_down_timestamp)
                     switch_is_down[1] = False
@@ -189,7 +187,7 @@ def process_input():
                     switch_is_down[0] = False
                     switch_is_down[1] = False
                     switch_is_down[2] = False
-            if e.code == 46 and e.value == switch_up: # bypass
+            elif e.code == 46 and e.value == switch_up[e.code]: # bypass
                 if switch_is_down[2] and not (switch_is_down[0] or switch_is_down[1]):
                     foot_callback("bypass_up", bypass_down_timestamp)
                     switch_is_down[2] = False
@@ -198,6 +196,7 @@ def process_input():
                     switch_is_down[0] = False
                     switch_is_down[1] = False
                     switch_is_down[2] = False
+
             if e.type == 2: # knob
                 if PEDAL_VERSION < 10:
                     if e.code == 1: # left

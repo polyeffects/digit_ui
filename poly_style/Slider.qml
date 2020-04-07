@@ -74,7 +74,7 @@ T.Slider {
         id: handleRect
         width: control.horizontal ? 25 : control.availableWidth - 1
         height: control.horizontal ? control.availableHeight - 1 : 25
-        radius: 3 
+        radius: 6 
         color: accent
         scale: control.pressed ? 1.5 : 1
 
@@ -107,7 +107,7 @@ T.Slider {
         color: control.Material.background
         border { width:2; color: accent}
         scale: control.horizontal && control.mirrored ? -1 : 1
-        radius: 3
+        radius: 6
         
         Text {
             // anchors.centerIn: parent
@@ -121,6 +121,7 @@ T.Slider {
                 // pixelSize: fontSizeMedium
                 pixelSize: 24
                 capitalization: Font.AllUppercase
+                family: mainFont.name
             }
         }
 
