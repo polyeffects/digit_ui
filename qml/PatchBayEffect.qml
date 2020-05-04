@@ -27,7 +27,7 @@ Rectangle {
     property string effect_id
     property string effect_type
     property color effect_color: effect_id in currentEffects && currentEffects[effect_id]["enabled"].value > 0 ? Constants.audio_color : Constants.outline_color
-    property bool highlight: false
+    property bool highlight: effect_id in currentEffects && currentEffects[effect_id]["highlight"].value
     property bool selected: false
     property Rectangle cv_area: cv_rec
     property Column inputs: input_rec
@@ -79,6 +79,12 @@ Rectangle {
         }
     }
 
+    // function self_destruct() {
+    //     // console.log("self destruct called");
+    //     rect.destroy(1);
+    //     // console.log("self destruct done");
+    // }
+
     Component.onDestruction: {
         // console.log("destroying patchbayeffect component");
         selected = false;
@@ -97,7 +103,7 @@ Rectangle {
          * on click, check if we are highlight, if not find source ports 
          * if we are, then we're a current target
          */
-        if (!highlight){
+        if (!(highlight)){
             var k = output_keys;
             if (k.length == 0){
                 return;
@@ -117,7 +123,7 @@ Rectangle {
             } 
             else if (k.length == 1) {
                 knobs.set_current_port(true, effect_id, k[0]);
-                rep1.model.items_changed();
+                // rep1.model.items_changed();
                 patch_bay.externalRefresh();
                 patch_bay.current_help_text = Constants.help["connect_to"];
             }
@@ -150,7 +156,7 @@ Rectangle {
             } 
             else if (matched == 1){
                 knobs.set_current_port(false, effect_id, k[matched_id]);
-                rep1.model.items_changed();
+                // rep1.model.items_changed();
                 patch_bay.externalRefresh();
                 patch_bay.current_help_text = Constants.help["connect_from"];
             }
@@ -221,6 +227,10 @@ Rectangle {
         else if (effect_type == "input" || effect_type == "output"){
             // pass
             patchStack.push(editIO);
+		// }	
+		// else if (['diode_ladder_lpf', 'k_org_hpf', 'k_org_lpf', 'oog_half_lpf', 'uberheim_filter'].indexOf(effect_type) >= 0){
+            // patchStack.push(editFilter);
+            // patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
         } else {
 			patch_bay.current_help_text = Constants.help["sliders"];
             patchStack.push(editGeneric);
@@ -666,6 +676,141 @@ Rectangle {
             }
         }
 
+
+        // Component {
+        //     id: editAdvancedRotary
+			// Item {
+				// z: 3
+				// x: 0
+				// height:540
+				// width:1180
+				// ActionIcons {
+				
+				// }
+
+        //         // 2 columns,
+				// Column {
+					// x: 132
+					// y: 65
+					// width: 483
+					// spacing: 30
+
+        //             Item {
+        //                 IconButton {
+        //                     icon.source: "../icons/digit/rotary/Horn.png"
+        //                     x: 23
+        //                     y: 18
+        //                     width: 186
+        //                     height: 98
+        //                     Label {
+        //                         x: 100
+        //                         y: 35 
+        //                         text: "Horn"
+        //                         horizontalAlignment: Text.AlignHCenter
+        //                         width: 57
+        //                         height: 22
+        //                         z: 1
+        //                         color: "white"
+        //                         font {
+        //                             pixelSize: 24
+        //                             capitalization: Font.AllUppercase
+        //                         }
+        //                     }
+                        
+        //                 }
+
+        //                 IconButton {
+        //                     icon.source: "../icons/digit/rotary/Link.png"
+        //                     x: 215
+        //                     y: 37
+        //                     width: 60
+        //                     height: 60
+        //                     // checked: index == Math.floor(currentEffects[effect_id]["controls"][row_param].value)
+        //                     // onClicked: {
+        //                     //     knobs.ui_knob_change(effect_id, row_param, index);
+        //                     // }
+        //                 }
+
+        //                 IconButton {
+        //                     icon.source: "../icons/digit/rotary/Drum.png"
+        //                     x: 300
+        //                     y: 18
+        //                     width: 186
+        //                     height: 98
+        //                     Label {
+        //                         x: 100
+        //                         y: 35 
+        //                         text: "Drum"
+        //                         horizontalAlignment: Text.AlignHCenter
+        //                         width: 57
+        //                         height: 22
+        //                         z: 1
+        //                         color: "white"
+        //                         font {
+        //                             pixelSize: 24
+        //                             capitalization: Font.AllUppercase
+        //                         }
+        //                     }
+                        
+        //                 }
+                    
+        //             }
+
+        //             Row {
+        //                 Button {
+        //                     text: "CHORALE (SLOW)"
+        //                     // onClicked: model.submit()
+        //                 }
+        //                 Button {
+        //                     text: "TREMELO (FAST)"
+        //                     // onClicked: model.submit()
+        //                 }
+        //             }
+
+        //             Item { 
+        //                 Repeater {
+        //                     model: ['blend_param', 'density_param', 'feedback_param', 'pitch_param']
+        //                     DelayRow {
+        //                         row_param: modelData
+        //                         current_effect: effect_id
+        //                         Material.foreground: Constants.rainbow[index]
+        //                     }
+        //                 }
+        //             }
+				// }
+
+				// Column {
+					// x: 673
+					// y: 65
+					// width: 541
+					// spacing: 30
+        //             // drop down
+
+        //             // horn split
+					// Repeater {
+						// model: ['filtafreq', 'filtagain',  'filtaq'] 
+						// DelayRow {
+							// row_param: modelData
+							// current_effect: effect_id
+							// Material.foreground: Constants.rainbow[index+5]
+						// }
+					// }
+
+
+        //             // horn character
+					// Repeater {
+						// model: ['filtbfreq', 'filtbgain',  'filtbq'] 
+						// DelayRow {
+							// row_param: modelData
+							// current_effect: effect_id
+							// Material.foreground: Constants.rainbow[index+5]
+						// }
+					// }
+				// }
+
+			// }
+        // }
+
         Component {
             id: editClouds
 			Item {
@@ -866,6 +1011,7 @@ Rectangle {
 								row_param: modelData
 								current_effect: effect_id
 								Material.foreground: Constants.rainbow[index]
+								is_log: modelData == "cutoff"
 							}
 						}
 					}

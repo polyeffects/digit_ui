@@ -23,6 +23,7 @@ import Qt.labs.folderlistmodel 2.2
         property url top_folder: "file:///audio/reverbs/"
         property var after_file_selected: (function(name) { return null; })
         property bool is_loading: false
+        property bool swipeable: false
         height: 500
         width: 800
 
@@ -92,9 +93,11 @@ import Qt.labs.folderlistmodel 2.2
 //                nameFilters: ["*.mp3", "*.flac"]
             }
 
-            delegate: ItemDelegate {
+            delegate: SwipeDelegate {
+                id: swipeDelegate
                 width: parent.width
                 height: 90
+                swipe.enabled: mainRect.swipeable
                 text: remove_suffix(fileName).replace(/_/g, " ")
                 font {
                     bold: fileIsDir && !fileURL.toString().endsWith(".ingen") ? true : false
@@ -123,6 +126,47 @@ import Qt.labs.folderlistmodel 2.2
                     // color: fileIsDir ? "orange" : "gray"
                     // border.color: "black"
                 // }
+                ListView.onRemove: SequentialAnimation {
+                    PropertyAction {
+                        target: swipeDelegate
+                        property: "ListView.delayRemove"
+                        value: true
+                    }
+                    NumberAnimation {
+                        target: swipeDelegate
+                        property: "height"
+                        to: 0
+                        easing.type: Easing.InOutQuad
+                    }
+                    PropertyAction {
+                        target: swipeDelegate
+                        property: "ListView.delayRemove"
+                        value: false
+                    }
+                }
+
+                swipe.right: Label {
+                    id: deleteLabel
+                    text: qsTr("Delete")
+                    color: "white"
+                    verticalAlignment: Label.AlignVCenter
+                    padding: 30
+                    height: parent.height
+                    anchors.right: parent.right
+
+
+                    background: Rectangle {
+                        color: deleteLabel.SwipeDelegate.pressed ? Qt.darker("tomato", 1.1) : "tomato"
+                    }
+                    MouseArea {
+                        id: mouseArea
+                        anchors.fill: parent
+                        onClicked: { 
+                            console.log("delete clicked");
+                            knobs.delete_preset(fileURL.toString());
+                        }
+                    }
+                }
             }
         }
         Label {

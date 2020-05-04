@@ -43,7 +43,7 @@ import QtQuick.Controls.Material 2.3
 					anchors.centerIn: parent
 
                     Button {
-                        text: "LOAD"
+                        text: "SELECT"
 						width: 300
 						// height: 500
                         onClicked: presetStack.push(loadPresetWidget)
@@ -116,12 +116,13 @@ import QtQuick.Controls.Material 2.3
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
 
-                    FolderBrowser {
+                    PresetBrowser {
                         y: 100
-						x: 400
+						x: 0
+                        swipeable: true
                         // Layout.fillHeight: true
-                        height: 600
-                        width: 500
+                        height: 546
+                        width: 1280
 						top_folder: "file:///mnt/presets/"+currentPedalModel.name+"/"
                         current_selected: ""
 						after_file_selected: (function(name) { 

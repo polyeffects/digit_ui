@@ -85,7 +85,7 @@ Item {
 
         Button {
             anchors.right: folderRect.right
-            anchors.rightMargin: 0
+            anchors.rightMargin: -100
             font {
                 pixelSize: fontSizeMedium
             }
@@ -119,7 +119,8 @@ Item {
 //                nameFilters: ["*.mp3", "*.flac"]
             }
 
-            delegate: ItemDelegate {
+            delegate: SwipeDelegate {
+                id: swipeDelegate
                 width: parent.width
                 height: 60
                 text: remove_suffix(fileName)
@@ -142,6 +143,47 @@ Item {
                     // color: fileIsDir ? "orange" : "gray"
                     // border.color: "black"
                 // }
+                //
+                ListView.onRemove: SequentialAnimation {
+                    PropertyAction {
+                        target: swipeDelegate
+                        property: "ListView.delayRemove"
+                        value: true
+                    }
+                    NumberAnimation {
+                        target: swipeDelegate
+                        property: "height"
+                        to: 0
+                        easing.type: Easing.InOutQuad
+                    }
+                    PropertyAction {
+                        target: swipeDelegate
+                        property: "ListView.delayRemove"
+                        value: false
+                    }
+                }
+
+                swipe.right: Label {
+                    id: deleteLabel
+                    text: qsTr("Delete")
+                    color: "white"
+                    verticalAlignment: Label.AlignVCenter
+                    padding: 30
+                    height: parent.height
+                    anchors.right: parent.right
+
+
+                    background: Rectangle {
+                        color: deleteLabel.SwipeDelegate.pressed ? Qt.darker("tomato", 1.1) : "tomato"
+                    }
+                    MouseArea {
+                        id: mouseArea
+                        anchors.fill: parent
+                        onClicked: { 
+                            knobs.delete_ir(fileURL.toString());
+                        }
+                    }
+                }
             }
         }
         Label {
@@ -158,7 +200,7 @@ Item {
 
 
     Slider {
-        x: 900
+        x: 1100
         y: 50
         width: 60 
         height: 450

@@ -1,5 +1,5 @@
 import sys, time, json, os.path, os, subprocess, queue, threading, traceback, glob
-import platform
+import platform, shutil
 os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
 from signal import signal, SIGINT, SIGTERM
 from time import sleep
@@ -28,7 +28,6 @@ import icons.icons
 # #, imagine_assets
 import resource_rc
 
-import patch_bay_model
 import ingen_wrapper
 import pedal_hardware
 
@@ -48,9 +47,6 @@ port_connections = {} # key is port, value is list of ports
 context = None
 
 
-
-patch_bay_model.local_effects = current_effects
-    # effect = {"parameters", "inputs", "outputs", "effect_type", "id", "x", "y"}
 
 effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay",
         "mono_reverb": "http://polyeffects.com/lv2/polyconvo#Mono",
@@ -91,6 +87,8 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "bitmangle" : "http://polyeffects.com/lv2/polywarps#bitcrusher",
         "twist_delay" : "http://polyeffects.com/lv2/polywarps#delay",
         # "meta_modulation" : "http://polyeffects.com/lv2/polywarps#meta",
+        "k_org_hpf": "http://polyeffects.com/lv2/polyfilter#korg_hpf",
+        "k_org_lpf": "http://polyeffects.com/lv2/polyfilter#korg_lpf",
     },
     "beebo" : { "delay": "http://polyeffects.com/lv2/digit_delay",
         "warmth": "http://moddevices.com/plugins/tap/tubewarmth",
@@ -115,6 +113,7 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "stereo_compressor": "http://gareus.org/oss/lv2/darc#stereo",
         "thruzero_flange": "http://drobilla.net/plugins/mda/ThruZero",
         "rotary": "http://gareus.org/oss/lv2/b_whirl#simple",
+        # "rotary_advanced": "http://gareus.org/oss/lv2/b_whirl#extended",
         "attenuverter":"http://drobilla.net/plugins/blop/product",
         # "tempo_ratio": "http://drobilla.net/plugins/blop/ratio",
         "phaser": "http://jpcima.sdf1.org/lv2/stone-phaser",
@@ -135,6 +134,12 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         # "frequency_shifter" : "http://polyeffects.com/lv2/polywarps#frequency_shifter",
         # "meta_modulation" : "http://polyeffects.com/lv2/polywarps#meta",
         # "vocoder" : "http://polyeffects.com/lv2/polywarps#vocoder",
+        "diode_ladder_lpf": "http://polyeffects.com/lv2/polyfilter#diode_ladder",
+        "k_org_hpf": "http://polyeffects.com/lv2/polyfilter#korg_hpf",
+        "k_org_lpf": "http://polyeffects.com/lv2/polyfilter#korg_lpf",
+        "oog_half_lpf": "http://polyeffects.com/lv2/polyfilter#moog_half_ladder",
+        # "oog_ladder_lpf": "http://polyeffects.com/lv2/polyfilter#moog_ladder",
+        "uberheim_filter": "http://polyeffects.com/lv2/polyfilter#oberheim",
         }}
 
 effect_prototypes_models_all = {
@@ -315,10 +320,7 @@ effect_prototypes_models_all = {
                                 'in': ['In', 'AudioPort']},
                      'outputs': {'out': ['Out', 'AudioPort']}},
      'pan': {'description': 'Control signal controlled panner',
-             'controls': {'panCV': ['Pan CV', 0.0, -1.0, 1.0],
-                          'panGain': ['Pan Gain', 0, 0, 2],
-                          'panOffset': ['Pan Offset', 0, -1, 1],
-                          'panningMode': ['Panning Mode', 0, 0, 4]},
+             'controls': {'panOffset': ['Pan Offset', 0, -1, 1]},
              'inputs': {'in': ['In', 'AudioPort'], 'panCV': ['Pan CV', 'CVPort']},
              'outputs': {'out1': ['Out L', 'AudioPort'],
                          'out2': ['Out R', 'AudioPort']}},
@@ -532,7 +534,8 @@ effect_prototypes_models_all = {
                                                 -10.0]},
                      'inputs': {'in': ['In', 'AudioPort']},
                      'outputs': {'out': ['Out', 'AudioPort']}},
- 'rotary': {'description': '','controls': {'drumlvl': ['Drum Level', 0.0, -20.0, 20.0],
+ 'rotary': {'description': 'A rotating loudspeaker using physical modelling. Same sound as advanced version.',
+         'controls': {'drumlvl': ['Drum Level', 0.0, -20.0, 20.0],
                          'drumwidth': ['Drum Stereo Width', 1.0, 0.0, 2.0],
                          'enable': ['Enable', 1, 0, 1],
                          'hornlvl': ['Horn Level', 0.0, -20.0, 20.0],
@@ -959,7 +962,188 @@ effect_prototypes_models_all = {
                            'modulator': ['modulator', 'AudioPort'],
                            'num_fold_cv': ['num_fold_cv', 'CVPort']},
                 'outputs': {'aux': ['aux', 'AudioPort'],
-                            'out': ['out', 'AudioPort']}}
+                            'out': ['out', 'AudioPort']}},
+ 'diode_ladder_lpf': {'description': 'A diode ladder low pass filter similar to the vintage Japanese designs',
+         'controls': {'Q': ['Q', 1, 0.7072, 25],
+                                   'cutoff': ['cutoff', 0.1, 0, 1]},
+                      'inputs': {'cutoff_cv': ['Cutoff CV', 'CVPort'],
+                                 'in': ['in', 'AudioPort'],
+                                 'q_cv': ['Q CV', 'CVPort']},
+                      'outputs': {'out': ['out', 'AudioPort']}},
+ 'k_org_hpf': {'description': 'A high pass filter similar to the vintage Japanese designs',
+         'controls': {'Q': ['Q', 1, 0.5, 10],
+                            'cutoff': ['cutoff', 0.5, 0, 1]},
+               'inputs': {'cutoff_cv': ['Cutoff CV', 'CVPort'],
+                          'in': ['in', 'AudioPort'],
+                          'q_cv': ['Q CV', 'CVPort']},
+               'outputs': {'out': ['out', 'AudioPort']}},
+ 'k_org_lpf': {'description': 'A low pass filter similar to the vintage Japanese designs',
+               'controls': {'Q': ['Q', 1, 0.5, 10],
+                            'cutoff': ['cutoff', 0.5, 0, 1]},
+               'inputs': {'cutoff_cv': ['Cutoff CV', 'CVPort'],
+                          'in': ['in', 'AudioPort'],
+                          'q_cv': ['Q CV', 'CVPort']},
+               'outputs': {'out': ['out', 'AudioPort']}},
+ 'oog_half_lpf': {'description': 'A low pass filter inspired by vintage American designs',
+         'controls': {'Q': ['Q', 1, 0.7072, 25],
+                               'cutoff': ['cutoff', 0.5, 0, 1]},
+                  'inputs': {'cutoff_cv': ['Cutoff CV', 'CVPort'],
+                             'in': ['in', 'AudioPort'],
+                             'q_cv': ['Q CV', 'CVPort']},
+                  'outputs': {'out': ['out', 'AudioPort']}},
+ 'oog_ladder_lpf': {'description': 'A low pass filter inspired by vintage American designs',
+         'controls': {'Q': ['Q', 1, 0.7072, 25],
+                                 'cutoff': ['cutoff', 0.5, 0, 1]},
+                    'inputs': {'cutoff_cv': ['Cutoff CV', 'CVPort'],
+                               'in': ['in', 'AudioPort'],
+                               'q_cv': ['Q CV', 'CVPort']},
+                    'outputs': {'out': ['out', 'AudioPort']}},
+ 'uberheim_filter': {'description': 'A multi out filter inspired by vintage American designs',
+         'controls': {'Q': ['Q', 1, 0.5, 10],
+                                  'cutoff': ['cutoff', 0.5, 0, 1]},
+                     'inputs': {'cutoff_cv': ['Cutoff CV', 'CVPort'],
+                                'in': ['in', 'AudioPort'],
+                                'q_cv': ['Q CV', 'CVPort']},
+                     'outputs': {'band_pass': ['Band Pass', 'AudioPort'],
+                                 'band_stop': ['Band Stop', 'AudioPort'],
+                                 'high_pass': ['High Pass', 'AudioPort'],
+                                 'low_pass': ['Low Pass', 'AudioPort']}},
+ 'rotary_advanced': { 'description': 'A rotating loudspeaker using physical modelling. Same sound, more controls.',
+        'controls': {'drumaccel': ['Drum Acceleration',
+                                                4.127,
+                                                0.01,
+                                                20.0],
+                                  'drumbrake': ['Drum Brake Position',
+                                                0.0,
+                                                0.0,
+                                                1.0],
+                                  'drumdecel': ['Drum Deceleration',
+                                                1.371,
+                                                0.01,
+                                                20.0],
+                                  'drumlvl': ['Drum Level', 0.0, -20.0, 20.0],
+                                  'drumradius': ['Drum Radius',
+                                                 22.0,
+                                                 9.0,
+                                                 50.0],
+                                  'drumrpmfast': ['Drum Speed Fast',
+                                                  357.3,
+                                                  60.0,
+                                                  600.0],
+                                  'drumrpmslow': ['Drum Speed Slow',
+                                                  36.0,
+                                                  5.0,
+                                                  100.0],
+                                  'drumwidth': ['Drum Stereo Width',
+                                                1.0,
+                                                0.0,
+                                                2.0],
+                                  'enable': ['Enable', 1, 0, 1],
+                                  'filtafreq': ['Horn Filter-1 Frequency',
+                                                4500.0,
+                                                250.0,
+                                                8000.0],
+                                  'filtagain': ['Horn Filter-1 Gain',
+                                                -30.0,
+                                                -48.0,
+                                                48.0],
+                                  'filtaq': ['Horn Filter-1 Quality',
+                                             2.7456,
+                                             0.01,
+                                             6.0],
+                                  'filtatype': ['Horn Filter-1 Type', 0, 0, 8],
+                                  'filtbfreq': ['Horn Filter-2 Frequency',
+                                                300.0,
+                                                250.0,
+                                                8000.0],
+                                  'filtbgain': ['Horn Filter-2 Gain',
+                                                -30.0,
+                                                -48.0,
+                                                48.0],
+                                  'filtbq': ['Horn Filter-2 Quality',
+                                             1.0,
+                                             0.01,
+                                             6.0],
+                                  'filtbtype': ['Horn Filter-2 Type', 7, 0, 8],
+                                  'filtdfreq': ['Drum Filter Frequency',
+                                                811.9695,
+                                                50.0,
+                                                8000.0],
+                                  'filtdgain': ['Drum Filter Gain',
+                                                -38.9291,
+                                                -48.0,
+                                                48.0],
+                                  'filtdq': ['Drum Filter Quality',
+                                             1.6016,
+                                             0.01,
+                                             6.0],
+                                  'filtdtype': ['Drum Filter Type', 8, 0, 8],
+                                  'guitrigger': ['GUI to Plugin Notifications',
+                                                 0.0,
+                                                 0.0,
+                                                 1.0],
+                                  'hornaccel': ['Horn Acceleration',
+                                                0.161,
+                                                0.001,
+                                                10.0],
+                                  'hornbrakepos': ['Horn Brake Position',
+                                                   0.0,
+                                                   0.0,
+                                                   1.0],
+                                  'horndecel': ['Horn Deceleration',
+                                                0.321,
+                                                0.001,
+                                                10.0],
+                                  'hornleak': ['Horn Signal Leakage',
+                                               -16.47,
+                                               -80.0,
+                                               -3.0],
+                                  'hornlvl': ['Horn Level', 0.0, -20.0, 20.0],
+                                  'hornradius': ['Horn Radius',
+                                                 19.2,
+                                                 9.0,
+                                                 50.0],
+                                  'hornrpmfast': ['Horn Speed Fast',
+                                                  423.36,
+                                                  100.0,
+                                                  1000.0],
+                                  'hornrpmslow': ['Horn Speed Slow',
+                                                  40.32,
+                                                  5.0,
+                                                  200.0],
+                                  'hornwidth': ['Horn Stereo Width',
+                                                1.0,
+                                                0.0,
+                                                2.0],
+                                  'hornxoff': ['Horn X-Axis Offset',
+                                               0.0,
+                                               -20.0,
+                                               20.0],
+                                  'hornzoff': ['Horn Z-Axis Offset',
+                                               0.0,
+                                               -20.0,
+                                               20.0],
+                                  'link': ['Link Speed Control', 0, -1, 1],
+                                  'micangle': ['Microphone Angle',
+                                               180.0,
+                                               0.0,
+                                               180.0],
+                                  'micdist': ['Microphone Distance',
+                                              42.0,
+                                              9.0,
+                                              150.0],
+                                  'rt_speed': ['Motors Ac/Dc', 4, 0, 8]},
+                     'inputs': {'in': ['Input', 'AudioPort']},
+                     'outputs': {'drumang': ['Current Drum position',
+                                             'ControlPort'],
+                                 'drumrpm': ['Current Drum speed',
+                                             'ControlPort'],
+                                 'hornang': ['Current Horn position',
+                                             'ControlPort'],
+                                 'hornrpm': ['Current Horn speed',
+                                             'ControlPort'],
+                                 'left': ['Left Output', 'AudioPort'],
+                                 'right': ['Right Output', 'AudioPort']}}
                      }
 
 effect_prototypes_models = {"digit": {k:effect_prototypes_models_all[k] for k in effect_type_maps["digit"].keys()},
@@ -1007,14 +1191,17 @@ class MyEmitter(QObject):
 
 class MyWorker(QRunnable):
 
-    def __init__(self, command):
+    def __init__(self, command, after=None):
         super(MyWorker, self).__init__()
         self.command = command
+        self.after = after
         self.emitter = MyEmitter()
 
     def run(self):
         # run subprocesses, grab output
         ret_var = subprocess.call(self.command, shell=True)
+        if self.after is not None:
+            self.after()
         self.emitter.done.emit(ret_var)
 
 class MyTask(QRunnable):
@@ -1049,6 +1236,14 @@ class PolyBool(QObject):
         pass
 
     value = Property(bool, readValue, setValue, notify=value_changed)
+
+class PatchBayNotify(QObject):
+
+    def __init__(self):
+        QObject.__init__(self)
+
+    add_module = Signal(str)
+    remove_module = Signal(str)
 
 
 # class PolyEncoder(QObject):
@@ -1171,6 +1366,19 @@ def write_pedal_state():
         json.dump(pedal_state, f)
     os.sync()
 
+def write_preset_meta_cache():
+    with open("/mnt/pedal_state/preset_meta.json", "w") as f:
+        json.dump(preset_meta_data, f)
+    os.sync()
+
+def load_preset_meta_cache():
+    global preset_meta_data
+    try:
+        with open("/mnt/pedal_state/preset_meta.json") as f:
+            preset_meta_data = json.load(f)
+    except:
+        preset_meta_data = {}
+
 def load_pedal_state():
     global pedal_state
     try:
@@ -1180,8 +1388,10 @@ def load_pedal_state():
                 pedal_state["input_level"] = 0
             if "midi_channel" not in pedal_state:
                 pedal_state["midi_channel"] = 1
+            if "author" not in pedal_state:
+                pedal_state["author"] = "poly player"
     except:
-        pedal_state = {"input_level": 0, "midi_channel": 1}
+        pedal_state = {"input_level": 0, "midi_channel": 1, "author": "poly player"}
 
 
 selected_effect_ports = QStringListModel()
@@ -1227,11 +1437,8 @@ def load_preset(name, initial=False, force=False):
         if effect_id in ["/main/out_1", "/main/out_2", "/main/out_3", "/main/out_4", "/main/in_1", "/main/in_2", "/main/in_3", "/main/in_4"]:
             pass
         else:
-            if patch_bay_model.patch_bay_singleton is not None:
-                patch_bay_model.patch_bay_singleton.startRemove(effect_id)
+            patch_bay_notify.remove_module.emit(effect_id)
             current_effects.pop(effect_id)
-            if patch_bay_model.patch_bay_singleton is not None:
-                patch_bay_model.patch_bay_singleton.endRemove()
     if not initial:
         print("deleting sub graph", current_sub_graph)
         delete_sub_graph(current_sub_graph)
@@ -1247,40 +1454,33 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
     # print("from backend new effect", effect_name, effect_type)
     if effect_type in effect_prototypes:
-        if patch_bay_model.patch_bay_singleton is not None:
-            patch_bay_model.patch_bay_singleton.startInsert()
-
         current_effects[effect_name] = {"x": x, "y": y, "effect_type": effect_type,
                 "controls": {k : PolyValue(*v) for k,v in effect_prototypes[effect_type]["controls"].items()},
-                "highlight": False, "enabled": PolyBool(True)}
-        if patch_bay_model.patch_bay_singleton is not None:
-            patch_bay_model.patch_bay_singleton.endInsert()
+                "highlight": PolyBool(False), "enabled": PolyBool(True)}
         # insert in context or model? 
+        # emit add signal
         context.setContextProperty("currentEffects", current_effects) # might be slow
+        patch_bay_notify.add_module.emit(effect_name)
     else:
         print("### backend tried to add an unknown effect!")
-
-
 
 def from_backend_remove_effect(effect_name):
     # called by engine code when effect is removed
     if effect_name not in current_effects:
         return
     # print("### from backend removing effect")
-    if patch_bay_model.patch_bay_singleton is not None:
-        patch_bay_model.patch_bay_singleton.startRemove(effect_name)
+    # emit remove signal
     for source_port, targets in list(port_connections.items()):
         s_effect, s_port = source_port.rsplit("/", 1)
         if s_effect == effect_name:
             del port_connections[source_port]
         else:
             port_connections[source_port] = [[e, p] for e, p in port_connections[source_port] if e != effect_name]
-    current_effects.pop(effect_name)
+    patch_bay_notify.remove_module.emit(effect_name)
+    # current_effects.pop(effect_name)
     context.setContextProperty("currentEffects", current_effects) # might be slow
     context.setContextProperty("portConnections", port_connections)
     # print("### from backend removing effect setting portConnections")
-    if patch_bay_model.patch_bay_singleton is not None:
-        patch_bay_model.patch_bay_singleton.endRemove()
     update_counter.value+=1
 
 def from_backend_add_connection(head, tail):
@@ -1368,6 +1568,28 @@ def from_backend_disconnect(head, tail):
     context.setContextProperty("portConnections", port_connections)
     update_counter.value+=1
 
+def get_meta_from_files():
+    r_dict = {}
+    def get_rdf_element_from_files(rdf_name="rdfs:comment", element_name="description"):
+        command =  'grep -ir "'+ rdf_name +'" /mnt/presets'
+        # command =  ['grep' , '-ir',  '"'+ element_name +'"',  '/mnt/presets']
+        ret_obj = subprocess.run(command, capture_output=True, shell=True)
+        for a in ret_obj.stdout.splitlines():
+            b = a.decode().split(":", 1)
+            v = b[1].split('"')[1]
+            preset_name = b[0].rsplit("/", 1)[0]
+            if preset_name not in r_dict:
+                r_dict[preset_name] = {}
+            r_dict[preset_name][element_name] = v
+    get_rdf_element_from_files("rdfs:comment", "description")
+    get_rdf_element_from_files("doap:maintainer", "author")
+    get_rdf_element_from_files("doap:category", "tags")
+    global preset_meta_data
+    preset_meta_data = r_dict
+    context.setContextProperty("presetMeta", preset_meta_data)
+    # flush to file
+    write_preset_meta_cache()
+
 class Knobs(QObject):
     @Slot(bool, str, str)
     def set_current_port(self, is_source, effect_id, port_name):
@@ -1385,7 +1607,7 @@ class Knobs(QObject):
             except KeyError:
                 return
             for id, effect in current_effects.items():
-                effect["highlight"] = False
+                effect["highlight"].value = False
                 if id != effect_id:
                     # if out_port_type in ["CVPort", "ControlPort"]: # looking for controls
                     #     if len(current_effects[id]["controls"]) > 0:
@@ -1394,12 +1616,13 @@ class Knobs(QObject):
                     for input_port, style in effect_prototypes[effect["effect_type"]]["inputs"].items():
                         if style[1] == out_port_type:
                             # highlight and break
-                            effect["highlight"] = True
+                            # qWarning("port highlighted")
+                            effect["highlight"].value = True
                             break
         else:
             # if target disable highlight
             for id, effect in current_effects.items():
-                effect["highlight"] = False
+                effect["highlight"].value = False
             # add connection between source and target
             # or just wait until it's automatically created from engine? 
             # if current_source_port not in port_connections:
@@ -1457,8 +1680,8 @@ class Knobs(QObject):
                     ports.append(s_effect.rsplit("/", 1)[1]+"==="+s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
                 elif s_effect == effect_id:
                     ports.append(c_effect.rsplit("/", 1)[1]+"==="+s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
-        print("connected ports:", ports, effect_id)
-        qWarning("connected Ports "+ str(ports) + " " + effect_id)
+        # print("connected ports:", ports, effect_id)
+        # qWarning("connected Ports "+ str(ports) + " " + effect_id)
         selected_effect_ports.setStringList(ports)
 
     @Slot(str)
@@ -1516,7 +1739,7 @@ class Knobs(QObject):
     @Slot(str)
     def remove_effect(self, effect_id):
         # calls backend to remove effect
-        print("remove effect", effect_id)
+        # print("remove effect", effect_id)
         ingen_wrapper.remove_plugin(effect_id)
 
     @Slot(str, str, 'double')
@@ -1558,8 +1781,28 @@ class Knobs(QObject):
         # print("saving", preset_name)
         # TODO add folders
         current_preset.name = pedalboard_name
+        ingen_wrapper.set_author(current_sub_graph.rstrip("/"), pedal_state["author"])
         ingen_wrapper.save_pedalboard(current_pedal_model.name, pedalboard_name, current_sub_graph.rstrip("/"))
         self.launch_task(2, os.sync) # wait 2 seconds then sync to drive
+        # update preset meta
+        clean_filename = ingen_wrapper.get_valid_filename(pedalboard_name)
+        if len(clean_filename) > 0:
+            filename = "/mnt/presets/"+current_pedal_model.name+"/"+clean_filename+".ingen"
+            preset_meta_data[filename] = {"author": pedal_state["author"], "description": preset_description.name}
+            context.setContextProperty("presetMeta", preset_meta_data)
+            # flush to file
+            write_preset_meta_cache()
+
+    @Slot(str)
+    def toggle_favourite(self, preset_file):
+        p_f = preset_file[7:]
+        if p_f in preset_meta_data and "favourite" in preset_meta_data[p_f]:
+            preset_meta_data[p_f]["favourite"] = not preset_meta_data[p_f]["favourite"]
+        else:
+            preset_meta_data[p_f]["favourite"] = True
+        context.setContextProperty("presetMeta", preset_meta_data)
+        # flush to file
+        write_preset_meta_cache()
 
     @Slot()
     def ui_copy_irs(self):
@@ -1579,7 +1822,8 @@ class Knobs(QObject):
         # instead we just only copy ones that are
         command = """cd /media/presets; find . -iname "*.ingen" -type d -print0 | xargs -0 cp -r --target-directory=/mnt/presets --parents"""
         command_status[0].value = -1
-        self.launch_subprocess(command)
+        self.launch_subprocess(command, after=get_meta_from_files)
+        # after presets have copied we need to parse all the tags / author and update cache
 
     @Slot()
     def export_presets(self):
@@ -1619,6 +1863,7 @@ class Knobs(QObject):
         command_status[0].value = subprocess.call(command, shell=True)
         command = "amixer -- sset ADC2 "+str(level)+"db"
         command_status[0].value = subprocess.call(command, shell=True)
+        input_level.value = level
         if write:
             pedal_state["input_level"] = level
             write_pedal_state()
@@ -1662,9 +1907,9 @@ class Knobs(QObject):
         # print("updating UI")
         command_status[0].value = ret_var
 
-    def launch_subprocess(self, command):
+    def launch_subprocess(self, command, after=None):
         # print("launch_threadpool")
-        worker = MyWorker(command)
+        worker = MyWorker(command, after)
         worker.emitter.done.connect(self.on_worker_done)
         worker_pool.start(worker)
 
@@ -1691,17 +1936,62 @@ class Knobs(QObject):
             return
         change_pedal_model(pedal_model)
 
+    @Slot(str)
+    def delete_ir(self, ir):
+        print("delete: ir files is ", ir)
+        ir = ir[len("file://"):]
+        # can be a directory or file
+        # check if it isn't a base dir. 
+        if "imported" not in ir or ir in ["/audio/cabs/imported", "/audio/reverbs/imported"]:
+            return
+        # delete
+        try:
+            os.remove(ir)
+        except IsADirectoryError:
+            shutil.rmtree(ir)
+
+    @Slot(str)
+    def delete_preset(self, in_preset_file):
+        preset_file = in_preset_file[len("file://"):]
+        print("delete: preset_file files is ", preset_file)
+        # is always a directory
+        # empty / default
+        if ".ingen" not in preset_file or preset_file in ["/mnt/presets/digit/Default_Preset.ingen", "/mnt/presets/beebo/Empty.ingen", "/mnt/presets/digit/Empty.ingen"]:
+            return
+        # delete
+        shutil.rmtree(preset_file)
+        # remove from set list.
+        preset_list = preset_list_model.stringList()
+        print("preset list is", preset_list)
+        if in_preset_file in preset_list:
+            preset_list.pop(preset_list.index(in_preset_file))
+            preset_list_model.setStringList(preset_list)
+            self.save_preset_list()
+
+    @Slot()
+    def save_preset_list(self):
+        print("saving preset list")
+        with open("/mnt/pedal_state/"+current_pedal_model.name+"_preset_list.json", "w") as f:
+            json.dump(preset_list_model.stringList(), f)
+        os.sync()
+    preset_list_model.setStringList(preset_list)
+
+
+    @Slot(str)
+    def set_pedal_author(self, author):
+        pedal_state["author"] = author
+        write_pedal_state()
+        context.setContextProperty("pedalState", pedal_state)
+
 def io_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
     # print("from backend new effect", effect_name, effect_type)
     if effect_type in effect_prototypes:
         current_effects[effect_name] = {"x": x, "y": y, "effect_type": effect_type,
                 "controls": {},
-                "highlight": False}
+                "highlight": PolyBool(False)}
 
 def add_io():
-    # if patch_bay_model.patch_bay_singleton is not None:
-    #     patch_bay_model.patch_bay_singleton.startInsert()
     for i in range(1,5):
         ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(100*i))
         # io_new_effect("input"+str(i), "input", x=1200, y=(80 * i))
@@ -1710,8 +2000,6 @@ def add_io():
         ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(100 * i))
         # io_new_effect("output"+str(i), "output", x=50, y=(80 * i))
         # from_backend_new_effect("/main/out_"+str(i), "output", x=-20, y=(80 * i))
-    # if patch_bay_model.patch_bay_singleton is not None:
-    #     patch_bay_model.patch_bay_singleton.endInsert()
     # context.setContextProperty("currentEffects", current_effects) # might be slow
 
 class Encoder():
@@ -1966,11 +2254,11 @@ def process_ui_messages():
                             current_effects[effect_name]["controls"]["ir"].name = ir_file
                             effect_type = current_effects[effect_name]["effect_type"]
                             if effect_type in ["mono_reverb", "stereo_reverb", "quad_ir_reverb"]:
-                                print("setting reverb file", urllib.parse.unquote(ir_file))
+                                # print("setting reverb file", urllib.parse.unquote(ir_file))
                                 knobs.update_ir(effect_name, urllib.parse.unquote(ir_file))
                             elif effect_type in ["mono_cab", "stereo_cab", "quad_ir_cab"]:
                                 knobs.update_ir(effect_name, urllib.parse.unquote(ir_file))
-                                print("setting cab file", urllib.parse.unquote(ir_file))
+                                # print("setting cab file", urllib.parse.unquote(ir_file))
                         # qDebug("setting knob file " + ir_file)
                 except ValueError:
                     pass
@@ -2076,6 +2364,10 @@ if __name__ == "__main__":
     pedal_bypassed = PolyBool(False)
     is_loading = PolyBool(False)
     foot_switch_warning = PolyBool(False)
+    preset_meta_data = {}
+    load_preset_meta_cache()
+
+    patch_bay_notify = PatchBayNotify()
 
     available_effects = QStringListModel()
     available_effects.setStringList(sorted(effect_type_map.keys()))
@@ -2084,7 +2376,6 @@ if __name__ == "__main__":
     # accent_color = PolyValue("#8BB8E8", 0, -1, 1)
     accent_color = PolyValue("#FF75D0", 0, -1, 1)
 
-    qmlRegisterType(patch_bay_model.PatchBayModel, 'Poly', 1, 0, 'PatchBayModel')
     # Expose the object to QML.
     # global context
     context = engine.rootContext()
@@ -2112,6 +2403,9 @@ if __name__ == "__main__":
     context.setContextProperty("encoderQA", encoder_qa)
     context.setContextProperty("footSwitchWarning", foot_switch_warning)
     context.setContextProperty("pedalboardDescription", preset_description)
+    context.setContextProperty("patchBayNotify", patch_bay_notify)
+    context.setContextProperty("presetMeta", preset_meta_data)
+    context.setContextProperty("pedalState", pedal_state)
     engine.load(QUrl("qml/TestWrapper.qml")) # XXX 
     print("starting send thread")
     ingen_wrapper.start_send_thread()

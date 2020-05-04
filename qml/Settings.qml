@@ -4,6 +4,7 @@ import QtQuick.Controls 2.3
 import Qt.labs.folderlistmodel 2.2
 import QtQuick.Controls.Material 2.3
 import "polyconst.js" as Constants
+import QtQuick.VirtualKeyboard 2.1
 
 // ApplicationWindow {
 //     visible: true
@@ -26,7 +27,7 @@ Item {
             width:1280
             Row {
                 anchors.centerIn: parent
-                height:500
+                height:650
                 spacing: 200
                 Column {
                     width:350
@@ -36,7 +37,7 @@ Item {
                     // height:parent.height
                     GlowingLabel {
                         // color: "#ffffff"
-                        text: currentPedalModel.name+" FIRMWARE 2.26"
+                        text: currentPedalModel.name+" FIRMWARE 2.29"
                         color: accent_color.name
                     }
 
@@ -104,6 +105,13 @@ Item {
 							}
 						}
 
+                    }
+
+                    Button {
+                        flat: false
+                        text: "SET AUTHOR"
+                        font.pixelSize: baseFontSize
+                        onClicked: settingsStack.push(setAuthor)
                     }
 
 
@@ -665,6 +673,82 @@ Item {
             }
         }
     }
+
+    Component {
+        id: setAuthor
+
+        Item {
+            height:720
+            width:1280
+            Column {
+                width:300
+                x: 400
+                y: 10
+                anchors.horizontalCenter:  parent.horizontalCenter
+                spacing: 20
+                // height:parent.height
+                GlowingLabel {
+                    // color: "#ffffff"
+                    text: qsTr("Enter your name")
+                }
+
+                TextField {
+                    validator: RegExpValidator { regExp: /^[0-9a-zA-Z ]+$/}
+                    id: pedal_author
+                    width: 250
+                    height: 100
+                    font {
+                        pixelSize: fontSizeMedium
+                    }
+                    placeholderText: qsTr("Preset Author")    
+                }
+
+                Button {
+                    font {
+                        pixelSize: fontSizeMedium
+                    }
+                    width: 250
+                    height: 100
+                    text: "SAVE"
+                    enabled: pedal_author.text.length > 0
+                    onClicked: {
+                        knobs.set_pedal_author(pedal_author.text);
+                        mainStack.pop()
+                    }
+                }
+            }
+            InputPanel {
+                id: inputPanel
+                // parent:mainWindow.contentItem
+                z: 1000002
+                anchors.bottom:parent.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                width: 1000
+
+                visible: Qt.inputMethod.visible
+            }
+
+            IconButton {
+                x: 34 
+                y: 646
+                icon.width: 15
+                icon.height: 25
+                width: 119
+                height: 62
+                text: "BACK"
+                font {
+                    pixelSize: 24
+                }
+                flat: false
+                icon.name: "back"
+                Material.background: "white"
+                Material.foreground: Constants.outline_color
+                onClicked: settingsStack.pop()
+            }
+        }
+    }
+
     StackView {
         id: settingsStack
         initialItem: mainSettings

@@ -23,6 +23,7 @@ ApplicationWindow {
     readonly property int fontSizeMedium: baseFontSize * 1.5
     readonly property int fontSizeLarge: baseFontSize * 2
     readonly property int fontSizeExtraLarge: baseFontSize * 5
+    property int presetBrowserIndex: 0
     width: onDevice ? 720 : 1280 
     height: onDevice ? 1280 : 720
     title: "Digit 2"

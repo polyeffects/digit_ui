@@ -67,6 +67,12 @@ def set_description(current_sub_graph, description):
     # q.put((ingen.set, current_sub_graph, "http://www.w3.org/2000/01/rdf-schema#comment", description))
     q.put((ingen.put, current_sub_graph+"/control", 'rdfs:comment """%s"""' % description))
 
+def set_author(current_sub_graph, description):
+    q.put((ingen.put, current_sub_graph+"/control", 'doap:maintainer """%s"""' % description))
+
+def set_tags(current_sub_graph, description):
+    q.put((ingen.put, current_sub_graph+"/control", 'doap:category """%s"""' % description))
+
 def set_parameter_value(port, value):
     #ingen.set("/main/tone/output", "ingen:value", "0.8") 
     # ingen.set(port, "ingen:value", str(value))
@@ -82,7 +88,7 @@ def set_plugin_position(effect_id, x, y):
 
 def add_plugin(effect_id, effect_url):
     # put /main/tone <http://drobilla.net/plugins/mda/Shepard>'
-    print("backend adding effect_id", effect_id)
+    # print("backend adding effect_id", effect_id)
     q.put((ingen.put, effect_id, """ingen:canvasX "900.0"^^xsd:float ;
     ingen:canvasY "150.0"^^xsd:float ;
     a ingen:Block ;
@@ -90,7 +96,7 @@ def add_plugin(effect_id, effect_url):
 
 def add_sub_graph(effect_id):
     # put /main/tone <http://drobilla.net/plugins/mda/Shepard>'
-    print("backend adding sub_graph", effect_id)
+    # print("backend adding sub_graph", effect_id)
     q.put((ingen.put_internal, effect_id, """ingen:enabled true ;
     ingen:polyphony "1"^^xsd:int ;
     a ingen:Graph"""
@@ -167,7 +173,7 @@ def disconnect_port(src_port, target_port):
     q.put((ingen.disconnect, src_port, target_port))
 
 def disconnect_plugin(effect_id):
-    print("############### disconnnecting plugin ", effect_id)
+    # print("############### disconnnecting plugin ", effect_id)
     q.put((ingen.disconnect_all, effect_id))
 
 def set_midi_cc():
@@ -358,7 +364,7 @@ def parse_ingen(to_parse):
                     # print("trying to in delete subject", subject, "to_delete", to_delete)
                     # with to_delete_lock:
                     #     to_delete.remove(subject)
-                    print("### queued remove", subject)
+                    # print("### queued remove", subject)
                     ui_queue.put(("remove_plugin", subject))
                 except KeyError:
                     # print("didn't find subject ", subject, "in to_delete", to_delete)
@@ -372,7 +378,7 @@ def parse_ingen(to_parse):
                 elif p[1] == NS.ingen.tail:
                     tail = str(p[2])
             if head and tail:
-                print("in remove arc head", head, "tail", tail)
+                # print("in remove arc head", head, "tail", tail)
                 ui_queue.put(("remove_connection", head[7:], tail[7:]))
 
 r_thread = None

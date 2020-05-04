@@ -366,7 +366,7 @@ Item {
         IconButton {
             visible: patch_single.currentMode == PatchBay.Select
             x: 961 
-            y: 8
+            y: 12
             width: 62
             height: 62
             flat: false
