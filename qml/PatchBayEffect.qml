@@ -2,6 +2,8 @@ import QtQuick 2.4
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
 import QtQuick.VirtualKeyboard 2.1
+
+import QtQuick.Layouts 1.3
 // list for inputs, outputs
 // each has a type, id, name.  icon? 
 // effect has name, internal name / class, id
@@ -33,6 +35,7 @@ Rectangle {
     property Column inputs: input_rec
     property Column outputs: output_rec
 	property real current_subdivision: 1.0 
+	property int rotaryTabIndex: 0
 
     function isAudio(item){
         return effectPrototypes[effect_type]["inputs"][item][1] == "AudioPort"
@@ -189,6 +192,10 @@ Rectangle {
             patchStack.push(editLfo);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
         }
+		else if (effect_type == "rotary_advanced"){
+            patchStack.push(editAdvancedRotary);
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+		}
 		else if (['algo_reverb', 'granular', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch'].indexOf(effect_type) >= 0){
             patchStack.push(editClouds);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
@@ -259,6 +266,20 @@ Rectangle {
 			}
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}
+	}
+
+	function whirl_speed_clicked(speed){
+		var s = currentEffects[effect_id]["controls"]["rt_speed"].value; 
+		var h = Math.floor(s / 3);
+		var d = s % 3;
+		
+		if (rotaryTabIndex == 0){
+			h = speed;
+		}
+		else {
+			d = speed;
+		}
+		knobs.ui_knob_change(effect_id, "rt_speed", (h*3)+d);
 	}
 
 
@@ -677,139 +698,434 @@ Rectangle {
         }
 
 
-        // Component {
-        //     id: editAdvancedRotary
-			// Item {
-				// z: 3
-				// x: 0
-				// height:540
-				// width:1180
-				// ActionIcons {
-				
-				// }
+		Component {
+			id: editAdvancedRotary
+			Item {
+				z: 3
+				x: 0
+				height:546
+				width:1280
+				ActionIcons {
 
-        //         // 2 columns,
-				// Column {
-					// x: 132
-					// y: 65
-					// width: 483
-					// spacing: 30
+				}
 
-        //             Item {
-        //                 IconButton {
-        //                     icon.source: "../icons/digit/rotary/Horn.png"
-        //                     x: 23
-        //                     y: 18
-        //                     width: 186
-        //                     height: 98
-        //                     Label {
-        //                         x: 100
-        //                         y: 35 
-        //                         text: "Horn"
-        //                         horizontalAlignment: Text.AlignHCenter
-        //                         width: 57
-        //                         height: 22
-        //                         z: 1
-        //                         color: "white"
-        //                         font {
-        //                             pixelSize: 24
-        //                             capitalization: Font.AllUppercase
-        //                         }
-        //                     }
-                        
-        //                 }
+				// 2 columns,
+				Column {
+					x: 130
+					y: 20
+					width: 166
+					height: 526
+					spacing: 14
 
-        //                 IconButton {
-        //                     icon.source: "../icons/digit/rotary/Link.png"
-        //                     x: 215
-        //                     y: 37
-        //                     width: 60
-        //                     height: 60
-        //                     // checked: index == Math.floor(currentEffects[effect_id]["controls"][row_param].value)
-        //                     // onClicked: {
-        //                     //     knobs.ui_knob_change(effect_id, row_param, index);
-        //                     // }
-        //                 }
+					IconButton {
+						icon.source: "../icons/digit/rotary/Horn.png"
+						x: 23
+						// y: 18
+						width: 116
+						height: 100
+						checked: rotaryTabIndex == 0
+						Label {
+							x: 0
+							y: 70 
+							text: "Horn"
+							horizontalAlignment: Text.AlignHCenter
+							width: 116
+							height: 22
+							z: 1
+							color: "white"
+							font {
+								pixelSize: 22
+								capitalization: Font.AllUppercase
+							}
+						}
+						onClicked: {
+							rotaryTabIndex = 0;
+						}
 
-        //                 IconButton {
-        //                     icon.source: "../icons/digit/rotary/Drum.png"
-        //                     x: 300
-        //                     y: 18
-        //                     width: 186
-        //                     height: 98
-        //                     Label {
-        //                         x: 100
-        //                         y: 35 
-        //                         text: "Drum"
-        //                         horizontalAlignment: Text.AlignHCenter
-        //                         width: 57
-        //                         height: 22
-        //                         z: 1
-        //                         color: "white"
-        //                         font {
-        //                             pixelSize: 24
-        //                             capitalization: Font.AllUppercase
-        //                         }
-        //                     }
-                        
-        //                 }
-                    
-        //             }
-
-        //             Row {
-        //                 Button {
-        //                     text: "CHORALE (SLOW)"
-        //                     // onClicked: model.submit()
-        //                 }
-        //                 Button {
-        //                     text: "TREMELO (FAST)"
-        //                     // onClicked: model.submit()
-        //                 }
-        //             }
-
-        //             Item { 
-        //                 Repeater {
-        //                     model: ['blend_param', 'density_param', 'feedback_param', 'pitch_param']
-        //                     DelayRow {
-        //                         row_param: modelData
-        //                         current_effect: effect_id
-        //                         Material.foreground: Constants.rainbow[index]
-        //                     }
-        //                 }
-        //             }
-				// }
-
-				// Column {
-					// x: 673
-					// y: 65
-					// width: 541
-					// spacing: 30
-        //             // drop down
-
-        //             // horn split
-					// Repeater {
-						// model: ['filtafreq', 'filtagain',  'filtaq'] 
-						// DelayRow {
-							// row_param: modelData
-							// current_effect: effect_id
-							// Material.foreground: Constants.rainbow[index+5]
-						// }
-					// }
+					}
 
 
-        //             // horn character
-					// Repeater {
-						// model: ['filtbfreq', 'filtbgain',  'filtbq'] 
-						// DelayRow {
-							// row_param: modelData
-							// current_effect: effect_id
-							// Material.foreground: Constants.rainbow[index+5]
-						// }
-					// }
-				// }
+					IconButton {
+						icon.source: "../icons/digit/rotary/Drum.png"
+						x: 23
+						// y: 161
+						width: 116
+						height: 100
+						checked: rotaryTabIndex == 1
+						Label {
+							x: 0
+							y: 70 
+							text: "Drum"
+							horizontalAlignment: Text.AlignHCenter
+							width: 116
+							height: 22
+							z: 1
+							color: "white"
+							font {
+								pixelSize: 22
+								capitalization: Font.AllUppercase
+							}
+						}
+						onClicked: {
+							rotaryTabIndex = 1;
+						}
 
-			// }
-        // }
+					}
+
+					Item {
+						width: parent.width
+						height: 60
+						Rectangle {
+							width: parent.width
+							height: 2
+							color: "white"
+							anchors.verticalCenter: parent.verticalCenter
+							IconButton {
+								icon.source: "../icons/digit/rotary/Link.png"
+								anchors.horizontalCenter: parent.horizontalCenter
+								anchors.verticalCenter: parent.verticalCenter
+								Material.foreground: accent_color.name
+								Material.background: Constants.background_color
+								width: 60
+								height: 60
+								checked: currentEffects[effect_id]["controls"]["link"].value >= 1
+								onClicked: {
+								    knobs.ui_knob_change(effect_id, "link", 1.0 - currentEffects[effect_id]["controls"]["link"].value);
+								}
+							}
+						}
+					}
+
+
+					Label {
+						text: "STOP"
+						anchors.horizontalCenter: parent.horizontalCenter
+						width: 125
+						height: 50
+						horizontalAlignment: Text.AlignHCenter
+						verticalAlignment: Text.AlignVCenter
+						wrapMode: Text.Wrap
+						lineHeight: 0.65
+						font {
+							// pixelSize: fontSizeMedium
+							// family: mainFont.name
+							pixelSize: 22
+							capitalization: Font.AllUppercase
+							letterSpacing: 0
+						}
+
+                        background: Rectangle {
+							radius: 7
+							color: (rotaryTabIndex == 0 && Math.floor(currentEffects[effect_id]["controls"]["rt_speed"].value / 3) == 0) || (rotaryTabIndex == 1 && currentEffects[effect_id]["controls"]["rt_speed"].value % 3 == 0) ? accent_color.name : "transparent" 
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: { 
+                                // console.log("stop clicked");
+								whirl_speed_clicked(0);
+                            }
+                        }
+					}
+
+					Label {
+						text: "CHORALE\n (SLOW)"
+						anchors.horizontalCenter: parent.horizontalCenter
+						width: 125
+						height: 73
+						horizontalAlignment: Text.AlignHCenter
+						verticalAlignment: Text.AlignVCenter
+						wrapMode: Text.Wrap
+						lineHeight: 0.65
+						font {
+							// pixelSize: fontSizeMedium
+							// family: mainFont.name
+							pixelSize: 22
+							capitalization: Font.AllUppercase
+							letterSpacing: 0
+						}
+
+                        background: Rectangle {
+							radius: 7
+							color: (rotaryTabIndex == 0 && Math.floor(currentEffects[effect_id]["controls"]["rt_speed"].value / 3) == 1) || (rotaryTabIndex == 1 && currentEffects[effect_id]["controls"]["rt_speed"].value % 3 == 1) ? accent_color.name : "transparent" 
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: { 
+                                // console.log("delete clicked");
+								whirl_speed_clicked(1);
+                                // knobs.delete_preset(fileURL.toString());
+                            }
+                        }
+					}
+
+					Label {
+						text: "TREMELO\n (FAST)"
+						anchors.horizontalCenter: parent.horizontalCenter
+						width: 125
+						height: 73
+						horizontalAlignment: Text.AlignHCenter
+						verticalAlignment: Text.AlignVCenter
+						wrapMode: Text.Wrap
+						lineHeight: 0.65
+						font {
+							// pixelSize: fontSizeMedium
+							// family: mainFont.name
+							pixelSize: 22
+							capitalization: Font.AllUppercase
+							letterSpacing: 0
+						}
+
+                        background: Rectangle {
+							radius: 7
+							color: (rotaryTabIndex == 0 && Math.floor(currentEffects[effect_id]["controls"]["rt_speed"].value / 3) == 2) || (rotaryTabIndex == 1 && currentEffects[effect_id]["controls"]["rt_speed"].value % 3 == 2) ? accent_color.name : "transparent" 
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: { 
+								whirl_speed_clicked(2);
+                                // console.log("delete clicked");
+                                // knobs.delete_preset(fileURL.toString());
+                            }
+                        }
+					}
+
+				}
+
+				Rectangle {
+					x:  296
+					y: 0
+					width: 2
+					z: 3
+					height: parent.height
+					color: "white"
+				}
+
+
+				// [  'filtatype', 'filtbtype', 'filtdtype',   'link', 'rt_speed']
+
+				StackLayout {
+					width: 984
+					height: 546
+					x: 296
+					y: 0
+					currentIndex: rotaryTabIndex
+
+					Item {
+						x: 2
+						y: 0
+						width: 982
+						TabBar {
+							id: hornBar
+							width: parent.width
+							height: 47
+							TabButton {
+								text: qsTr("Split")
+								font {
+									pixelSize: 24
+									capitalization: Font.AllUppercase
+								}
+							}
+							TabButton {
+								text: qsTr("Character")
+								font {
+									pixelSize: 24
+									capitalization: Font.AllUppercase
+								}
+							}
+							TabButton {
+								text: qsTr("Rotor")
+								font {
+									pixelSize: 24
+									capitalization: Font.AllUppercase
+								}
+							}
+							TabButton {
+								text: qsTr("Mix")
+								font {
+									pixelSize: 24
+									capitalization: Font.AllUppercase
+								}
+							}
+						}	
+
+
+						StackLayout {
+							y: 157
+							x: 168
+							width: 700
+							currentIndex: hornBar.currentIndex	
+							Column {
+								spacing: 30
+								// drop down
+								width: parent.width
+								// horn split
+								Repeater {
+									model: ['filtafreq', 'filtagain',  'filtaq'] 
+									DelayRow {
+										row_param: modelData
+										current_effect: effect_id
+										Material.foreground: Constants.rainbow[index+5]
+									}
+								}
+							}
+
+							Column {
+								spacing: 30
+								// drop down
+								width: parent.width
+
+								// horn character
+								Repeater {
+									model: ['filtbfreq', 'filtbgain',  'filtbq'] 
+									DelayRow {
+										row_param: modelData
+										current_effect: effect_id
+										Material.foreground: Constants.rainbow[index+5]
+									}
+								}
+							}
+
+							Column {
+								spacing: 30
+								width: parent.width
+								//  horn rotor
+								Repeater {
+									model: ['hornrpmfast', 'hornrpmslow', 'hornaccel', 'horndecel'] 
+									DelayRow {
+										row_param: modelData
+										current_effect: effect_id
+										Material.foreground: Constants.rainbow[index+5]
+									}
+								}
+							}	
+
+							Column {
+								spacing: 30
+								width: parent.width
+								// drum mix
+								Repeater {
+									model: ['hornwidth',  'hornlvl',  'hornleak'] 
+									DelayRow {
+										row_param: modelData
+										current_effect: effect_id
+										Material.foreground: Constants.rainbow[index+5]
+									}
+								}
+
+							}
+						}
+					}
+
+					Item {
+						x: 2
+						y: 0
+						width: 982
+						TabBar {
+							id: drumBar
+							width: parent.width
+							height: 47
+							TabButton {
+								text: qsTr("Split")
+								font {
+									pixelSize: 24
+									capitalization: Font.AllUppercase
+								}
+							}
+							TabButton {
+								text: qsTr("Rotor")
+								font {
+									pixelSize: 24
+									capitalization: Font.AllUppercase
+								}
+							}
+							TabButton {
+								text: qsTr("Mix")
+								font {
+									pixelSize: 24
+									capitalization: Font.AllUppercase
+								}
+							}
+						}	
+
+
+						StackLayout {
+							y: 157
+							x: 168
+							width: 700
+							currentIndex: drumBar.currentIndex	
+
+							Column {
+								spacing: 30
+								width: parent.width
+
+								// drum split 
+								Repeater {
+									model: ['filtdfreq', 'filtdgain',  'filtdq'] 
+									DelayRow {
+										row_param: modelData
+										current_effect: effect_id
+										Material.foreground: Constants.rainbow[index+5]
+									}
+								}
+							}
+
+							Column {
+								spacing: 30
+								width: parent.width
+
+
+								// drum rotor
+								Repeater {
+									model: ['drumrpmfast', 'drumrpmslow', 'drumaccel', 'drumdecel'] 
+									DelayRow {
+										row_param: modelData
+										current_effect: effect_id
+										Material.foreground: Constants.rainbow[index+5]
+									}
+								}
+							}
+
+							Column {
+								spacing: 30
+								width: parent.width
+
+								// drum mix
+								Repeater {
+									model: ['drumwidth', 'drumlvl' ] 
+									DelayRow {
+										row_param: modelData
+										current_effect: effect_id
+										Material.foreground: Constants.rainbow[index+5]
+									}
+								}
+							}
+						}
+					}
+
+					Grid {
+						x: 0
+						y: 0
+						spacing: 20
+						columns: 2
+						width: parent.width
+						// anchors.centerIn: parent
+						// advanced
+						Repeater {
+							model: ['drumbrake', 'drumradius', 'hornbrakepos', 'hornradius', 'hornxoff', 'hornzoff', 'micangle', 'micdist' ]
+							DelayRow {
+								row_param: modelData
+								current_effect: effect_id
+								Material.foreground: Constants.rainbow[index]
+							}
+						}
+					}
+				}
+			}
+		}
+
 
         Component {
             id: editClouds

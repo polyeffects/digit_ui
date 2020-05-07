@@ -113,7 +113,7 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "stereo_compressor": "http://gareus.org/oss/lv2/darc#stereo",
         "thruzero_flange": "http://drobilla.net/plugins/mda/ThruZero",
         "rotary": "http://gareus.org/oss/lv2/b_whirl#simple",
-        # "rotary_advanced": "http://gareus.org/oss/lv2/b_whirl#extended",
+        "rotary_advanced": "http://gareus.org/oss/lv2/b_whirl#extended",
         "attenuverter":"http://drobilla.net/plugins/blop/product",
         # "tempo_ratio": "http://drobilla.net/plugins/blop/ratio",
         "phaser": "http://jpcima.sdf1.org/lv2/stone-phaser",
@@ -541,8 +541,12 @@ effect_prototypes_models_all = {
                          'hornlvl': ['Horn Level', 0.0, -20.0, 20.0],
                          'rt_speed': ['Motors Ac/Dc', 4, 0, 8]},
             'inputs': {'in': ['Input', 'AudioPort'],
+                             'horn_speed_cv': ['Horn Speed', 'CVPort'],
+                             'drum_speed_cv': ['Drum Speed', 'CVPort'],
+                             'horn_brake_cv': ['Horn Brake', 'CVPort'],
+                             'drum_brake_cv': ['Drum Brake', 'CVPort'],
                          'enable': ['Enable', "CVPort"],
-                         'rt_speed': ['Motors Ac Dc', "CVPort"]},
+                         'rt_speed': ['Old Motors Ac Dc', "CVPort"]},
             'outputs': {'left': ['Left Output', 'AudioPort'],
                         'right': ['Right Output', 'AudioPort']}},
  'stereo_compressor': {'description': '','controls': {'Ratio': ['Ratio', 0.0, 0.0, 1.0],
@@ -1039,49 +1043,45 @@ effect_prototypes_models_all = {
                                                 0.0,
                                                 2.0],
                                   'enable': ['Enable', 1, 0, 1],
-                                  'filtafreq': ['Horn Filter-1 Frequency',
+                                  'filtafreq': ['Frequency',
                                                 4500.0,
                                                 250.0,
                                                 8000.0],
-                                  'filtagain': ['Horn Filter-1 Gain',
+                                  'filtagain': ['Gain',
                                                 -30.0,
                                                 -48.0,
                                                 48.0],
-                                  'filtaq': ['Horn Filter-1 Quality',
+                                  'filtaq': ['Quality',
                                              2.7456,
                                              0.01,
                                              6.0],
                                   'filtatype': ['Horn Filter-1 Type', 0, 0, 8],
-                                  'filtbfreq': ['Horn Filter-2 Frequency',
+                                  'filtbfreq': ['Filter-2 Frequency',
                                                 300.0,
                                                 250.0,
                                                 8000.0],
-                                  'filtbgain': ['Horn Filter-2 Gain',
+                                  'filtbgain': ['Gain',
                                                 -30.0,
                                                 -48.0,
                                                 48.0],
-                                  'filtbq': ['Horn Filter-2 Quality',
+                                  'filtbq': ['Quality',
                                              1.0,
                                              0.01,
                                              6.0],
                                   'filtbtype': ['Horn Filter-2 Type', 7, 0, 8],
-                                  'filtdfreq': ['Drum Filter Frequency',
+                                  'filtdfreq': ['Filter Frequency',
                                                 811.9695,
                                                 50.0,
                                                 8000.0],
-                                  'filtdgain': ['Drum Filter Gain',
+                                  'filtdgain': ['Gain',
                                                 -38.9291,
                                                 -48.0,
                                                 48.0],
-                                  'filtdq': ['Drum Filter Quality',
+                                  'filtdq': ['Quality',
                                              1.6016,
                                              0.01,
                                              6.0],
                                   'filtdtype': ['Drum Filter Type', 8, 0, 8],
-                                  'guitrigger': ['GUI to Plugin Notifications',
-                                                 0.0,
-                                                 0.0,
-                                                 1.0],
                                   'hornaccel': ['Horn Acceleration',
                                                 0.161,
                                                 0.001,
@@ -1133,15 +1133,21 @@ effect_prototypes_models_all = {
                                               9.0,
                                               150.0],
                                   'rt_speed': ['Motors Ac/Dc', 4, 0, 8]},
-                     'inputs': {'in': ['Input', 'AudioPort']},
-                     'outputs': {'drumang': ['Current Drum position',
-                                             'ControlPort'],
-                                 'drumrpm': ['Current Drum speed',
-                                             'ControlPort'],
-                                 'hornang': ['Current Horn position',
-                                             'ControlPort'],
-                                 'hornrpm': ['Current Horn speed',
-                                             'ControlPort'],
+                     'inputs': {'in': ['Input', 'AudioPort'], 
+                             'horn_speed_cv': ['Horn Speed', 'CVPort'],
+                             'drum_speed_cv': ['Drum Speed', 'CVPort'],
+                             'horn_brake_cv': ['Horn Brake', 'CVPort'],
+                             'drum_brake_cv': ['Drum Brake', 'CVPort'],
+                             },
+                     'outputs': {
+                             # 'drumang': ['Current Drum position',
+                             #                 'ControlPort'],
+                             #     'drumrpm': ['Current Drum speed',
+                             #                 'ControlPort'],
+                             #     'hornang': ['Current Horn position',
+                             #                 'ControlPort'],
+                             #     'hornrpm': ['Current Horn speed',
+                             #                 'ControlPort'],
                                  'left': ['Left Output', 'AudioPort'],
                                  'right': ['Right Output', 'AudioPort']}}
                      }
@@ -1362,6 +1368,8 @@ def jump_to_preset(is_inc, num):
     knobs.ui_load_preset_by_name(p_list[current_preset.value])
 
 def write_pedal_state():
+    if platform.system() != "Linux":
+        return
     with open("/mnt/pedal_state/state.json", "w") as f:
         json.dump(pedal_state, f)
     os.sync()
@@ -1390,8 +1398,10 @@ def load_pedal_state():
                 pedal_state["midi_channel"] = 1
             if "author" not in pedal_state:
                 pedal_state["author"] = "poly player"
+            if "model" not in pedal_state:
+                pedal_state["model"] = "digit"
     except:
-        pedal_state = {"input_level": 0, "midi_channel": 1, "author": "poly player"}
+        pedal_state = {"input_level": 0, "midi_channel": 1, "author": "poly player", "model": "digit"}
 
 
 selected_effect_ports = QStringListModel()
@@ -1425,10 +1435,7 @@ def delete_sub_graph(name):
 def load_preset(name, initial=False, force=False):
     if is_loading.value == True and not force:
         return
-    if platform.system() != "Linux": # XXX remove
-        is_loading.value = False
-    else:
-        is_loading.value = True
+    is_loading.value = True
     # is_loading.value = True
     # delete existing blocks
     port_connections.clear()
@@ -1934,6 +1941,8 @@ class Knobs(QObject):
     def set_pedal_model(self, pedal_model):
         if is_loading.value == True:
             return
+        pedal_state["model"] = pedal_model
+        write_pedal_state()
         change_pedal_model(pedal_model)
 
     @Slot(str)
@@ -2372,7 +2381,7 @@ if __name__ == "__main__":
     available_effects = QStringListModel()
     available_effects.setStringList(sorted(effect_type_map.keys()))
     engine = QQmlApplicationEngine()
-    current_pedal_model = PolyValue("digit", 0, -1, 1)
+    current_pedal_model = PolyValue(pedal_state["model"], 0, -1, 1)
     # accent_color = PolyValue("#8BB8E8", 0, -1, 1)
     accent_color = PolyValue("#FF75D0", 0, -1, 1)
 
@@ -2380,7 +2389,7 @@ if __name__ == "__main__":
     # global context
     context = engine.rootContext()
     context.setContextProperty("knobs", knobs)
-    change_pedal_model("digit", True)
+    change_pedal_model(pedal_state["model"], True)
     context.setContextProperty("available_effects", available_effects)
     context.setContextProperty("selectedEffectPorts", selected_effect_ports)
     context.setContextProperty("portConnections", port_connections)
