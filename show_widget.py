@@ -534,7 +534,7 @@ effect_prototypes_models_all = {
                                                 -10.0]},
                      'inputs': {'in': ['In', 'AudioPort']},
                      'outputs': {'out': ['Out', 'AudioPort']}},
- 'rotary': {'description': 'A rotating loudspeaker using physical modelling. Same sound as advanced version.',
+ 'rotary': {'description': 'A rotating loudspeaker using physical modelling. Same sound as advanced.',
          'controls': {'drumlvl': ['Drum Level', 0.0, -20.0, 20.0],
                          'drumwidth': ['Drum Stereo Width', 1.0, 0.0, 2.0],
                          'enable': ['Enable', 1, 0, 1],
@@ -1051,12 +1051,12 @@ effect_prototypes_models_all = {
                                                 -30.0,
                                                 -48.0,
                                                 48.0],
-                                  'filtaq': ['Quality',
+                                  'filtaq': ['Q',
                                              2.7456,
                                              0.01,
                                              6.0],
                                   'filtatype': ['Horn Filter-1 Type', 0, 0, 8],
-                                  'filtbfreq': ['Filter-2 Frequency',
+                                  'filtbfreq': ['Frequency',
                                                 300.0,
                                                 250.0,
                                                 8000.0],
@@ -1064,12 +1064,12 @@ effect_prototypes_models_all = {
                                                 -30.0,
                                                 -48.0,
                                                 48.0],
-                                  'filtbq': ['Quality',
+                                  'filtbq': ['Q',
                                              1.0,
                                              0.01,
                                              6.0],
                                   'filtbtype': ['Horn Filter-2 Type', 7, 0, 8],
-                                  'filtdfreq': ['Filter Frequency',
+                                  'filtdfreq': ['Frequency',
                                                 811.9695,
                                                 50.0,
                                                 8000.0],
@@ -1077,7 +1077,7 @@ effect_prototypes_models_all = {
                                                 -38.9291,
                                                 -48.0,
                                                 48.0],
-                                  'filtdq': ['Quality',
+                                  'filtdq': ['Q',
                                              1.6016,
                                              0.01,
                                              6.0],
@@ -1795,7 +1795,12 @@ class Knobs(QObject):
         clean_filename = ingen_wrapper.get_valid_filename(pedalboard_name)
         if len(clean_filename) > 0:
             filename = "/mnt/presets/"+current_pedal_model.name+"/"+clean_filename+".ingen"
-            preset_meta_data[filename] = {"author": pedal_state["author"], "description": preset_description.name}
+            if filename in preset_meta_data:
+                preset_meta_data[filename]["author"] = pedal_state["author"]
+                preset_meta_data[filename]["description"] = preset_description.name
+            else:
+                preset_meta_data[filename] = {"author": pedal_state["author"], "description": preset_description.name}
+
             context.setContextProperty("presetMeta", preset_meta_data)
             # flush to file
             write_preset_meta_cache()
@@ -1805,8 +1810,10 @@ class Knobs(QObject):
         p_f = preset_file[7:]
         if p_f in preset_meta_data and "favourite" in preset_meta_data[p_f]:
             preset_meta_data[p_f]["favourite"] = not preset_meta_data[p_f]["favourite"]
-        else:
+        elif p_f in preset_meta_data:
             preset_meta_data[p_f]["favourite"] = True
+        else:
+            return
         context.setContextProperty("presetMeta", preset_meta_data)
         # flush to file
         write_preset_meta_cache()

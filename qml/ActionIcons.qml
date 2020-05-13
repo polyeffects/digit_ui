@@ -122,7 +122,7 @@ Item {
             width: 110
             height: 90
             onClicked: {
-                patch_single.selected_effect.show_warps_special_clicked();
+                patch_single.selected_effect.show_advanced_special_clicked();
             }
             radius: 30
             SideHelpLabel {

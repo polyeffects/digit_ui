@@ -52,7 +52,7 @@ Rectangle {
     property var input_keys: Object.keys(effectPrototypes[effect_type]["inputs"]).filter(isAudio) 
     property var output_keys: Object.keys(effectPrototypes[effect_type]["outputs"])
     property bool no_sliders: ["mono_EQ", "stereo_EQ", "input", "output", "lfo", 'algo_reverb', 'granular', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch'].indexOf(effect_type) >= 0
-    property bool has_ui: ['bitmangle', 'comparator', 'chebyschev_waveshaper', 'meta_modulation', 'wavefolder', 'vocoder', 'doppler_panner', 'twist_delay', 'frequency_shifter'].indexOf(effect_type) >= 0
+    property bool has_ui: ['bitmangle', 'comparator', 'chebyschev_waveshaper', 'meta_modulation', 'wavefolder', 'vocoder', 'doppler_panner', 'twist_delay', 'frequency_shifter', 'rotary_advanced'].indexOf(effect_type) >= 0
     property bool is_io: ["input", "output"].indexOf(effect_type) >= 0
     property var sliders; 
     // border { width:2; color: Material.color(Material.Cyan, Material.Shade100)}
@@ -193,7 +193,11 @@ Rectangle {
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
         }
 		else if (effect_type == "rotary_advanced"){
-            patchStack.push(editAdvancedRotary);
+            patchStack.push(editAdvancedRotary, {"objectName":"editAdvancedRotary"});
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+		}
+		else if (effect_type == "rotary"){
+            patchStack.push(editBasicRotary, {"objectName":"editBasicRotary"});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}
 		else if (['algo_reverb', 'granular', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch'].indexOf(effect_type) >= 0){
@@ -244,7 +248,7 @@ Rectangle {
         }
     }
 
-	function show_warps_special_clicked(){
+	function show_advanced_special_clicked(){
 		if (['bitmangle', 'comparator', 'chebyschev_waveshaper', 'wavefolder', 'vocoder'].indexOf(effect_type) >= 0){
             patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "int_osc", "icons": ["OFF.png", "Sine.png", "Sawtooth.png", "Triangle.png"]});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
@@ -263,6 +267,16 @@ Rectangle {
 				patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 			} else {
 				patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "shape", "icons": ["OFF.png", "Sine.png", "Sawtooth.png", "Triangle.png"]});
+			}
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+		} else if (effect_type == "rotary_advanced") {
+			if (patchStack.currentItem.objectName == "editAdvancedRotary"){
+				patch_bay.current_help_text = "Changing any of these values will reinitialize the module and sound will fade out."
+				patchStack.push(editAdvancedRotaryExtra, {"objectName":"editAdvancedRotaryExtra"});
+			} else {
+				patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+				// patchStack.push(editAdvancedRotary, {"objectName":"editAdvancedRotary"});
+				patchStack.pop()
 			}
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}
@@ -697,6 +711,252 @@ Rectangle {
             }
         }
 
+		Component {
+			id: editBasicRotary
+			Item {
+				z: 3
+				x: 0
+				height:546
+				width:1280
+				ActionIcons {
+
+				}
+
+				// 2 columns,
+				Column {
+					x: 130
+					y: 20
+					width: 166
+					height: 526
+					spacing: 14
+
+					IconButton {
+						icon.source: "../icons/digit/rotary/Horn.png"
+						x: 23
+						// y: 18
+						width: 116
+						height: 100
+						checked: rotaryTabIndex == 0
+						Label {
+							x: 0
+							y: 70 
+							text: "Horn"
+							horizontalAlignment: Text.AlignHCenter
+							width: 116
+							height: 22
+							z: 1
+							color: "white"
+							font {
+								pixelSize: 22
+								capitalization: Font.AllUppercase
+							}
+						}
+						onClicked: {
+							rotaryTabIndex = 0;
+						}
+
+					}
+
+
+					IconButton {
+						icon.source: "../icons/digit/rotary/Drum.png"
+						x: 23
+						// y: 161
+						width: 116
+						height: 100
+						checked: rotaryTabIndex == 1
+						Label {
+							x: 0
+							y: 70 
+							text: "Drum"
+							horizontalAlignment: Text.AlignHCenter
+							width: 116
+							height: 22
+							z: 1
+							color: "white"
+							font {
+								pixelSize: 22
+								capitalization: Font.AllUppercase
+							}
+						}
+						onClicked: {
+							rotaryTabIndex = 1;
+						}
+
+					}
+
+					Item {
+						width: parent.width
+						height: 60
+						Rectangle {
+							width: parent.width
+							height: 2
+							color: "white"
+							anchors.verticalCenter: parent.verticalCenter
+						}
+					}
+
+
+					Label {
+						text: "STOP"
+						anchors.horizontalCenter: parent.horizontalCenter
+						width: 125
+						height: 50
+						horizontalAlignment: Text.AlignHCenter
+						verticalAlignment: Text.AlignVCenter
+						wrapMode: Text.Wrap
+						lineHeight: 0.65
+						font {
+							// pixelSize: fontSizeMedium
+							// family: mainFont.name
+							pixelSize: 22
+							capitalization: Font.AllUppercase
+							letterSpacing: 0
+						}
+
+                        background: Rectangle {
+							radius: 7
+							color: (rotaryTabIndex == 0 && Math.floor(currentEffects[effect_id]["controls"]["rt_speed"].value / 3) == 0) || (rotaryTabIndex == 1 && currentEffects[effect_id]["controls"]["rt_speed"].value % 3 == 0) ? accent_color.name : "transparent" 
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: { 
+                                // console.log("stop clicked");
+								whirl_speed_clicked(0);
+                            }
+                        }
+					}
+
+					Label {
+						text: "CHORALE\n (SLOW)"
+						anchors.horizontalCenter: parent.horizontalCenter
+						width: 125
+						height: 73
+						horizontalAlignment: Text.AlignHCenter
+						verticalAlignment: Text.AlignVCenter
+						wrapMode: Text.Wrap
+						lineHeight: 0.65
+						font {
+							// pixelSize: fontSizeMedium
+							// family: mainFont.name
+							pixelSize: 22
+							capitalization: Font.AllUppercase
+							letterSpacing: 0
+						}
+
+                        background: Rectangle {
+							radius: 7
+							color: (rotaryTabIndex == 0 && Math.floor(currentEffects[effect_id]["controls"]["rt_speed"].value / 3) == 1) || (rotaryTabIndex == 1 && currentEffects[effect_id]["controls"]["rt_speed"].value % 3 == 1) ? accent_color.name : "transparent" 
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: { 
+                                // console.log("delete clicked");
+								whirl_speed_clicked(1);
+                                // knobs.delete_preset(fileURL.toString());
+                            }
+                        }
+					}
+
+					Label {
+						text: "TREMELO\n (FAST)"
+						anchors.horizontalCenter: parent.horizontalCenter
+						width: 125
+						height: 73
+						horizontalAlignment: Text.AlignHCenter
+						verticalAlignment: Text.AlignVCenter
+						wrapMode: Text.Wrap
+						lineHeight: 0.65
+						font {
+							// pixelSize: fontSizeMedium
+							// family: mainFont.name
+							pixelSize: 22
+							capitalization: Font.AllUppercase
+							letterSpacing: 0
+						}
+
+                        background: Rectangle {
+							radius: 7
+							color: (rotaryTabIndex == 0 && Math.floor(currentEffects[effect_id]["controls"]["rt_speed"].value / 3) == 2) || (rotaryTabIndex == 1 && currentEffects[effect_id]["controls"]["rt_speed"].value % 3 == 2) ? accent_color.name : "transparent" 
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: { 
+								whirl_speed_clicked(2);
+                                // console.log("delete clicked");
+                                // knobs.delete_preset(fileURL.toString());
+                            }
+                        }
+					}
+
+				}
+
+				Rectangle {
+					x:  296
+					y: 0
+					width: 2
+					z: 3
+					height: parent.height
+					color: "white"
+				}
+
+
+				// [  'filtatype', 'filtbtype', 'filtdtype',   'link', 'rt_speed']
+
+				StackLayout {
+					width: 984
+					height: 546
+					x: 496
+					y: 200
+					currentIndex: rotaryTabIndex
+
+					Item {
+						x: 2
+						y: 0
+						width: 782
+
+						Column {
+							spacing: 30
+							width: parent.width
+							// drum mix
+							Repeater {
+								model: ['hornlvl'] 
+								DelayRow {
+									row_param: modelData
+									current_effect: effect_id
+									Material.foreground: Constants.rainbow[index+5]
+								}
+							}
+						}
+					}
+
+					Item {
+						x: 2
+						y: 0
+						width: 782
+
+						Column {
+							spacing: 30
+							width: parent.width
+
+							// drum mix
+							Repeater {
+								model: ['drumwidth', 'drumlvl' ] 
+								DelayRow {
+									row_param: modelData
+									current_effect: effect_id
+									Material.foreground: Constants.rainbow[index+5]
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
 
 		Component {
 			id: editAdvancedRotary
@@ -953,8 +1213,8 @@ Rectangle {
 
 
 						StackLayout {
-							y: 157
-							x: 168
+							y: 150
+							x: 220
 							width: 700
 							currentIndex: hornBar.currentIndex	
 							Column {
@@ -1052,8 +1312,8 @@ Rectangle {
 
 
 						StackLayout {
-							y: 157
-							x: 168
+							y: 150
+							x: 220
 							width: 700
 							currentIndex: drumBar.currentIndex	
 
@@ -1105,22 +1365,57 @@ Rectangle {
 						}
 					}
 
-					Grid {
-						x: 0
-						y: 0
-						spacing: 20
-						columns: 2
-						width: parent.width
-						// anchors.centerIn: parent
-						// advanced
-						Repeater {
-							model: ['drumbrake', 'drumradius', 'hornbrakepos', 'hornradius', 'hornxoff', 'hornzoff', 'micangle', 'micdist' ]
-							DelayRow {
-								row_param: modelData
-								current_effect: effect_id
-								Material.foreground: Constants.rainbow[index]
-							}
+				}
+			}
+		}
+
+		Component {
+			id: editAdvancedRotaryExtra
+			Item {
+				z: 3
+				x: 0
+				height:546
+				width:1280
+				ActionIcons {
+
+				}
+
+				// [  'filtatype', 'filtbtype', 'filtdtype']
+
+				Grid {
+					x: 260
+					y: 65
+					width: 1000
+					spacing: 20
+					columns: 2
+					height: 490
+					// anchors.centerIn: parent
+					// advanced
+					Repeater {
+						model: ['drumbrake', 'drumradius', 'hornbrakepos', 'hornradius', 'hornxoff', 'hornzoff', 'micangle', 'micdist' ]
+						DelayRow {
+							row_param: modelData
+							current_effect: effect_id
+							Material.foreground: Constants.rainbow[index]
 						}
+					}
+
+					Label {
+						text: "Changing any of these values will reinitialize the module and sound will glitch"
+						width: 472
+						height: 80
+						horizontalAlignment: Text.AlignHCenter
+						verticalAlignment: Text.AlignVCenter
+						wrapMode: Text.Wrap
+						lineHeight: 0.65
+						font {
+							// pixelSize: fontSizeMedium
+							// family: mainFont.name
+							pixelSize: 22
+							// capitalization: Font.AllUppercase
+							letterSpacing: 0
+						}
+
 					}
 				}
 			}
