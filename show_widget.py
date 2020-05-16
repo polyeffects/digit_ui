@@ -89,6 +89,10 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         # "meta_modulation" : "http://polyeffects.com/lv2/polywarps#meta",
         "k_org_hpf": "http://polyeffects.com/lv2/polyfilter#korg_hpf",
         "k_org_lpf": "http://polyeffects.com/lv2/polyfilter#korg_lpf",
+        "midi_cc": "http://drobilla.net/ns/ingen-internals#Controller",
+        "midi_note": "http://drobilla.net/ns/ingen-internals#Note",
+        "midi_trigger": "http://drobilla.net/ns/ingen-internals#Trigger",
+
     },
     "beebo" : { "delay": "http://polyeffects.com/lv2/digit_delay",
         "warmth": "http://moddevices.com/plugins/tap/tubewarmth",
@@ -140,6 +144,9 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "oog_half_lpf": "http://polyeffects.com/lv2/polyfilter#moog_half_ladder",
         # "oog_ladder_lpf": "http://polyeffects.com/lv2/polyfilter#moog_ladder",
         "uberheim_filter": "http://polyeffects.com/lv2/polyfilter#oberheim",
+        "midi_cc": "http://drobilla.net/ns/ingen-internals#Controller",
+        "midi_note": "http://drobilla.net/ns/ingen-internals#Note",
+        "midi_trigger": "http://drobilla.net/ns/ingen-internals#Trigger",
         }}
 
 effect_prototypes_models_all = {
@@ -147,6 +154,12 @@ effect_prototypes_models_all = {
             "outputs": {"output": ["in", "AudioPort"]},
             "controls": {}},
         "output": {"inputs": {"input": ["out", "AudioPort"]},
+            "outputs": {},
+            "controls": {}},
+        "midi_input": {"inputs": {},
+            "outputs": {"output": ["in", "AtomPort"]},
+            "controls": {}},
+        "midi_output": {"inputs": {"input": ["out", "AtomPort"]},
             "outputs": {},
             "controls": {}},
     'control_to_midi': {'description': '',
@@ -161,7 +174,7 @@ effect_prototypes_models_all = {
                                       'ENABLE': ['Enable', 1, 0, 1],
                                       'MSGTYPE': ['Message Type', 11, 8, 15]},
                          'inputs': {},
-                         'outputs': {'MIDI_OUT': ['MIDI Out', ':AtomPort']}},
+                         'outputs': {'MIDI_OUT': ['MIDI Out', 'AtomPort']}},
     'delay': {'description': 'Flexible delay module. Add modules on the repeats for variations.',
          'controls': {'Amp_5': ['Level', 0.5, 0, 1],
                       'BPM_0': ['BPM', 120, 30, 300],
@@ -1149,7 +1162,26 @@ effect_prototypes_models_all = {
                              #     'hornrpm': ['Current Horn speed',
                              #                 'ControlPort'],
                                  'left': ['Left Output', 'AudioPort'],
-                                 'right': ['Right Output', 'AudioPort']}}
+                                 'right': ['Right Output', 'AudioPort']}},
+# MIDI
+        # "midi_cc": "http://drobilla.net/ns/ingen-internals#Controller",
+        # "midi_note": "http://drobilla.net/ns/ingen-internals#Note",
+        # "midi_trigger": "http://drobilla.net/ns/ingen-internals#Trigger",
+     # 'midi_cc': {'description': 'MIDI CC to control value',
+     #         'controls': {'phi0': ['Shape Mod', 0, 0.0, 6.28],
+     #                      'tempo': ['Tempo', 120.0, 1.0, 320.0],
+     #                      'tempoMultiplier': ['Tempo Multiplier',
+     #                                          1.0,
+     #                                          0.0078125,
+     #                                          32.0],
+     #                      'waveForm': ['Wave Form', 0, 0, 5],
+     #                      'level': ["Level", 1.0, -1.0, 1.0],
+     #                      'is_uni': ["Unipolar", 1.0, 0.0, 1.0],
+     #                      },
+     #         'inputs': {'reset': ['Reset', 'CVPort'],
+     #                'tempo': ['BPM', 'ControlPort']
+     #             },
+     #         'outputs': {'output': ['Output', 'CVPort']}},
                      }
 
 effect_prototypes_models = {"digit": {k:effect_prototypes_models_all[k] for k in effect_type_maps["digit"].keys()},
@@ -1163,6 +1195,8 @@ for k in effect_prototypes_models.keys():
     effect_prototypes_models[k]["output"] = {"inputs": {"input": ["out", "AudioPort"]},
             "outputs": {},
             "controls": {}}
+
+bare_ports = ["input", "output", "midi_input", "midi_output"]
 
 
 def clamp(v, min_value, max_value):
@@ -1641,13 +1675,13 @@ class Knobs(QObject):
             s_effect, s_port = current_source_port.rsplit("/", 1)
             s_effect_type = current_effects[s_effect]["effect_type"]
             t_effect_type = current_effects[effect_id]["effect_type"]
-            if t_effect_type == "output" or t_effect_type == "input":
-                if s_effect_type == "output" or s_effect_type == "input":
+            if t_effect_type in bare_ports:
+                if s_effect_type in bare_ports:
                     ingen_wrapper.connect_port(s_effect, effect_id)
                 else:
                     ingen_wrapper.connect_port(current_source_port, effect_id)
             else:
-                if s_effect_type == "output" or s_effect_type == "input":
+                if s_effect_type in bare_ports:
                     ingen_wrapper.connect_port(s_effect, effect_id+"/"+port_name)
                 else:
                     ingen_wrapper.connect_port(current_source_port, effect_id+"/"+port_name)
@@ -1700,13 +1734,13 @@ class Knobs(QObject):
         s_effect, s_port = source_pair.rsplit("/", 1)
         s_effect_type = current_effects[s_effect]["effect_type"]
         t_effect_type = current_effects[t_effect]["effect_type"]
-        if t_effect_type == "output" or t_effect_type == "input":
-            if s_effect_type == "output" or s_effect_type == "input":
+        if t_effect_type in bare_ports:
+            if s_effect_type in bare_ports:
                 ingen_wrapper.disconnect_port(s_effect, t_effect)
             else:
                 ingen_wrapper.disconnect_port(source_pair, t_effect)
         else:
-            if s_effect_type == "output" or s_effect_type == "input":
+            if s_effect_type in bare_ports:
                 ingen_wrapper.disconnect_port(s_effect, target_pair)
             else:
                 ingen_wrapper.disconnect_port(source_pair, target_pair)
@@ -2010,13 +2044,10 @@ def io_new_effect(effect_name, effect_type, x=20, y=30):
 def add_io():
     for i in range(1,5):
         ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(100*i))
-        # io_new_effect("input"+str(i), "input", x=1200, y=(80 * i))
-        # from_backend_new_effect("/main/in_"+str(i), "input", x=1192, y=(80 * i))
     for i in range(1,5):
         ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(100 * i))
-        # io_new_effect("output"+str(i), "output", x=50, y=(80 * i))
-        # from_backend_new_effect("/main/out_"+str(i), "output", x=-20, y=(80 * i))
-    # context.setContextProperty("currentEffects", current_effects) # might be slow
+    ingen_wrapper.add_midi_input("/main/midi_in", x=1192, y=(100*6))
+    ingen_wrapper.add_midi_output("/main/midi_out", x=-20, y=(100 * 6))
 
 class Encoder():
     # name, min, max, value
@@ -2222,13 +2253,13 @@ def process_ui_messages():
             elif m[0] == "add_plugin":
                 effect_name, effect_type, x, y = m[1:5]
                 # print("got add", m)
-                if (effect_name not in current_effects and (effect_type in inv_effect_type_map or effect_type in ("input", "output"))):
+                if (effect_name not in current_effects and (effect_type in inv_effect_type_map or effect_type in bare_ports)):
                     # print("adding ", m)
                     if effect_type == "http://polyeffects.com/lv2/polyfoot":
                         mapped_type = effect_name.rsplit("/", 1)[1].rstrip("123456789")
                         if mapped_type in effect_type_map:
                             from_backend_new_effect(effect_name, mapped_type, x, y)
-                    elif effect_type in ("input", "output"):
+                    elif effect_type in bare_ports:
                         from_backend_new_effect(effect_name, effect_type, x, y)
                     else:
                         from_backend_new_effect(effect_name, inv_effect_type_map[effect_type], x, y)

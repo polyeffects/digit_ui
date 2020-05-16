@@ -104,13 +104,22 @@ def add_sub_graph(effect_id):
 
 def add_input(port_id, x, y):
     # put /main/left_in 'a lv2:InputPort ; a lv2:AudioPort'
-    #XXX
     q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
     ingen:canvasY "%s"^^xsd:float ;
     a lv2:InputPort ; a lv2:AudioPort""" % (x, y)))
 
 def add_output(port_id, x, y):
-    #XXX
+    q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
+    ingen:canvasY "%s"^^xsd:float ;
+    a lv2:OutputPort ; a lv2:AudioPort""" % (x, y)))
+
+def add_midi_input(port_id, x, y):
+    # put /main/left_in 'a lv2:InputPort ; a lv2:AudioPort'
+    q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
+    ingen:canvasY "%s"^^xsd:float ;
+    a lv2:InputPort ; a lv2:AudioPort""" % (x, y)))
+
+def add_midi_output(port_id, x, y):
     q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
     ingen:canvasY "%s"^^xsd:float ;
     a lv2:OutputPort ; a lv2:AudioPort""" % (x, y)))
@@ -212,6 +221,8 @@ def connect_jack_port(port, x, y):
                     "/main/in_2": "system:capture_4 ingen:in_2",
                     "/main/in_3": "system:capture_3 ingen:in_3",
                     "/main/in_4": "system:capture_5 ingen:in_4"
+                    "/main/midi_in": "ttymidi:MIDI_in ingen:midi_in"
+                    "/main/midi_out": "ttymidi:MIDI_out ingen:midi_out"
                     }
             # if connected_ports == set(port_map.keys()):
             #     all_connected = True
@@ -223,16 +234,23 @@ def connect_jack_port(port, x, y):
             else:
                 # check if it's a sub module io we need to connect
                 port_suffix = port.rsplit("/", 1)[1]
-                io_ports = ['in_1', 'in_2', 'in_3', 'in_4', 'out_1', 'out_2', 'out_3', 'out_4']
+                io_ports = ['in_1', 'in_2', 'in_3', 'in_4', 'out_1', 'out_2', 'out_3', 'out_4', "midi_in", "midi_out"]
                 if port_suffix in io_ports:
                     plugin = ""
-                    if "in" in port_suffix:
+                    if port_suffix == "midi_in":
+                        #connect to in
+                        plugin = "midi_input"
+                        connect_port("/main/"+port_suffix, port)
+                    elif port_suffix == "midi_out":
+                        plugin = "midi_output"
+                        connect_port(port, "/main/"+port_suffix)
+                    elif "in" in port_suffix:
                         #connect to in
                         plugin = "input"
                         connect_port("/main/"+port_suffix, port)
                     else:
-                        connect_port(port, "/main/"+port_suffix)
                         plugin = "output"
+                        connect_port(port, "/main/"+port_suffix)
                     ui_queue.put(("add_plugin", port, plugin, x, y))
 
 def parse_ingen(to_parse):
