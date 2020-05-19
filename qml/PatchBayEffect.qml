@@ -45,15 +45,24 @@ Rectangle {
         return effectPrototypes[effect_type]["inputs"][item][1] == "CVPort"
     }
 
+    function isMIDI(item){
+        return effectPrototypes[effect_type]["inputs"][item][1] == "AtomPort"
+    }
+
+    function isRightInput(item){
+        return ["AtomPort", "AudioPort"].indexOf(effectPrototypes[effect_type]["inputs"][item][1]) >= 0
+    }
+
+
 	function isSpecialWarpsParam(item){
 		return ['int_osc', 'space_size', 'mode', 'algorithm', 'shape'].indexOf(item) < 0;
 	}
 
-    property var input_keys: Object.keys(effectPrototypes[effect_type]["inputs"]).filter(isAudio) 
+    property var input_keys: Object.keys(effectPrototypes[effect_type]["inputs"]).filter(isRightInput) 
     property var output_keys: Object.keys(effectPrototypes[effect_type]["outputs"])
     property bool no_sliders: ["mono_EQ", "stereo_EQ", "input", "output", "lfo", 'algo_reverb', 'granular', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch'].indexOf(effect_type) >= 0
     property bool has_ui: ['bitmangle', 'comparator', 'chebyschev_waveshaper', 'meta_modulation', 'wavefolder', 'vocoder', 'doppler_panner', 'twist_delay', 'frequency_shifter', 'rotary_advanced'].indexOf(effect_type) >= 0
-    property bool is_io: ["input", "output"].indexOf(effect_type) >= 0
+    property bool is_io: ["input", "output", "midi_input", "midi_output"].indexOf(effect_type) >= 0
     property var sliders; 
     // border { width:2; color: Material.color(Material.Cyan, Material.Shade100)}
     Drag.active: mouseArea.drag.active
@@ -335,7 +344,7 @@ Rectangle {
                 anchors.leftMargin: -2
                 width: 3
                 height: 14
-                color: effectPrototypes[effect_type]["outputs"][modelData][1] == "AudioPort" ? Constants.audio_color : Constants.cv_color
+                color: Constants.port_color_map[effectPrototypes[effect_type]["outputs"][modelData][1]]
             }
         }
     }
@@ -354,7 +363,7 @@ Rectangle {
                 anchors.rightMargin: -2
                 width: 3
                 height: 14
-                color: highlight ? accent_color.name : Constants.audio_color
+                color: highlight ? accent_color.name : Constants.port_color_map[effectPrototypes[effect_type]["inputs"][modelData][1]]
             }
         }
 	}

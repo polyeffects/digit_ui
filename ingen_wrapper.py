@@ -220,8 +220,8 @@ def connect_jack_port(port, x, y):
                     "/main/in_1": "system:capture_2 ingen:in_1",
                     "/main/in_2": "system:capture_4 ingen:in_2",
                     "/main/in_3": "system:capture_3 ingen:in_3",
-                    "/main/in_4": "system:capture_5 ingen:in_4"
-                    "/main/midi_in": "ttymidi:MIDI_in ingen:midi_in"
+                    "/main/in_4": "system:capture_5 ingen:in_4",
+                    "/main/midi_in": "ttymidi:MIDI_in ingen:midi_in",
                     "/main/midi_out": "ttymidi:MIDI_out ingen:midi_out"
                     }
             # if connected_ports == set(port_map.keys()):
@@ -322,10 +322,11 @@ def parse_ingen(to_parse):
                         tail = str(p[2])
                 # print("arc head", head, "tail", tail)
                 ui_queue.put(("add_connection", head[7:], tail[7:]))
-            elif (body, NS.rdf.type, NS.lv2.AudioPort) in g:
+            elif (body, NS.rdf.type, NS.lv2.AudioPort) in g or (body, NS.rdf.type, NS.lv2.AtomPort) in g:
                 # setting value
                 is_in = None
                 is_audio = None
+                is_midi = None
                 # print("lv2.name", str(subject))
                 x = None
                 y = None
@@ -336,11 +337,13 @@ def parse_ingen(to_parse):
                         is_in = True
                     elif p[2] == NS.lv2.AudioPort:
                         is_audio = True
+                    elif p[2] == NS.lv2.AtomPort:
+                        is_midi = True
                     elif p[1] == NS.ingen.canvasY:
                         y = float(p[2])
                     elif p[1] == NS.ingen.canvasX:
                         x = float(p[2])
-                if is_in is not None and is_audio:
+                if is_in is not None and (is_audio or is_midi):
                     # print("connecting jack port", is_in, "subject", subject)
                     # connect to jack port
                     if x is not None and y is not None:

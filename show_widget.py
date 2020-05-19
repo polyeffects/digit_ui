@@ -89,9 +89,9 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         # "meta_modulation" : "http://polyeffects.com/lv2/polywarps#meta",
         "k_org_hpf": "http://polyeffects.com/lv2/polyfilter#korg_hpf",
         "k_org_lpf": "http://polyeffects.com/lv2/polyfilter#korg_lpf",
-        "midi_cc": "http://drobilla.net/ns/ingen-internals#Controller",
-        "midi_note": "http://drobilla.net/ns/ingen-internals#Note",
-        "midi_trigger": "http://drobilla.net/ns/ingen-internals#Trigger",
+        # "midi_cc": "http://drobilla.net/ns/ingen-internals#Controller",
+        # "midi_note": "http://drobilla.net/ns/ingen-internals#Note",
+        # "midi_trigger": "http://drobilla.net/ns/ingen-internals#Trigger",
 
     },
     "beebo" : { "delay": "http://polyeffects.com/lv2/digit_delay",
@@ -144,9 +144,9 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "oog_half_lpf": "http://polyeffects.com/lv2/polyfilter#moog_half_ladder",
         # "oog_ladder_lpf": "http://polyeffects.com/lv2/polyfilter#moog_ladder",
         "uberheim_filter": "http://polyeffects.com/lv2/polyfilter#oberheim",
-        "midi_cc": "http://drobilla.net/ns/ingen-internals#Controller",
-        "midi_note": "http://drobilla.net/ns/ingen-internals#Note",
-        "midi_trigger": "http://drobilla.net/ns/ingen-internals#Trigger",
+        # "midi_cc": "http://drobilla.net/ns/ingen-internals#Controller",
+        # "midi_note": "http://drobilla.net/ns/ingen-internals#Note",
+        # "midi_trigger": "http://drobilla.net/ns/ingen-internals#Trigger",
         }}
 
 effect_prototypes_models_all = {
@@ -1195,6 +1195,12 @@ for k in effect_prototypes_models.keys():
     effect_prototypes_models[k]["output"] = {"inputs": {"input": ["out", "AudioPort"]},
             "outputs": {},
             "controls": {}}
+    effect_prototypes_models[k]["midi_input"] = {"inputs": {},
+            "outputs": {"output": ["in", "AtomPort"]},
+            "controls": {}}
+    effect_prototypes_models[k]["midi_output"] = {"inputs": {"input": ["out", "AtomPort"]},
+            "outputs": {},
+            "controls": {}}
 
 bare_ports = ["input", "output", "midi_input", "midi_output"]
 
@@ -1525,24 +1531,24 @@ def from_backend_remove_effect(effect_name):
     update_counter.value+=1
 
 def from_backend_add_connection(head, tail):
-    # print("head ", head, "tail", tail)
+    print("head ", head, "tail", tail)
     current_source_port = head
     if current_source_port.rsplit("/", 1)[0] in sub_graphs:
         s_effect = current_source_port
-        # print("## s_effect", s_effect)
+        print("## s_effect", s_effect)
         if s_effect not in current_effects:
             return
         s_effect_type = current_effects[s_effect]["effect_type"]
-        if s_effect_type == "output":
+        if s_effect_type in ("output", "midi_output"):
             s_port = "input"
-        elif s_effect_type == "input":
+        elif s_effect_type in ("input", "midi_input"):
             s_port = "output"
         current_source_port = s_effect + "/" + s_port
-        # print("## current_source_port", current_source_port)
+        print("## current_source_port", current_source_port)
     else:
         if current_source_port.rsplit("/", 1)[0] == "/main":
             return
-        # print("## current_source_port not in sub graph", current_source_port, sub_graphs)
+        print("## current_source_port not in sub graph", current_source_port, sub_graphs)
 
 
     effect_id_port_name = tail.rsplit("/", 1)
@@ -1552,9 +1558,9 @@ def from_backend_add_connection(head, tail):
             return
         t_effect_type = current_effects[t_effect]["effect_type"]
         t_port = None
-        if t_effect_type == "output":
+        if t_effect_type in ("output", "midi_output"):
             t_port = "input"
-        elif t_effect_type == "input":
+        elif t_effect_type in ("input", "midi_input"):
             t_port = "output"
         # print("## tail in sub_graph", tail, t_effect, t_port)
         if t_port is None:
@@ -1584,9 +1590,9 @@ def from_backend_disconnect(head, tail):
     if current_source_port.rsplit("/", 1)[0] in sub_graphs:
         s_effect = current_source_port
         s_effect_type = current_effects[s_effect]["effect_type"]
-        if s_effect_type == "output":
+        if s_effect_type in ("output", "midi_output"):
             s_port = "input"
-        elif s_effect_type == "input":
+        elif s_effect_type in ("input", "midi_input"):
             s_port = "output"
         current_source_port = s_effect + "/" + s_port
 
@@ -1594,9 +1600,9 @@ def from_backend_disconnect(head, tail):
     if effect_id_port_name[0] in sub_graphs:
         t_effect = tail
         t_effect_type = current_effects[t_effect]["effect_type"]
-        if t_effect_type == "output":
+        if t_effect_type in ("output", "midi_output"):
             t_port = "input"
-        elif t_effect_type == "input":
+        elif t_effect_type in ("input", "midi_input"):
             t_port = "output"
     else:
         t_effect, t_port = effect_id_port_name
@@ -1748,7 +1754,6 @@ class Knobs(QObject):
     @Slot(str)
     def add_new_effect(self, effect_type):
         # calls backend to add effect
-        # TODO actually call backend.
         global seq_num
         seq_num = seq_num + 1
         # print("add new effect", effect_type)
@@ -2043,11 +2048,11 @@ def io_new_effect(effect_name, effect_type, x=20, y=30):
 
 def add_io():
     for i in range(1,5):
-        ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(100*i))
+        ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
     for i in range(1,5):
-        ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(100 * i))
-    ingen_wrapper.add_midi_input("/main/midi_in", x=1192, y=(100*6))
-    ingen_wrapper.add_midi_output("/main/midi_out", x=-20, y=(100 * 6))
+        ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
+    ingen_wrapper.add_midi_input("/main/midi_in", x=1192, y=(80 * 5))
+    ingen_wrapper.add_midi_output("/main/midi_out", x=-20, y=(80 * 5))
 
 class Encoder():
     # name, min, max, value
@@ -2280,6 +2285,14 @@ def process_ui_messages():
                 print ("pedalboard loaded", subgraph, file_name, current_sub_graph)
                 if subgraph == current_sub_graph.rstrip("/"):
                     is_loading.value = False
+                    # check if we've got MIDI IO, if not add them
+                    print("checking if MIDI exists")
+                    if not (current_sub_graph+"midi_in" in current_effects):
+                        ingen_wrapper.add_midi_input(current_sub_graph+"midi_in", x=1192, y=(80 * 5))
+                        print("adding MIDI")
+                    if not (current_sub_graph+"midi_out" in current_effects):
+                        ingen_wrapper.add_midi_output(current_sub_graph+"midi_out", x=-20, y=(80 * 5))
+
             elif m[0] == "dsp_load":
                 max_load, mean_load, min_load = m[1:]
                 dsp_load.rmin = min_load
