@@ -114,15 +114,20 @@ def add_output(port_id, x, y):
     a lv2:OutputPort ; a lv2:AudioPort""" % (x, y)))
 
 def add_midi_input(port_id, x, y):
-    # put /main/left_in 'a lv2:InputPort ; a lv2:AudioPort'
     q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
     ingen:canvasY "%s"^^xsd:float ;
-    a lv2:InputPort ; a lv2:AudioPort""" % (x, y)))
+    atom:bufferType atom:Sequence ;
+    lv2:index "10"^^xsd:int ;
+    lv2:name "MIDI In" ;
+    a lv2:InputPort ; a atom:AtomPort""" % (x, y)))
 
 def add_midi_output(port_id, x, y):
     q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
     ingen:canvasY "%s"^^xsd:float ;
-    a lv2:OutputPort ; a lv2:AudioPort""" % (x, y)))
+    atom:bufferType atom:Sequence ;
+    lv2:index "11"^^xsd:int ;
+    lv2:name "MIDI Out" ;
+    a lv2:OutputPort ; a atom:AtomPort""" % (x, y)))
 
 def set_file(effect_id, file_name, is_cab):
     effect_id = effect_id
@@ -322,7 +327,7 @@ def parse_ingen(to_parse):
                         tail = str(p[2])
                 # print("arc head", head, "tail", tail)
                 ui_queue.put(("add_connection", head[7:], tail[7:]))
-            elif (body, NS.rdf.type, NS.lv2.AudioPort) in g or (body, NS.rdf.type, NS.lv2.AtomPort) in g:
+            elif ((body, NS.rdf.type, NS.lv2.AudioPort) in g) or ((body, NS.rdf.type, NS.atom.AtomPort) in g):
                 # setting value
                 is_in = None
                 is_audio = None
@@ -337,7 +342,7 @@ def parse_ingen(to_parse):
                         is_in = True
                     elif p[2] == NS.lv2.AudioPort:
                         is_audio = True
-                    elif p[2] == NS.lv2.AtomPort:
+                    elif p[2] == NS.atom.AtomPort:
                         is_midi = True
                     elif p[1] == NS.ingen.canvasY:
                         y = float(p[2])

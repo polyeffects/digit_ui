@@ -244,12 +244,8 @@ Rectangle {
                 })
             });
         }
-        else if (effect_type == "input" || effect_type == "output"){
-            // pass
+		else if (['input', 'output', 'midi_input', 'midi_output'].indexOf(effect_type) >= 0){
             patchStack.push(editIO);
-		// }	
-		// else if (['diode_ladder_lpf', 'k_org_hpf', 'k_org_lpf', 'oog_half_lpf', 'uberheim_filter'].indexOf(effect_type) >= 0){
-            // patchStack.push(editFilter);
             // patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
         } else {
 			patch_bay.current_help_text = Constants.help["sliders"];
