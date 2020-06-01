@@ -17,7 +17,7 @@ from PySide2.QtGui import QIcon
 
 sys._excepthook = sys.excepthook
 def exception_hook(exctype, value, tb):
-    print("except hook 1 got a thing!") #, exctype, value, traceback)
+    debug_print("except hook 1 got a thing!") #, exctype, value, traceback)
     traceback.print_exception(exctype, value, tb)
     sys._excepthook(exctype, value, tb)
     sys.exit(1)
@@ -46,6 +46,9 @@ port_connections = {} # key is port, value is list of ports
 
 context = None
 
+def debug_print(*args, **kwargs):
+    pass
+    #print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 
 effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay",
@@ -89,10 +92,15 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         # "meta_modulation" : "http://polyeffects.com/lv2/polywarps#meta",
         "k_org_hpf": "http://polyeffects.com/lv2/polyfilter#korg_hpf",
         "k_org_lpf": "http://polyeffects.com/lv2/polyfilter#korg_lpf",
+        "uberheim_filter": "http://polyeffects.com/lv2/polyfilter#oberheim",
         "midi_cc": "http://github.com/blablack/midimsg-lv2/controller",
         # "midi_note": "http://drobilla.net/ns/ingen-internals#Note",
         # "midi_trigger": "http://drobilla.net/ns/ingen-internals#Trigger",
-
+        "cv_to_midi_cc": "http://polyeffects.com/lv2/cv_to_cc",
+        'midi_clock_in': "http://polyeffects.com/lv2/mclk_in",
+        "midi_clock_out": "http://gareus.org/oss/lv2/mclk",
+        "vca": "http://polyeffects.com/lv2/basic_modular#amp",
+        "difference": "http://polyeffects.com/lv2/basic_modular#difference",
     },
     "beebo" : { "delay": "http://polyeffects.com/lv2/digit_delay",
         "warmth": "http://moddevices.com/plugins/tap/tubewarmth",
@@ -134,9 +142,9 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         # "comparator" : "http://polyeffects.com/lv2/polywarps#comparator",
         "twist_delay" : "http://polyeffects.com/lv2/polywarps#delay",
         "doppler_panner" : "http://polyeffects.com/lv2/polywarps#doppler",
-        # "wavefolder" : "http://polyeffects.com/lv2/polywarps#fold",
+        "wavefolder" : "http://polyeffects.com/lv2/polywarps#fold",
         # "frequency_shifter" : "http://polyeffects.com/lv2/polywarps#frequency_shifter",
-        # "meta_modulation" : "http://polyeffects.com/lv2/polywarps#meta",
+        "meta_modulation" : "http://polyeffects.com/lv2/polywarps#meta",
         # "vocoder" : "http://polyeffects.com/lv2/polywarps#vocoder",
         "diode_ladder_lpf": "http://polyeffects.com/lv2/polyfilter#diode_ladder",
         "k_org_hpf": "http://polyeffects.com/lv2/polyfilter#korg_hpf",
@@ -145,8 +153,14 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         # "oog_ladder_lpf": "http://polyeffects.com/lv2/polyfilter#moog_ladder",
         "uberheim_filter": "http://polyeffects.com/lv2/polyfilter#oberheim",
         "midi_cc": "http://github.com/blablack/midimsg-lv2/controller",
+        "cv_to_midi_cc": "http://polyeffects.com/lv2/cv_to_cc",
         # "midi_note": "http://drobilla.net/ns/ingen-internals#Note",
         # "midi_trigger": "http://drobilla.net/ns/ingen-internals#Trigger",
+        'midi_clock_in': "http://polyeffects.com/lv2/mclk_in",
+        "midi_clock_out": "http://gareus.org/oss/lv2/mclk",
+        "vca": "http://polyeffects.com/lv2/basic_modular#amp",
+        "difference": "http://polyeffects.com/lv2/basic_modular#difference",
+        "macro_osc": "http://polyeffects.com/lv2/polyplaits",
         }}
 
 effect_prototypes_models_all = {
@@ -1174,8 +1188,46 @@ effect_prototypes_models_all = {
                           },
              'inputs': {'input': ['MIDI Input', 'AtomPort']},
              'outputs': {'output_cv': ['Output', 'CVPort']}},
+    'cv_to_midi_cc': {'description': 'convert control to MIDI CC', 'controls': {'CC_NUM': ['CC Number', 0, 0, 127],
+                           'CHAN': ['Channel', 0, 0, 15],
+                           'RESOLUTION': ['resolution', 0.01, 0.00001, 1]},
+              'inputs': {'CV_IN': ['CV In', 'CVPort']},
+              'outputs': {'MIDI_OUT': ['MIDI Out', 'AtomPort']}},
         # "midi_note": "http://drobilla.net/ns/ingen-internals#Note",
         # "midi_trigger": "http://drobilla.net/ns/ingen-internals#Trigger",
+     'midi_clock_in': {'description': 'MIDI Clock to BPM', 'controls': {},
+                   'inputs': {'control': ['MIDI Input', 'AtomPort']},
+                   'outputs': {'bpm': ['BPM', 'ControlPort']}},
+     'midi_clock_out': {'description': 'BPM to MIDI Clock','controls': {'bpm': ['BPM', 120.0, 40.0, 208.0]},
+                    'inputs': { 'bpm': ['BPM', 'ControlPort'] },
+                    'outputs': {'mclk': ['Midi Out', 'AtomPort']}},
+    'vca': {'description': 'simple voltage controlled amplifier','controls': {},
+         'inputs': {'gain': ['Gain', 'CVPort'], 'in': ['Input', 'AudioPort']},
+         'outputs': {'out': ['Output', 'AudioPort']}},
+    'difference': {'description': 'a - b for control signals', 'controls': {'a': ['a', 0, 0, 1], 'b': ['b', 0, 0, 1]},
+                'inputs': {'a_cv': ['A CV', 'CVPort'],
+                           'b_cv': ['B CV', 'CVPort']},
+                'outputs': {'out': ['Output', 'CVPort']}},
+    'macro_osc': {'controls': {'freq_mod': ['Frequency Mod', 0.0, -1.0, 1.0],
+                            'frequency': ['frequency', 0.0, -4.0, 4.0],
+                            'harmonics': ['harmonics', 0.5, 0.0, 1.0],
+                            'lpg_color': ['LPG Color', 0.5, 0.0, 1.0],
+                            'lpg_decay': ['LPG Decay', 0.5, 0.0, 1.0],
+                            'model': ['model', 0, 0.0, 16.0],
+                            'morph': ['morph', 0.5, 0.0, 1.0],
+                            'morph_mod': ['Morph Mod', 0.0, -1.0, 1.0],
+                            'timbre': ['timbre', 0.5, 0.0, 1.0],
+                            'timbre_mod': ['Timbre Mod', 0.0, -1.0, 1.0]},
+               'inputs': {'engine_cv': ['engine cv', 'CVPort'],
+                          'freq_cv': ['frequency cv', 'CVPort'],
+                          'harmonics_cv': ['harmonics cv', 'CVPort'],
+                          'level_cv': ['level cv', 'CVPort'],
+                          'morph_cv': ['morph cv', 'CVPort'],
+                          'note_cv': ['V per oct CV', 'CVPort'],
+                          'timbre_cv': ['timbre cv', 'CVPort'],
+                          'trigger_cv': ['trigger cv', 'CVPort']},
+               'outputs': {'aux': ['aux', 'AudioPort'],
+                           'out': ['out', 'AudioPort']}},
                      }
 
 effect_prototypes_models = {"digit": {k:effect_prototypes_models_all[k] for k in effect_type_maps["digit"].keys()},
@@ -1338,7 +1390,7 @@ class PolyValue(QObject):
         # clamp values
         self.valueval = clamp(val, self.rmin, self.rmax)
         self.value_changed.emit()
-        # print("setting value", val)
+        # debug_print("setting value", val)
 
     @Signal
     def value_changed(self):
@@ -1398,7 +1450,7 @@ def jump_to_preset(is_inc, num):
             current_preset.value = num
         else:
             return
-    print("jumping to preset ", p_list[current_preset.value], "num is", num)
+    debug_print("jumping to preset ", p_list[current_preset.value], "num is", num)
     knobs.ui_load_preset_by_name(p_list[current_preset.value])
 
 def write_pedal_state():
@@ -1481,10 +1533,10 @@ def load_preset(name, initial=False, force=False):
             patch_bay_notify.remove_module.emit(effect_id)
             current_effects.pop(effect_id)
     if not initial:
-        print("deleting sub graph", current_sub_graph)
+        # debug_print("deleting sub graph", current_sub_graph)
         delete_sub_graph(current_sub_graph)
     add_inc_sub_graph(False)
-    print("adding inc sub graph", current_sub_graph)
+    # debug_print("adding inc sub graph", current_sub_graph)
     ingen_wrapper.load_pedalboard(name, current_sub_graph.rstrip("/"))
     context.setContextProperty("currentEffects", current_effects) # might be slow
     context.setContextProperty("portConnections", port_connections)
@@ -1493,7 +1545,7 @@ def load_preset(name, initial=False, force=False):
 
 def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
-    # print("from backend new effect", effect_name, effect_type)
+    # debug_print("from backend new effect", effect_name, effect_type)
     if effect_type in effect_prototypes:
         current_effects[effect_name] = {"x": x, "y": y, "effect_type": effect_type,
                 "controls": {k : PolyValue(*v) for k,v in effect_prototypes[effect_type]["controls"].items()},
@@ -1503,13 +1555,13 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
         context.setContextProperty("currentEffects", current_effects) # might be slow
         patch_bay_notify.add_module.emit(effect_name)
     else:
-        print("### backend tried to add an unknown effect!")
+        debug_print("### backend tried to add an unknown effect!")
 
 def from_backend_remove_effect(effect_name):
     # called by engine code when effect is removed
     if effect_name not in current_effects:
         return
-    # print("### from backend removing effect")
+    # debug_print("### from backend removing effect")
     # emit remove signal
     for source_port, targets in list(port_connections.items()):
         s_effect, s_port = source_port.rsplit("/", 1)
@@ -1521,15 +1573,15 @@ def from_backend_remove_effect(effect_name):
     # current_effects.pop(effect_name)
     context.setContextProperty("currentEffects", current_effects) # might be slow
     context.setContextProperty("portConnections", port_connections)
-    # print("### from backend removing effect setting portConnections")
+    # debug_print("### from backend removing effect setting portConnections")
     update_counter.value+=1
 
 def from_backend_add_connection(head, tail):
-    print("head ", head, "tail", tail)
+    # debug_print("head ", head, "tail", tail)
     current_source_port = head
     if current_source_port.rsplit("/", 1)[0] in sub_graphs:
         s_effect = current_source_port
-        print("## s_effect", s_effect)
+        # debug_print("## s_effect", s_effect)
         if s_effect not in current_effects:
             return
         s_effect_type = current_effects[s_effect]["effect_type"]
@@ -1538,11 +1590,11 @@ def from_backend_add_connection(head, tail):
         elif s_effect_type in ("input", "midi_input"):
             s_port = "output"
         current_source_port = s_effect + "/" + s_port
-        print("## current_source_port", current_source_port)
+        # debug_print("## current_source_port", current_source_port)
     else:
         if current_source_port.rsplit("/", 1)[0] == "/main":
             return
-        print("## current_source_port not in sub graph", current_source_port, sub_graphs)
+        # debug_print("## current_source_port not in sub graph", current_source_port, sub_graphs)
 
 
     effect_id_port_name = tail.rsplit("/", 1)
@@ -1556,14 +1608,14 @@ def from_backend_add_connection(head, tail):
             t_port = "input"
         elif t_effect_type in ("input", "midi_input"):
             t_port = "output"
-        # print("## tail in sub_graph", tail, t_effect, t_port)
+        # debug_print("## tail in sub_graph", tail, t_effect, t_port)
         if t_port is None:
             return
     else:
         if effect_id_port_name[0] == "/main":
             return
         t_effect, t_port = effect_id_port_name
-        # print("## tail not in sub_graph", tail, t_effect, t_port, sub_graphs)
+        # debug_print("## tail not in sub_graph", tail, t_effect, t_port, sub_graphs)
         if t_effect not in current_effects:
             return
 
@@ -1572,14 +1624,14 @@ def from_backend_add_connection(head, tail):
     if [t_effect, t_port] not in port_connections[current_source_port]:
         port_connections[current_source_port].append([t_effect, t_port])
 
-    # print("port_connections is", port_connections)
+    # debug_print("port_connections is", port_connections)
     # global context
     context.setContextProperty("portConnections", port_connections)
     update_counter.value+=1
 
 
 def from_backend_disconnect(head, tail):
-    # print("head ", head, "tail", tail)
+    # debug_print("head ", head, "tail", tail)
     current_source_port = head
     if current_source_port.rsplit("/", 1)[0] in sub_graphs:
         s_effect = current_source_port
@@ -1601,10 +1653,10 @@ def from_backend_disconnect(head, tail):
     else:
         t_effect, t_port = effect_id_port_name
 
-    # print("before port_connections is", port_connections)
+    # debug_print("before port_connections is", port_connections)
     if current_source_port in port_connections and [t_effect, t_port] in port_connections[current_source_port]:
         port_connections[current_source_port].pop(port_connections[current_source_port].index([t_effect, t_port]))
-    # print("after port_connections is", port_connections)
+    # debug_print("after port_connections is", port_connections)
     # global context
     context.setContextProperty("portConnections", port_connections)
     update_counter.value+=1
@@ -1634,7 +1686,7 @@ def get_meta_from_files():
 class Knobs(QObject):
     @Slot(bool, str, str)
     def set_current_port(self, is_source, effect_id, port_name):
-        print("port name is", port_name, "effect id", effect_id)
+        # debug_print("port name is", port_name, "effect id", effect_id)
         # if source highlight targets
         if is_source:
             # set current source port
@@ -1692,7 +1744,7 @@ class Knobs(QObject):
             # if current_source_port not in inv_port_connections[[effect_id, port_name]]:
             #     inv_port_connections[[effect_id, port_name]].append(current_source_port)
 
-            # print("port_connections is", port_connections)
+            # debug_print("port_connections is", port_connections)
             # global context
             # context.setContextProperty("portConnections", port_connections)
 
@@ -1700,7 +1752,7 @@ class Knobs(QObject):
     @Slot(bool, str)
     def select_effect(self, is_source, effect_id):
         effect_type = current_effects[effect_id]["effect_type"]
-        # print("selecting effect type", effect_type)
+        # debug_print("selecting effect type", effect_type)
         if is_source:
             ports = [k+'|'+v[0] for k,v in effect_prototypes[effect_type]["outputs"].items()]
             selected_effect_ports.setStringList(ports)
@@ -1721,7 +1773,7 @@ class Knobs(QObject):
                     ports.append(s_effect.rsplit("/", 1)[1]+"==="+s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
                 elif s_effect == effect_id:
                     ports.append(c_effect.rsplit("/", 1)[1]+"==="+s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
-        # print("connected ports:", ports, effect_id)
+        # debug_print("connected ports:", ports, effect_id)
         # qWarning("connected Ports "+ str(ports) + " " + effect_id)
         selected_effect_ports.setStringList(ports)
 
@@ -1729,7 +1781,7 @@ class Knobs(QObject):
     def disconnect_port(self, port_pair):
         target_pair, source_pair = port_pair.split("---")
         t_effect, t_port = target_pair.rsplit("/", 1)
-        # print("### disconnect, port pair", port_pair)
+        # debug_print("### disconnect, port pair", port_pair)
 
         s_effect, s_port = source_pair.rsplit("/", 1)
         s_effect_type = current_effects[s_effect]["effect_type"]
@@ -1750,7 +1802,7 @@ class Knobs(QObject):
         # calls backend to add effect
         global seq_num
         seq_num = seq_num + 1
-        # print("add new effect", effect_type)
+        # debug_print("add new effect", effect_type)
         # if there's existing effects of this type, increment the ID
         effect_name = current_sub_graph+effect_type+str(1)
         for i in range(1, 1000):
@@ -1779,12 +1831,12 @@ class Knobs(QObject):
     @Slot(str)
     def remove_effect(self, effect_id):
         # calls backend to remove effect
-        # print("remove effect", effect_id)
+        # debug_print("remove effect", effect_id)
         ingen_wrapper.remove_plugin(effect_id)
 
     @Slot(str, str, 'double')
     def ui_knob_change(self, effect_name, parameter, value):
-        # print(x, y, z)
+        # debug_print(x, y, z)
         if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
             current_effects[effect_name]["controls"][parameter].value = value
             # clamping here to make it a bit more obvious
@@ -1795,7 +1847,7 @@ class Knobs(QObject):
 
             ingen_wrapper.set_parameter_value(effect_name+"/"+parameter, value)
         else:
-            print("effect not found", effect_name, parameter, value, effect_name in current_effects)
+            debug_print("effect not found", effect_name, parameter, value, effect_name in current_effects)
 
     @Slot(str, str)
     def update_ir(self, effect_id, ir_file):
@@ -1810,7 +1862,7 @@ class Knobs(QObject):
     def ui_load_preset_by_name(self, preset_file):
         if is_loading.value == True:
             return
-        # print("loading", preset_file)
+        # debug_print("loading", preset_file)
         # outfile = preset_file[7:] # strip file:// prefix
         load_preset(preset_file+"/main.ttl")
         current_preset.name = preset_file.strip("/").split("/")[-1][:-6]
@@ -1818,7 +1870,7 @@ class Knobs(QObject):
 
     @Slot(str)
     def ui_save_pedalboard(self, pedalboard_name):
-        # print("saving", preset_name)
+        # debug_print("saving", preset_name)
         # TODO add folders
         current_preset.name = pedalboard_name
         ingen_wrapper.set_author(current_sub_graph.rstrip("/"), pedal_state["author"])
@@ -1853,7 +1905,7 @@ class Knobs(QObject):
 
     @Slot()
     def ui_copy_irs(self):
-        # print("copy irs from USB")
+        # debug_print("copy irs from USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
         command = """if [ -d /media/reverbs ]; then cd /media/reverbs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/reverbs --parents; fi;
@@ -1864,7 +1916,7 @@ class Knobs(QObject):
 
     @Slot()
     def import_presets(self):
-        # print("copy presets from USB")
+        # debug_print("copy presets from USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
         command = """cd /media/presets; find . -iname "*.ingen" -type d -print0 | xargs -0 cp -r --target-directory=/mnt/presets --parents"""
@@ -1874,7 +1926,7 @@ class Knobs(QObject):
 
     @Slot()
     def export_presets(self):
-        # print("copy presets to USB")
+        # debug_print("copy presets to USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
         command = """cd /mnt/presets; mkdir -p /media/presets; find . -iname "*.ingen" -type d -print0 | xargs -0 cp -r --target-directory=/media/presets --parents;sudo umount /media"""
@@ -1883,7 +1935,7 @@ class Knobs(QObject):
 
     @Slot()
     def copy_logs(self):
-        # print("copy presets to USB")
+        # debug_print("copy presets to USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
         command = """mkdir -p /media/logs; sudo cp /var/log/syslog /media/logs/;sudo umount /media"""
@@ -1892,7 +1944,7 @@ class Knobs(QObject):
 
     @Slot()
     def ui_update_firmware(self):
-        # print("Updating firmware")
+        # debug_print("Updating firmware")
         # dpkg the debs in the folder
         if len(glob.glob("/media/*.deb")) > 0:
             command = """sudo dpkg -i /media/*.deb; sudo shutdown -h 'now'"""
@@ -1924,13 +1976,13 @@ class Knobs(QObject):
     @Slot(int)
     def set_preset_list_length(self, v):
         if v > len(preset_list_model.stringList()):
-            # print("inserting new row in preset list", v)
+            # debug_print("inserting new row in preset list", v)
             if current_pedal_model.name == "digit":
                 insert_row(preset_list_model, "file:///mnt/presets/digit/Default_Preset.ingen")
             elif current_pedal_model.name == "beebo":
                 insert_row(preset_list_model, "file:///mnt/presets/beebo/Empty.ingen")
         else:
-            # print("removing row in preset list", v)
+            # debug_print("removing row in preset list", v)
             preset_list_model.removeRows(v, 1)
 
     @Slot(int, str)
@@ -1939,29 +1991,29 @@ class Knobs(QObject):
 
     @Slot()
     def save_preset_list(self):
-        print("saving preset list")
+        # debug_print("saving preset list")
         with open("/mnt/pedal_state/"+current_pedal_model.name+"_preset_list.json", "w") as f:
             json.dump(preset_list_model.stringList(), f)
         os.sync()
 
     @Slot(int)
     def on_worker_done(self, ret_var):
-        # print("updating UI")
+        # debug_print("updating UI")
         command_status[0].value = ret_var
 
     @Slot(int)
     def on_task_done(self, ret_var):
-        # print("updating UI")
+        # debug_print("updating UI")
         command_status[0].value = ret_var
 
     def launch_subprocess(self, command, after=None):
-        # print("launch_threadpool")
+        # debug_print("launch_threadpool")
         worker = MyWorker(command, after)
         worker.emitter.done.connect(self.on_worker_done)
         worker_pool.start(worker)
 
     def launch_task(self, delay, command):
-        # print("launch_threadpool")
+        # debug_print("launch_threadpool")
         worker = MyTask(delay, command)
         # worker.emitter.done.connect(self.on_worker_done)
         worker_pool.start(worker)
@@ -1987,7 +2039,7 @@ class Knobs(QObject):
 
     @Slot(str)
     def delete_ir(self, ir):
-        print("delete: ir files is ", ir)
+        # debug_print("delete: ir files is ", ir)
         ir = ir[len("file://"):]
         # can be a directory or file
         # check if it isn't a base dir. 
@@ -1998,11 +2050,12 @@ class Knobs(QObject):
             os.remove(ir)
         except IsADirectoryError:
             shutil.rmtree(ir)
+        os.sync()
 
     @Slot(str)
     def delete_preset(self, in_preset_file):
         preset_file = in_preset_file[len("file://"):]
-        print("delete: preset_file files is ", preset_file)
+        debug_print("delete: preset_file files is ", preset_file)
         # is always a directory
         # empty / default
         if ".ingen" not in preset_file or preset_file in ["/mnt/presets/digit/Default_Preset.ingen", "/mnt/presets/beebo/Empty.ingen", "/mnt/presets/digit/Empty.ingen"]:
@@ -2011,15 +2064,16 @@ class Knobs(QObject):
         shutil.rmtree(preset_file)
         # remove from set list.
         preset_list = preset_list_model.stringList()
-        print("preset list is", preset_list)
+        debug_print("preset list is", preset_list)
         if in_preset_file in preset_list:
             preset_list.pop(preset_list.index(in_preset_file))
             preset_list_model.setStringList(preset_list)
             self.save_preset_list()
+        os.sync()
 
     @Slot()
     def save_preset_list(self):
-        print("saving preset list")
+        debug_print("saving preset list")
         with open("/mnt/pedal_state/"+current_pedal_model.name+"_preset_list.json", "w") as f:
             json.dump(preset_list_model.stringList(), f)
         os.sync()
@@ -2034,7 +2088,7 @@ class Knobs(QObject):
 
 def io_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
-    # print("from backend new effect", effect_name, effect_type)
+    # debug_print("from backend new effect", effect_name, effect_type)
     if effect_type in effect_prototypes:
         current_effects[effect_name] = {"x": x, "y": y, "effect_type": effect_type,
                 "controls": {},
@@ -2060,7 +2114,7 @@ class Encoder():
 knob_map = {"left": Encoder(s_speed=0.05), "right": Encoder(s_speed=1)}
 
 def handle_encoder_change(is_left, change):
-    # print(is_left, change)
+    # debug_print(is_left, change)
     # qDebug("encoder change "+ str(is_left) + str(change))
     # increase or decrease the current knob value depending on knob speed
     # knob_value = knob_value + (change * knob_speed)
@@ -2090,7 +2144,7 @@ def handle_encoder_change(is_left, change):
     base_speed = (abs(knob_map[knob].rmin) + abs(knob_map[knob].rmax)) / normal_speed
     value = value + (change * knob_speed * base_speed)
 
-    # print("knob value is", value)
+    # debug_print("knob value is", value)
     # knob change handles clamping
     knobs.ui_knob_change(knob_effect, knob_parameter, value)
 
@@ -2098,7 +2152,7 @@ def set_bpm(bpm):
     current_bpm.value = bpm
     # host.transport_bpm(bpm)
     # send_ui_message("bpm_change", (bpm, ))
-    # print("setting tempo", bpm)
+    # debug_print("setting tempo", bpm)
 
 ### Assignable actions
 # 
@@ -2174,7 +2228,7 @@ def previous_preset():
     jump_to_preset(True, -1)
 
 def handle_foot_change(switch_name, timestamp):
-    # print(switch_name, timestamp)
+    # debug_print(switch_name, timestamp)
     # qDebug("foot change "+ str(switch_name) + str(timestamp))
     action = foot_action_groups[current_action_group][switch_name][0]
     params = None
@@ -2227,9 +2281,9 @@ def process_ui_messages():
     try:
         while not EXIT_PROCESS[0]:
             m = ui_messages.get(block=False)
-            # print("got ui message", m)
+            # debug_print("got ui message", m)
             if m[0] == "value_change":
-                # print("got value change in process_ui")
+                # debug_print("got value change in process_ui")
                 effect_name_parameter, value = m[1:]
                 effect_name, parameter = effect_name_parameter.rsplit("/", 1)
                 try:
@@ -2251,9 +2305,9 @@ def process_ui_messages():
                 from_backend_disconnect(head, tail)
             elif m[0] == "add_plugin":
                 effect_name, effect_type, x, y = m[1:5]
-                # print("got add", m)
+                # debug_print("got add", m)
                 if (effect_name not in current_effects and (effect_type in inv_effect_type_map or effect_type in bare_ports)):
-                    # print("adding ", m)
+                    # debug_print("adding ", m)
                     if effect_type == "http://polyeffects.com/lv2/polyfoot":
                         mapped_type = effect_name.rsplit("/", 1)[1].rstrip("123456789")
                         if mapped_type in effect_type_map:
@@ -2269,9 +2323,9 @@ def process_ui_messages():
                     from_backend_remove_effect(effect_name)
             elif m[0] == "enabled_change":
                 effect_name, is_enabled = m[1:]
-                # print("enabled changed ", m)
+                # debug_print("enabled changed ", m)
                 if (effect_name in current_effects):
-                    # print("adding ", m)
+                    # debug_print("adding ", m)
                     current_effects[effect_name]["enabled"].value = bool(is_enabled)
             elif m[0] == "pedalboard_loaded":
                 subgraph, file_name = m[1:]
@@ -2280,10 +2334,10 @@ def process_ui_messages():
                 if subgraph == current_sub_graph.rstrip("/"):
                     is_loading.value = False
                     # check if we've got MIDI IO, if not add them
-                    print("checking if MIDI exists")
+                    debug_print("checking if MIDI exists")
                     if not (current_sub_graph+"midi_in" in current_effects):
                         ingen_wrapper.add_midi_input(current_sub_graph+"midi_in", x=1192, y=(80 * 5))
-                        print("adding MIDI")
+                        debug_print("adding MIDI")
                     if not (current_sub_graph+"midi_out" in current_effects):
                         ingen_wrapper.add_midi_output(current_sub_graph+"midi_out", x=-20, y=(80 * 5))
 
@@ -2308,11 +2362,11 @@ def process_ui_messages():
                             current_effects[effect_name]["controls"]["ir"].name = ir_file
                             effect_type = current_effects[effect_name]["effect_type"]
                             if effect_type in ["mono_reverb", "stereo_reverb", "quad_ir_reverb"]:
-                                # print("setting reverb file", urllib.parse.unquote(ir_file))
+                                # debug_print("setting reverb file", urllib.parse.unquote(ir_file))
                                 knobs.update_ir(effect_name, urllib.parse.unquote(ir_file))
                             elif effect_type in ["mono_cab", "stereo_cab", "quad_ir_cab"]:
                                 knobs.update_ir(effect_name, urllib.parse.unquote(ir_file))
-                                # print("setting cab file", urllib.parse.unquote(ir_file))
+                                # debug_print("setting cab file", urllib.parse.unquote(ir_file))
                         # qDebug("setting knob file " + ir_file)
                 except ValueError:
                     pass
@@ -2381,7 +2435,7 @@ def handle_MIDI_program_change():
             ig, b1, b2 = b.split()
             channel = int("0x"+b1, 16) - 0xC0
             program = int("0x"+b2, 16)
-            # print(channel, program)
+            # debug_print(channel, program)
             if channel == midi_channel.value - 1: # our channel
                 # put this in the queue
                 ui_messages.put(("midi_pc", program))
@@ -2391,7 +2445,7 @@ def handle_MIDI_program_change():
 
 if __name__ == "__main__":
 
-    print("in Main")
+    debug_print("in Main")
     app = QGuiApplication(sys.argv)
     QIcon.setThemeName("digit")
     # Instantiate the Python object.
@@ -2413,7 +2467,7 @@ if __name__ == "__main__":
     midi_channel = PolyValue("channel", pedal_state["midi_channel"], 1, 16)
     input_level = PolyValue("input level", pedal_state["input_level"], -80, 10)
     preset_description = PolyValue("tap to write description", 0, 0, 1)
-    print("### Input level is", input_level.value)
+    debug_print("### Input level is", input_level.value)
     knobs.set_input_level(pedal_state["input_level"], write=False)
     pedal_bypassed = PolyBool(False)
     is_loading = PolyBool(False)
@@ -2461,9 +2515,9 @@ if __name__ == "__main__":
     context.setContextProperty("presetMeta", preset_meta_data)
     context.setContextProperty("pedalState", pedal_state)
     engine.load(QUrl("qml/TestWrapper.qml")) # XXX 
-    print("starting send thread")
+    debug_print("starting send thread")
     ingen_wrapper.start_send_thread()
-    print("starting recv thread")
+    debug_print("starting recv thread")
     ingen_wrapper.start_recv_thread(ui_messages)
 
     pedal_hardware.foot_callback = handle_foot_change
@@ -2475,15 +2529,15 @@ if __name__ == "__main__":
     try:
         add_io()
     except Exception as e:
-        print("########## e is:", e)
+        debug_print("########## e is:", e)
         ex_type, ex_value, tb = sys.exc_info()
         error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
-        print("EXception is:", error)
+        debug_print("EXception is:", error)
         sys.exit()
 
     sys._excepthook = sys.excepthook
     def exception_hook(exctype, value, tb):
-        print("except hook got a thing!")
+        debug_print("except hook got a thing!")
         traceback.print_exception(exctype, value, tb)
         sys._excepthook(exctype, value, tb)
         sys.exit(1)
@@ -2491,7 +2545,7 @@ if __name__ == "__main__":
     # try:
     # crash_here
     # except:
-    #     print("caught crash")
+    #     debug_print("caught crash")
     # timer = QTimer()
     # timer.timeout.connect(tick)
     # timer.start(1000)
@@ -2508,7 +2562,7 @@ if __name__ == "__main__":
     signal(SIGINT,  signalHandler)
     signal(SIGTERM, signalHandler)
     initial_preset = False
-    print("starting UI")
+    debug_print("starting UI")
     if current_pedal_model.name == "digit":
         load_preset("file:///mnt/presets/digit/Default_Preset.ingen/main.ttl", True, True)
     elif current_pedal_model.name == "beebo":
@@ -2518,17 +2572,17 @@ if __name__ == "__main__":
     # load_preset("file:///mnt/presets/Default_Preset.ingen/main.ttl", False)
     # ingen_wrapper._FINISH = True
     while not EXIT_PROCESS[0]:
-        # print("processing events")
+        # debug_print("processing events")
         try:
             app.processEvents()
-            # print("processing ui messages")
+            # debug_print("processing ui messages")
             process_ui_messages()
             pedal_hardware.process_input()
         except Exception as e:
             qCritical("########## e is:"+ str(e))
             ex_type, ex_value, tb = sys.exc_info()
             error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
-            print("EXception is:", error)
+            debug_print("EXception is:", error)
             sys.exit()
         sleep(0.01)
 

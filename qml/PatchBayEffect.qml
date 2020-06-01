@@ -14,10 +14,6 @@ import "polyconst.js" as Constants
 
 Rectangle {
     id: rect
-    width: (effect_id.length * 1.6) + 100
-    // height: is_io ? 80 : 68
-    height: 68
-    radius: 6
     // color: patch_bay.delete_mode ? Qt.rgba(0.9,0.0,0.0,1.0) : Qt.rgba(0.3,0.3,0.3,1.0)  
     color: Constants.background_color
     z: mouseArea.drag.active ||  mouseArea.pressed || selected ? 4 : 1
@@ -67,6 +63,13 @@ Rectangle {
     // border { width:2; color: Material.color(Material.Cyan, Material.Shade100)}
     Drag.active: mouseArea.drag.active
 
+    // width: (effect_id.length * 1.6) + 100
+    width: 115
+    // height: is_io ? 80 : 68
+    height: output_keys.length > 2 || input_keys.length > 2 ? (Math.max(output_keys.length, input_keys.length)- 1)*14 + 72 : 72
+    // spacing: 14
+    radius: 6
+
         // if (effect_type == "stereo_EQ" || effect_type == "mono_EQ"){
         // else if (effect_type == "delay"){
 
@@ -109,6 +112,8 @@ Rectangle {
         var split = str.split(sep);
         return maxsplit ? [ split.slice(0, -maxsplit).join(sep) ].concat(split.slice(-maxsplit)) : split;
     }
+
+    property string effect_title: rsplit(effect_id, "/", 1)[1].replace(/_/g, " ")
 
     function connect_clicked() {
         /*
@@ -209,6 +214,10 @@ Rectangle {
             patchStack.push(editBasicRotary, {"objectName":"editBasicRotary"});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}
+		else if (effect_type == "macro_osc"){
+            patchStack.push(editPlaits, {"objectName":"editPlaits"});
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+		}
 		else if (['algo_reverb', 'granular', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch'].indexOf(effect_type) >= 0){
             patchStack.push(editClouds);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
@@ -255,23 +264,23 @@ Rectangle {
 
 	function show_advanced_special_clicked(){
 		if (['bitmangle', 'comparator', 'chebyschev_waveshaper', 'wavefolder', 'vocoder'].indexOf(effect_type) >= 0){
-            patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "int_osc", "icons": ["OFF.png", "Sine.png", "Sawtooth.png", "Triangle.png"]});
+            patchStack.push("IconSelector.qml", {"current_effect": effect_id, "row_param": "int_osc", "icons": ["OFF.png", "Sine.png", "Sawtooth.png", "Triangle.png"]});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		} else if (effect_type == "twist_delay") {
-            patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "mode", "icons": ["Open FB Loop.png", "Dual Delay.png", "Tape Delay.png", "Ping Pong.png"]});
+            patchStack.push("IconSelector.qml", {"current_effect": effect_id, "row_param": "mode", "icons": ["Open FB Loop.png", "Dual Delay.png", "Tape Delay.png", "Ping Pong.png"]});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		} else if (effect_type == "frequency_shifter") {
-            patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "mode", "icons": ["OFF.png", "Sin.png", "2 Harmonics.png", "4 Harmonics.png"]});
+            patchStack.push("IconSelector.qml", {"current_effect": effect_id, "row_param": "mode", "icons": ["OFF.png", "Sin.png", "2 Harmonics.png", "4 Harmonics.png"]});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		} else if (effect_type == "doppler_panner") {
-            patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "space_size", "icons": ["Small.png", "Medium.png", "Large.png", "XL.png"]});
+            patchStack.push("IconSelector.qml", {"current_effect": effect_id, "row_param": "space_size", "icons": ["Small.png", "Medium.png", "Large.png", "XL.png"]});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		} else if (effect_type == "meta_modulation") {
 			if (patchStack.currentItem.objectName == "editWarpsMeta"){
 				patchStack.push(editWarps);
 				patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 			} else {
-				patchStack.push("IconSelector.qml", {"effect_id": effect_id, "row_param": "shape", "icons": ["OFF.png", "Sine.png", "Sawtooth.png", "Triangle.png"]});
+				patchStack.push("IconSelector.qml", {"current_effect": effect_id, "row_param": "shape", "icons": ["OFF.png", "Sine.png", "Sawtooth.png", "Triangle.png"]});
 			}
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		} else if (effect_type == "rotary_advanced") {
@@ -324,42 +333,59 @@ Rectangle {
     }
 
 
-    border { width:2; color: selected ? accent_color.name : Constants.outline_color}
+    border { width:2; color: selected ? accent_color.name : "white"}
 
     Column {
         id: output_rec
-        width:5
-        y:20
+        width:10
+        y:14
         anchors.left: parent.left
-        spacing: 8
+        spacing: 6
         Repeater {
             id: outputRep
             model: output_keys
             Rectangle {
                 anchors.left: parent.left
-                anchors.leftMargin: -2
-                width: 3
-                height: 14
-                color: Constants.port_color_map[effectPrototypes[effect_type]["outputs"][modelData][1]]
+                anchors.leftMargin: -8
+                width: 18
+                height: 18
+                radius: 9
+                color: Constants.background_color
+                // border { width:4; color: Constants.background_color}
+                Rectangle {
+                    anchors.centerIn: parent
+                    radius: 5
+                    width: 10
+                    height: 10
+                    color: Constants.port_color_map[effectPrototypes[effect_type]["outputs"][modelData][1]]
+                }
             }
         }
     }
 
     Column {
         id: input_rec
-        width:5
+        width:10
         anchors.right: parent.right
-        spacing: 8
-        y:20
+        spacing: 6
+        y:14
         Repeater {
             id: inputRep
             model: input_keys
             Rectangle {
                 anchors.right: parent.right
-                anchors.rightMargin: -2
-                width: 3
-                height: 14
-                color: highlight ? accent_color.name : Constants.port_color_map[effectPrototypes[effect_type]["inputs"][modelData][1]]
+                anchors.rightMargin: -8
+                width: 18
+                height: 18
+                radius: 9
+                color: Constants.background_color
+                Rectangle {
+                    anchors.centerIn: parent
+                    radius: 5
+                    width: 10
+                    height: 10
+                    color: highlight ? accent_color.name : Constants.port_color_map[effectPrototypes[effect_type]["inputs"][modelData][1]]
+                }
             }
         }
 	}
@@ -369,36 +395,42 @@ Rectangle {
         visible: Object.keys(effectPrototypes[effect_type]["controls"]).length > 0
         anchors.verticalCenter: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        width: 30
-        height: 30
-        radius: 15
+        width: 22
+        height: 22
+        radius: 11
         color: Constants.background_color
         border { width:2; color: Constants.cv_color}
         Label {
+            width: 20
+            height: 20
             anchors.centerIn: parent
             text: Object.keys(effectPrototypes[effect_type]["controls"]).length
             // height: 15
-            color: Constants.cv_color
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            color: "white" //Constants.cv_color
             font {
                 // pixelSize: fontSizeMedium
-                pixelSize: 18
+                pixelSize: 16
                 capitalization: Font.AllUppercase
             }
         }
     }
 
     Label {
-        width: rect.width-4
+        width: 84
+        height: 56
         anchors.top: parent.top
         anchors.topMargin: 4
         anchors.horizontalCenter: parent.horizontalCenter
-        text: rsplit(effect_id, "/", 1)[1].replace(/_/g, " ")
+        text: effect_title == "midi in" ? "MIDI\nIN" : effect_title
         horizontalAlignment: Text.AlignHCenter
-        wrapMode: Text.Wrap
-        color: rect.is_io ? "white" : effect_color 
+        verticalAlignment: Text.AlignVCenter
+        wrapMode: Text.WordWrap
+        color: "white" // rect.is_io ? "white" : effect_color 
         lineHeight: 0.65
         fontSizeMode: Text.Fit 
-        minimumPixelSize: 18
+        minimumPixelSize: 16
         font {
             // pixelSize: fontSizeMedium
             family: mainFont.name
@@ -715,6 +747,137 @@ Rectangle {
 				}
             }
         }
+
+        Component {
+            id: editPlaits
+            Item {
+                z: 3
+                height:540
+                width:1280
+				
+				ActionIcons {
+
+				}
+
+
+                Item {
+                    width: 1150
+                    height: 546
+                    x: 130
+                    y: 0
+                    TabBar {
+                        id: plaitsBar
+                        width: parent.width
+                        height: 47
+                        TabButton {
+                            text: qsTr("Model")
+                            font {
+                                pixelSize: 24
+                                capitalization: Font.AllUppercase
+                            }
+                        }
+                        TabButton {
+                            text: qsTr("Tone")
+                            font {
+                                pixelSize: 24
+                                capitalization: Font.AllUppercase
+                            }
+                        }
+                        TabButton {
+                            text: qsTr("Modulation")
+                            font {
+                                pixelSize: 24
+                                capitalization: Font.AllUppercase
+                            }
+                        }
+                    }	
+
+
+                    StackLayout {
+                        y: 100
+                        x: 0
+                        width: 1150
+                        currentIndex: plaitsBar.currentIndex	
+                        Column {
+                            spacing: 60
+                            // drop down
+                            width: parent.width
+                            // horn split
+                            IconSelector {
+                                current_effect: effect_id
+                                height: 160
+                                width: parent.width
+                                row_param: "model"
+                                icon_prefix: "../icons/digit/plaits/"
+                                icons: ['Pair of classic waveforms.png', 'Waveshaping Oscillator.png', 'Two operator FM.png', 'Granular Formant Oscillator.png', 'Harmonic Oscillator.png', 'Wavetable oscillator.png', 'CHORDS.png', 'Vowel and Speech Synthesis.png']
+                                button_height: 205
+                                button_width:130
+                                icon_size: 50
+                                button_spacing: 10
+                                label_offset: 130
+                            }
+
+                            IconSelector {
+                                height: 160
+                                width: parent.width
+                                current_effect: effect_id
+                                row_param: "model"
+                                value_offset: 8
+                                icon_prefix: "../icons/digit/plaits/"
+                                icons: ['GRANULAR CLOUD.png', 'Filtered noise.png', 'Particle Noise.png', 'Inharmonic string modeling .png', 'Modal resonator.png', 'Analog bass drum model.png', 'Analog snare drum model.png','Analog hi-hat model.png'] 
+                                button_height: 205
+                                button_width:130
+                                icon_size: 50
+                                button_spacing: 10
+                                label_offset: 130
+                            }
+                        } 
+
+                        Item {
+                            width: parent.width
+                            Column {
+                                // x: 300
+                                // y: 100
+
+                                anchors.centerIn: parent
+                                spacing: 30
+
+                                // Tone
+                                Repeater {
+                                    model: ['frequency', 'harmonics',  'timbre', 'morph'] 
+                                    DelayRow {
+                                        row_param: modelData
+                                        current_effect: effect_id
+                                        Material.foreground: Constants.rainbow[index+5]
+                                    }
+                                }
+                            }
+                        }
+
+                        Item {
+                            width: parent.width
+                            Grid {
+                                anchors.centerIn: parent
+                                // x: 300
+                                // y: 100
+                                spacing: 20
+                                columns: 2
+                                // Modulation 
+                                Repeater {
+                                    model: ['freq_mod', 'timbre_mod', 'morph_mod', 'lpg_decay', 'lpg_color'] 
+                                    DelayRow {
+                                        row_param: modelData
+                                        current_effect: effect_id
+                                        Material.foreground: Constants.rainbow[index+5]
+                                    }
+                                }
+                            }	
+                        }
+                    }
+				}
+            }
+        }
+
 
 		Component {
 			id: editBasicRotary

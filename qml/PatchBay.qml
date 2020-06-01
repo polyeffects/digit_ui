@@ -123,7 +123,7 @@ import "polyconst.js" as Constants
             function findConnections(drawContext){ 
                 // iterate over items in rep1, adding to dictionary of effect_id : patchbayeffect
                 // source and targets are the wrong way round XXX 
-                console.log("finding connection", Object.keys(portConnections));
+                // console.log("finding connection", Object.keys(portConnections));
                 for (var source_effect_port_str in portConnections){ 
                     // console.log("key ", source_effect_port_str);
                     // console.log(Object.keys(effect_map)); //[item.effect_id]);
@@ -139,7 +139,7 @@ import "polyconst.js" as Constants
                         var target_port_type = effectPrototypes[currentEffects[targets[target][0]]["effect_type"]]["outputs"][targets[target][1]][1]
 
                         var target_index = effect_map[targets[target][0]].output_keys.indexOf(targets[target][1])
-                        console.log("target_port_type", target_port_type);
+                        // console.log("target_port_type", target_port_type);
                         //effect_map[source_effect_port[0]], effect_map[targets[target][0]]
                         drawConnection(drawContext, effect_map[source_effect_port[0]], effect_map[targets[target][0]], target_port_type, target_index, source_index);
                     } 
@@ -148,11 +148,11 @@ import "polyconst.js" as Constants
 
             function drawConnection( drawContext, targetPort, sourcePort, source_port_type, source_index, target_index ) {
                 if (source_port_type == "AudioPort" || source_port_type == "AtomPort"){
-                    var start   = getCanvasCoordinates( targetPort.inputs, 0, 4+(target_index* 22))
+                    var start   = getCanvasCoordinates( targetPort.inputs, 0, 9+(target_index* 24))
                 } else {
                     var start   = getCanvasCoordinates( targetPort.cv_area, targetPort.cv_area.width / 2, targetPort.cv_area.height - 2)
                 }
-                var end     = getCanvasCoordinates( sourcePort.outputs,  0, 4 + (source_index * 22)) 
+                var end     = getCanvasCoordinates( sourcePort.outputs,  0, 9 + (source_index * 24)) 
                 if( start.x > end.x ) {
                     var tmp = start;
                     start = end;
@@ -184,7 +184,7 @@ import "polyconst.js" as Constants
                 drawContext.beginPath();
                 drawContext.moveTo( start.x, start.y );
 
-                console.log("drawing curve", start.x, start.y, end.x, end.y, source_port_type);
+                // console.log("drawing curve", start.x, start.y, end.x, end.y, source_port_type);
                 if (source_port_type == "AudioPort" || source_port_type == "AtomPort"){
                     drawContext.bezierCurveTo( start.x + sizeX / 2.0 , start.y, end.x - sizeX / 2.0, end.y, end.x, end.y );
                 } else {

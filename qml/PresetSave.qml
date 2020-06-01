@@ -38,40 +38,69 @@ import QtQuick.Controls.Material 2.3
             Item {
 				height:720
 				width:1280
-                Row {
-                    spacing: 100
+
+				Column {
 					anchors.centerIn: parent
+					spacing: 100
+					Row {
+						spacing: 100
+						anchors.horizontalCenter: parent.horizontalCenter
 
-                    Button {
-                        text: "SELECT"
-						width: 300
-						// height: 500
-                        onClicked: presetStack.push(loadPresetWidget)
-						font {
-							pixelSize: fontSizeLarge
+						Button {
+							text: "SELECT"
+							width: 350
+							// height: 500
+							onClicked: presetStack.push(loadPresetWidget)
+							font {
+								pixelSize: fontSizeLarge
+							}
 						}
-                    }
 
-                    Button {
-                        text: "SAVE"
-						width: 300
-						// height: 500
-                        onClicked: is_system_preset ? presetStack.push(choosePresetFolder) : presetStack.push(newOrOverwrite) 
-						font {
-							pixelSize: fontSizeLarge
+						Button {
+							text: "SAVE"
+							width: 350
+							// height: 500
+							onClicked: is_system_preset ? presetStack.push(choosePresetFolder) : presetStack.push(newOrOverwrite) 
+							font {
+								pixelSize: fontSizeLarge
+							}
 						}
-                    }
+					}
+					Row {
+						spacing: 100
+						anchors.horizontalCenter: parent.horizontalCenter
 
-                    Button {
-                        text: "SET LIST"
-						width: 300
-						// height: 500
-                        onClicked: presetStack.push(mapPresets)
-						font {
-							pixelSize: fontSizeLarge
+						Button {
+							text: "SET LIST"
+							width: 250
+							// height: 500
+							onClicked: presetStack.push(mapPresets)
+							font {
+								pixelSize: fontSizeLarge
+							}
 						}
-                    }
-                }
+
+						Button {
+							text: "EXPORT PRESETS"
+							width: 300
+							// show screen explaining to put USB flash drive in
+							onClicked: presetStack.push(exportPresets)
+							font {
+								pixelSize: fontSizeLarge
+							}
+						}
+
+						Button {
+							text: "IMPORT PRESETS"
+							width: 300
+							// show screen explaining to put USB flash drive in
+							onClicked: presetStack.push(importPresets)
+							font {
+								pixelSize: fontSizeLarge
+							}
+						}
+					}
+				}
 
                 IconButton {
                     x: 34 
@@ -92,6 +121,170 @@ import QtQuick.Controls.Material 2.3
                 }
             }
         }
+
+		Component {
+			id: exportPresets
+			Item {
+				height:700
+				width:1280
+				Row {
+					spacing: 100
+					anchors.centerIn: parent
+
+					Text {
+						font {
+							pixelSize: fontSizeMedium
+						}
+						color: Material.foreground
+						text: "Please put a USB key into the USB port.<p> This will overwrite any presets on the drive with the same name.</p>"
+						width: 300
+						wrapMode: Text.WordWrap
+						textFormat: Text.StyledText
+					}
+
+					Button {
+						flat: false
+						font {
+							pixelSize: fontSizeMedium
+						}
+						text: "Export Presets"
+						width: 300
+						onClicked: { // save preset and close browser
+							presetStack.push(presetCopyView)
+							knobs.export_presets();
+						}
+					}
+				}
+				Button {
+					flat: false
+					font {
+						pixelSize: fontSizeMedium
+					}
+					text: "BACK"
+					anchors.right: parent.right
+					anchors.rightMargin: 10
+					anchors.topMargin: 10
+					width: 100
+					height: 100
+					onClicked: presetStack.pop()
+				}
+			}
+		}
+
+		Component {
+			id: importPresets
+			Item {
+				height:700
+				width:1280
+				Row {
+					spacing: 100
+					anchors.centerIn: parent
+
+					Text {
+						font {
+							pixelSize: fontSizeMedium
+						}
+						color: Material.foreground
+						text: "Please put a USB key into the USB port.<p> Presets should be in a folder called presets. This will overwrite any presets with the same name.</p>"
+						width: 300
+						wrapMode: Text.WordWrap
+						textFormat: Text.StyledText
+					}
+
+					Button {
+						flat: false
+						font {
+							pixelSize: fontSizeMedium
+						}
+						text: "Import Presets"
+						width: 300
+						onClicked: { // save preset and close browser
+							presetStack.push(presetCopyView)
+							knobs.import_presets();
+						}
+					}
+				}
+				Button {
+					flat: false
+					font {
+						pixelSize: fontSizeMedium
+					}
+					text: "BACK"
+					anchors.right: parent.right
+					anchors.rightMargin: 10
+					anchors.topMargin: 10
+					width: 100
+					height: 100
+					onClicked: presetStack.pop()
+				}
+			}
+		}
+
+		Component {
+			id: presetCopyView
+			Item {
+				height:700
+				width:1280
+				Row {
+					spacing: 100
+					anchors.centerIn: parent
+
+					Text {
+						font {
+							pixelSize: fontSizeMedium
+						}
+						color: Material.foreground
+						text: "Presets copied sucessfully"
+						width: 300
+						wrapMode: Text.WordWrap
+						visible: commandStatus[0].value == 0
+					}
+
+					Text {
+						font {
+							pixelSize: fontSizeMedium
+						}
+						color: Material.foreground
+						text: "Preset copy failed. Please make sure flash drive is plugged in and watch the tutorial video. If that doesn't work, please contact Loki@polyeffects.com"
+						width: 300
+						wrapMode: Text.WordWrap
+						textFormat: Text.PlainText
+						visible: commandStatus[0].value > 0
+					}
+
+					BusyIndicator {
+						running: commandStatus[0].value < 0 
+					}
+
+					Text {
+						font {
+							pixelSize: fontSizeMedium
+						}
+						color: Material.foreground
+						text: "Copying. Please wait."
+						width: 300
+						wrapMode: Text.WordWrap
+						textFormat: Text.PlainText
+						visible: commandStatus[0].value < 0
+					}
+
+				}
+				Button {
+					flat: false
+					font {
+						pixelSize: fontSizeMedium
+					}
+					text: "BACK"
+					anchors.right: parent.right
+					anchors.rightMargin: 10
+					anchors.topMargin: 10
+					width: 100
+					height: 100
+					visible: commandStatus[0].value >= 0 
+					onClicked: presetStack.pop(null)
+				}
+			}
+		}
 
         Component {
             id: loadPresetWidget

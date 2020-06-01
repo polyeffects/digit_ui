@@ -37,7 +37,7 @@ Item {
                     // height:parent.height
                     GlowingLabel {
                         // color: "#ffffff"
-                        text: currentPedalModel.name+" FIRMWARE 2.30"
+                        text: currentPedalModel.name+" FIRMWARE 2.32"
                         color: accent_color.name
                     }
 
@@ -160,20 +160,6 @@ Item {
                         // show screen explaining to put USB flash drive in
                     }
 
-                    Button {
-                        flat: false
-                        font.pixelSize: baseFontSize
-                        text: "EXPORT PRESETS"
-                        // show screen explaining to put USB flash drive in
-                        onClicked: settingsStack.push(exportPresets)
-                    }
-                    Button {
-                        flat: false
-                        font.pixelSize: baseFontSize
-                        text: "IMPORT PRESETS"
-                        // show screen explaining to put USB flash drive in
-                        onClicked: settingsStack.push(importPresets)
-                    }
                     // Switch {
                     //     font.pixelSize: baseFontSize
                     //     text: qsTr("IN 1/2 BALANCED")
@@ -247,13 +233,13 @@ Item {
                         onClicked: knobs.set_input_level(input_level_spin.value)
                     }
 
-                    Button {
-                        flat: false
-                        text: "STAGE VIEW"
-                        font.pixelSize: baseFontSize
-                        // show screen explaining to put USB flash drive in
-                        onClicked: mainStack.push("PerformanceMode.qml")
-                    }
+                    // Button {
+                    //     flat: false
+                    //     text: "STAGE VIEW"
+                    //     font.pixelSize: baseFontSize
+                    //     // show screen explaining to put USB flash drive in
+                    //     onClicked: mainStack.push("PerformanceMode.qml")
+                    // }
 
                     Button {
                         flat: false
@@ -330,103 +316,6 @@ Item {
         }
     }
 
-    Component {
-        id: exportPresets
-        Item {
-            height:700
-            width:1280
-            Row {
-                spacing: 100
-                anchors.centerIn: parent
-
-                Text {
-                    font {
-                        pixelSize: fontSizeMedium
-                    }
-                    color: Material.foreground
-                    text: "Please put a USB key into the USB port.<p> This will overwrite any presets on the drive with the same name.</p>"
-                    width: 300
-                    wrapMode: Text.WordWrap
-                    textFormat: Text.StyledText
-                }
-
-                Button {
-                    flat: false
-                    font {
-                        pixelSize: fontSizeMedium
-                    }
-                    text: "Export Presets"
-                    width: 300
-                    onClicked: { // save preset and close browser
-                        settingsStack.push(presetCopyView)
-                        knobs.export_presets();
-                    }
-                }
-            }
-            Button {
-                flat: false
-                font {
-                    pixelSize: fontSizeMedium
-                }
-                text: "BACK"
-                anchors.right: parent.right
-                anchors.rightMargin: 10
-                anchors.topMargin: 10
-                width: 100
-                height: 100
-                onClicked: settingsStack.pop()
-            }
-        }
-    }
-
-    Component {
-        id: importPresets
-        Item {
-            height:700
-            width:1280
-            Row {
-                spacing: 100
-                anchors.centerIn: parent
-
-                Text {
-                    font {
-                        pixelSize: fontSizeMedium
-                    }
-                    color: Material.foreground
-                    text: "Please put a USB key into the USB port.<p> Presets should be in a folder called presets. This will overwrite any presets with the same name.</p>"
-                    width: 300
-                    wrapMode: Text.WordWrap
-                    textFormat: Text.StyledText
-                }
-
-                Button {
-                    flat: false
-                    font {
-                        pixelSize: fontSizeMedium
-                    }
-                    text: "Import Presets"
-                    width: 300
-                    onClicked: { // save preset and close browser
-                        settingsStack.push(presetCopyView)
-                        knobs.import_presets();
-                    }
-                }
-            }
-            Button {
-                flat: false
-                font {
-                    pixelSize: fontSizeMedium
-                }
-                text: "BACK"
-                anchors.right: parent.right
-                anchors.rightMargin: 10
-                anchors.topMargin: 10
-                width: 100
-                height: 100
-                onClicked: settingsStack.pop()
-            }
-        }
-    }
 
     Component {
         id: updateFirmware
@@ -543,71 +432,6 @@ Item {
         }
     }
 
-    Component {
-        id: presetCopyView
-        Item {
-            height:700
-            width:1280
-            Row {
-                spacing: 100
-                anchors.centerIn: parent
-
-                Text {
-                    font {
-                        pixelSize: fontSizeMedium
-                    }
-                    color: Material.foreground
-                    text: "Presets copied sucessfully"
-                    width: 300
-                    wrapMode: Text.WordWrap
-                    visible: commandStatus[0].value == 0
-                }
-
-                Text {
-                    font {
-                        pixelSize: fontSizeMedium
-                    }
-                    color: Material.foreground
-                    text: "Preset copy failed. Please make sure flash drive is plugged in and watch the tutorial video. If that doesn't work, please contact Loki@polyeffects.com"
-                    width: 300
-                    wrapMode: Text.WordWrap
-                    textFormat: Text.PlainText
-                    visible: commandStatus[0].value > 0
-                }
-
-                BusyIndicator {
-                    running: commandStatus[0].value < 0 
-                }
-
-                Text {
-                    font {
-                        pixelSize: fontSizeMedium
-                    }
-                    color: Material.foreground
-                    text: "Copying. Please wait."
-                    width: 300
-                    wrapMode: Text.WordWrap
-                    textFormat: Text.PlainText
-                    visible: commandStatus[0].value < 0
-                }
-
-            }
-            Button {
-                flat: false
-                font {
-                    pixelSize: fontSizeMedium
-                }
-                text: "BACK"
-                anchors.right: parent.right
-                anchors.rightMargin: 10
-                anchors.topMargin: 10
-                width: 100
-                height: 100
-                visible: commandStatus[0].value >= 0 
-                onClicked: settingsStack.pop(null)
-            }
-        }
-    }
     Component {
         id: irCopyView
         Item {
