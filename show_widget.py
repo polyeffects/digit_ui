@@ -1908,18 +1908,20 @@ class Knobs(QObject):
         # debug_print("copy irs from USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
-        command = """if [ -d /media/reverbs ]; then cd /media/reverbs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/reverbs --parents; fi;
-        if [ -d /media/cabs ]; then cd /media/cabs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/cabs --parents; fi; """
+        # remount RW 
+        command = """ sudo mount -o remount,rw /dev/mmcblk0p2 /mnt; if [ -d /usb_flash/reverbs ]; then cd /usb_flash/reverbs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/reverbs --parents; fi;
+        if [ -d /usb_flash/cabs ]; then cd /usb_flash/cabs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/cabs --parents; fi; sudo mount -o remount,ro /dev/mmcblk0p2 /mnt;"""
         # copy all wavs in /usb/reverbs and /usr/cabs to /audio/reverbs and /audio/cabs
         command_status[0].value = -1
         self.launch_subprocess(command)
+        # remount RO 
 
     @Slot()
     def import_presets(self):
         # debug_print("copy presets from USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
-        command = """cd /media/presets; find . -iname "*.ingen" -type d -print0 | xargs -0 cp -r --target-directory=/mnt/presets --parents"""
+        command = """cd /usb_flash/presets; find . -iname "*.ingen" -type d -print0 | xargs -0 cp -r --target-directory=/mnt/presets --parents"""
         command_status[0].value = -1
         self.launch_subprocess(command, after=get_meta_from_files)
         # after presets have copied we need to parse all the tags / author and update cache
@@ -1929,7 +1931,7 @@ class Knobs(QObject):
         # debug_print("copy presets to USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
-        command = """cd /mnt/presets; mkdir -p /media/presets; find . -iname "*.ingen" -type d -print0 | xargs -0 cp -r --target-directory=/media/presets --parents;sudo umount /media"""
+        command = """cd /mnt/presets; mkdir -p /usb_flash/presets; find . -iname "*.ingen" -type d -print0 | xargs -0 cp -r --target-directory=/usb_flash/presets --parents;sudo umount /usb_flash"""
         command_status[0].value = -1
         self.launch_subprocess(command)
 
@@ -1938,7 +1940,7 @@ class Knobs(QObject):
         # debug_print("copy presets to USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
-        command = """mkdir -p /media/logs; sudo cp /var/log/syslog /media/logs/;sudo umount /media"""
+        command = """mkdir -p /usb_flash/logs; sudo cp /var/log/syslog /usb_flash/logs/;sudo umount /usb_flash"""
         command_status[0].value = -1
         self.launch_subprocess(command)
 
@@ -1946,8 +1948,8 @@ class Knobs(QObject):
     def ui_update_firmware(self):
         # debug_print("Updating firmware")
         # dpkg the debs in the folder
-        if len(glob.glob("/media/*.deb")) > 0:
-            command = """sudo dpkg -i /media/*.deb; sudo shutdown -h 'now'"""
+        if len(glob.glob("/usb_flash/*.deb")) > 0:
+            command = """sudo /usr/bin/polyoverlayroot-chroot dpkg -i /usb_flash/*.deb && sudo shutdown -h 'now'"""
             command_status[0].value = -1
             self.launch_subprocess(command)
         else:
@@ -2046,11 +2048,17 @@ class Knobs(QObject):
         if "imported" not in ir or ir in ["/audio/cabs/imported", "/audio/reverbs/imported"]:
             return
         # delete
+        # remount as RW
+        command = "sudo mount -o remount,rw /dev/mmcblk0p2 /mnt"
+        ret_var = subprocess.call(command, shell=True)
         try:
             os.remove(ir)
         except IsADirectoryError:
             shutil.rmtree(ir)
         os.sync()
+        # remount as RO
+        command = "sudo mount -o remount,ro /dev/mmcblk0p2 /mnt"
+        ret_var = subprocess.call(command, shell=True)
 
     @Slot(str)
     def delete_preset(self, in_preset_file):
