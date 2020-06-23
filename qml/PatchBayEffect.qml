@@ -15,7 +15,6 @@ import "polyconst.js" as Constants
 Rectangle {
     id: rect
     // color: patch_bay.delete_mode ? Qt.rgba(0.9,0.0,0.0,1.0) : Qt.rgba(0.3,0.3,0.3,1.0)  
-    color: Constants.background_color
     z: mouseArea.drag.active ||  mouseArea.pressed || selected ? 4 : 1
     // color: Material.color(time_scale.delay_colors[index])
     // color: Qt.rgba(0, 0, 0, 0)
@@ -32,6 +31,8 @@ Rectangle {
     property Column outputs: output_rec
 	property real current_subdivision: 1.0 
 	property int rotaryTabIndex: 0
+
+    color: !effect_type.startsWith("foot_switch_") ? Constants.background_color : currentEffects[effect_id]["controls"]["cur_out"].value > 0.9 ? Constants.cv_color : Constants.background_color
 
     function isAudio(item){
         return effectPrototypes[effect_type]["inputs"][item][1] == "AudioPort"

@@ -82,6 +82,12 @@ Item {
         y: 0
         width: 1280
         height: 86
+    
+        Image {
+            x: 10
+            y: 9
+            source: currentPedalModel.name == "beebo" ? "../icons/digit/Beebo.png" : "../icons/digit/Digit.png" 
+        }
 
         Label {
             // color: "#ffffff"

@@ -101,6 +101,8 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "midi_clock_out": "http://gareus.org/oss/lv2/mclk",
         "vca": "http://polyeffects.com/lv2/basic_modular#amp",
         "difference": "http://polyeffects.com/lv2/basic_modular#difference",
+        "midi_note_to_cv": "http://polyeffects.com/lv2/midi_to_cv_mono",
+        "pitch_shift": "http://moddevices.com/plugins/tap/pitch",
     },
     "beebo" : { "delay": "http://polyeffects.com/lv2/digit_delay",
         "warmth": "http://moddevices.com/plugins/tap/tubewarmth",
@@ -161,6 +163,24 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "vca": "http://polyeffects.com/lv2/basic_modular#amp",
         "difference": "http://polyeffects.com/lv2/basic_modular#difference",
         "macro_osc": "http://polyeffects.com/lv2/polyplaits",
+        "midi_note_to_cv": "http://polyeffects.com/lv2/midi_to_cv_mono",
+        # "two_voice": "http://moddevices.com/plugins/mod-devel/2Voices",
+        # "capo": "http://moddevices.com/plugins/mod-devel/Capo",
+        # "drop": "http://moddevices.com/plugins/mod-devel/Drop",
+        # "harmony": "http://moddevices.com/plugins/mod-devel/Harmonizer",
+        # "harmony2": "http://moddevices.com/plugins/mod-devel/Harmonizer2",
+        # "harmony_custom": "http://moddevices.com/plugins/mod-devel/HarmonizerCS",
+        # "extra_capo": "http://moddevices.com/plugins/mod-devel/SuperCapo",
+        # "pitch_wam": "http://moddevices.com/plugins/mod-devel/SuperWhammy",
+        # "pitch_detect": "http://polyeffects.com/lv2/pitch_detect",
+        # "pitch_corrector" : "http://gareus.org/oss/lv2/fat1",
+        # "octaver" : "http://guitarix.sourceforge.net/plugins/gx_oc_2_#_oc_2_"
+        "pitch_shift": "http://moddevices.com/plugins/tap/pitch",
+        "adsr": "http://drobilla.net/plugins/blop/adsr",
+        "sample_hold": "http://avwlv2.sourceforge.net/plugins/avw/samplehold",
+        "dahdsr": "http://drobilla.net/plugins/blop/dahdsr"
+
+
         }}
 
 effect_prototypes_models_all = {
@@ -241,7 +261,9 @@ effect_prototypes_models_all = {
                           'latching': ['Is Latching', 0.0, 0.0, 1.0],
                           'on_v': ['On Value', 1.0, -1.0, 100.0],
                           'off_v': ['Off Value', 0.0, -1.0, 100.0],
-                          'value': ['value', 0.0, 0.0, 1.0]},
+                          'value': ['value', 0.0, 0.0, 1.0],
+                          'cur_out': ['value', 0.0, 0.0, 1.0],
+                          },
                          'inputs': {},
                          'outputs': {'bpm_out': ['BPM Out', 'ControlPort'],
                                      'out': ['Value Out', 'CVPort']}},
@@ -251,7 +273,9 @@ effect_prototypes_models_all = {
                           'latching': ['Is Latching', 0.0, 0.0, 1.0],
                           'on_v': ['On Value', 1.0, -1.0, 100.0],
                           'off_v': ['Off Value', 0.0, -1.0, 100.0],
-                          'value': ['value', 0.0, 0.0, 1.0]},
+                          'value': ['value', 0.0, 0.0, 1.0],
+                          'cur_out': ['value', 0.0, 0.0, 1.0],
+                          },
                          'inputs': {},
                          'outputs': {'bpm_out': ['BPM Out', 'ControlPort'],
                                      'out': ['Value Out', 'CVPort']}},
@@ -260,7 +284,9 @@ effect_prototypes_models_all = {
                           'latching': ['Is Latching', 0.0, 0.0, 1.0],
                           'on_v': ['On Value', 1.0, -1.0, 100.0],
                           'off_v': ['Off Value', 0.0, -1.0, 100.0],
-                          'value': ['value', 0.0, 0.0, 1.0]},
+                          'value': ['value', 0.0, 0.0, 1.0],
+                          'cur_out': ['value', 0.0, 0.0, 1.0],
+                          },
                          'inputs': {},
                          'outputs': {'bpm_out': ['BPM Out', 'ControlPort'],
                                      'out': ['Value Out', 'CVPort']}},
@@ -550,7 +576,7 @@ effect_prototypes_models_all = {
                               'numerator': ['Tempo', 120.0, 5.0, 300.0]},
                        'inputs': {'denominator': ['Tempo', 'ControlPort']},
                  'outputs': {'ratio': ['Ratio', 'ControlPort']}},
- 'mono_compressor': {'description': '','controls': {'Ratio': ['Ratio', 0.0, 0.0, 1.0],
+ 'mono_compressor': {'description': 'RMS download compressor with auto markup','controls': {'Ratio': ['Ratio', 0.0, 0.0, 1.0],
                                   'attack': ['Attack Time', 0.01, 0.001, 0.1],
                                   'hold': ['Hold', 0, 0, 1],
                                   'inputgain': ['Input Gain', 0.0, -10.0, 30.0],
@@ -576,7 +602,7 @@ effect_prototypes_models_all = {
                          'rt_speed': ['Old Motors Ac Dc', "CVPort"]},
             'outputs': {'left': ['Left Output', 'AudioPort'],
                         'right': ['Right Output', 'AudioPort']}},
- 'stereo_compressor': {'description': '','controls': {'Ratio': ['Ratio', 0.0, 0.0, 1.0],
+ 'stereo_compressor': {'description': 'RMS download compressor with auto markup','controls': {'Ratio': ['Ratio', 0.0, 0.0, 1.0],
                                     'attack': ['Attack Time', 0.01, 0.001, 0.1],
                                     'enable': ['Enable', 1, 0, 1],
                                     'hold': ['Hold', 0, 0, 1],
@@ -593,7 +619,7 @@ effect_prototypes_models_all = {
                                   'inR': ['In Right', 'AudioPort']},
                        'outputs': {'outL': ['Out Left', 'AudioPort'],
                                    'outR': ['Out Right', 'AudioPort']}},
- 'j_chorus': {'description': '','controls': {u'chorus_1_enable': [u'Chorus 1 On/Off',
+ 'j_chorus': {'description': 'chorus based on vintage Japanese synth chorus','controls': {u'chorus_1_enable': [u'Chorus 1 On/Off',
                                                 1.0,
                                                 0.0,
                                                 1.0],
@@ -617,7 +643,7 @@ effect_prototypes_models_all = {
                                                u'AudioPort'],
                           u'lv2_audio_out_2': [u'Audio Output 2',
                                                u'AudioPort']}},
- 'phaser': {'description': '','controls': {u'color': [u'Color', 1, 0, 1],
+ 'phaser': {'description': 'Basic phaser','controls': {u'color': [u'Color', 1, 0, 1],
                          u'feedback_depth': [u'Feedback depth', 75, 0, 99],
                          u'feedback_hpf_cutoff': [u'Feedback bass cut',
                                                   500.0,
@@ -631,7 +657,7 @@ effect_prototypes_models_all = {
             'inputs': {u'lv2_audio_in_1': [u'Audio Input 1', 'AudioPort']},
             'outputs': {u'lv2_audio_out_1': [u'Audio Output 1',
                                              u'AudioPort']}},
- 'stereo_phaser': {'description': '','controls': {u'color': [u'Color', 1, 0, 1],
+ 'stereo_phaser': {'description': 'Basic phaser','controls': {u'color': [u'Color', 1, 0, 1],
                                 u'feedback_depth': [u'Feedback depth',
                                                     75,
                                                     0,
@@ -657,7 +683,7 @@ effect_prototypes_models_all = {
                                                     u'AudioPort'],
                                u'lv2_audio_out_2': [u'Audio Output 2',
                                                     u'AudioPort']}},
- 'thruzero_flange': {'description': '','controls': {'depth': ['Depth', 0.43, 0.0, 1.0],
+ 'thruzero_flange': {'description': 'Through Zero Flanger.','controls': {'depth': ['Depth', 0.43, 0.0, 1.0],
                                   'depth_mod': ['Depth Mod', 1.0, 0.0, 1.0],
                                   'feedback': ['Feedback', 0.3, 0.0, 1.0],
                                   'mix': ['Mix', 0.47, 0.0, 1.0],
@@ -851,7 +877,7 @@ effect_prototypes_models_all = {
                               'trig': ['Trigger', 'CVPort']},
                    'outputs': {'l_out': ['L Out', 'AudioPort'],
                                'r_out': ['R Out', 'AudioPort']}},
- 'meta_modulation': {'description': '', 'controls': {'algorithm': ['algorithm', 0.0, 0.0, 8.0],
+ 'meta_modulation': {'description': 'Powerful cross modulation module. Applies an algorithm to the two inputs.', 'controls': {'algorithm': ['algorithm', 0.0, 0.0, 8.0],
                                   'level1': ['level 1', 1.0, 0.0, 1.0],
                                   'level2': ['level 2', 1.0, 0.0, 1.0],
                                   'shape': ['shape', 0.0, 0.0, 3.0],
@@ -978,7 +1004,7 @@ effect_prototypes_models_all = {
                         'warping_cv': ['warping cv', 'CVPort']},
              'outputs': {'aux': ['aux', 'AudioPort'],
                          'out': ['out', 'AudioPort']}},
- 'wavefolder': {'description': '', 'controls': {'input_amp': ['amp or freq', 1.0, 0.0, 1.0],
+ 'wavefolder': {'description': 'Chebyshev wave folder', 'controls': {'input_amp': ['amp or freq', 1.0, 0.0, 1.0],
                              'input_amp_2': ['input amplitude 2',
                                              1.0,
                                              0.0,
@@ -1201,14 +1227,15 @@ effect_prototypes_models_all = {
      'midi_clock_out': {'description': 'BPM to MIDI Clock','controls': {'bpm': ['BPM', 120.0, 40.0, 208.0]},
                     'inputs': { 'bpm': ['BPM', 'ControlPort'] },
                     'outputs': {'mclk': ['Midi Out', 'AtomPort']}},
-    'vca': {'description': 'simple voltage controlled amplifier','controls': {},
+    'vca': {'description': 'simple voltage controlled amplifier','controls': {'gain': ['Gain', 1.0, 0.0, 1.0]},
          'inputs': {'gain': ['Gain', 'CVPort'], 'in': ['Input', 'AudioPort']},
          'outputs': {'out': ['Output', 'AudioPort']}},
     'difference': {'description': 'a - b for control signals', 'controls': {'a': ['a', 0, 0, 1], 'b': ['b', 0, 0, 1]},
                 'inputs': {'a_cv': ['A CV', 'CVPort'],
                            'b_cv': ['B CV', 'CVPort']},
                 'outputs': {'out': ['Output', 'CVPort']}},
-    'macro_osc': {'controls': {'freq_mod': ['Frequency Mod', 0.0, -1.0, 1.0],
+    'macro_osc': {'description': 'a powerful multi model oscillator voice',
+            'controls': {'freq_mod': ['Frequency Mod', 0.0, -1.0, 1.0],
                             'frequency': ['frequency', 0.0, -4.0, 4.0],
                             'harmonics': ['harmonics', 0.5, 0.0, 1.0],
                             'lpg_color': ['LPG Color', 0.5, 0.0, 1.0],
@@ -1228,6 +1255,222 @@ effect_prototypes_models_all = {
                           'trigger_cv': ['trigger cv', 'CVPort']},
                'outputs': {'aux': ['aux', 'AudioPort'],
                            'out': ['out', 'AudioPort']}},
+    'midi_note_to_cv': {'description': 'convert MIDI notes to v per octave pitch CVs',
+            'controls': {'Cent': ['Cent', 0, -100, 100],
+                                  'Octave': ['Octave', 0, -3, 3],
+                                  'Panic': ['Panic', 0, 0, 1],
+                                  'Retrigger': ['Retrigger', 0.0, 0.0, 1.0],
+                                  'Semitone': ['Semitone', 0, -12, 12],
+                                  'channel': ['Channel', 1, 1, 16]},
+                     'inputs': {'in': ['MIDI Input', 'AtomPort']},
+                     'outputs': {'Gate': ['Gate', 'CVPort'],
+                                 'Pitch': ['Pitch', 'CVPort'],
+                                 'Velocity': ['Velocity', 'CVPort']}},
+'capo': {'controls': {'Fidelity': ['Fidelity', 1, 0, 2],
+                       'Gain': ['Gain', 3.0, -20.0, 20.0],
+                       'Step': ['Step', 0, 0, 12]},
+          'inputs': {'In': ['In', 'AudioPort']},
+          'outputs': {'Out': ['Out', 'AudioPort']}},
+ 'drop': {'controls': {'Fidelity': ['Fidelity', 1, 0, 2],
+                       'Gain': ['Gain', 3.0, -20.0, 20.0],
+                       'Step': ['Step', 0, -12, 0]},
+          'inputs': {'In': ['In', 'AudioPort']},
+          'outputs': {'Out': ['Out', 'AudioPort']}},
+ 'extra_capo': {'controls': {'Fidelity': ['Fidelity', 1, 0, 2],
+                             'Gain': ['Gain', 3.0, -20.0, 20.0],
+                             'Step': ['Step', 0, 0, 24]},
+                'inputs': {'In': ['In', 'AudioPort']},
+                'outputs': {'Out': ['Out', 'AudioPort']}},
+ 'harmony': {'controls': {'Fidelity': ['Fidelity', 1, 0, 2],
+                          'Gain1': ['Gain 1', 0.0, -20.0, 20.0],
+                          'Gain2': ['Gain 2', 3.0, -20.0, 20.0],
+                          'Interval': ['Interval', 0, 0, 9],
+                          'LowestNoteToChangeThePitch': ['Lowest note to change the pitch',
+                                                         0,
+                                                         0,
+                                                         14],
+                          'Mode': ['Mode', 0, 0, 2],
+                          'Scale': ['Scale', 0, 0, 2],
+                          'Tone': ['Tone', 0, 0, 11]},
+             'inputs': {'In': ['In', 'AudioPort']},
+             'outputs': {'Out1': ['Out 1', 'AudioPort'],
+                         'Out2': ['Out 2', 'AudioPort']}},
+ 'harmony2': {'controls': {'Fidelity': ['Fidelity', 1, 0, 2],
+                           'Gain1': ['Gain 1', 3.0, -20.0, 20.0],
+                           'Gain2': ['Gain 2', 3.0, -20.0, 20.0],
+                           'Gain_clean': ['Clean Gain', 0.0, -20.0, 20.0],
+                           'Interval_1': ['Interval 1', 0, 0, 11],
+                           'Interval_2': ['Interval 2', 2, 0, 11],
+                           'LowestNoteToChangeThePitch': ['Lowest note to change the pitch',
+                                                          0,
+                                                          0,
+                                                          14],
+                           'Mode': ['Mode', 0, 0, 2],
+                           'Scale': ['Scale', 0, 0, 2],
+                           'Tone': ['Tone', 0, 0, 11]},
+              'inputs': {'In': ['In', 'AudioPort']},
+              'outputs': {'Out1': ['Out 1', 'AudioPort'],
+                          'Out2': ['Out 2', 'AudioPort'],
+                          'Out_clean': ['Clean Output', 'AudioPort']}},
+ 'harmony_custom': {'controls': {'Fidelity': ['Fidelity', 1, 0, 2],
+                                 'Gain1': ['Gain 1', 0.0, -20.0, 20.0],
+                                 'Gain2': ['Gain 2', 3.0, -20.0, 20.0],
+                                 'LowestNoteToChangeThePitch': ['Lowest note to change the pitch',
+                                                                0,
+                                                                0,
+                                                                14],
+                                 'Step_0': ['Tonic', 0, -12, 12],
+                                 'Step_1': ['Minor 2nd', 0, -12, 12],
+                                 'Step_10': ['Minor 7th', 0, -12, 12],
+                                 'Step_11': ['Major 7th', 0, -12, 12],
+                                 'Step_2': ['Major 2nd', 0, -12, 12],
+                                 'Step_3': ['Minor 3rd', 0, -12, 12],
+                                 'Step_4': ['Major 3rd', 0, -12, 12],
+                                 'Step_5': ['Perfect 4th', 0, -12, 12],
+                                 'Step_6': ['Diminished 5th', 0, -12, 12],
+                                 'Step_7': ['Perfect 5th', 0, -12, 12],
+                                 'Step_8': ['Minor 6th', 0, -12, 12],
+                                 'Step_9': ['Major 6th', 0, -12, 12],
+                                 'Tone': ['Tone', 0, 0, 11]},
+                    'inputs': {'In': ['In', 'AudioPort']},
+                    'outputs': {'Out1': ['Out 1', 'AudioPort'],
+                                'Out2': ['Out 2', 'AudioPort']}},
+ 'pitch_wam': {'controls': {'Clean': ['Clean', 0, 0, 1],
+                            'Fidelity': ['Fidelity', 1, 0, 3],
+                            'First': ['First', 0, -12, 24],
+                            'Gain': ['Gain', 3.0, -20.0, 20.0],
+                            'Last': ['Last', 12, -12, 24],
+                            'Step': ['Step', 0.0, 0.0, 1.0]},
+               'inputs': {'In': ['In', 'AudioPort']},
+               'outputs': {'Out': ['Out', 'AudioPort']}},
+ 'two_voice': {'controls': {'Fidelity': ['Fidelity', 1, 0, 3],
+                            'Gain_1': ['Gain 1', 3.0, -20.0, 20.0],
+                            'Gain_2': ['Gain 2', 3.0, -20.0, 20.0],
+                            'Step1': ['Step 1', 0, -12, 24],
+                            'Step2': ['Step 2', 0, -12, 24]},
+               'inputs': {'In': ['In', 'AudioPort']},
+               'outputs': {'Out1': ['Out 1', 'AudioPort'],
+                           'Out2': ['Out 2', 'AudioPort']}},
+'pitch_detect': {'controls': {'onset_method': ['Onset Method', 0, 0, 8],
+                               'onset_threshold': ['Onset Threshold',
+                                                   0.3,
+                                                   0.1,
+                                                   1.0],
+                               'pitch_method': ['Pitch Detection Method',
+                                                0,
+                                                0,
+                                                5],
+                               'pitch_threshold': ['Pitch Detection Tolerance',
+                                                   0.3,
+                                                   0.1,
+                                                   0.7],
+                               'silence_threshold': ['Silence Threshold',
+                                                     -90.0,
+                                                     -90.0,
+                                                     -10.0]},
+                  'inputs': {'in': ['In', 'AudioPort']},
+                  'outputs': {'midi_out': ['Midi Out', 'AtomPort']}},
+'pitch_corrector': {'controls': {'bias': ['Bias', 0.5, 0.0, 1.0],
+                                  'channelf': ['Filter Channel', 0, 0, 16],
+                                  'corr': ['Correction', 1.0, 0.0, 1.0],
+                                  'filter': ['Filter', 0.1, 0.02, 0.5],
+                                  'm00': ['C', 1, 0, 1],
+                                  'm01': ['C#', 1, 0, 1],
+                                  'm02': ['D', 1, 0, 1],
+                                  'm03': ['D#', 1, 0, 1],
+                                  'm04': ['E', 1, 0, 1],
+                                  'm05': ['F', 1, 0, 1],
+                                  'm06': ['F#', 1, 0, 1],
+                                  'm07': ['G', 1, 0, 1],
+                                  'm08': ['G#', 1, 0, 1],
+                                  'm09': ['A', 1, 0, 1],
+                                  'm10': ['A#', 1, 0, 1],
+                                  'm11': ['B', 1, 0, 1],
+                                  'mode': ['Mode', 0, 0, 2],
+                                  'offset': ['Offset', 0.0, -2.0, 2.0],
+                                  'panic': ['MIDI Panic', 0, 0, 1],
+                                  'tuning': ['Tuning', 440.0, 400.0, 480.0]},
+                     'inputs': {'in': ['Input', 'AudioPort']},
+                     'outputs': {'error': ['Pitch Error', 'ControlPort'],
+                                 'latency': ['latency', 'ControlPort'],
+                                 'nmask': ['Note Mask', 'ControlPort'],
+                                 'nset': ['Note Set', 'ControlPort'],
+                                 'out': ['Output', 'AudioPort']}},
+'octaver': {'controls': {'DIRECT': ['DIRECT', 0.5, 0.0, 1.0],
+                          'OCTAVE1': ['OCTAVE1', 0.5, 0.0, 1.0],
+                          'OCTAVE2': ['OCTAVE2', 0.5, 0.0, 1.0]},
+             'inputs': {'in': ['In', 'AudioPort']},
+             'outputs': {'out': ['Out', 'AudioPort']}},
+'vinyl': {'controls': {'active0': ['Activate Hum', 0, 0, 1], # hum motor static noise rumble crackle crinkle
+                        'active1': ['Activate Motor', 0, 0, 1],
+                        'active2': ['Activate Static', 0, 0, 1],
+                        'active3': ['Activate Noise', 0, 0, 1],
+                        'active4': ['Activate Rumble', 0, 0, 1],
+                        'active5': ['Activate Crackle', 0, 0, 1],
+                        'active6': ['Activate Crinkle', 0, 0, 1],
+                        'aging': ['Aging', 0, 0, 1],
+                        'drone': ['Drone', 0, 0, 1],
+                        'freq': ['Frequency', 1000, 600, 1800],
+                        # 'gain0': ['Vol Hum', 0.0078125, 1.5849e-05, 1],
+                        # 'gain1': ['Vol Motor', 0.0078125, 1.5849e-05, 1],
+                        # 'gain2': ['Vol Static', 0.015625, 1.5849e-05, 1],
+                        # 'gain3': ['Vol Noise', 0.0078125, 1.5849e-05, 1],
+                        # 'gain4': ['Vol Rumble', 0.03125, 1.5849e-05, 1],
+                        # 'gain5': ['Vol Crackle', 0.0625, 1.5849e-05, 1],
+                        # 'gain6': ['Vol Crinkle', 0.0625, 1.5849e-05, 1],
+                        'level_in': ['Input Gain', 1, 0.015625, 64],
+                        'level_out': ['Output Gain', 1, 0.015625, 64],
+                        # 'pitch0': ['Pitch Hum', 0, -1, 1],
+                        # 'pitch1': ['Pitch Motor', 0, -1, 1],
+                        # 'pitch2': ['Pitch Static', 0, -1, 1],
+                        # 'pitch3': ['Pitch Noise', 0, -1, 1],
+                        # 'pitch4': ['Pitch Rumble', 0, -1, 1],
+                        # 'pitch5': ['Pitch Crackle', 0, -1, 1],
+                        # 'pitch6': ['Pitch Crinkle', 0, -1, 1],
+                        'speed': ['Speed', 33, 33, 78]},
+           'inputs': {'in_l': ['In L', 'AudioPort'],
+                      'in_r': ['In R', 'AudioPort']},
+           'outputs': {'out_l': ['Out L', 'AudioPort'],
+                       'out_r': ['Out R', 'AudioPort']}},
+'pitch_shift': {'description': 'a basic pitch shifter. It delays the input signal',
+            'controls': {'Drylevel': ['Dry Level', -90, -90, 20],
+                              # 'Latency': ['latency', 0, 0, 16027],
+                              # 'Rate': ['Rate Shift [%]', 0, -50, 100],
+                              'Semitone': ['Semitone Shift', 0, -12, 12],
+                              'Wetlevel': ['Wet Level', 0, -90, 20]},
+                 'inputs': {'Input': ['Input', 'AudioPort']},
+                 'outputs': {'Output': ['Output', 'AudioPort']}},
+'adsr': {'description': 'Basic ADSR envelope generator. Takes in a trigger.',
+        'controls': {'attack': ['Attack Time', 0, 0, 1.0],
+                       'decay': ['Decay Time', 0, 0, 1.0],
+                       'release': ['Release Time', 0, 0, 1.0],
+                       'sustain': ['Sustain Level', 1, 0, 1],
+                       'thresh': ['Trigger Threshold', 0.5, 0.0, 1.0]},
+          'inputs': {'drive': ['Driving Signal', 'CVPort']},
+          'outputs': {'out': ['Envelope Out', 'CVPort']}},
+'dahdsr': {'controls': { 'attack': ['Attack Time', 0, 0, 1.0],
+                         'decay': ['Decay Time', 0, 0, 1.0],
+                         'delay': ['Delay Time', 0, 0, 1.0],
+                         'hold': ['Hold Time', 0, 0, 1.0],
+                         'release': ['Release Time', 0, 0, 1.0],
+                         'sustain': ['Sustain Level', 1, 0, 1]},
+            'description': 'A delay attack hold decay sustain release envelope generator',
+            'inputs': {'gate': ['Gate', 'CVPort'],
+                       'trigger': ['Trigger', 'CVPort'],
+                       'attack': ['Attack Time', 'CVPort'],
+                       'decay': ['Decay Time', 'CVPort'],
+                       'delay': ['Delay Time', 'CVPort'],
+                       'hold': ['Hold Time', 'CVPort'],
+                       'release': ['Release Time', 'CVPort'],
+                       'sustain': ['Sustain Level', 'CVPort'],
+                       },
+            'outputs': {'out': ['Envelope Out', 'CVPort']}},
+ 'sample_hold': {'controls': {'triggerlevel': ['Trigger Level', 0.5, 0, 10]},
+                 'description': 'sample and hold a CV value when a trigger goes high',
+                 'inputs': {'input': ['Input', 'CVPort'],
+                            'trigger': ['Trigger', 'CVPort']},
+                 'outputs': {'gate': ['Gate', 'CVPort'],
+                             'output': ['Output', 'CVPort']}},
                      }
 
 effect_prototypes_models = {"digit": {k:effect_prototypes_models_all[k] for k in effect_type_maps["digit"].keys()},
@@ -2217,6 +2460,11 @@ def send_to_footswitch_blocks(timestamp, switch_name, value=0):
                     # qDebug("sending knob change from foot switch "+effect_id + "bpm" + str(float(bpm)))
                     knobs.ui_knob_change(effect_id, "bpm", float(bpm))
                 # qDebug("sending knob change from foot switch "+effect_id + "value" + str(float(value)))
+                if effect["controls"]["latching"].value < 0.9:
+                    effect["controls"]["cur_out"].value = float(value)
+                else:
+                    if value > 0:
+                        effect["controls"]["cur_out"].value = 1.0 - effect["controls"]["cur_out"].value
                 knobs.ui_knob_change(effect_id, "value", float(value))
                 found_effect = True
 
@@ -2353,7 +2601,7 @@ def process_ui_messages():
                 max_load, mean_load, min_load = m[1:]
                 dsp_load.rmin = min_load
                 dsp_load.rmax = max_load
-                dsp_load.value = mean_load
+                dsp_load.value = mean_load + 0.25
             elif m[0] == "set_comment":
                 description, subject = m[1:]
                 preset_description.name = description
@@ -2407,12 +2655,15 @@ def change_pedal_model(name, initial=False):
 
     inv_effect_type_map = {v:k for k, v in effect_type_map.items()}
     current_pedal_model.name = name
-    if not initial:
-        if current_pedal_model.name == "digit":
-            knobs.ui_load_preset_by_name("file:///mnt/presets/digit/Default_Preset.ingen")
-        elif current_pedal_model.name == "beebo":
-            knobs.ui_load_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
     load_preset_list()
+    # if not initial:
+    if True:
+        if current_pedal_model.name == "digit":
+            jump_to_preset(False, 0)
+            # knobs.ui_load_preset_by_name("file:///mnt/presets/digit/Default_Preset.ingen")
+        elif current_pedal_model.name == "beebo":
+            jump_to_preset(False, 0)
+            # knobs.ui_load_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
 
 def handle_MIDI_program_change():
     # This is pretty dodgy... but I don't want to depend on jack in the main process as it'll slow down startup
@@ -2456,8 +2707,17 @@ if __name__ == "__main__":
     debug_print("in Main")
     app = QGuiApplication(sys.argv)
     QIcon.setThemeName("digit")
+
+    # preset might not have been copied on an update, as file system might not have been supported
+    if not os.path.isfile("/mnt/presets/digit/Default_Preset.ingen/main.ttl"):
+        # rsync
+        command = "sudo rsync -a /to_nor_flash/ /nor_flash"
+        ret_var = subprocess.call(command, shell=True)
+
+
     # Instantiate the Python object.
     knobs = Knobs()
+
 
     update_counter = PolyValue("update counter", 0, 0, 500000)
     # read persistant state
@@ -2571,10 +2831,10 @@ if __name__ == "__main__":
     signal(SIGTERM, signalHandler)
     initial_preset = False
     debug_print("starting UI")
-    if current_pedal_model.name == "digit":
-        load_preset("file:///mnt/presets/digit/Default_Preset.ingen/main.ttl", True, True)
-    elif current_pedal_model.name == "beebo":
-        load_preset("file:///mnt/presets/beebo/Empty.ingen/main.ttl", True, True)
+    # if current_pedal_model.name == "digit":
+    #     load_preset("file:///mnt/presets/digit/Default_Preset.ingen/main.ttl", True, True)
+    # elif current_pedal_model.name == "beebo":
+    #     load_preset("file:///mnt/presets/beebo/Empty.ingen/main.ttl", True, True)
     time.sleep(0.2)
     ingen_wrapper.get_state("/main")
     # load_preset("file:///mnt/presets/Default_Preset.ingen/main.ttl", False)
