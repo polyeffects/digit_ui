@@ -2083,14 +2083,17 @@ class Knobs(QObject):
         ports = []
         for source_port, connected in port_connections.items():
             s_effect, s_port = source_port.rsplit("/", 1)
+            display_s_port = effect_prototypes[current_effects[s_effect]["effect_type"]]["inputs"][s_port][0]
             # connections where we are target
             for c_effect, c_port in connected:
+                display_c_port = effect_prototypes[current_effects[c_effect]["effect_type"]]["outputs"][c_port][0]
                 if c_effect == effect_id:
-                    ports.append(s_effect.rsplit("/", 1)[1]+"==="+s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
+                    ports.append("output==="+display_c_port+" connect to "+s_effect.rsplit("/", 1)[1]+" "+ display_s_port +"==="+s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
                 elif s_effect == effect_id:
-                    ports.append(c_effect.rsplit("/", 1)[1]+"==="+s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
+                    ports.append("input==="+c_effect.rsplit("/", 1)[1]+ " "+display_c_port+" connected to "+display_s_port+"==="+s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
         # debug_print("connected ports:", ports, effect_id)
         # qWarning("connected Ports "+ str(ports) + " " + effect_id)
+        ports.sort()
         selected_source_effect_ports.setStringList(ports)
 
     @Slot(str)

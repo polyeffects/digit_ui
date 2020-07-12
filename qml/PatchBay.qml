@@ -509,7 +509,7 @@ import "polyconst.js" as Constants
                 }
 
                 ListView {
-                    width: 700
+                    width: 1000
                     spacing: 5
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top: parent.top
@@ -519,7 +519,7 @@ import "polyconst.js" as Constants
                     delegate: ItemDelegate {
                         width: parent.width
                         height: 90
-                        text: edit.split("===")[0].replace(/_/g, " ")
+                        text: edit.split("===")[1].replace(/_/g, " ")
                         bottomPadding: 2
                         font.pixelSize: fontSizeLarge
                         font.capitalization: Font.AllUppercase
@@ -528,7 +528,7 @@ import "polyconst.js" as Constants
                             // set this as the current port
                             // and update valid targets
                             // console.log("disconnect", edit);
-                            knobs.disconnect_port(edit.split("===")[1]);
+                            knobs.disconnect_port(edit.split("===")[2]);
                             mycanvas.requestPaint();
                             mainStack.pop();
                         }
