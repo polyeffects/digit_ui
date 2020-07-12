@@ -101,6 +101,12 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "midi_clock_out": "http://gareus.org/oss/lv2/mclk",
         "vca": "http://polyeffects.com/lv2/basic_modular#amp",
         "difference": "http://polyeffects.com/lv2/basic_modular#difference",
+        "rectify_value": "http://polyeffects.com/lv2/basic_modular#abs",
+        "max" : "http://polyeffects.com/lv2/basic_modular#max",
+        "min" : "http://polyeffects.com/lv2/basic_modular#min",
+        "product" : "http://polyeffects.com/lv2/basic_modular#product",
+        "ratio" : "http://polyeffects.com/lv2/basic_modular#ratio",
+        "sum" : "http://polyeffects.com/lv2/basic_modular#sum",
         "midi_note_to_cv": "http://polyeffects.com/lv2/midi_to_cv_mono",
         "pitch_shift": "http://moddevices.com/plugins/tap/pitch",
     },
@@ -162,6 +168,12 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "midi_clock_out": "http://gareus.org/oss/lv2/mclk",
         "vca": "http://polyeffects.com/lv2/basic_modular#amp",
         "difference": "http://polyeffects.com/lv2/basic_modular#difference",
+        "rectify_value": "http://polyeffects.com/lv2/basic_modular#abs",
+        "max" : "http://polyeffects.com/lv2/basic_modular#max",
+        "min" : "http://polyeffects.com/lv2/basic_modular#min",
+        "product" : "http://polyeffects.com/lv2/basic_modular#product",
+        "ratio" : "http://polyeffects.com/lv2/basic_modular#ratio",
+        "sum" : "http://polyeffects.com/lv2/basic_modular#sum",
         "macro_osc": "http://polyeffects.com/lv2/polyplaits",
         "midi_note_to_cv": "http://polyeffects.com/lv2/midi_to_cv_mono",
         # "two_voice": "http://moddevices.com/plugins/mod-devel/2Voices",
@@ -178,7 +190,8 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "pitch_shift": "http://moddevices.com/plugins/tap/pitch",
         "adsr": "http://drobilla.net/plugins/blop/adsr",
         "sample_hold": "http://avwlv2.sourceforge.net/plugins/avw/samplehold",
-        "dahdsr": "http://drobilla.net/plugins/blop/dahdsr"
+        "dahdsr": "http://drobilla.net/plugins/blop/dahdsr",
+        'drum_patterns': 'http://polyeffects.com/lv2/polygrids',
 
 
         }}
@@ -565,18 +578,18 @@ effect_prototypes_models_all = {
                            'INPUT': ['Audio In', 'AudioPort'],
                            'START': ['Start', 'CVPort']},
                 'outputs': { 'OUTPUT': ['Audio Out', 'AudioPort']}},
-    'attenuverter': {'description': 'The attenuverter changes level and/or phase of a control signal.',
-            'controls': {'multiplicand': ['Multiplicand', 0.5, -1.0, 1.0],
-                               'multiplier': ['Multiplier', 0.5, -1.0, 1.0]},
-                  'inputs': {'multiplicand': ['Multiplicand', 'CVPort'],
-                           'multiplier': ['Multiplier', 'CVPort']},
+    'attenuverter': {'description': 'The attenuverter changes level and/or phase of a control signal. A x B',
+            'controls': {'multiplicand': ['A', 0.5, -1.0, 1.0],
+                               'multiplier': ['B', 0.5, -1.0, 1.0]},
+                  'inputs': {'multiplicand': ['A', 'CVPort'],
+                           'multiplier': ['B', 'CVPort']},
                   'outputs': {'product': ['Product', 'CVPort']}},
  'tempo_ratio': {'description': '',
          'controls': {'denominator': ['Divider', 0.5, 0.1, 16.0],
                               'numerator': ['Tempo', 120.0, 5.0, 300.0]},
                        'inputs': {'denominator': ['Tempo', 'ControlPort']},
                  'outputs': {'ratio': ['Ratio', 'ControlPort']}},
- 'mono_compressor': {'description': 'RMS download compressor with auto markup','controls': {'Ratio': ['Ratio', 0.0, 0.0, 1.0],
+ 'mono_compressor': {'description': 'RMS downward compressor with auto markup','controls': {'Ratio': ['Ratio', 0.0, 0.0, 1.0],
                                   'attack': ['Attack Time', 0.01, 0.001, 0.1],
                                   'hold': ['Hold', 0, 0, 1],
                                   'inputgain': ['Input Gain', 0.0, -10.0, 30.0],
@@ -602,7 +615,7 @@ effect_prototypes_models_all = {
                          'rt_speed': ['Old Motors Ac Dc', "CVPort"]},
             'outputs': {'left': ['Left Output', 'AudioPort'],
                         'right': ['Right Output', 'AudioPort']}},
- 'stereo_compressor': {'description': 'RMS download compressor with auto markup','controls': {'Ratio': ['Ratio', 0.0, 0.0, 1.0],
+ 'stereo_compressor': {'description': 'RMS downward compressor with auto markup','controls': {'Ratio': ['Ratio', 0.0, 0.0, 1.0],
                                     'attack': ['Attack Time', 0.01, 0.001, 0.1],
                                     'enable': ['Enable', 1, 0, 1],
                                     'hold': ['Hold', 0, 0, 1],
@@ -1230,7 +1243,32 @@ effect_prototypes_models_all = {
     'vca': {'description': 'simple voltage controlled amplifier','controls': {'gain': ['Gain', 1.0, 0.0, 1.0]},
          'inputs': {'gain': ['Gain', 'CVPort'], 'in': ['Input', 'AudioPort']},
          'outputs': {'out': ['Output', 'AudioPort']}},
+        # "product" : "http://polyeffects.com/lv2/basic_modular#product",
+        # "ratio" : "http://polyeffects.com/lv2/basic_modular#ratio",
     'difference': {'description': 'a - b for control signals', 'controls': {'a': ['a', 0, 0, 1], 'b': ['b', 0, 0, 1]},
+                'inputs': {'a_cv': ['A CV', 'CVPort'],
+                           'b_cv': ['B CV', 'CVPort']},
+                'outputs': {'out': ['Output', 'CVPort']}},
+    'rectify_value': {'description': 'rectify or get the absolute value of the input. ', 'controls': {},
+                'inputs': {'a_cv': ['A CV', 'CVPort']},
+                'outputs': {'out': ['Output', 'CVPort']}},
+    'max': {'description': 'max of a, b also logical or', 'controls': {'a': ['a', 0, 0, 1], 'b': ['b', 0, 0, 1]},
+                'inputs': {'a_cv': ['A CV', 'CVPort'],
+                           'b_cv': ['B CV', 'CVPort']},
+                'outputs': {'out': ['Output', 'CVPort']}},
+    'min': {'description': 'min of a, b also logical and', 'controls': {'a': ['a', 0, 0, 1], 'b': ['b', 0, 0, 1]},
+                'inputs': {'a_cv': ['A CV', 'CVPort'],
+                           'b_cv': ['B CV', 'CVPort']},
+                'outputs': {'out': ['Output', 'CVPort']}},
+    'sum': {'description': 'a + b for control signals', 'controls': {'a': ['a', 0, 0, 1], 'b': ['b', 0, 0, 1]},
+                'inputs': {'a_cv': ['A CV', 'CVPort'],
+                           'b_cv': ['B CV', 'CVPort']},
+                'outputs': {'out': ['Output', 'CVPort']}},
+    'product': {'description': 'a times b for control signals', 'controls': {'a': ['a', 0, 0, 1], 'b': ['b', 0, 0, 1]},
+                'inputs': {'a_cv': ['A CV', 'CVPort'],
+                           'b_cv': ['B CV', 'CVPort']},
+                'outputs': {'out': ['Output', 'CVPort']}},
+    'ratio': {'description': 'a divided by b for control signals', 'controls': {'a': ['a', 0, 0, 1], 'b': ['b', 0, 0, 1]},
                 'inputs': {'a_cv': ['A CV', 'CVPort'],
                            'b_cv': ['B CV', 'CVPort']},
                 'outputs': {'out': ['Output', 'CVPort']}},
@@ -1471,6 +1509,36 @@ effect_prototypes_models_all = {
                             'trigger': ['Trigger', 'CVPort']},
                  'outputs': {'gate': ['Gate', 'CVPort'],
                              'output': ['Output', 'CVPort']}},
+ 'drum_patterns': {'controls': {'bd_dens': ['bass drum density', 0.5, 0.0, 1.0],
+                                'chaos': ['chaos', 0.0, 0.0, 1.0],
+                                'hh_dens': ['hihat density', 0.5, 0.0, 1.0],
+                                'mapx': ['Map x', 0.0, 0.0, 1.0],
+                                'mapy': ['map y', 0.5, 0.0, 1.0],
+                                'reset_button': ['reset button', 0, 0.0, 1.0],
+                                'run_button': ['run button', 0.0, 0.0, 1.0],
+                                'sn_dens': ['snare density', 0.5, 0.0, 1.0],
+                                'swing': ['swing', 0.0, 0.0, 0.9],
+                                'tempo': ['tempo', 120.0, 37.0, 240.0]},
+                   'description': 'drum trigger explorer',
+                   'inputs': {'bd_fill_cv': ['bd_fill_cv', 'CVPort'],
+                              'chaos_cv': ['chaos cv', 'CVPort'],
+                              'clock': ['clock', 'CVPort'],
+                              'hh_fill_cv': ['hh fill cv', 'CVPort'],
+                              'mapx_cv': ['map x cv', 'CVPort'],
+                              'mapy_cv': ['map y cv', 'CVPort'],
+                              'reset': ['reset', 'CVPort'],
+                              'run_input': ['run', 'CVPort'],
+                              'sn_fill_cv': ['sn fill cv', 'CVPort'],
+                              'swing_cv': ['swing cv', 'CVPort'],
+                              'tempo': ['BPM', 'ControlPort'],
+                              },
+                   'outputs': {'bd_acc_output': ['bass drum accent',
+                                                 'CVPort'],
+                               'bd_output': ['bass drum trigger', 'CVPort'],
+                               'hh_acc_output': ['hihat accent', 'CVPort'],
+                               'hh_output': ['hihat trigger', 'CVPort'],
+                               'sn_acc_output': ['snare accent', 'CVPort'],
+                               'sn_output': ['snare trigger', 'CVPort']}},
                      }
 
 effect_prototypes_models = {"digit": {k:effect_prototypes_models_all[k] for k in effect_type_maps["digit"].keys()},
@@ -1733,8 +1801,10 @@ def load_pedal_state():
         pedal_state = {"input_level": 0, "midi_channel": 1, "author": "poly player", "model": "digit"}
 
 
-selected_effect_ports = QStringListModel()
-selected_effect_ports.setStringList(["val1", "val2"])
+selected_source_effect_ports = QStringListModel()
+selected_source_effect_ports.setStringList(["val1", "val2"])
+selected_dest_effect_ports = QStringListModel()
+selected_dest_effect_ports.setStringList(["val1", "val2"])
 seq_num = 10
 
 sub_graph_suffix = 0
@@ -1992,18 +2062,21 @@ class Knobs(QObject):
             # context.setContextProperty("portConnections", port_connections)
 
 
-    @Slot(bool, str)
-    def select_effect(self, is_source, effect_id):
+    @Slot(bool, str, bool)
+    def select_effect(self, is_source, effect_id, restrict_port_types=True):
         effect_type = current_effects[effect_id]["effect_type"]
         # debug_print("selecting effect type", effect_type)
         if is_source:
             ports = [k+'|'+v[0] for k,v in effect_prototypes[effect_type]["outputs"].items()]
-            selected_effect_ports.setStringList(ports)
+            selected_source_effect_ports.setStringList(ports)
         else:
             s_effect_id, s_port = connect_source_port.name.rsplit("/", 1)
             source_port_type = effect_prototypes[current_effects[s_effect_id]["effect_type"]]["outputs"][s_port][1]
-            ports = [k+'|'+v[0] for k,v in effect_prototypes[effect_type]["inputs"].items() if v[1] == source_port_type]
-            selected_effect_ports.setStringList(ports)
+            if restrict_port_types or source_port_type == "AtomPort":
+                ports = [k+'|'+v[0] for k,v in effect_prototypes[effect_type]["inputs"].items() if v[1] == source_port_type]
+            else:
+                ports = [k+'|'+v[0] for k,v in effect_prototypes[effect_type]["inputs"].items() if v[1] != "AtomPort"]
+            selected_dest_effect_ports.setStringList(ports)
 
     @Slot(str)
     def list_connected(self, effect_id):
@@ -2018,7 +2091,7 @@ class Knobs(QObject):
                     ports.append(c_effect.rsplit("/", 1)[1]+"==="+s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
         # debug_print("connected ports:", ports, effect_id)
         # qWarning("connected Ports "+ str(ports) + " " + effect_id)
-        selected_effect_ports.setStringList(ports)
+        selected_source_effect_ports.setStringList(ports)
 
     @Slot(str)
     def disconnect_port(self, port_pair):
@@ -2758,7 +2831,8 @@ if __name__ == "__main__":
     context.setContextProperty("knobs", knobs)
     change_pedal_model(pedal_state["model"], True)
     context.setContextProperty("available_effects", available_effects)
-    context.setContextProperty("selectedEffectPorts", selected_effect_ports)
+    context.setContextProperty("selectedSourceEffectPorts", selected_source_effect_ports)
+    context.setContextProperty("selectedDestEffectPorts", selected_dest_effect_ports)
     context.setContextProperty("portConnections", port_connections)
     context.setContextProperty("effectPrototypes", effect_prototypes)
     context.setContextProperty("updateCounter", update_counter)

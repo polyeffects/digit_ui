@@ -15,11 +15,11 @@ import "polyconst.js" as Constants
 Rectangle {
     id: rect
     // color: patch_bay.delete_mode ? Qt.rgba(0.9,0.0,0.0,1.0) : Qt.rgba(0.3,0.3,0.3,1.0)  
-    z: mouseArea.drag.active ||  mouseArea.pressed || selected ? 4 : 1
+    // z: mouseArea.drag.active ||  mouseArea.pressed || selected ? 4 : 1
     // color: Material.color(time_scale.delay_colors[index])
     // color: Qt.rgba(0, 0, 0, 0)
     // color: setColorAlpha(Material.Pink, 0.1);//Qt.rgba(0.1, 0.1, 0.1, 1);
-    property point beginDrag
+    property vector2d beginDrag
     property bool caught: false
     property string effect_id
     property string effect_type
@@ -31,6 +31,8 @@ Rectangle {
     property Column outputs: output_rec
 	property real current_subdivision: 1.0 
 	property int rotaryTabIndex: 0
+	property bool set_hold: false
+	property bool was_hold: false
 
     color: !effect_type.startsWith("foot_switch_") ? Constants.background_color : currentEffects[effect_id]["controls"]["cur_out"].value > 0.9 ? Constants.cv_color : Constants.background_color
 
@@ -62,7 +64,7 @@ Rectangle {
     property bool is_io: ["input", "output", "midi_input", "midi_output"].indexOf(effect_type) >= 0
     property var sliders; 
     // border { width:2; color: Material.color(Material.Cyan, Material.Shade100)}
-    Drag.active: mouseArea.drag.active
+    // Drag.active: mouseArea.drag.active
 
     // width: (effect_id.length * 1.6) + 100
     width: 115
@@ -116,41 +118,47 @@ Rectangle {
 
     property string effect_title: rsplit(effect_id, "/", 1)[1].replace(/_/g, " ")
 
-    function connect_clicked() {
+    function two_finger_connect_clicked(first) {
         /*
          * on click, check if we are highlight, if not find source ports 
          * if we are, then we're a current target
          */
-        if (!(highlight)){
+        if (first){
+			patch_bay.from_hold = true;
             var k = output_keys;
             if (k.length == 0){
                 return;
             }
 
-            selected = true
+            selected = false
             patch_bay.selected_effect = rect
-            hide_sliders(false);
-            knobs.select_effect(true, effect_id)
-            patch_bay.list_effect_id = effect_id;
-            patch_bay.list_source = true;
+            knobs.select_effect(true, effect_id, true)
+            patch_bay.list_source_effect_id = effect_id;
+			patch_bay.source_selected = false;
 
             if (k.length > 1 )
             {
-                mainStack.push(portSelection);
-                patch_bay.current_help_text = Constants.help["connect_to"];
+				patch_bay.source_selected = false;
             } 
             else if (k.length == 1) {
                 knobs.set_current_port(true, effect_id, k[0]);
                 // rep1.model.items_changed();
                 patch_bay.externalRefresh();
-                patch_bay.current_help_text = Constants.help["connect_to"];
+				patch_bay.source_selected = true;
             }
         } else {
-            patch_bay.selected_effect.selected = false;
+            // patch_bay.selected_effect.selected = false;
 
-            knobs.select_effect(false, effect_id)
-            patch_bay.list_effect_id = effect_id;
-            patch_bay.list_source = false;
+
+            patch_bay.list_dest_effect_id = effect_id;
+            patch_bay.list_dest_effect_type = effect_type;
+			
+			if (!patch_bay.source_selected){
+				mainStack.push(sourcePortSelection);
+				return;
+			}
+            knobs.select_effect(false, effect_id, true)
+
             var source_port_pair = rsplit(connectSourcePort.name, "/", 1)
             var source_port_type = effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
 
@@ -169,11 +177,70 @@ Rectangle {
             }
             if (matched > 1 )
             {
-                mainStack.push(portSelection);
-                patch_bay.current_help_text = Constants.help["connect_from"];
+                mainStack.push(destPortSelection);
+                patch_bay.current_help_text = ""
             } 
             else if (matched == 1){
                 knobs.set_current_port(false, effect_id, k[matched_id]);
+                // rep1.model.items_changed();
+                patch_bay.externalRefresh();
+                patch_bay.currentMode = PatchBay.Select;
+				patch_bay.current_help_text = Constants.help["select"];
+            }
+        }
+
+    }
+
+    function connect_clicked(first) {
+        /*
+         * on click, check if we are highlight, if not find source ports 
+         * if we are, then we're a current target
+         */
+		patch_bay.from_hold = false;
+        if ((first == true) || !(patch_bay.selected_effect.selected)){
+            var k = output_keys;
+            if (k.length == 0){
+                return;
+            }
+
+            selected = true
+            patch_bay.selected_effect = rect
+            hide_sliders(false);
+            knobs.select_effect(true, effect_id, false)
+            patch_bay.list_source_effect_id = effect_id;
+
+            if (k.length > 1 )
+            {
+                mainStack.push(sourcePortSelection);
+                patch_bay.current_help_text = Constants.help["connect_to"];
+            } 
+            else if (k.length == 1) {
+                knobs.set_current_port(true, effect_id, k[0]);
+                // rep1.model.items_changed();
+                patch_bay.externalRefresh();
+                patch_bay.current_help_text = Constants.help["connect_to"];
+            }
+        } else {
+            patch_bay.selected_effect.selected = false;
+
+            knobs.select_effect(false, effect_id, false)
+            patch_bay.list_dest_effect_id = effect_id;
+            var source_port_pair = rsplit(connectSourcePort.name, "/", 1)
+            var source_port_type = effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
+
+            var k;
+            var matched = 0;
+            var matched_id = 0;
+            // console.log("source port ", source_port_pair);
+            // console.log("source port ", effect_id);
+            k = Object.keys(effectPrototypes[effect_type]["inputs"])
+            if (k.length > 1 )
+            {
+                mainStack.push(destPortSelection);
+                patch_bay.current_help_text = Constants.help["connect_from"];
+            } 
+            else if (k.length == 1){
+                knobs.set_current_port(false, effect_id, k[0]);
                 // rep1.model.items_changed();
                 patch_bay.externalRefresh();
                 patch_bay.current_help_text = Constants.help["connect_from"];
@@ -321,8 +388,7 @@ Rectangle {
         knobs.list_connected(effect_id);
         // * on click if highlighted (valid port)
         // * show select target port if port count > 1
-        patch_bay.list_effect_id = effect_id;
-        patch_bay.list_source = false;
+        patch_bay.list_source_effect_id = effect_id;
         hide_sliders(true);
         mainStack.push(disconnectPortSelection);
         // select target, show popup with target ports
@@ -334,7 +400,7 @@ Rectangle {
     }
 
 
-    border { width:2; color: selected ? accent_color.name : "white"}
+    border { width:2; color: patch_bay.selected_effect == rect ? accent_color.name : "white"}
 
     Column {
         id: output_rec
@@ -441,78 +507,106 @@ Rectangle {
         }
     }
     //
-    MouseArea {
+    MultiPointTouchArea {
         id: mouseArea
         z: -1
         anchors.fill: parent
+		property var drag: parent
+		property var offset: null
         // drag.target: patch_bay.current_mode == PatchBay.Move ? parent : undefined
-        drag.target: !rect.is_io && patch_bay.currentMode == PatchBay.Move ? parent : undefined
+        // drag.target: !rect.is_io && patch_bay.currentMode == PatchBay.Move ? parent : undefined
+        // drag.target: !rect.is_io ? parent : undefined
         // drag.target: parent 
+		minimumTouchPoints: 1
+		maximumTouchPoints: 1
+
+		function dragMove(holder, point) {
+			if (!rect.is_io){
+				if (point && drag) {
+					var position = holder.mapFromItem(drag, point.x, point.y);
+					drag.x = position.x - offset.x;
+					drag.y = position.y - offset.y;
+				}
+			}
+		}
+
+		Timer {
+			id: longPressTimer
+
+			interval: 500 
+			repeat: false
+			running: false
+
+			onTriggered: {
+				//pressAndHold
+				if (rect.beginDrag.fuzzyEquals(Qt.vector2d(rect.x, rect.y), 6)){
+					// console.log("press and hold");
+					if (patch_bay.currentMode == PatchBay.Select){
+						// if there isn't a current pressed point, we are the first one,
+						// record us and display the hold action
+						// if there's an existing point then we're the destination, connect
+						patch_bay.currentMode = PatchBay.Hold;
+						rect.set_hold = true;
+						rect.was_hold = true;
+						two_finger_connect_clicked(true);
+						patch_single.current_help_text = Constants.help["hold"];
+					}
+				}
+			}
+		}
+
+		onTouchUpdated: {
+			var point = touchPoints[0];
+			dragMove(patch_bay, point);
+		}
+
         onPressed: {
             // check mode: move, delete, connect, open
-            rect.beginDrag = Qt.point(rect.x, rect.y);
+            rect.beginDrag = Qt.vector2d(rect.x, rect.y);
+			var point = touchPoints[0];
+			offset = Qt.point(point.x, point.y);
+			dragMove(patch_bay, point);
+			longPressTimer.restart();
+			rect.was_hold = false;
 			// console.log("effect proto", Object.keys(effectPrototypes[effect_type]["inputs"]))
 
             if (patch_bay.currentMode == PatchBay.Connect){
-                connect_clicked();
+                connect_clicked(false);
             }
             else if (patch_bay.currentMode == PatchBay.Move){
 				patch_bay.isMoving = true;
 				patch_bay.externalRefresh();
+			} 
+			else if (patch_bay.currentMode == PatchBay.Hold){
+				rect.was_hold = true;
+				two_finger_connect_clicked(false);
 			}
-            else if (patch_bay.currentMode == PatchBay.Select){
-                selected = true
-                patch_bay.selected_effect = rect
-                // bring up sliders/controls, and icons
-                // if we're past left of center sliders on right
-                // else sliders on left
-                // selected changes z via binding
-				//
-                patch_bay.currentMode = PatchBay.Sliders;
-				expand_clicked();
-            }
         }
-        onDoubleClicked: {
-            // time_scale.current_delay = index;
-            // mainStack.push(editDelay);
-            // mappingPopup.set_mapping_choice("delay"+(index+1), "Delay_1", "TIME", 
-            //     "delay"+(index+1), time_scale.current_parameter, 
-            //     time_scale.inv_parameter_map[time_scale.current_parameter], false);    
-            // remove MIDI mapping
-            // add MIDI mapping
-        }
+
         onReleased: {
             // var in_x = rect.x;
             // var in_y = rect.y;
-           
-            patch_bay.isMoving = false;
-            if (rect.beginDrag != Qt.point(rect.x, rect.y)){
+			// console.log("on release called");
+			longPressTimer.stop();
+			patch_bay.isMoving = false;
+			// if we set hold, reset to select
+			if (rect.set_hold){
+                patch_bay.currentMode = PatchBay.Select;
+				patch_bay.current_help_text = Constants.help["select"];
+			}
+
+			if (!rect.beginDrag.fuzzyEquals(Qt.vector2d(rect.x, rect.y), 6)){
 				patch_bay.externalRefresh();
 				knobs.move_effect(effect_id, rect.x, rect.y)
-            }
-            // if (patch_bay.currentMode == PatchBay.Move){
-			// }
-
-            // if(!rect.caught) {
-            // // clamp to bounds
-            // in_x = Math.min(Math.max(-(width / 2), in_x), mycanvas.width - (width / 2));
-            // in_y = Math.min(Math.max(-(width / 2), in_y), mycanvas.height - (width / 2));
-            // }
-            // if(time_scale.snapping && time_scale.synced) {
-            //     in_x = time_scale.nearestDivision(in_x + (width / 2)) - (width / 2);
-            // }
-            // in_x = in_x + (width / 2);
-            // in_y = in_y + (width / 2);
-            // knobs.ui_knob_change("delay"+(index+1), "Delay_1", time_scale.pixelToTime(in_x));
-            // knobs.ui_knob_change("delay"+(index+1), 
-            // time_scale.current_parameter, 
-            // time_scale.pixelToValue(time_scale.delay_data[index][time_scale.current_parameter].rmin, 
-            // time_scale.delay_data[index][time_scale.current_parameter].rmax, 
-            // in_y)); 
-            // console.log("parameter map", 
-            // time_scale.current_parameter, "value", 
-            // time_scale.pixelToValue(in_y),
-            // "rect.y", rect.y, "in_y", in_y);
+			} 
+			else if (!rect.was_hold){
+				if (patch_bay.currentMode == PatchBay.Select){
+					selected = true
+					patch_bay.selected_effect = rect
+					patch_bay.currentMode = PatchBay.Sliders;
+					expand_clicked();
+				}
+			}
         }
 
     }
@@ -1817,7 +1911,8 @@ Rectangle {
 						width: 110
 						height: 90
 						onClicked: {
-							connect_clicked();
+							patch_bay.from_hold = false;
+							connect_clicked(true);
 							patch_bay.currentMode = PatchBay.Connect;
 							patch_bay.current_help_text = Constants.help["connect_to"];
 						}

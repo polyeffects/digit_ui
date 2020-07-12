@@ -501,7 +501,7 @@ Item {
                             knobs.add_new_effect(edit)
                             // knobs.ui_add_effect(edit)
                             mainStack.pop()
-                            patch_single.currentMode = PatchBay.Move;
+                            // patch_single.currentMode = PatchBay.Move;
                             patch_single.current_help_text = Constants.help["move"];
 
                         }

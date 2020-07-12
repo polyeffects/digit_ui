@@ -22,7 +22,8 @@ import "polyconst.js" as Constants
             Move,
             Connect,
             Sliders,
-            Details
+			Details,
+			Hold
         }
         property int active_width: 900
         property int updateCount: updateCounter, externalRefresh()
@@ -31,8 +32,11 @@ import "polyconst.js" as Constants
         property int currentMode: PatchBay.Select
         property string current_help_text: "Tap or add a module"
         // relate to port selection popup
-        property bool list_source: true
-        property string list_effect_id
+        property string list_source_effect_id
+        property string list_dest_effect_id
+        property string list_dest_effect_type
+        property bool source_selected: false
+        property bool from_hold: false
         property var effect_map: {"invalid":"b"}
         property PatchBayEffect selected_effect
 
@@ -131,6 +135,9 @@ import "polyconst.js" as Constants
                     var targets = portConnections[source_effect_port_str];
                     var source_index = effect_map[source_effect_port[0]].input_keys.indexOf(source_effect_port[1])
                     // console.log("drawing connection 1", source_effect_port[0], portConnections[source_effect_port_str]);
+					// var source_port_type = "AudioPort" // 
+					var source_port_type = effectPrototypes[currentEffects[source_effect_port[0]]["effect_type"]]["inputs"][source_effect_port[1]][1]
+					// console.log("source_port_type", source_port_type);
                     
                     for (var target in targets){
                         // console.log("drawing connection 2 targets", targets[0][0]);
@@ -141,13 +148,14 @@ import "polyconst.js" as Constants
                         var target_index = effect_map[targets[target][0]].output_keys.indexOf(targets[target][1])
                         // console.log("target_port_type", target_port_type);
                         //effect_map[source_effect_port[0]], effect_map[targets[target][0]]
-                        drawConnection(drawContext, effect_map[source_effect_port[0]], effect_map[targets[target][0]], target_port_type, target_index, source_index);
+						drawConnection(drawContext, effect_map[source_effect_port[0]], effect_map[targets[target][0]], target_port_type, 
+							target_index, source_index, source_port_type);
                     } 
                 }
             }
 
-            function drawConnection( drawContext, targetPort, sourcePort, source_port_type, source_index, target_index ) {
-                if (source_port_type == "AudioPort" || source_port_type == "AtomPort"){
+            function drawConnection( drawContext, targetPort, sourcePort, source_port_type, source_index, target_index, target_port_type ) {
+                if (target_port_type == "AudioPort" || target_port_type == "AtomPort"){
                     var start   = getCanvasCoordinates( targetPort.inputs, 0, 9+(target_index* 24))
                 } else {
                     var start   = getCanvasCoordinates( targetPort.cv_area, targetPort.cv_area.width / 2, targetPort.cv_area.height - 2)
@@ -185,7 +193,7 @@ import "polyconst.js" as Constants
                 drawContext.moveTo( start.x, start.y );
 
                 // console.log("drawing curve", start.x, start.y, end.x, end.y, source_port_type);
-                if (source_port_type == "AudioPort" || source_port_type == "AtomPort"){
+                if (target_port_type == "AudioPort" || target_port_type == "AtomPort"){
                     drawContext.bezierCurveTo( start.x + sizeX / 2.0 , start.y, end.x - sizeX / 2.0, end.y, end.x, end.y );
                 } else {
                     drawContext.bezierCurveTo( start.x, start.y + 50, end.x - sizeX / 2, end.y, end.x, end.y );
@@ -289,16 +297,16 @@ import "polyconst.js" as Constants
 
 
         Component {
-            id: portSelection
+            id: sourcePortSelection
             Item {
-                id: portSelectionCon
+                id: sourcePortSelectionCon
                 y: 50
                 height:700
                 width:1280
 
                 GlowingLabel {
                     color: "#ffffff"
-                    text: "Choose Port"
+                    text: "Choose Source Port"
                     font {
                         pixelSize: fontSizeLarge * 1.2
                     }
@@ -324,20 +332,137 @@ import "polyconst.js" as Constants
                         onClicked: {
                             // set this as the current port
                             // and update valid targets
-                            knobs.set_current_port(list_source, list_effect_id, edit.split("|")[0]);
+							// console.log("list_source_effect_id", list_source_effect_id, edit.split("|")[0]);
+                            knobs.set_current_port(true, list_source_effect_id, edit.split("|")[0]);
                             // rep1.model.items_changed(); //  FIXME
                             mycanvas.requestPaint();
+							if (patch_bay.from_hold){
+								knobs.select_effect(false, list_dest_effect_id, true);
+								var source_port_pair = [list_source_effect_id, edit.split("|")[0]];
+								var source_port_type = effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
+
+								var k;
+								var matched = 0;
+								var matched_id = 0;
+								// console.log("source port in from hold ", source_port_pair);
+								// console.log("source port ", effect_id);
+								k = Object.keys(effectPrototypes[list_dest_effect_type]["inputs"])
+								for (var i in k) {
+									// console.log("port name is ", i[k]);
+									if (effectPrototypes[list_dest_effect_type]["inputs"][k[i]][1] == source_port_type){
+										matched++;
+										matched_id = i;
+									}
+								}
+								if (matched > 1 )
+								{
+									mainStack.replace(destPortSelection);
+									patch_bay.current_help_text = ""
+								} 
+								else if (matched == 1){
+									knobs.set_current_port(false, list_dest_effect_id, k[matched_id]);
+									// rep1.model.items_changed();
+									patch_bay.externalRefresh();
+									patch_bay.currentMode = PatchBay.Select;
+									patch_bay.current_help_text = Constants.help["select"];
+									mainStack.pop();
+								}
+
+							} 
+							else {
+								mainStack.pop();
+							}
+                        }
+                    }
+                    ScrollIndicator.vertical: ScrollIndicator {
+                        anchors.top: parent.top
+                        parent: sourcePortSelectionCon
+                        anchors.right: parent.right
+                        anchors.rightMargin: 1
+                        anchors.bottom: parent.bottom
+                    }
+                    model: selectedSourceEffectPorts
+                }
+            
+                
+                IconButton {
+                    x: 34 
+                    y: 596
+                    icon.width: 15
+                    icon.height: 25
+                    width: 119
+                    height: 62
+                    text: "BACK"
+                    font {
+                        pixelSize: 24
+                    }
+                    flat: false
+                    icon.name: "back"
+                    Material.background: "white"
+                    Material.foreground: Constants.outline_color
+
+                    onClicked: { 
+                        current_help_text = ""
+                        mainStack.pop()
+                    }
+                }
+            }
+        }
+
+        Component {
+            id: destPortSelection
+            Item {
+                id: destPortSelectionCon
+                y: 50
+                height:700
+                width:1280
+
+                GlowingLabel {
+                    color: "#ffffff"
+                    text: "Choose Destination Port"
+                    font {
+                        pixelSize: fontSizeLarge * 1.2
+                    }
+                    anchors.top: parent.top
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                ListView {
+                    width: 400
+                    spacing: 5
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: parent.top
+                    anchors.topMargin: 90
+                    anchors.bottom: parent.bottom
+                    clip: true
+                    delegate: ItemDelegate {
+                        width: parent.width
+                        height: 90
+                        text: edit.split("|")[1]
+                        bottomPadding: 2
+                        font.pixelSize: fontSizeLarge
+                        topPadding: 2
+                        onClicked: {
+                            // set this as the current port
+                            // and update valid targets
+                            knobs.set_current_port(false, list_dest_effect_id, edit.split("|")[0]);
+                            // rep1.model.items_changed(); //  FIXME
+                            mycanvas.requestPaint();
+							if (patch_bay.from_hold){
+								patch_bay.currentMode = PatchBay.Select;
+								patch_bay.current_help_text = Constants.help["select"];
+							}
                             mainStack.pop();
                         }
                     }
                     ScrollIndicator.vertical: ScrollIndicator {
                         anchors.top: parent.top
-                        parent: portSelectionCon
+                        parent: destPortSelectionCon
                         anchors.right: parent.right
                         anchors.rightMargin: 1
                         anchors.bottom: parent.bottom
                     }
-                    model: selectedEffectPorts
+                    model: selectedDestEffectPorts
                 }
             
                 
@@ -415,7 +540,7 @@ import "polyconst.js" as Constants
                         anchors.rightMargin: 1
                         anchors.bottom: parent.bottom
                     }
-                    model: selectedEffectPorts
+                    model: selectedSourceEffectPorts
                 }
             
                 

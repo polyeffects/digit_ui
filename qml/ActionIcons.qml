@@ -19,7 +19,7 @@ Item {
         x: 30
         id: action_icons
         z: 6
-        spacing: 0
+        spacing: 10
 
         IconButton {
             icon.source: patch_single.selected_effect && currentEffects[patch_single.selected_effect.effect_id]["enabled"].value ? "../icons/digit/clouds/ON.png" : "../icons/digit/clouds/OFF.png"
@@ -48,7 +48,7 @@ Item {
             width: 110
             height: 90
             onClicked: {
-                patch_single.selected_effect.connect_clicked();
+                patch_single.selected_effect.connect_clicked(true);
                 patch_single.currentMode = PatchBay.Connect;
                 patch_single.current_help_text = Constants.help["connect_to"];
             }
@@ -74,24 +74,6 @@ Item {
 
             SideHelpLabel {
                 text: "disconnect"
-            }
-        }
-        IconButton {
-            icon.source: "../icons/digit/clouds/Move.png"
-            rightPadding: 20
-            leftPadding: 0
-            visible: patch_single.selected_effect && !(patch_single.selected_effect.is_io)
-            width: 110
-            height: 90
-            onClicked: {
-                patch_single.currentMode = PatchBay.Move;
-                patch_single.current_help_text = Constants.help["move"];
-                patch_single.selected_effect.hide_sliders(false);
-            }
-            Material.foreground: "white"
-            radius: 30
-            SideHelpLabel {
-                text: "move"
             }
         }
 
