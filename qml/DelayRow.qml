@@ -2,6 +2,7 @@ import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
+
 Item {
     height: 62
     width:  472
@@ -9,6 +10,9 @@ Item {
     property string current_effect 
     property real multiplier: 1  
 	property bool is_log: false
+	property bool was_double: false
+	property int updateCount: 1
+
 
     function basename(ustr)
     {
@@ -65,21 +69,39 @@ Item {
         title: currentEffects[current_effect]["controls"][row_param].name
         width: 420
         height:parent.height
-        value: is_log ? logslider(currentEffects[current_effect]["controls"][row_param].value) : currentEffects[current_effect]["controls"][row_param].value
+        value: updateCount, is_log ? logslider(currentEffects[current_effect]["controls"][row_param].value) : currentEffects[current_effect]["controls"][row_param].value
         from: is_log ? 20 : currentEffects[current_effect]["controls"][row_param].rmin
         to: is_log ? 20000 : currentEffects[current_effect]["controls"][row_param].rmax
         onMoved: {
-			if (is_log){
-				knobs.ui_knob_change(current_effect, row_param, logposition(value));
-			} else {
-				knobs.ui_knob_change(current_effect, row_param, value);
+			if (!was_double){
+				if (is_log){
+					knobs.ui_knob_change(current_effect, row_param, logposition(value));
+				} else {
+					knobs.ui_knob_change(current_effect, row_param, value);
+				}
 			}
         }
         onPressedChanged: {
             if (pressed){
                 knobs.set_knob_current_effect(current_effect, row_param);
+				if (rowTimer.running){
+					rowTimer.stop();
+					console.log("double tap", currentEffects[current_effect]["controls"][row_param].default_value);
+					knobs.ui_knob_change(current_effect, row_param, currentEffects[current_effect]["controls"][row_param].default_value);
+					updateCount++;
+					value = currentEffects[current_effect]["controls"][row_param].default_value;
+					was_double = true;
+				} else {
+					console.log("rowtimer restart");
+					rowTimer.restart();
+					was_double = false;
+				}
             }
         }
+		Timer {
+			id: rowTimer
+			interval: 400
+		}
     }
 
 	IconButton {
@@ -91,6 +113,9 @@ Item {
 		height: 60
 		onClicked: {
 			knobs.set_knob_current_effect(current_effect, row_param);
+		}
+		onDoubleClicked: {
+			knobs.ui_knob_change(current_effect, row_param, currentEffects[current_effect]["controls"][row_param].default_value);
 		}
 		radius: 15
 	}

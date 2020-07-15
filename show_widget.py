@@ -1690,6 +1690,7 @@ class PolyValue(QObject):
         QObject.__init__(self)
         self.nameval = startname
         self.valueval = startval
+        self.defaultval = startval
         self.rminval = startmin
         self.rmax = startmax
         self.assigned_cc = None
@@ -1708,6 +1709,21 @@ class PolyValue(QObject):
         pass
 
     value = Property(float, readValue, setValue, notify=value_changed)
+
+    def readDefaultValue(self):
+        return self.defaultval
+
+    def setDefaultValue(self,val):
+        # clamp values
+        self.defaultval = clamp(val, self.rmin, self.rmax)
+        self.default_value_changed.emit()
+        # debug_print("setting value", val)
+
+    @Signal
+    def default_value_changed(self):
+        pass
+
+    default_value = Property(float, readDefaultValue, setDefaultValue, notify=default_value_changed)
 
     def readName(self):
         return self.nameval
