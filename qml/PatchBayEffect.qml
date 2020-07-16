@@ -116,7 +116,7 @@ Rectangle {
         return maxsplit ? [ split.slice(0, -maxsplit).join(sep) ].concat(split.slice(-maxsplit)) : split;
     }
 
-    property string effect_title: rsplit(effect_id, "/", 1)[1].replace(/_/g, " ")
+    property string effect_title: rsplit(effect_id, "/", 1)[1].replace(/_/g, " ").replace(/1$/, '');
 
     function two_finger_connect_clicked(first) {
         /*

@@ -437,6 +437,31 @@ Item {
         }
     }
 
+    // categories effect 0, IO 1, control 2, synth 3, 
+    //
+    Component {
+        id: sectionHeading
+        Rectangle {
+            width: 1280
+            height: 90
+            color: accent_color.name
+
+            Text {
+                x: 20
+                y: 15
+                // anchors.horizontalCenter: parent.horizontalCenter
+                // anchors.top: parent.top
+                // anchors.bottom: parent.bottom
+                text: {"0": "Effects", "1": "Input/Output", "2":"Controls", "3": "Synthesis/Weirder" }[section]
+                font.bold: true
+                font.capitalization: Font.AllUppercase
+                font.pixelSize: fontSizeLarge * 0.95
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+        }
+    }
+
     Component {
         id: addEffect
         Item {
@@ -465,13 +490,15 @@ Item {
                 anchors.bottomMargin: 80
                 clip: true
                 delegate: Item {
+                    property string l_effect: edit.split(":")[1]
+                    property string l_section: edit.split(":")[0]
                     width: parent.width
                     height: 90
                     Label {
                         x: 34
                         height: 80
                         width: 200
-                        text: edit.replace(/_/g, " ")
+                        text: l_effect.replace(/_/g, " ")
                         anchors.top: parent.top
                         font {
                             pixelSize: fontSizeLarge * 0.85
@@ -484,7 +511,7 @@ Item {
                         x: 334
                         width: 945
                         height: 80
-                        text: effectPrototypes[edit]["description"]
+                        text: effectPrototypes[l_effect]["description"]
                         wrapMode: Text.Wrap
                         anchors.top: parent.top
                         font {
@@ -498,8 +525,8 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            knobs.add_new_effect(edit)
-                            // knobs.ui_add_effect(edit)
+                            knobs.add_new_effect(l_effect)
+                            // knobs.ui_add_effect(l_effect)
                             mainStack.pop()
                             // patch_single.currentMode = PatchBay.Move;
                             patch_single.current_help_text = Constants.help["move"];
@@ -515,6 +542,10 @@ Item {
                     anchors.bottom: parent.bottom
                 }
                 model: available_effects
+
+                section.property: "edit"
+                section.criteria: ViewSection.FirstCharacter
+                section.delegate: sectionHeading
             }
 
             IconButton {
