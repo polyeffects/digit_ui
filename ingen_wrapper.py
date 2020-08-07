@@ -73,6 +73,9 @@ def set_author(current_sub_graph, description):
 def set_tags(current_sub_graph, description):
     q.put((ingen.put, current_sub_graph+"/control", 'doap:category """%s"""' % description))
 
+def set_footswitch_control(effect_id, foot_switch):
+    q.put((ingen.put, effect_id, '<http://polyeffects.com/ns/core#assigned_footswitch> """%s"""' % foot_switch))
+
 def set_parameter_value(port, value):
     #ingen.set("/main/tone/output", "ingen:value", "0.8") 
     # ingen.set(port, "ingen:value", str(value))
@@ -290,6 +293,9 @@ def parse_ingen(to_parse):
             if (body, NS.rdfs.comment, None) in g:
                 value = str(g.value(body, NS.rdfs.comment, None))
                 ui_queue.put(("set_comment", value, subject))
+            if (body, NS.poly.assigned_footswitch, None) in g:
+                value = str(g.value(body, NS.poly.assigned_footswitch, None))
+                ui_queue.put(("assign_footswitch", value, subject))
             if (body, NS.rdf.type, NS.ingen.Block) in g:
                 # print("response is", t[0], "subject is", subject, "body is", body)
                 # adding new block

@@ -40,6 +40,10 @@ import "polyconst.js" as Constants
         property var effect_map: {"invalid":"b"}
         property PatchBayEffect selected_effect
 
+        onCurrentModeChanged: {
+            knobs.set_current_mode(currentMode, selected_effect ? selected_effect.effect_id : "")
+        }
+
 		function setColorAlpha(color, alpha) {
 			return Qt.hsla(color.hslHue, color.hslSaturation, color.hslLightness, alpha)
 		}
@@ -404,6 +408,9 @@ import "polyconst.js" as Constants
                     onClicked: { 
                         current_help_text = ""
                         mainStack.pop()
+						if (patch_bay.currentMode == PatchBay.Hold){
+							patch_bay.currentMode = PatchBay.Select;
+						}
                     }
                 }
             }
@@ -485,6 +492,9 @@ import "polyconst.js" as Constants
                     onClicked: { 
                         current_help_text = ""
                         mainStack.pop()
+						if (patch_bay.currentMode == PatchBay.Hold){
+							patch_bay.currentMode = PatchBay.Select;
+						}
                     }
                 }
             }
@@ -560,7 +570,12 @@ import "polyconst.js" as Constants
                     Material.background: "white"
                     Material.foreground: Constants.outline_color
 
-                    onClicked: mainStack.pop()
+					onClicked: {
+						mainStack.pop()
+						if (patch_bay.currentMode == PatchBay.Hold){
+							patch_bay.currentMode = PatchBay.Select;
+						}
+					}
                 }
 
             }

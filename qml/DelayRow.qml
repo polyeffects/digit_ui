@@ -91,11 +91,20 @@ Item {
         visible: row_param != "ir"
 		width: 60
 		height: 60
-		onClicked: {
-			knobs.set_knob_current_effect(current_effect, row_param);
+		Timer {
+			id: timer
+			interval: 400
 		}
-		onDoubleClicked: {
-			knobs.ui_knob_change(current_effect, row_param, currentEffects[current_effect]["controls"][row_param].default_value);
+		onClicked: {
+			if (timer.running){
+				knobs.ui_knob_change(current_effect, row_param, currentEffects[current_effect]["controls"][row_param].default_value);
+				timer.stop()
+
+			}
+			else {
+				knobs.set_knob_current_effect(current_effect, row_param);
+				timer.restart()
+			}
 		}
 		radius: 15
 	}

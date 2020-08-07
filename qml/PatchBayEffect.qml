@@ -23,7 +23,7 @@ Rectangle {
     property bool caught: false
     property string effect_id
     property string effect_type
-    property color effect_color: effect_id in currentEffects && currentEffects[effect_id]["enabled"].value > 0 ? Constants.audio_color : Constants.outline_color
+    property color effect_color: effect_id in currentEffects && currentEffects[effect_id]["enabled"].value > 0 ? "white" : Constants.outline_color
     property bool highlight: effect_id in currentEffects && currentEffects[effect_id]["highlight"].value
     property bool selected: false
     property Rectangle cv_area: cv_rec
@@ -459,7 +459,7 @@ Rectangle {
 
     Rectangle {
         id: cv_rec
-        visible: Object.keys(effectPrototypes[effect_type]["controls"]).length > 0
+        visible: effectPrototypes[effect_type]["num_cv_in"] > 0
         anchors.verticalCenter: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         width: 22
@@ -471,7 +471,34 @@ Rectangle {
             width: 20
             height: 20
             anchors.centerIn: parent
-            text: Object.keys(effectPrototypes[effect_type]["controls"]).length
+            text: effectPrototypes[effect_type]["num_cv_in"]
+            // height: 15
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            color: "white" //Constants.cv_color
+            font {
+                // pixelSize: fontSizeMedium
+                pixelSize: 16
+                capitalization: Font.AllUppercase
+            }
+        }
+    }
+
+    Rectangle {
+        id: footswitch_rec
+        visible: effect_id in currentEffects && currentEffects[effect_id]["assigned_footswitch"].value != ""
+        anchors.verticalCenter: parent.bottom
+        x: 11
+        width: 22
+        height: 22
+        radius: 11
+        color: Constants.background_color
+        border { width:2; color: "#AC8EFF" }
+        Label {
+            width: 20
+            height: 20
+            anchors.centerIn: parent
+            text: effect_id in currentEffects ? currentEffects[effect_id]["assigned_footswitch"].value : ""
             // height: 15
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
@@ -494,7 +521,7 @@ Rectangle {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         wrapMode: Text.WordWrap
-        color: "white" // rect.is_io ? "white" : effect_color 
+        color: effect_color 
         lineHeight: 0.65
         fontSizeMode: Text.Fit 
         minimumPixelSize: 16
@@ -545,6 +572,7 @@ Rectangle {
 						// if there isn't a current pressed point, we are the first one,
 						// record us and display the hold action
 						// if there's an existing point then we're the destination, connect
+                        patch_bay.selected_effect = rect
 						patch_bay.currentMode = PatchBay.Hold;
 						rect.set_hold = true;
 						rect.was_hold = true;
@@ -566,6 +594,7 @@ Rectangle {
 			var point = touchPoints[0];
 			offset = Qt.point(point.x, point.y);
 			dragMove(patch_bay, point);
+            rect.set_hold = false;
 			longPressTimer.restart();
 			rect.was_hold = false;
 			// console.log("effect proto", Object.keys(effectPrototypes[effect_type]["inputs"]))
@@ -593,6 +622,7 @@ Rectangle {
 			if (rect.set_hold){
                 patch_bay.currentMode = PatchBay.Select;
 				patch_bay.current_help_text = Constants.help["select"];
+                rect.set_hold = false;
 			}
 
 			if (!rect.beginDrag.fuzzyEquals(Qt.vector2d(rect.x, rect.y), 6)){

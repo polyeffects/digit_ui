@@ -31,6 +31,7 @@ import QtQuick.Controls.Material 2.3
         id: preset_widget
         property bool is_system_preset: false
         property int map_index: 0
+        property int button_font_size: 36
 
 		// save or load
         Component {
@@ -41,62 +42,92 @@ import QtQuick.Controls.Material 2.3
 
 				Column {
 					anchors.centerIn: parent
-					spacing: 100
-					Row {
-						spacing: 100
-						anchors.horizontalCenter: parent.horizontalCenter
+					spacing: 57
 
 						Button {
-							text: "SELECT"
-							width: 350
+							text: "Load a preset"
+							Material.foreground: Constants.poly_pink
+							anchors.horizontalCenter:  parent.horizontalCenter
+							width: 410
+							height: 59
 							// height: 500
 							onClicked: presetStack.push(loadPresetWidget)
 							font {
-								pixelSize: fontSizeLarge
+								pixelSize: button_font_size
+								capitalization: Font.AllUppercase
 							}
 						}
 
 						Button {
-							text: "SAVE"
-							width: 350
+							text: "Save current preset"
+							Material.foreground: Constants.poly_blue
+							anchors.horizontalCenter:  parent.horizontalCenter
+							width: 538
+							height: 59
 							// height: 500
 							onClicked: is_system_preset ? presetStack.push(choosePresetFolder) : presetStack.push(newOrOverwrite) 
 							font {
-								pixelSize: fontSizeLarge
+								pixelSize: button_font_size
+								capitalization: Font.AllUppercase
 							}
 						}
-					}
 					Row {
 						spacing: 100
 						anchors.horizontalCenter: parent.horizontalCenter
 
-						Button {
-							text: "SET LIST"
-							width: 250
-							// height: 500
-							onClicked: presetStack.push(mapPresets)
-							font {
-								pixelSize: fontSizeLarge
-							}
-						}
 
 						Button {
 							text: "EXPORT PRESETS"
-							width: 300
+							Material.foreground: Constants.poly_green
+							width: 354
+							height: 59
 							// show screen explaining to put USB flash drive in
 							onClicked: presetStack.push(exportPresets)
 							font {
-								pixelSize: fontSizeLarge
+								pixelSize: button_font_size
 							}
 						}
 
 						Button {
 							text: "IMPORT PRESETS"
-							width: 300
+							Material.foreground: Constants.poly_green
+							width: 354
+							height: 59
 							// show screen explaining to put USB flash drive in
 							onClicked: presetStack.push(importPresets)
 							font {
-								pixelSize: fontSizeLarge
+								pixelSize: button_font_size
+							}
+						}
+					}
+
+					Row {
+						spacing: 100
+						anchors.horizontalCenter: parent.horizontalCenter
+						Button {
+							text: "SET LIST"
+							width: 320
+							height: 59
+							Material.foreground: Constants.poly_yellow
+							// height: 500
+							onClicked: presetStack.push(mapPresets)
+							font {
+								pixelSize: button_font_size
+							}
+						}
+
+						Button {
+							text: "EMPTY PRESET"
+							width: 320
+							height: 59
+							Material.foreground: Constants.poly_yellow
+							// height: 500
+							onClicked: {
+								knobs.ui_load_empty_preset();
+								mainStack.pop();
+							}
+							font {
+								pixelSize: button_font_size
 							}
 						}
 					}
@@ -373,6 +404,7 @@ import QtQuick.Controls.Material 2.3
 							pixelSize: fontSizeLarge
 						}
                         text: "OVERWRITE"
+						Material.foreground: Constants.poly_pink
 						width: 300
                         onClicked: { // save preset and close browser
 							knobs.ui_save_pedalboard(currentPreset.name);
@@ -384,7 +416,8 @@ import QtQuick.Controls.Material 2.3
 						font {
 							pixelSize: fontSizeLarge
 						}
-                        text: "CREATE NEW"
+                        text: "SAVE AS NEW"
+						Material.foreground: Constants.poly_blue
 						width: 300
                         // onClicked: presetStack.push(choosePresetFolder)
                         onClicked: presetStack.push(setPresetName)

@@ -38,7 +38,7 @@ import QtQuick.Controls.Material 2.3
         function is_favourite(f)
         {
             var t_f = f.slice(7)
-            return (t_f in presetMeta && "favourite" in presetMeta[t_f] && presetMeta[t_f]["favourite"])
+            return (t_f in favourites["presets"] && favourites["presets"][t_f])
         }
 
         function preset_filter(f)

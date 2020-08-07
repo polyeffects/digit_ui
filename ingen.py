@@ -39,6 +39,7 @@ class NS:
     rdfs   = rdflib.Namespace('http://www.w3.org/2000/01/rdf-schema#')
     xsd    = rdflib.Namespace('http://www.w3.org/2001/XMLSchema#')
     doap   = rdflib.Namespace("http://usefulinc.com/ns/doap#")
+    poly = rdflib.Namespace('http://polyeffects.com/ns/core#')
 
 class Interface:
     'The core Ingen interface'

@@ -13,6 +13,7 @@ Item {
     property bool show_footer_value: false
     property real currentPresetNum: currentPreset.value
     property string title_text: ""
+    property int category_index: 0
 
     onCurrentPresetNumChanged: {
         console.log("presetnumchanged", currentPreset.value);
@@ -285,10 +286,29 @@ Item {
             icon.name: "back"
             Material.background: "white"
             Material.foreground: Constants.outline_color
-            visible: patch_single.currentMode != PatchBay.Select
+            visible: patch_single.currentMode != PatchBay.Select && patch_single.currentMode != PatchBay.Hold  
             onClicked: {
                 // mainStack.push("Settings.qml")
 				patch_single.selected_effect.back_action();
+            }
+        }
+
+        IconButton {
+            visible: patch_single.currentMode == PatchBay.Hold && !(patch_single.selected_effect.is_io)
+            x: 32 
+            y: 8
+            width: 70
+            height: 70
+            icon.width: 70
+            icon.height: 70
+            // flat: false
+            icon.source: "../icons/digit/bottom_menu/Delete.png"
+            Material.background: Constants.background_color
+            onClicked: {
+                patch_single.selected_effect.delete_clicked();
+            }
+            HelpLabel {
+                text: "Delete"
             }
         }
 
@@ -353,10 +373,12 @@ Item {
             id: moveMode
             visible: patch_single.currentMode == PatchBay.Move
             icon.source: "../icons/digit/clouds/Move.png"
-            width: 70
-            height: 70
+            width: 76
+            height: 76
+            icon.width: 70
+            icon.height: 70
             x: 584
-            y: 8
+            y: 5
             onClicked: {
                 patch_single.selected_effect.hide_sliders(true);
             }
@@ -365,6 +387,44 @@ Item {
             radius: 28
             HelpLabel {
                 text: "move"
+            }
+        }
+
+        IconButton {
+            visible: patch_single.currentMode == PatchBay.Hold && !(patch_single.selected_effect.is_io)
+            x: 584 
+            y: 5
+            width: 76
+            height: 76
+            icon.width: 70
+            icon.height: 70
+            icon.source: "../icons/digit/bottom_menu/Duplicate.png"
+            Material.background: Constants.background_color
+            Material.foreground: accent_color.name
+            onClicked: {
+                knobs.add_new_effect(patch_single.selected_effect.effect_type)
+            }
+            HelpLabel {
+                text: "Duplicate"
+            }
+        }
+
+        IconButton {
+            visible: patch_single.currentMode == PatchBay.Hold
+            x: 696 
+            y: 5
+            width: 76
+            height: 76
+            icon.width: 70
+            icon.height: 70
+            icon.source: "../icons/digit/bottom_menu/Disconnect.png"
+            Material.background: Constants.background_color
+            Material.foreground: accent_color.name
+            onClicked: {
+                patch_single.selected_effect.disconnect_clicked()
+            }
+            HelpLabel {
+                text: "Duplicate"
             }
         }
 
@@ -379,7 +439,7 @@ Item {
             icon.source: "../icons/digit/bottom_menu/Add.png"
             Material.background: accent_color.name
             onClicked: {
-                mainStack.push(addEffect);
+                mainStack.push(addEffectCat);
             }
             HelpLabel {
                 text: "add"
@@ -403,7 +463,10 @@ Item {
             }
         }
 
+
+
         IconButton {
+            visible: patch_single.currentMode != PatchBay.Hold
             x: 1121 
             y: 12
             width: 62
@@ -421,6 +484,7 @@ Item {
         }
 
         IconButton {
+            visible: patch_single.currentMode != PatchBay.Hold
             x: 1201 
             y: 12
             width: 62
@@ -463,18 +527,135 @@ Item {
     }
 
     Component {
+        id: addEffectCat
+        Item {
+            height:700
+            width:1280
+            Label {
+                y: 28
+                color: accent_color.name
+                text: "Add Module"
+                font {
+                    pixelSize: 36
+                    capitalization: Font.AllUppercase
+                }
+                // anchors.top: parent.top
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+            Column {
+                anchors.centerIn: parent
+                spacing: 57
+
+                Row {
+                    spacing: 100
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    Button {
+                        text: "EFFECTS"
+                        Material.foreground: Constants.poly_pink
+                        // anchors.horizontalCenter:  parent.horizontalCenter
+                        width: 320
+                        height: 59
+                        // height: 500
+                        onClicked: {
+                            category_index = 0;
+                            mainStack.push(addEffect);
+                        }
+                        font {
+                            pixelSize: 36
+                            capitalization: Font.AllUppercase
+                        }
+                    }
+
+                    Button {
+                        text: "INPUT/OUTPUT"
+                        Material.foreground: Constants.poly_green
+                        // anchors.horizontalCenter:  parent.horizontalCenter
+                        width: 320
+                        height: 59
+                        // height: 500
+                        onClicked: {
+                            category_index = 1;
+                            mainStack.push(addEffect);
+                        }
+                        font {
+                            pixelSize: 36
+                            capitalization: Font.AllUppercase
+                        }
+                    }
+                }
+                Row {
+                    spacing: 100
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    Button {
+                        text: "CONTROLS"
+                        Material.foreground: Constants.poly_blue
+                        // anchors.horizontalCenter:  parent.horizontalCenter
+                        width: 320
+                        height: 59
+                        // height: 500
+                        onClicked: {
+                            category_index = 2;
+                            mainStack.push(addEffect);
+                        }
+                        font {
+                            pixelSize: 36
+                            capitalization: Font.AllUppercase
+                        }
+                    }
+
+                    Button {
+                        text: "synthesis/weird"
+                        Material.foreground: Constants.poly_yellow
+                        // anchors.horizontalCenter:  parent.horizontalCenter
+                        width: 320
+                        height: 59
+                        // height: 500
+                        onClicked: {
+                            category_index = 3;
+                            mainStack.push(addEffect);
+                        }
+                        font {
+                            pixelSize: 36
+                            capitalization: Font.AllUppercase
+                        }
+                    }
+                }
+
+            }
+            IconButton {
+                x: 34 
+                y: 646
+                icon.width: 15
+                icon.height: 25
+                width: 119
+                height: 62
+                text: "BACK"
+                font {
+                    pixelSize: 24
+                }
+                flat: false
+                icon.name: "back"
+                Material.background: "white"
+                Material.foreground: Constants.outline_color
+                onClicked: mainStack.pop()
+            }
+        }
+    }
+
+    Component {
         id: addEffect
+        
         Item {
             id: addEffectCon
             height:700
             width:1280
 
             Label {
-                y: 40
+                y: 28
                 color: accent_color.name
                 text: "Add Module"
                 font {
-                    pixelSize: fontSizeLarge * 1.2
+                    pixelSize: 36
                     capitalization: Font.AllUppercase
                 }
                 // anchors.top: parent.top
@@ -490,8 +671,7 @@ Item {
                 anchors.bottomMargin: 80
                 clip: true
                 delegate: Item {
-                    property string l_effect: edit.split(":")[1]
-                    property string l_section: edit.split(":")[0]
+                    property string l_effect: edit //.split(":")[1]
                     width: parent.width
                     height: 90
                     Label {
@@ -527,7 +707,7 @@ Item {
                         onClicked: {
                             knobs.add_new_effect(l_effect)
                             // knobs.ui_add_effect(l_effect)
-                            mainStack.pop()
+                            mainStack.pop(null)
                             // patch_single.currentMode = PatchBay.Move;
                             patch_single.current_help_text = Constants.help["move"];
 
@@ -541,11 +721,11 @@ Item {
                     anchors.rightMargin: 1
                     anchors.bottom: parent.bottom
                 }
-                model: available_effects
+                model: available_effects[category_index]
 
-                section.property: "edit"
-                section.criteria: ViewSection.FirstCharacter
-                section.delegate: sectionHeading
+                // section.property: "edit"
+                // section.criteria: ViewSection.FirstCharacter
+                // section.delegate: sectionHeading
             }
 
             IconButton {

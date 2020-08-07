@@ -5,7 +5,7 @@ from signal import signal, SIGINT, SIGTERM
 from time import sleep
 from sys import exit
 from collections import OrderedDict
-from enum import Enum
+from enum import Enum, IntEnum
 import urllib.parse
 # import random
 from PySide2.QtGui import QGuiApplication
@@ -43,12 +43,29 @@ current_effects = {}
 # current_effects["delay1"] = {"x": 20, "y": 30, "effect_type": "delay", "controls": {}, "highlight": False}
 # current_effects["delay2"] = {"x": 250, "y": 290, "effect_type": "delay", "controls": {}, "highlight": False}
 port_connections = {} # key is port, value is list of ports
+current_patchbay_mode = 0
+current_selected_effect = ""
+footswitch_assignments = {}
+
+def reset_footswitch_assignments():
+    global footswitch_assignments
+    footswitch_assignments = {"a":set(), "b":set(), "c":set(), "d":set(), "e":set()}
+
+reset_footswitch_assignments()
+
+class PatchMode(IntEnum):
+    SELECT = 0
+    MOVE = 1
+    CONNECT = 2
+    SLIDERS = 3
+    DETAILS = 4
+    HOLD = 5
 
 context = None
 
 def debug_print(*args, **kwargs):
-    pass
-    #print( "From py: "+" ".join(map(str,args)), **kwargs)
+    # pass
+    print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 
 effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay",
@@ -184,7 +201,8 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         # "harmony_custom": "http://moddevices.com/plugins/mod-devel/HarmonizerCS",
         # "extra_capo": "http://moddevices.com/plugins/mod-devel/SuperCapo",
         # "pitch_wam": "http://moddevices.com/plugins/mod-devel/SuperWhammy",
-        # "pitch_detect": "http://polyeffects.com/lv2/pitch_detect",
+        "pitch_detect": "http://polyeffects.com/lv2/detect#pitch",
+        "onset_detect": "http://polyeffects.com/lv2/detect#onset",
         # "pitch_corrector" : "http://gareus.org/oss/lv2/fat1",
         # "octaver" : "http://guitarix.sourceforge.net/plugins/gx_oc_2_#_oc_2_"
         "pitch_shift": "http://moddevices.com/plugins/tap/pitch",
@@ -227,13 +245,16 @@ effect_prototypes_models_all = {
                          'outputs': {'MIDI_OUT': ['MIDI Out', 'AtomPort']}},
     'delay': {'description': 'Flexible delay module. Add modules on the repeats for variations.',
         'category': 0,
+        'kill_dry': True,
          'controls': {'Amp_5': ['Level', 0.5, 0, 1],
                       'BPM_0': ['BPM', 120, 30, 300],
                       'DelayT60_3': ['Glide', 0.5, 0, 100],
                       'Delay_1': ['Time', 0.5, 0.001, 64],
                       'FeedbackSm_6': ['Tone', 0, 0, 1],
                       'Feedback_4': ['Feedback', 0.3, 0, 1],
-                      'Warp_2': ['Warp', 0, -1, 1]},
+                      'Warp_2': ['Warp', 0, -1, 1],
+                      'enabled': ['Enabled', 1, 0, 1]
+                      },
          'inputs': {'Amp_5': ['Level', 'CVPort'],
                     'BPM_0': ['BPM', 'ControlPort'],
                     'DelayT60_3': ['Glide', 'CVPort'],
@@ -280,8 +301,8 @@ effect_prototypes_models_all = {
         'category': 1,
              'controls': {'bpm': ['BPM', 120.0, 35.0, 350.0],
                           'latching': ['Is Latching', 0.0, 0.0, 1.0],
-                          'on_v': ['On Value', 1.0, -1.0, 100.0],
-                          'off_v': ['Off Value', 0.0, -1.0, 100.0],
+                          'on_v': ['On Value', 1.0, -1.0, 1.0],
+                          'off_v': ['Off Value', 0.0, -1.0, 1.0],
                           'value': ['value', 0.0, 0.0, 1.0],
                           'cur_out': ['value', 0.0, 0.0, 1.0],
                           },
@@ -293,8 +314,8 @@ effect_prototypes_models_all = {
         'category': 1,
              'controls': {'bpm': ['BPM', 120.0, 35.0, 350.0],
                           'latching': ['Is Latching', 0.0, 0.0, 1.0],
-                          'on_v': ['On Value', 1.0, -1.0, 100.0],
-                          'off_v': ['Off Value', 0.0, -1.0, 100.0],
+                          'on_v': ['On Value', 1.0, -1.0, 1.0],
+                          'off_v': ['Off Value', 0.0, -1.0, 1.0],
                           'value': ['value', 0.0, 0.0, 1.0],
                           'cur_out': ['value', 0.0, 0.0, 1.0],
                           },
@@ -305,8 +326,8 @@ effect_prototypes_models_all = {
         'category': 1,
              'controls': {'bpm': ['BPM', 120.0, 35.0, 350.0],
                           'latching': ['Is Latching', 0.0, 0.0, 1.0],
-                          'on_v': ['On Value', 1.0, -1.0, 100.0],
-                          'off_v': ['Off Value', 0.0, -1.0, 100.0],
+                          'on_v': ['On Value', 1.0, -1.0, 1.0],
+                          'off_v': ['Off Value', 0.0, -1.0, 1.0],
                           'value': ['value', 0.0, 0.0, 1.0],
                           'cur_out': ['value', 0.0, 0.0, 1.0],
                           },
@@ -394,8 +415,10 @@ effect_prototypes_models_all = {
                              'in': ['In', 'AudioPort']},
                   'outputs': {'out': ['Out', 'AudioPort']}},
      'mono_reverb': {'description': 'Mono convolution based reverb.',
+        'kill_dry': True,
         'category': 0,
              'controls': {'gain': ['Output Gain', 0.0, -40.0, 4.0],
+                 'enabled': ['Enabled', 1, 0, 1],
                                  "ir": ["/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1]},
                      'inputs': {'gain': ['Output Gain', 'CVPort'],
                                 'in': ['In', 'AudioPort']},
@@ -497,7 +520,9 @@ effect_prototypes_models_all = {
                                 'out_2': ['OutR', 'AudioPort']}},
      'stereo_reverb': {'description': 'Stereo convolution reverb',
         'category': 0,
+        'kill_dry': True,
              'controls': {'gain': ['Output Gain', 0.0, -40.0, 4.0],
+                          'enabled': ['Enabled', 1, 0, 1],
                                  "ir": ["/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1]},
                        'inputs': {'gain': ['Output Gain', 'CVPort'],
                                   'in': ['In', 'AudioPort']},
@@ -514,7 +539,9 @@ effect_prototypes_models_all = {
                                      'out_2': ['OutR', 'AudioPort']}},
      'quad_ir_reverb': {'description': 'Convolution reverb. Quad channel IRs required.',
         'category': 0,
+        'kill_dry': True,
              'controls': {'gain': ['Output Gain', 0.0, -40.0, 4.0],
+                          'enabled': ['Enabled', 1, 0, 1],
                                  "ir": ["/audio/reverbs/emt_140_dark_1.wav", 0, 0, 1]},
                             'inputs': {'gain': ['Output Gain', 'CVPort'],
                                        'in_1': ['InL', 'AudioPort'],
@@ -1494,15 +1521,26 @@ effect_prototypes_models_all = {
                'inputs': {'In': ['In', 'AudioPort']},
                'outputs': {'Out1': ['Out 1', 'AudioPort'],
                            'Out2': ['Out 2', 'AudioPort']}},
-'pitch_detect': {'controls': {'onset_method': ['Onset Method', 0, 0, 8],
-                               'onset_threshold': ['Onset Threshold',
+'onset_detect': {
+        'description': 'detects when a note starts and sends a trigger',
+        'category': 2,
+    'controls': { 'onset_threshold': ['Onset Threshold',
                                                    0.3,
                                                    0.1,
                                                    1.0],
-                               'pitch_method': ['Pitch Detection Method',
-                                                0,
-                                                0,
-                                                5],
+                               'silence_threshold': ['Silence Threshold',
+                                                     -90.0,
+                                                     -90.0,
+                                                     -10.0]},
+                  'inputs': {'in': ['In', 'AudioPort']},
+                  'outputs': {"gate": ["Gate", "CVPort"]}},
+'pitch_detect': {
+        'description': 'BETA detects played notes and converts it volt per octave and MIDI',
+        'category': 2,
+        'controls': { 'onset_threshold': ['Onset Threshold',
+                                                   0.3,
+                                                   0.1,
+                                                   1.0],
                                'pitch_threshold': ['Pitch Detection Tolerance',
                                                    0.3,
                                                    0.1,
@@ -1512,7 +1550,10 @@ effect_prototypes_models_all = {
                                                      -90.0,
                                                      -10.0]},
                   'inputs': {'in': ['In', 'AudioPort']},
-                  'outputs': {'midi_out': ['Midi Out', 'AtomPort']}},
+                  'outputs': {'midi_out': ['Midi Out', 'AtomPort'],
+                            "gate": ["Gate", "CVPort"],
+                            "voct": ["V/Oct Pitch", "CVPort"],
+                            }},
 'pitch_corrector': {'controls': {'bias': ['Bias', 0.5, 0.0, 1.0],
                                   'channelf': ['Filter Channel', 0, 0, 16],
                                   'corr': ['Correction', 1.0, 0.0, 1.0],
@@ -1651,22 +1692,36 @@ effect_prototypes_models_all = {
                                'sn_output': ['snare trigger', 'CVPort']}},
                      }
 
+for k, v in effect_prototypes_models_all.items():
+    n = 0
+    for p in v["inputs"].values():
+        if p[1] == "CVPort":
+            n = n + 1
+    effect_prototypes_models_all[k]["num_cv_in"] = n
+
+
 effect_prototypes_models = {"digit": {k:effect_prototypes_models_all[k] for k in effect_type_maps["digit"].keys()},
     "beebo": {k:effect_prototypes_models_all[k] for k in effect_type_maps["beebo"].keys()},
     }
 
+
+
 for k in effect_prototypes_models.keys():
     effect_prototypes_models[k]["input"] = {"inputs": {},
             "outputs": {"output": ["in", "AudioPort"]},
+            "num_cv_in": 0,
             "controls": {}}
     effect_prototypes_models[k]["output"] = {"inputs": {"input": ["out", "AudioPort"]},
             "outputs": {},
+            "num_cv_in": 0,
             "controls": {}}
     effect_prototypes_models[k]["midi_input"] = {"inputs": {},
             "outputs": {"output": ["in", "AtomPort"]},
+            "num_cv_in": 0,
             "controls": {}}
     effect_prototypes_models[k]["midi_output"] = {"inputs": {"input": ["out", "AtomPort"]},
             "outputs": {},
+            "num_cv_in": 0,
             "controls": {}}
 
 bare_ports = ["input", "output", "midi_input", "midi_output"]
@@ -1749,6 +1804,25 @@ class PolyBool(QObject):
         pass
 
     value = Property(bool, readValue, setValue, notify=value_changed)
+
+class PolyStr(QObject):
+    # name, min, max, value
+    def __init__(self, startval=False):
+        QObject.__init__(self)
+        self.valueval = startval
+
+    def readValue(self):
+        return self.valueval
+
+    def setValue(self,val):
+        self.valueval = val
+        self.value_changed.emit()
+
+    @Signal
+    def value_changed(self):
+        pass
+
+    value = Property(str, readValue, setValue, notify=value_changed)
 
 class PatchBayNotify(QObject):
 
@@ -1908,7 +1982,24 @@ def load_preset_meta_cache():
         with open("/mnt/pedal_state/preset_meta.json") as f:
             preset_meta_data = json.load(f)
     except:
-        preset_meta_data = {}
+        try:
+            get_meta_from_files(True)
+        except:
+            preset_meta_data = {}
+
+def write_favourites_data():
+    with open("/mnt/pedal_state/favourites.json", "w") as f:
+        json.dump(favourites, f)
+    os.sync()
+
+def load_favourites_data():
+    global favourites
+    try:
+        with open("/mnt/pedal_state/favourites.json") as f:
+            favourites = json.load(f)
+    except:
+        favourites = {"modules":{}, "presets":{}}
+
 
 def load_pedal_state():
     global pedal_state
@@ -1964,6 +2055,7 @@ def load_preset(name, initial=False, force=False):
     # is_loading.value = True
     # delete existing blocks
     port_connections.clear()
+    reset_footswitch_assignments()
     to_delete = list(current_effects.keys())
     for effect_id in to_delete:
         if effect_id in ["/main/out_1", "/main/out_2", "/main/out_3", "/main/out_4", "/main/in_1", "/main/in_2", "/main/in_3", "/main/in_4"]:
@@ -1988,6 +2080,7 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
     if effect_type in effect_prototypes:
         current_effects[effect_name] = {"x": x, "y": y, "effect_type": effect_type,
                 "controls": {k : PolyValue(*v) for k,v in effect_prototypes[effect_type]["controls"].items()},
+                "assigned_footswitch": PolyStr(""),
                 "highlight": PolyBool(False), "enabled": PolyBool(True)}
         # insert in context or model? 
         # emit add signal
@@ -2009,6 +2102,8 @@ def from_backend_remove_effect(effect_name):
         else:
             port_connections[source_port] = [[e, p] for e, p in port_connections[source_port] if e != effect_name]
     patch_bay_notify.remove_module.emit(effect_name)
+    for k in footswitch_assignments.keys(): # if this module has a foot switch assigned to it
+        footswitch_assignments[k].discard(effect_name)
     # current_effects.pop(effect_name)
     context.setContextProperty("currentEffects", current_effects) # might be slow
     context.setContextProperty("portConnections", port_connections)
@@ -2100,7 +2195,7 @@ def from_backend_disconnect(head, tail):
     context.setContextProperty("portConnections", port_connections)
     update_counter.value+=1
 
-def get_meta_from_files():
+def get_meta_from_files(initial=False):
     r_dict = {}
     def get_rdf_element_from_files(rdf_name="rdfs:comment", element_name="description"):
         command =  'grep -ir "'+ rdf_name +'" /mnt/presets'
@@ -2118,7 +2213,8 @@ def get_meta_from_files():
     get_rdf_element_from_files("doap:category", "tags")
     global preset_meta_data
     preset_meta_data = r_dict
-    context.setContextProperty("presetMeta", preset_meta_data)
+    if not initial:
+        context.setContextProperty("presetMeta", preset_meta_data)
     # flush to file
     write_preset_meta_cache()
 
@@ -2260,7 +2356,14 @@ class Knobs(QObject):
 
     @Slot(str, bool)
     def set_bypass(self, effect_name, is_active):
-        ingen_wrapper.set_bypass(effect_name, is_active)
+        # check if were kill dry, if so, set enabled value, else just call default ingen:enabled
+        effect_type = current_effects[effect_name]["effect_type"]
+        if "kill_dry" in effect_prototypes[effect_type]:
+            v = 1.0 - (current_effects[effect_name]["controls"]["enabled"].value)
+            knobs.ui_knob_change(effect_name, "enabled", v)
+            current_effects[effect_name]["enabled"].value = bool(v)
+        else:
+            ingen_wrapper.set_bypass(effect_name, is_active)
 
     @Slot(str)
     def set_description(self, description):
@@ -2303,6 +2406,13 @@ class Knobs(QObject):
         current_effects[effect_id]["controls"]["ir"].name = ir_file
         ingen_wrapper.set_file(effect_id, ir_file, is_cab)
 
+    @Slot()
+    def ui_load_empty_preset(self):
+        if current_pedal_model.name == "digit":
+            knobs.ui_load_preset_by_name("file:///mnt/presets/digit/Empty.ingen")
+        elif current_pedal_model.name == "beebo":
+            knobs.ui_load_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
+
     @Slot(str)
     def ui_load_preset_by_name(self, preset_file):
         if is_loading.value == True:
@@ -2338,15 +2448,15 @@ class Knobs(QObject):
     @Slot(str)
     def toggle_favourite(self, preset_file):
         p_f = preset_file[7:]
-        if p_f in preset_meta_data and "favourite" in preset_meta_data[p_f]:
-            preset_meta_data[p_f]["favourite"] = not preset_meta_data[p_f]["favourite"]
+        if p_f in favourites["presets"]:
+            favourites["presets"][p_f] = not favourites["presets"][p_f]
         elif p_f in preset_meta_data:
-            preset_meta_data[p_f]["favourite"] = True
+            favourites["presets"][p_f] = True
         else:
             return
-        context.setContextProperty("presetMeta", preset_meta_data)
+        context.setContextProperty("favourites", favourites)
         # flush to file
-        write_preset_meta_cache()
+        write_favourites_data()
 
     @Slot()
     def ui_copy_irs(self):
@@ -2405,9 +2515,9 @@ class Knobs(QObject):
     def set_input_level(self, level, write=True):
         if platform.system() != "Linux":
             return
-        command = "amixer -- sset ADC1 "+str(level)+"db"
+        command = "amixer -- sset ADC1 "+str(level)+"db; amixer -- sset ADC2 "+str(level)+"db"
         command_status[0].value = subprocess.call(command, shell=True)
-        command = "amixer -- sset ADC2 "+str(level)+"db"
+        command = "amixer -- sset 'ADC1 Invert' off,on; amixer -- sset 'ADC2 Invert' on,on"
         command_status[0].value = subprocess.call(command, shell=True)
         input_level.value = level
         if write:
@@ -2539,6 +2649,14 @@ class Knobs(QObject):
         write_pedal_state()
         context.setContextProperty("pedalState", pedal_state)
 
+    @Slot(int, str)
+    def set_current_mode(self, mode, effect_name):
+        # debug_print("updating UI")
+        global current_patchbay_mode
+        global current_selected_effect
+        current_patchbay_mode = mode
+        current_selected_effect = effect_name
+
 def io_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
     # debug_print("from backend new effect", effect_name, effect_type)
@@ -2647,14 +2765,32 @@ def send_to_footswitch_blocks(timestamp, switch_name, value=0):
     if "bypass" in switch_name:
         foot_switch_name = "foot_switch_c"
 
+    trimmed_name = foot_switch_name[-1]
+    # if we're in hold mode then we're assigning something to a foot switch
+    if value == 0 and current_patchbay_mode == PatchMode.HOLD:
+        # set this foot swtich to the currently held effect
+        if current_selected_effect != "":
+            if current_effects[current_selected_effect]["assigned_footswitch"].value == trimmed_name:
+                ingen_wrapper.set_footswitch_control(current_selected_effect, "")
+            else:
+                ingen_wrapper.set_footswitch_control(current_selected_effect, foot_switch_name[-1])
+            return
+
     if True: # qa_view
         foot_switch_qa[foot_switch_name[-1]].value = value
 
+    found_effect = False
     bpm = None
     if value == 1:
         bpm = handle_tap(foot_switch_name, timestamp)
 
-    found_effect = False
+    # toggle all assigned effects
+    if value == 0:
+        for effect_id in footswitch_assignments[trimmed_name]:
+            enabled = current_effects[effect_id]["enabled"].value
+            knobs.set_bypass(effect_id, not enabled) # toggle
+            found_effect = True
+
     for effect_id, effect in current_effects.items():
         if "foot_switch" in effect["effect_type"]:
             if foot_switch_name in effect_id:
@@ -2746,6 +2882,11 @@ def process_ui_messages():
                 effect_name, parameter = effect_name_parameter.rsplit("/", 1)
                 try:
                     if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
+                        effect_type = current_effects[effect_name]["effect_type"]
+                        debug_print("value set", value, effect_type, parameter )
+                        if "kill_dry" in effect_prototypes[effect_type] and parameter == "enabled":
+                            debug_print("kill dry value set", value)
+                            current_effects[effect_name]["enabled"].value = bool(float(value))
                         current_effects[effect_name]["controls"][parameter].value = float(value)
                 except ValueError:
                     pass
@@ -2807,6 +2948,15 @@ def process_ui_messages():
             elif m[0] == "set_comment":
                 description, subject = m[1:]
                 preset_description.name = description
+            elif m[0] == "assign_footswitch":
+                footswitch, effect_name = m[1:]
+                if effect_name in current_effects:
+                    current_effects[effect_name]["assigned_footswitch"].value = footswitch
+                    # remove existing assignment if any
+                    for k in footswitch_assignments.keys():
+                        footswitch_assignments[k].discard(effect_name)
+                    if footswitch in footswitch_assignments:
+                        footswitch_assignments[footswitch].add(effect_name)
             elif m[0] == "midi_pc":
                 program = m[1]
                 jump_to_preset(False, program)
@@ -2848,7 +2998,9 @@ def set_available_effects():
     hidden_effects = ["mix_vca"]
     # add list is effect_category:effect_name
     effects = set(effect_type_map.keys()) - set(hidden_effects)
-    # for e in effects:
+    cat_effects = [[], [], [], []]
+    for e in effects:
+        cat_effects[effect_prototypes[e]["category"]].append(e)
     #     print(e)
     #     # qDebug(e)
     #     if "category" not in effect_prototypes[e]:
@@ -2856,8 +3008,9 @@ def set_available_effects():
     #         qDebug("MISSING")
     #         qDebug(e)
         # print(e, str(effect_prototypes[e]["category"]))
-    cat_effects = sorted([str(effect_prototypes[e]["category"])+":"+e for e in effects])
-    available_effects.setStringList(cat_effects)
+    # cat_effects = sorted([str(effect_prototypes[e]["category"])+":"+e for e in effects])
+    for i, a in enumerate(cat_effects):
+        available_effects[i].setStringList(sorted(a))
     # available_effects.setStringList(list(effects))
 
 def change_pedal_model(name, initial=False):
@@ -2960,11 +3113,13 @@ if __name__ == "__main__":
     is_loading = PolyBool(False)
     foot_switch_warning = PolyBool(False)
     preset_meta_data = {}
+    favourites = {}
     load_preset_meta_cache()
+    load_favourites_data()
 
     patch_bay_notify = PatchBayNotify()
 
-    available_effects = QStringListModel()
+    available_effects = [QStringListModel() for i in range(4)]
     set_available_effects()
     engine = QQmlApplicationEngine()
     current_pedal_model = PolyValue(pedal_state["model"], 0, -1, 1)
@@ -3001,6 +3156,7 @@ if __name__ == "__main__":
     context.setContextProperty("pedalboardDescription", preset_description)
     context.setContextProperty("patchBayNotify", patch_bay_notify)
     context.setContextProperty("presetMeta", preset_meta_data)
+    context.setContextProperty("favourites", favourites)
     context.setContextProperty("pedalState", pedal_state)
     engine.load(QUrl("qml/TestWrapper.qml")) # XXX 
     debug_print("starting send thread")
