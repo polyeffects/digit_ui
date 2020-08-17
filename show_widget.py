@@ -64,8 +64,8 @@ class PatchMode(IntEnum):
 context = None
 
 def debug_print(*args, **kwargs):
-    # pass
-    print( "From py: "+" ".join(map(str,args)), **kwargs)
+    pass
+    # print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 
 effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay",
@@ -126,6 +126,11 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "sum" : "http://polyeffects.com/lv2/basic_modular#sum",
         "midi_note_to_cv": "http://polyeffects.com/lv2/midi_to_cv_mono",
         "pitch_shift": "http://moddevices.com/plugins/tap/pitch",
+        "onset_detect": "http://polyeffects.com/lv2/detect#onset",
+        "adsr": "http://drobilla.net/plugins/blop/adsr",
+        "sample_hold": "http://avwlv2.sourceforge.net/plugins/avw/samplehold",
+        "dahdsr": "http://drobilla.net/plugins/blop/dahdsr",
+        'wet_dry': 'http://polyeffects.com/lv2/wet_dry',
     },
     "beebo" : { "delay": "http://polyeffects.com/lv2/digit_delay",
         "warmth": "http://moddevices.com/plugins/tap/tubewarmth",
@@ -210,6 +215,7 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "sample_hold": "http://avwlv2.sourceforge.net/plugins/avw/samplehold",
         "dahdsr": "http://drobilla.net/plugins/blop/dahdsr",
         'drum_patterns': 'http://polyeffects.com/lv2/polygrids',
+        'wet_dry': 'http://polyeffects.com/lv2/wet_dry',
 
 
         }}
@@ -232,15 +238,15 @@ effect_prototypes_models_all = {
     'control_to_midi': {'description': '',
         'category': 1,
         'controls': {'AUTOFF': ['Auto Note-Off', 0, 0, 1],
-                                      'CHAN': ['Channel', 0, 0, 15],
-                                      'DATA1': ['Note/CC/PG Number', 0, 0, 127],
-                                      'DATA2': ['Value', 0, 0, 127],
+                                      'CHAN': ['Channel', 0, 0, 15, "int"],
+                                      'DATA1': ['Note/CC/PG Number', 0, 0, 127, "int"],
+                                      'DATA2': ['Value', 0, 0, 127, "int"],
                                       'DELAY': ['1st Msg Repeat Delay Time',
                                                 0.0,
                                                 0.0,
                                                 2000.0],
-                                      'ENABLE': ['Enable', 1, 0, 1],
-                                      'MSGTYPE': ['Message Type', 11, 8, 15]},
+                                      'ENABLE': ['Enable', 1, 0, 1, "bool"],
+                                      'MSGTYPE': ['Message Type', 11, 8, 15, "int"]},
                          'inputs': {},
                          'outputs': {'MIDI_OUT': ['MIDI Out', 'AtomPort']}},
     'delay': {'description': 'Flexible delay module. Add modules on the repeats for variations.',
@@ -267,7 +273,7 @@ effect_prototypes_models_all = {
      'env_follower': {'description': 'Track an input signal and convert it into a control signal', 
         'category': 2,
          'controls': {'ATIME': ['Attack Time', 0.01, 0.001, 2.0],
-                                   'CDIRECTION': ['Invert', 0, 0, 1],
+                                   'CDIRECTION': ['Invert', 0, 0, 1, "bool"],
                                    'CMAXV': ['Maximum Value',
                                              1.0,
                                              0.0,
@@ -300,11 +306,11 @@ effect_prototypes_models_all = {
      'foot_switch_a': {'description': 'The left footswitch', 
         'category': 1,
              'controls': {'bpm': ['BPM', 120.0, 35.0, 350.0],
-                          'latching': ['Is Latching', 0.0, 0.0, 1.0],
+                          'latching': ['Is Latching', 0.0, 0.0, 1.0, "bool"],
                           'on_v': ['On Value', 1.0, -1.0, 1.0],
                           'off_v': ['Off Value', 0.0, -1.0, 1.0],
-                          'value': ['value', 0.0, 0.0, 1.0],
-                          'cur_out': ['value', 0.0, 0.0, 1.0],
+                          'value': ['value', 0.0, 0.0, 1.0, "hide"],
+                          'cur_out': ['value', 0.0, 0.0, 1.0, "hide"],
                           },
                          'inputs': {},
                          'outputs': {'bpm_out': ['BPM Out', 'ControlPort'],
@@ -313,11 +319,11 @@ effect_prototypes_models_all = {
      'foot_switch_b': {'description': 'The center footswitch', 
         'category': 1,
              'controls': {'bpm': ['BPM', 120.0, 35.0, 350.0],
-                          'latching': ['Is Latching', 0.0, 0.0, 1.0],
+                          'latching': ['Is Latching', 0.0, 0.0, 1.0, "bool"],
                           'on_v': ['On Value', 1.0, -1.0, 1.0],
                           'off_v': ['Off Value', 0.0, -1.0, 1.0],
-                          'value': ['value', 0.0, 0.0, 1.0],
-                          'cur_out': ['value', 0.0, 0.0, 1.0],
+                          'value': ['value', 0.0, 0.0, 1.0, "hide"],
+                          'cur_out': ['value', 0.0, 0.0, 1.0, "hide"],
                           },
                          'inputs': {},
                          'outputs': {'bpm_out': ['BPM Out', 'ControlPort'],
@@ -325,11 +331,11 @@ effect_prototypes_models_all = {
      'foot_switch_c': {'description': 'The right footswitch',
         'category': 1,
              'controls': {'bpm': ['BPM', 120.0, 35.0, 350.0],
-                          'latching': ['Is Latching', 0.0, 0.0, 1.0],
+                          'latching': ['Is Latching', 0.0, 0.0, 1.0, "bool"],
                           'on_v': ['On Value', 1.0, -1.0, 1.0],
                           'off_v': ['Off Value', 0.0, -1.0, 1.0],
-                          'value': ['value', 0.0, 0.0, 1.0],
-                          'cur_out': ['value', 0.0, 0.0, 1.0],
+                          'value': ['value', 0.0, 0.0, 1.0, "hide"],
+                          'cur_out': ['value', 0.0, 0.0, 1.0, "hide"],
                           },
                          'inputs': {},
                          'outputs': {'bpm_out': ['BPM Out', 'ControlPort'],
@@ -342,9 +348,9 @@ effect_prototypes_models_all = {
                                               1.0,
                                               0.0078125,
                                               32.0],
-                          'waveForm': ['Wave Form', 0, 0, 5],
+                          'waveForm': ['Wave Form', 0, 0, 5, "int"],
                           'level': ["Level", 1.0, -1.0, 1.0],
-                          'is_uni': ["Unipolar", 1.0, 0.0, 1.0],
+                          'is_uni': ["Unipolar", 1.0, 0.0, 1.0, "bool"],
                           },
              'inputs': {'reset': ['Reset', 'CVPort'],
                     'tempo': ['BPM', 'ControlPort']
@@ -366,6 +372,7 @@ effect_prototypes_models_all = {
                  'outputs': {'out': ['Out', 'AudioPort']}},
      'mono_EQ': {'description': 'Mono multiband parametric EQ',
         'category': 0,
+        # 'kill_dry': True,
              'controls': {'HPQ': ['HighPass Resonance', 0.7, 0.0, 1.4],
                               'HPfreq': ['Highpass Frequency', 20.0, 5.0, 1250.0],
                               'HSfreq': ['Highshelf Frequency',
@@ -467,6 +474,7 @@ effect_prototypes_models_all = {
                            'inputs': {'INPUT': ['Audio In', 'AudioPort']},
                            'outputs': {'OUTPUT': ['Audio Out', 'AudioPort']}},
      'stereo_EQ': {'description': 'Stereo multiband parametric EQ.',
+        # 'kill_dry': True,
         'category': 0,
              'controls': {'HPQ': ['HighPass Resonance', 0.7, 0.0, 1.4],
                                 'HPfreq': ['Highpass Frequency', 20.0, 5.0, 1250.0],
@@ -559,11 +567,11 @@ effect_prototypes_models_all = {
     'amp_bass': {'description': 'SVT40 bass amp sim',
         'category': 0,
             'controls': {'BASS': ['BASS', 0.5, 0.0, 1.0],
-                                 'CABSWITCH': ['CABSWITCH', 0.0, 0.0, 1.0],
-                                 'HIGHSWITCH': ['HIGHSWITCH', 0.0, 0.0, 1.0],
-                                 'LOWSWITCH': ['LOWSWITCH', 1.0, 0.0, 2.0],
+                                 'CABSWITCH': ['CABSWITCH', 0.0, 0.0, 1.0, "int"],
+                                 'HIGHSWITCH': ['HIGHSWITCH', 0.0, 0.0, 1.0, "int"],
+                                 'LOWSWITCH': ['LOWSWITCH', 1.0, 0.0, 2.0, "int"],
                                  'MIDDLE': ['MIDDLE', 0.5, 0.0, 1.0],
-                                 'MIDSWITCH': ['MIDSWITCH', 1.0, 0.0, 2.0],
+                                 'MIDSWITCH': ['MIDSWITCH', 1.0, 0.0, 2.0, "int"],
                                  'TREBLE': ['TREBLE', 0.5, 0.0, 1.0],
                                  'VOLUME': ['VOLUME', 0.2, 0.0, 1.0]},
                     'inputs': {'in': ['In', 'AudioPort']},
@@ -579,9 +587,9 @@ effect_prototypes_models_all = {
                         'outputs': {'out': ['Out', 'AudioPort']}},
      'auto_swell': {'description': 'Automatically swells volume to remove note attack',
         'category': 0,
-             'controls': {'DOWNTIME': ['DOWNTIME', 5.0, 0.0, 1000],
+             'controls': {'DOWNTIME': ['DOWNTIME', 5.0, 0.0, 5000],
                                  'TRESHOLD': ['THRESHOLD', 1.0, 0.0, 1],
-                                 'UPTIME': ['UPTIME', 100, 0.0, 1000]},
+                                 'UPTIME': ['UPTIME', 100, 0.0, 5000]},
                     'inputs': {'TRESHOLD': ['THRESHOLD', 'CVPort'],
                                'in': ['In', 'AudioPort']},
                     'outputs': {'out': ['Out', 'AudioPort']}},
@@ -589,7 +597,7 @@ effect_prototypes_models_all = {
         'category': 0,
              'controls': {'DRONE_GAIN': ['Drone Gain', 0.5, 0.0, 2.0],
                              'RELEASE': ['Release', 0.5, 0.01, 3.0],
-                             'STICK_IT': ['Freeze', 0, 0, 1]},
+                             'STICK_IT': ['Freeze', 0, 0, 1, "bool"]},
                 'inputs': {'INPUT': ['Audio In', 'AudioPort'],
                            'STICK_IT': ['Freeze', 'CVPort']},
                 'outputs': {'OUTPUT': ['Audio Out', 'AudioPort']}},
@@ -623,7 +631,7 @@ effect_prototypes_models_all = {
         'category': 0,
              'controls': {'DCURVE': ['Decay Curve', 0.0, -10.0, 10.0],
                                      'DTIME': ['Decay Time', 0.5, 0.01, 10.0],
-                                     'PULL_THE_PLUG': ['Pull the Plug', 0, 0, 1]},
+                                     'PULL_THE_PLUG': ['Pull the Plug', 0, 0, 1, "bool"]},
                         'inputs': {'DTIME': ['Decay Time', 'CVPort'],
                                    'INPUT': ['Audio In', 'AudioPort'],
                                    'PULL_THE_PLUG': ['Pull the Plug', 'CVPort']},
@@ -655,9 +663,11 @@ effect_prototypes_models_all = {
                  'outputs': {'ratio': ['Ratio', 'ControlPort']}},
  'mono_compressor': {'description': 'RMS downward compressor with auto markup',
         'category': 0,
+        # "kill_dry": True,
          'controls': {'Ratio': ['Ratio', 0.0, 0.0, 1.0],
+                     'enable': ['Enable', 1, 0, 1, "hide"],
                                   'attack': ['Attack Time', 0.01, 0.001, 0.1],
-                                  'hold': ['Hold', 0, 0, 1],
+                                  'hold': ['Hold', 0, 0, 1, "bool"],
                                   'inputgain': ['Input Gain', 0.0, -10.0, 30.0],
                                   'release': ['Release Time', 0.3, 0.03, 3.0],
                                   'threshold': ['Threshold',
@@ -668,6 +678,7 @@ effect_prototypes_models_all = {
                      'outputs': {'out': ['Out', 'AudioPort']}},
  'rotary': {'description': 'A rotating loudspeaker using physical modelling. Same sound as advanced.',
         'category': 0,
+        # "kill_dry": True,
          'controls': {'drumlvl': ['Drum Level', 0.0, -20.0, 20.0],
                          'drumwidth': ['Drum Stereo Width', 1.0, 0.0, 2.0],
                          'enable': ['Enable', 1, 0, 1],
@@ -678,16 +689,16 @@ effect_prototypes_models_all = {
                              'drum_speed_cv': ['Drum Speed', 'CVPort'],
                              'horn_brake_cv': ['Horn Brake', 'CVPort'],
                              'drum_brake_cv': ['Drum Brake', 'CVPort'],
-                         'enable': ['Enable', "CVPort"],
-                         'rt_speed': ['Old Motors Ac Dc', "CVPort"]},
+                         },
             'outputs': {'left': ['Left Output', 'AudioPort'],
                         'right': ['Right Output', 'AudioPort']}},
  'stereo_compress': {'description': 'RMS downward compressor with auto markup',
         'category': 0,
+        # "kill_dry": True,
          'controls': {'Ratio': ['Ratio', 0.0, 0.0, 1.0],
                                     'attack': ['Attack Time', 0.01, 0.001, 0.1],
-                                    'enable': ['Enable', 1, 0, 1],
-                                    'hold': ['Hold', 0, 0, 1],
+                                    'enable': ['Enable', 1, 0, 1, "hide"],
+                                    'hold': ['Hold', 0, 0, 1, "bool"],
                                     'inputgain': ['Input Gain',
                                                   0.0,
                                                   -10.0,
@@ -706,7 +717,7 @@ effect_prototypes_models_all = {
          'controls': {u'chorus_1_enable': [u'Chorus 1 On/Off',
                                                 1.0,
                                                 0.0,
-                                                1.0],
+                                                1.0, "bool"],
                            u'chorus_1_lfo_rate': [u'Chorus 1 LFO Rate',
                                                   5.0,
                                                   0.1,
@@ -714,7 +725,7 @@ effect_prototypes_models_all = {
                            u'chorus_2_enable': [u'Chorus 2 On/Off',
                                                 0.0,
                                                 0.0,
-                                                1.0],
+                                                1.0, "bool"],
                            u'chorus_2_lfo_rate': [u'Chorus 2 LFO Rate',
                                                   8.3,
                                                   0.1,
@@ -797,7 +808,7 @@ effect_prototypes_models_all = {
                                                  1.0],
                               'freeze_param': ['hold', 0.5, 0.0, 1.0],
                               # 'in_gain_param': ['in_gain', 0.5, 0.0, 1.0],
-                              'pitch_param': ['pitch', 0.0, -48.0, 48.0],
+                              'pitch_param': ['pitch', 0.0, -48.0, 48.0, "int"],
                               'position_param': ['pre-delay', 0.5, 0.0, 1.0],
                               'reverb_param': ['Modulation Amount',
                                                0.0,
@@ -928,7 +939,7 @@ effect_prototypes_models_all = {
                            'feedback_param': ['feedback', 0.55, 0.0, 1.0],
                            'freeze_param': ['freeze', 0.0, 0.0, 1.0],
                            # 'in_gain_param': ['in_gain', 0.5, 0.0, 1.0],
-                           'pitch_param': ['pitch', 0.1, -48.0, 48.0],
+                           'pitch_param': ['pitch', 0.1, -48.0, 48.0, "int"],
                            'position_param': ['position', 0.24, 0.0, 1.0],
                            'reverb_param': ['reverb', 0.6, 0.0, 1.0],
                            'reverse_param': ['reverse', 0.0, 0.0, 1.0],
@@ -958,7 +969,7 @@ effect_prototypes_models_all = {
                                 'feedback_param': ['feedback', 0.53, 0.0, 1.0],
                                 'freeze_param': ['freeze', 0.0, 0.0, 1.0],
                                 # 'in_gain_param': ['in_gain', 0.5, 0.0, 1.0],
-                                'pitch_param': ['pitch', 0.0, -48.0, 48.0],
+                                'pitch_param': ['pitch', 0.0, -48.0, 48.0, "int"],
                                 'position_param': ['tape length', 0.4, 0.0, 1.0],
                                 'reverb_param': ['reverb', 0.3, 0.0, 1.0],
                                 'reverse_param': ['reverse', 0.0, 0.0, 1.0],
@@ -1003,7 +1014,7 @@ effect_prototypes_models_all = {
                              'feedback_param': ['harmonics', 0.6, 0.0, 1.0],
                              'freeze_param': ['Switch Voice', 0.0, 0.0, 1.0],
                              # 'in_gain_param': ['in_gain', 0.5, 0.0, 1.0],
-                             'pitch_param': ['pitch', 0.0, -48.0, 48.0],
+                             'pitch_param': ['pitch', 0.0, -48.0, 48.0, "int"],
                              'position_param': ['timbre', 0.83, 0.0, 1.0],
                              'reverb_param': ['scatter', 0.08, 0.0, 1.0],
                              'reverse_param': ['reverse', 0.0, 0.0, 1.0],
@@ -1033,7 +1044,7 @@ effect_prototypes_models_all = {
                                  'feedback_param': ['feedback', 0.5, 0.0, 1.0],
                                  'freeze_param': ['freeze', 0.5, 0.0, 1.0],
                                  # 'in_gain_param': ['in_gain', 0.5, 0.0, 1.0],
-                                 'pitch_param': ['pitch', 0.0, -48.0, 48.0],
+                                 'pitch_param': ['pitch', 0.0, -48.0, 48.0, "int"],
                                  'position_param': ['position', 0.5, 0.0, 1.0],
                                  'reverb_param': ['reverb', 0.5, 0.0, 1.0],
                                  'reverse_param': ['reverse', 0.5, 0.0, 1.0],
@@ -1063,7 +1074,7 @@ effect_prototypes_models_all = {
                                'feedback_param': ['feedback', 0.48, 0.0, 1.0],
                                'freeze_param': ['freeze', 0.0, 0.0, 1.0],
                                # 'in_gain_param': ['in_gain', 0.5, 0.0, 1.0],
-                               'pitch_param': ['pitch', 0.0, -48.0, 48.0],
+                               'pitch_param': ['pitch', 0.0, -48.0, 48.0, "int"],
                                'position_param': ['position', 0.5, 0.0, 1.0],
                                'reverb_param': ['reverb', 0.15, 0.0, 1.0],
                                'reverse_param': ['reverse', 0.0, 0.0, 1.0],
@@ -1190,6 +1201,7 @@ effect_prototypes_models_all = {
                                  'high_pass': ['High Pass', 'AudioPort'],
                                  'low_pass': ['Low Pass', 'AudioPort']}},
  'rotary_advanced': { 'description': 'A rotating loudspeaker using physical modelling. Same sound, more controls.',
+         # "kill_dry": True,
         'category': 0,
         'controls': {'drumaccel': ['Drum Acceleration',
                                                 4.127,
@@ -1330,8 +1342,8 @@ effect_prototypes_models_all = {
                                  'right': ['Right Output', 'AudioPort']}},
      'midi_cc': {'description': 'MIDI CC to control value',
         'category': 1,
-             'controls': {'controller_number': ['CC Number', 0, 0.0, 127.0],
-                          'logarithmic': ['Logarithmic', 0.0, 0.0, 1.0],
+             'controls': {'controller_number': ['CC Number', 0, 0.0, 127.0, "int"],
+                          'logarithmic': ['Logarithmic', 0.0, 0.0, 1.0, "bool"],
                           'maximum': ['Maximum',
                                               1.0,
                                               0.00,
@@ -1342,8 +1354,8 @@ effect_prototypes_models_all = {
              'outputs': {'output_cv': ['Output', 'CVPort']}},
     'cv_to_midi_cc': {'description': 'convert control to MIDI CC', 
         'category': 1,
-            'controls': {'CC_NUM': ['CC Number', 0, 0, 127],
-                           'CHAN': ['Channel', 0, 0, 15],
+            'controls': {'CC_NUM': ['CC Number', 0, 0, 127, "int"],
+                           'CHAN': ['Channel', 0, 0, 15, "int"],
                            'RESOLUTION': ['resolution', 0.01, 0.00001, 1]},
               'inputs': {'CV_IN': ['CV In', 'CVPort']},
               'outputs': {'MIDI_OUT': ['MIDI Out', 'AtomPort']}},
@@ -1426,12 +1438,12 @@ effect_prototypes_models_all = {
                            'out': ['out', 'AudioPort']}},
     'midi_note_to_cv': {'description': 'convert MIDI notes to v per octave pitch CVs',
         'category': 1,
-            'controls': {'Cent': ['Cent', 0, -100, 100],
-                                  'Octave': ['Octave', 0, -3, 3],
-                                  'Panic': ['Panic', 0, 0, 1],
-                                  'Retrigger': ['Retrigger', 0.0, 0.0, 1.0],
-                                  'Semitone': ['Semitone', 0, -12, 12],
-                                  'channel': ['Channel', 1, 1, 16]},
+            'controls': {'Cent': ['Cent', 0, -100, 100, "int"],
+                                  'Octave': ['Octave', 0, -3, 3, "int"],
+                                  'Panic': ['Panic', 0, 0, 1, "bool"],
+                                  'Retrigger': ['Retrigger', 0.0, 0.0, 1.0, "bool"],
+                                  'Semitone': ['Semitone', 0, -12, 12, "int"],
+                                  'channel': ['Channel', 1, 1, 16, "int"]},
                      'inputs': {'in': ['MIDI Input', 'AtomPort']},
                      'outputs': {'Gate': ['Gate', 'CVPort'],
                                  'Pitch': ['Pitch', 'CVPort'],
@@ -1621,7 +1633,7 @@ effect_prototypes_models_all = {
             'controls': {'Drylevel': ['Dry Level', -90, -90, 20],
                               # 'Latency': ['latency', 0, 0, 16027],
                               # 'Rate': ['Rate Shift [%]', 0, -50, 100],
-                              'Semitone': ['Semitone Shift', 0, -12, 12],
+                              'Semitone': ['Semitone Shift', 0, -12, 12, "int"],
                               'Wetlevel': ['Wet Level', 0, -90, 20]},
                  'inputs': {'Input': ['Input', 'AudioPort']},
                  'outputs': {'Output': ['Output', 'AudioPort']}},
@@ -1664,8 +1676,8 @@ effect_prototypes_models_all = {
                                 'hh_dens': ['hihat density', 0.5, 0.0, 1.0],
                                 'mapx': ['Map x', 0.0, 0.0, 1.0],
                                 'mapy': ['map y', 0.5, 0.0, 1.0],
-                                'reset_button': ['reset button', 0, 0.0, 1.0],
-                                'run_button': ['run button', 0.0, 0.0, 1.0],
+                                'reset_button': ['reset button', 0, 0.0, 1.0, "bool"],
+                                'run_button': ['run button', 0.0, 0.0, 1.0, "bool"],
                                 'sn_dens': ['snare density', 0.5, 0.0, 1.0],
                                 'swing': ['swing', 0.0, 0.0, 0.9],
                                 'tempo': ['tempo', 120.0, 37.0, 240.0]},
@@ -1690,7 +1702,18 @@ effect_prototypes_models_all = {
                                'hh_output': ['hihat trigger', 'CVPort'],
                                'sn_acc_output': ['snare accent', 'CVPort'],
                                'sn_output': ['snare trigger', 'CVPort']}},
+        'wet_dry': {'controls': {'level': ['level', 1.0, 0.0, 1.0],
+                          'mode': ['Mode', 0, 0, 1],
+                          'shape': ['Shape', 0.0, 0.0, 1.0],
+                          'xfade': ['Wet Dry', 0.0, -1.0, 1.0]},
+             'description': 'blend between two inputs',
+             'category': 0,
+             'inputs': {'dry': ['Dry', 'AudioPort'],
+                        'wet': ['Wet', 'AudioPort']},
+             'outputs': {'out': ['Out', 'AudioPort']}},
+
                      }
+
 
 for k, v in effect_prototypes_models_all.items():
     n = 0
@@ -1741,6 +1764,7 @@ def remove_row(model, row):
 
 preset_list = []
 preset_list_model = QStringListModel(preset_list)
+hardware_info = {}
 def load_preset_list():
     global preset_list
     try:
@@ -1752,6 +1776,13 @@ def load_preset_list():
         elif current_pedal_model.name == "beebo":
             preset_list = ["file:///mnt/presets/beebo/Empty.ingen"]
     preset_list_model.setStringList(preset_list)
+
+try:
+    with open("/pedal_state/hardware_info.json") as f:
+        hardware_info = json.load(f)
+    hardware_info["revision"]
+except:
+    hardware_info = {"revision": 10, "pedal": "digit"}
 
 class MyEmitter(QObject):
     # setting up custom signal
@@ -1870,14 +1901,13 @@ class PatchBayNotify(QObject):
 
 class PolyValue(QObject):
     # name, min, max, value
-    def __init__(self, startname="", startval=0, startmin=0, startmax=1, curve_type="lin"):
+    def __init__(self, startname="", startval=0, startmin=0, startmax=1, v_type="float", curve_type="lin"):
         QObject.__init__(self)
         self.nameval = startname
         self.valueval = startval
         self.defaultval = startval
         self.rminval = startmin
         self.rmax = startmax
-        self.assigned_cc = None
 
     def readValue(self):
         return self.valueval
@@ -2517,7 +2547,10 @@ class Knobs(QObject):
             return
         command = "amixer -- sset ADC1 "+str(level)+"db; amixer -- sset ADC2 "+str(level)+"db"
         command_status[0].value = subprocess.call(command, shell=True)
-        command = "amixer -- sset 'ADC1 Invert' off,on; amixer -- sset 'ADC2 Invert' on,on"
+        if hardware_info["revision"] <= 10:
+            command = "amixer -- sset 'ADC1 Invert' off,on; amixer -- sset 'ADC2 Invert' on,on"
+        else:
+            command = "amixer -- sset 'ADC1 Invert' off,off; amixer -- sset 'ADC2 Invert' off,off"
         command_status[0].value = subprocess.call(command, shell=True)
         input_level.value = level
         if write:
@@ -2629,7 +2662,7 @@ class Knobs(QObject):
         preset_list = preset_list_model.stringList()
         debug_print("preset list is", preset_list)
         if in_preset_file in preset_list:
-            preset_list.pop(preset_list.index(in_preset_file))
+            preset_list = [v for v in preset_list if v != in_preset_file]
             preset_list_model.setStringList(preset_list)
             self.save_preset_list()
         os.sync()
@@ -2883,9 +2916,9 @@ def process_ui_messages():
                 try:
                     if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
                         effect_type = current_effects[effect_name]["effect_type"]
-                        debug_print("value set", value, effect_type, parameter )
+                        # debug_print("value set", value, effect_type, parameter )
                         if "kill_dry" in effect_prototypes[effect_type] and parameter == "enabled":
-                            debug_print("kill dry value set", value)
+                            # debug_print("kill dry value set", value)
                             current_effects[effect_name]["enabled"].value = bool(float(value))
                         current_effects[effect_name]["controls"][parameter].value = float(value)
                 except ValueError:

@@ -2,6 +2,7 @@ import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
+import "../qml/polyconst.js" as Constants
 
 // ApplicationWindow {
 
@@ -916,6 +917,7 @@ import QtQuick.Controls.Material 2.3
                         time_scale.point_updated++; 
                         mycanvas.requestPaint();
                     }
+                    Material.foreground: Constants.rainbow[0]
                 }
 
 
@@ -934,6 +936,7 @@ import QtQuick.Controls.Material 2.3
                     onMoved: {
                         knobs.ui_knob_change(effect, "gain", value);
                     }
+                    Material.foreground: Constants.rainbow[0]
 
                     onPressedChanged: {
                         if (pressed === false)

@@ -64,7 +64,9 @@ Item {
         color: "#60000000"
         visible: isLoading.value
         MouseArea {
-            anchors.fill: parent
+            height: parent.height
+            width: parent.width - 80
+            x: 0
             onClicked: {}
         }
         Label {

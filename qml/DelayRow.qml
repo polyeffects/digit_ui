@@ -9,8 +9,9 @@ Item {
     property string row_param: "Amp_5"
     property string current_effect 
     property real multiplier: 1  
+    property string v_type: "float"
 	property bool is_log: false
-
+    visible: v_type != "hide"
 
     function basename(ustr)
     {
@@ -63,7 +64,9 @@ Item {
     Slider {
         x: 0
         y: 0
-        visible: row_param != "ir"
+        visible: v_type != "bool"
+        snapMode: Slider.SnapAlways
+        stepSize: v_type == "int" ? 1.0 : 0.0
         title: currentEffects[current_effect]["controls"][row_param].name
         width: 420
         height:parent.height
@@ -82,6 +85,25 @@ Item {
                 knobs.set_knob_current_effect(current_effect, row_param);
             }
         }
+    }
+
+    Switch {
+        x: 0
+        y: 0
+        visible: v_type == "bool"
+        text: currentEffects[current_effect]["controls"][row_param].name
+        width: 420
+        height:parent.height
+        checked: Boolean(currentEffects[current_effect]["controls"][row_param].value)
+        onToggled: {
+            knobs.ui_knob_change(current_effect, row_param, 1.0 - currentEffects[current_effect]["controls"][row_param].value);
+        }
+        font {
+            pixelSize: 24
+            capitalization: Font.AllUppercase
+            family: mainFont.name
+        }
+    
     }
 
 	IconButton {
@@ -109,55 +131,4 @@ Item {
 		radius: 15
 	}
 
-   Text {
-        x: 10
-        y: 0
-        visible: row_param == "ir"
-        font.pixelSize: 18
-        font.capitalization: Font.AllUppercase
-        width: 500
-        height:40
-        color: "white"
-        text: row_param == "ir" ? remove_suffix(basename(currentEffects[current_effect]["controls"][row_param].name)) : "not IR"
-        }
-
-
-        // SpinBox {
-        //     id: spinbox
-        //     value: currentEffects[current_effect]["controls"][row_param].value * 100
-        //     from: currentEffects[current_effect]["controls"][row_param].rmin * 100
-        //     to: currentEffects[current_effect]["controls"][row_param].rmax * 100
-        //     stepSize: 10
-        //     // editable: true
-        //     property int decimals: 2
-        //     property real realValue: value / 100
-        //     onValueModified: {
-        //         knobs.ui_knob_change(current_effect, row_param, realValue);
-        //     }
-        //     inputMethodHints: Qt.ImhFormattedNumbersOnly
-
-        //     validator: DoubleValidator {
-        //         bottom: Math.min(spinbox.from, spinbox.to)
-        //         top:  Math.max(spinbox.from, spinbox.to)
-        //     }
-
-        //     textFromValue: function(value, locale) {
-        //         return Number(value / 100).toLocaleString(locale, 'f', spinbox.decimals)
-        //     }
-
-        //     valueFromText: function(text, locale) {
-        //         return Number.fromLocaleString(locale, text) * 100
-        //     }
-        // }
-
-        // Button {
-        //     text: "Mapping"
-        //     font.pixelSize: baseFontSize
-        //     // width: 100
-        //     onClicked: {
-        //         midiAssignPopup.set_mapping_choice("delay"+(time_scale.current_delay+1), row_param);
-        //     }
-        //     // flat: true
-        // }
-    // }
 }

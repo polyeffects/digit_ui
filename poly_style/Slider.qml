@@ -64,6 +64,23 @@ T.Slider {
         title_footer.current_footer_value = value
     }
 
+    Text {
+        // anchors.centerIn: parent
+        x: control.leftPadding + (control.horizontal ? handle.width + padding : (control.availableWidth - width) / 2)
+        y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : control.availableHeight - 40 - (width / 2))
+        text: title + "  " + control.value.toFixed(2)
+        // height: 15
+        color: "white"
+        rotation: control.horizontal ? 0 : 270
+        font {
+            // pixelSize: fontSizeMedium
+            pixelSize: 24
+            capitalization: Font.AllUppercase
+            family: mainFont.name
+        }
+        z: 10
+    }
+
     handle: Rectangle {
         x: control.leftPadding + (control.horizontal ? control.visualPosition * (control.availableWidth - width) : (control.availableWidth - width) / 2)
         y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : control.visualPosition * (control.availableHeight - height))
@@ -109,21 +126,6 @@ T.Slider {
         scale: control.horizontal && control.mirrored ? -1 : 1
         radius: 6
         
-        Text {
-            // anchors.centerIn: parent
-            x: control.horizontal ? handle.width + padding : (parent.width - width) / 2
-            y: control.horizontal ? (parent.height - height) / 2 : parent.height - 40 - (width / 2)
-            text: title + "  " + control.value.toFixed(2)
-            // height: 15
-            color: "white"
-            rotation: control.horizontal ? 0 : 270
-            font {
-                // pixelSize: fontSizeMedium
-                pixelSize: 24
-                capitalization: Font.AllUppercase
-                family: mainFont.name
-            }
-        }
 
         // Rectangle {
         //     x: control.horizontal ? 0 : (parent.width - width) / 2

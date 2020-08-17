@@ -41,6 +41,7 @@ import QtQuick.Templates 2.4 as T
 
 T.Switch {
     id: control
+    property color accent: Material.foreground
 
     // implicitWidth: Math.max(background ? background.implicitWidth : 0,
     //                         contentItem.implicitWidth + leftPadding + rightPadding)
@@ -61,15 +62,14 @@ T.Switch {
         width: control.width
         height: control.height
 
-        Material.elevation: 1
 
         Rectangle {
             width: parent.width
             height: parent.height
-            radius: height / 2
+            radius: 6
             y: parent.height / 2 - height / 2
-            color: control.enabled ? (control.checked ? control.Material.switchCheckedTrackColor : control.Material.switchUncheckedTrackColor)
-            : control.Material.switchDisabledTrackColor
+            color: control.Material.background
+            border { width:2; color: accent}
         }
 
         Rectangle {
@@ -78,19 +78,14 @@ T.Switch {
             y: (parent.height - height) / 2
             width: parent.width / 2
             height: parent.height
-            radius: height / 2
-            color: control.enabled ? (control.checked ? control.Material.switchCheckedHandleColor : control.Material.switchUncheckedHandleColor)
-            : control.Material.switchDisabledHandleColor
+            radius: 6
+            color: accent // control.checked ? accent : control.Material.switchUncheckedHandleColor
 
             Behavior on x {
                 enabled: !control.pressed
                 SmoothedAnimation {
                     duration: 150
                 }
-            }
-            layer.enabled: indicator.Material.elevation > 0
-            layer.effect: ElevationEffect {
-                elevation: indicator.Material.elevation
             }
         }
     }
@@ -104,7 +99,7 @@ T.Switch {
             rightPadding: control.rightPadding + control.spacing
             text: control.text
             font: control.font
-            color: control.enabled ? control.Material.foreground : control.Material.hintTextColor
+            color: "white"
             elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
             width: parent.width - 30
@@ -117,7 +112,7 @@ T.Switch {
             rightPadding: control.rightPadding + control.spacing
             text: control.checked ? "ON" : "OFF"
             font: control.font
-            color: control.enabled ? control.Material.foreground : control.Material.hintTextColor
+            color: "white"
             verticalAlignment: Text.AlignVCenter
         }
     }

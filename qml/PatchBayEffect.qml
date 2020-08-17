@@ -825,6 +825,7 @@ Rectangle {
 								row_param: modelData
 								current_effect: effect_id
 								Material.foreground: Constants.rainbow[index]
+                                v_type: effectPrototypes[effect_type]["controls"][modelData].length > 4 ? effectPrototypes[effect_type]["controls"][modelData][4] : "float"
 							}
 						}
 					}
@@ -1737,6 +1738,7 @@ Rectangle {
 							row_param: modelData
 							current_effect: effect_id
 							Material.foreground: Constants.rainbow[index]
+                            v_type: effectPrototypes[effect_type]["controls"][modelData].length > 4 ? effectPrototypes[effect_type]["controls"][modelData][4] : "float"
 						}
 					}
 				}
@@ -1916,6 +1918,7 @@ Rectangle {
 								current_effect: effect_id
 								Material.foreground: Constants.rainbow[index]
 								is_log: modelData == "cutoff"
+                                v_type: effectPrototypes[effect_type]["controls"][modelData].length > 4 ? effectPrototypes[effect_type]["controls"][modelData][4] : "float"
 							}
 						}
 					}
