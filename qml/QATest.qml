@@ -62,8 +62,45 @@ Item {
 			height: 200
 			text: "Load test preset"
 			onClicked: {
-				knobs.ui_load_preset_by_name("file:///mnt/presets/digit/Quad_delay.ingen")
+				knobs.ui_load_qa_preset_by_name("file:///mnt/presets/digit/Quad_delay.ingen")
 			}
+		}
+		Label {
+			width: 200
+			height: 200
+			text: currentPreset.name
+			font {
+				pixelSize: fontSizeLarge
+			}
+		}
+
+		Button {
+			width: 300
+			height: 200
+			text: currentPedalModel.name == "beebo" ? "Change to Digit" : "Change to Beebo"
+			font.pixelSize: fontSizeLarge
+			// show screen explaining to put USB flash drive in
+			onClicked: {
+				if(currentPedalModel.name == "beebo"){
+					knobs.set_pedal_model("digit");
+				} else {
+					knobs.set_pedal_model("beebo");
+				}
+			}
+
+		}
+
+		Button {
+			width: 250
+            height: 200
+			text: "IP: " + currentIP.name.replace(/ /g, "\n")
+			font.pixelSize: 20
+            // Component.onCompleted: contentItem.wrapMode = Text.WordWrap
+			// show screen explaining to put USB flash drive in
+			onClicked: {
+                knobs.get_ip();
+			}
+
 		}
 
 	}

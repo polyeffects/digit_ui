@@ -131,6 +131,9 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "sample_hold": "http://avwlv2.sourceforge.net/plugins/avw/samplehold",
         "dahdsr": "http://drobilla.net/plugins/blop/dahdsr",
         'wet_dry': 'http://polyeffects.com/lv2/wet_dry',
+        'wet_dry_stereo': 'http://polyeffects.com/lv2/wet_dry_stereo',
+        'ad_env_level': 'http://drobilla.net/plugins/omins/adenv_lvl',
+        'ad_envelope': 'http://drobilla.net/plugins/omins/adenv',
     },
     "beebo" : { "delay": "http://polyeffects.com/lv2/digit_delay",
         "warmth": "http://moddevices.com/plugins/tap/tubewarmth",
@@ -216,8 +219,10 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         "dahdsr": "http://drobilla.net/plugins/blop/dahdsr",
         'drum_patterns': 'http://polyeffects.com/lv2/polygrids',
         'wet_dry': 'http://polyeffects.com/lv2/wet_dry',
-
-
+        'wet_dry_stereo': 'http://polyeffects.com/lv2/wet_dry_stereo',
+        'ad_env_level': 'http://drobilla.net/plugins/omins/adenv_lvl',
+        'ad_envelope': 'http://drobilla.net/plugins/omins/adenv',
+        'poly_note_to_cv': 'http://polyeffects.com/lv2/midi_to_cv_poly',
         }}
 
 # categories effect, IO, control, synth, 
@@ -458,9 +463,8 @@ effect_prototypes_models_all = {
                    'outputs': {'Output': ['Output', 'AudioPort']}},
      'slew_limiter': {'description': 'Slows how fast a control signal changes. Useful with foot switches.',
         'category': 2,
-             'controls': {'in': ['In', 0.0, -1.0, 1.0],
-                                   'timeDown': ['Time Down', 0.5, 0, 10],
-                                   'timeUp': ['Time Up', 0.5, 0.0, 10]},
+             'controls': {  'timeDown': ['Time Down', 0.5, 0, 10],
+                            'timeUp': ['Time Up', 0.5, 0.0, 10]},
                       'inputs': {'in': ['In', 'CVPort']},
                       'outputs': {'out': ['Out', 'CVPort']}},
      'square_distortion': {'description': '',
@@ -740,7 +744,7 @@ effect_prototypes_models_all = {
                                                u'AudioPort']}},
  'phaser': {'description': 'Basic phaser',
         'category': 0,
-         'controls': {u'color': [u'Color', 1, 0, 1],
+         'controls': {u'color': [u'Color', 1, 0, 1, "bool"],
                          u'feedback_depth': [u'Feedback depth', 75, 0, 99],
                          u'feedback_hpf_cutoff': [u'Feedback bass cut',
                                                   500.0,
@@ -756,7 +760,7 @@ effect_prototypes_models_all = {
                                              u'AudioPort']}},
  'stereo_phaser': {'description': 'Basic phaser',
         'category': 0,
-         'controls': {u'color': [u'Color', 1, 0, 1],
+         'controls': {u'color': [u'Color', 1, 0, 1, "bool"],
                                 u'feedback_depth': [u'Feedback depth',
                                                     75,
                                                     0,
@@ -1355,7 +1359,7 @@ effect_prototypes_models_all = {
     'cv_to_midi_cc': {'description': 'convert control to MIDI CC', 
         'category': 1,
             'controls': {'CC_NUM': ['CC Number', 0, 0, 127, "int"],
-                           'CHAN': ['Channel', 0, 0, 15, "int"],
+                           'CHAN': ['Channel', 1, 1, 16, "int"],
                            'RESOLUTION': ['resolution', 0.01, 0.00001, 1]},
               'inputs': {'CV_IN': ['CV In', 'CVPort']},
               'outputs': {'MIDI_OUT': ['MIDI Out', 'AtomPort']}},
@@ -1637,7 +1641,7 @@ effect_prototypes_models_all = {
                               'Wetlevel': ['Wet Level', 0, -90, 20]},
                  'inputs': {'Input': ['Input', 'AudioPort']},
                  'outputs': {'Output': ['Output', 'AudioPort']}},
-'adsr': {'description': 'Basic ADSR envelope generator. Takes in a trigger.',
+'adsr': {'description': 'Basic ADSR envelope generator. Takes in a gate.',
         'category': 2,
         'controls': {'attack': ['Attack Time', 0, 0, 1.0],
                        'decay': ['Decay Time', 0, 0, 1.0],
@@ -1703,14 +1707,67 @@ effect_prototypes_models_all = {
                                'sn_acc_output': ['snare accent', 'CVPort'],
                                'sn_output': ['snare trigger', 'CVPort']}},
         'wet_dry': {'controls': {'level': ['level', 1.0, 0.0, 1.0],
-                          'mode': ['Mode', 0, 0, 1],
+                          #'mode': ['Mode', 0, 0, 1],
                           'shape': ['Shape', 0.0, 0.0, 1.0],
                           'xfade': ['Wet Dry', 0.0, -1.0, 1.0]},
              'description': 'blend between two inputs',
              'category': 0,
              'inputs': {'dry': ['Dry', 'AudioPort'],
-                        'wet': ['Wet', 'AudioPort']},
+                        'wet': ['Wet', 'AudioPort'],
+                        'xfade': ['Wet Dry Blend', 'CVPort'],
+                        'level': ['Level', 'CVPort'],
+                        },
              'outputs': {'out': ['Out', 'AudioPort']}},
+        'wet_dry_stereo': {'controls': {'level': ['level', 1.0, 0.0, 1.0],
+                                 #'mode': ['Mode', 0, 0, 1],
+                                 'shape': ['Shape', 0.0, 0.0, 1.0],
+                                 'xfade': ['signal a/b', 0.0, -1.0, 1.0]},
+                    'description': 'blend stereo inputs to stereo out',
+                    'category': 0,
+                    'inputs': {'dry_l': ['Dry L', 'AudioPort'],
+                               'dry_r': ['Dry R', 'AudioPort'],
+                               'wet_l': ['Wet L', 'AudioPort'],
+                               'wet_r': ['Wet R', 'AudioPort'],
+                               'xfade': ['Wet Dry Blend', 'CVPort'],
+                               'level': ['Level', 'CVPort'],
+                               },
+                    'outputs': {'out_l': ['Out L', 'AudioPort'],
+                                'out_r': ['Out R', 'AudioPort']}},
+        'ad_env_level': {'controls': {'attack': ['Attack Time', 0.5, 0, 5],
+                                       'attack_level': ['Attack to Level', 1, 0, 1],
+                                       'decay': ['Decay Time', 0.5, 0, 5],
+                                       'decay_level': ['Decay to Level', 0, 0, 1],
+                                       'init_level': ['Initial Level', 0, 0, 1]},
+                          'description': 'A attack decay envelope generator with start and end levels. Works with a trigger.',
+                          'category': 2,
+                          'inputs': {'gate': ['Gate', 'CVPort'],
+                                     'reset_level': ['Reset Level', 'CVPort'],
+                                     'trigger': ['Trigger', 'CVPort']},
+                          'outputs': {'out': ['Envelope Out', 'CVPort']}},
+         'ad_envelope': {'controls': {'attack': ['Attack Time', 0.5, 0, 5],
+                                      'decay': ['Decay Time', 0.5, 0, 5]},
+                          'description': 'A attack decay envelope generator. Works with a trigger.',
+                          'category': 2,
+                         'inputs': {'port0': ['Gate', 'CVPort'],
+                                    'trigger': ['Trigger', 'CVPort']},
+                         'outputs': {'out': ['Envelope Out', 'CVPort']}},
+'poly_note_to_cv': {'controls': {'Cent': ['Cent', 0, -100, 100],
+                                  'Octave': ['Octave', 0, -4, 4],
+                                  'Panic': ['Panic', 0, 0, 1],
+                                  'Semitone': ['Semitone', 0, -12, 12],
+                                  'channel': ['Channel', 1, 1, 16]},
+    'description': 'convert poly MIDI notes to v per octave pitch CVs',
+        'category': 1,
+                     'inputs': {'MIDIIn': ['MIDI Input', 'AtomPort']},
+                     'outputs': {'Gate1': ['Gate 1', 'CVPort'],
+                                 'Gate2': ['Gate 2', 'CVPort'],
+                                 'Gate3': ['Gate 3', 'CVPort'],
+                                 'Gate4': ['Gate 4', 'CVPort'],
+                                 'Pitch1': ['Pitch 1', 'CVPort'],
+                                 'Pitch2': ['Pitch 2', 'CVPort'],
+                                 'Pitch3': ['Pitch 3', 'CVPort'],
+                                 'Pitch4': ['Pitch 4', 'CVPort'],
+                                 'vel': ['Velocity', 'CVPort']}},
 
                      }
 
@@ -1862,6 +1919,7 @@ class PatchBayNotify(QObject):
 
     add_module = Signal(str)
     remove_module = Signal(str)
+    loading_preset = Signal(bool)
 
 
 # class PolyEncoder(QObject):
@@ -2044,8 +2102,10 @@ def load_pedal_state():
                 pedal_state["author"] = "poly player"
             if "model" not in pedal_state:
                 pedal_state["model"] = "digit"
+            if "thru" not in pedal_state:
+                pedal_state["thru"] = True
     except:
-        pedal_state = {"input_level": 0, "midi_channel": 1, "author": "poly player", "model": "digit"}
+        pedal_state = {"input_level": 0, "midi_channel": 1, "author": "poly player", "model": "digit", "thru": True}
 
 
 selected_source_effect_ports = QStringListModel()
@@ -2137,6 +2197,7 @@ def from_backend_remove_effect(effect_name):
     # current_effects.pop(effect_name)
     context.setContextProperty("currentEffects", current_effects) # might be slow
     context.setContextProperty("portConnections", port_connections)
+    ingen_wrapper.get_state("/engine")
     # debug_print("### from backend removing effect setting portConnections")
     update_counter.value+=1
 
@@ -2447,10 +2508,27 @@ class Knobs(QObject):
     def ui_load_preset_by_name(self, preset_file):
         if is_loading.value == True:
             return
+
+        patch_bay_notify.loading_preset.emit(True)
         # debug_print("loading", preset_file)
         # outfile = preset_file[7:] # strip file:// prefix
         load_preset(preset_file+"/main.ttl")
         current_preset.name = preset_file.strip("/").split("/")[-1][:-6]
+        global current_preset_filename
+        current_preset_filename = preset_file[7:]
+        update_counter.value+=1
+
+    @Slot(str)
+    def ui_load_qa_preset_by_name(self, preset_file):
+        if is_loading.value == True:
+            return
+
+        # debug_print("loading", preset_file)
+        # outfile = preset_file[7:] # strip file:// prefix
+        load_preset(preset_file+"/main.ttl")
+        current_preset.name = preset_file.strip("/").split("/")[-1][:-6]
+        global current_preset_filename
+        current_preset_filename = preset_file[7:]
         update_counter.value+=1
 
     @Slot(str)
@@ -2465,6 +2543,8 @@ class Knobs(QObject):
         clean_filename = ingen_wrapper.get_valid_filename(pedalboard_name)
         if len(clean_filename) > 0:
             filename = "/mnt/presets/"+current_pedal_model.name+"/"+clean_filename+".ingen"
+            global current_preset_filename
+            current_preset_filename = filename
             if filename in preset_meta_data:
                 preset_meta_data[filename]["author"] = pedal_state["author"]
                 preset_meta_data[filename]["description"] = preset_description.name
@@ -2514,9 +2594,16 @@ class Knobs(QObject):
     @Slot()
     def export_presets(self):
         # debug_print("copy presets to USB")
-        # could convert any that aren't 48khz.
-        # instead we just only copy ones that are
         command = """cd /mnt/presets; mkdir -p /usb_flash/presets; find . -iname "*.ingen" -type d -print0 | xargs -0 cp -r --target-directory=/usb_flash/presets --parents;sudo umount /usb_flash"""
+        command_status[0].value = -1
+        self.launch_subprocess(command)
+
+    @Slot()
+    def export_current_preset(self):
+        # debug_print("copy current preset to USB")
+        i = current_preset_filename.find("presets")+len("presets")+1
+        out_file = current_preset_filename[i:] # strip starting folders
+        command = """cd /mnt/presets; mkdir -p /usb_flash/presets; cp -r --target-directory=/usb_flash/presets --parents """+out_file+""";sudo umount /usb_flash"""
         command_status[0].value = -1
         self.launch_subprocess(command)
 
@@ -2562,6 +2649,21 @@ class Knobs(QObject):
         midi_channel.value = channel
         pedal_state["midi_channel"] = channel
         write_pedal_state()
+
+    @Slot(bool)
+    def set_thru_enabled(self, thru_on):
+        pedal_state["thru"] = thru_on
+        context.setContextProperty("pedalState", pedal_state)
+        write_pedal_state()
+        try:
+            if thru_on:
+                command = ["/usr/bin/jack_connect",  "ttymidi:MIDI_in", "ttymidi:MIDI_out"]
+                ret_var = subprocess.run(command)
+            else:
+                command = ["/usr/bin/jack_disconnect",  "ttymidi:MIDI_in", "ttymidi:MIDI_out"]
+                ret_var = subprocess.run(command)
+        except:
+            pass
 
     @Slot(int)
     def set_preset_list_length(self, v):
@@ -2689,6 +2791,11 @@ class Knobs(QObject):
         global current_selected_effect
         current_patchbay_mode = mode
         current_selected_effect = effect_name
+
+    @Slot()
+    def get_ip(self):
+        ret_obj = subprocess.run("hostname -I", capture_output=True, shell=True)
+        current_ip.name = ret_obj.stdout.decode()
 
 def io_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
@@ -3087,8 +3194,10 @@ def handle_MIDI_program_change():
     try:
         command = ["/usr/bin/jack_connect",  "ttymidi:MIDI_in", "midi-monitor:input"]
         ret_var = subprocess.run(command)
-        command = ["/usr/bin/jack_connect",  "ttymidi:MIDI_in", "ttymidi:MIDI_out"]
-        ret_var = subprocess.run(command)
+        # check if MIDI thru is needed
+        if pedal_state["thru"] == True:
+            command = ["/usr/bin/jack_connect",  "ttymidi:MIDI_in", "ttymidi:MIDI_out"]
+            ret_var = subprocess.run(command)
     except:
         pass
     # p terminates.
@@ -3130,6 +3239,7 @@ if __name__ == "__main__":
     load_pedal_state()
     current_bpm = PolyValue("BPM", 120, 30, 250) # bit of a hack
     current_preset = PolyValue("Default Preset", 0, 0, 127)
+    current_preset_filename = ""
     update_counter = PolyValue("update counter", 0, 0, 500000)
     command_status = [PolyValue("command status", -1, -10, 100000), PolyValue("command status", -1, -10, 100000)]
     delay_num_bars = PolyValue("Num bars", 1, 1, 16)
@@ -3158,6 +3268,7 @@ if __name__ == "__main__":
     current_pedal_model = PolyValue(pedal_state["model"], 0, -1, 1)
     # accent_color = PolyValue("#8BB8E8", 0, -1, 1)
     accent_color = PolyValue("#FF75D0", 0, -1, 1)
+    current_ip = PolyValue("", 0, -1, 1)
 
     # Expose the object to QML.
     # global context
@@ -3191,6 +3302,7 @@ if __name__ == "__main__":
     context.setContextProperty("presetMeta", preset_meta_data)
     context.setContextProperty("favourites", favourites)
     context.setContextProperty("pedalState", pedal_state)
+    context.setContextProperty("currentIP", current_ip)
     engine.load(QUrl("qml/TestWrapper.qml")) # XXX 
     debug_print("starting send thread")
     ingen_wrapper.start_send_thread()

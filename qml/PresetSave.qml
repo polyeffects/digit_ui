@@ -178,7 +178,19 @@ import QtQuick.Controls.Material 2.3
 						font {
 							pixelSize: fontSizeMedium
 						}
-						text: "Export Presets"
+						text: "Export Current"
+						width: 300
+						onClicked: { // save preset and close browser
+							presetStack.push(presetCopyView)
+							knobs.export_current_preset();
+						}
+					}
+					Button {
+						flat: false
+						font {
+							pixelSize: fontSizeMedium
+						}
+						text: "Export All"
 						width: 300
 						onClicked: { // save preset and close browser
 							presetStack.push(presetCopyView)

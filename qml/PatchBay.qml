@@ -57,6 +57,7 @@ import "polyconst.js" as Constants
             title_footer.patch_single = patch_bay;
             patchBayNotify.add_module.connect(reAddModule);
             patchBayNotify.remove_module.connect(reRemoveModule);
+            patchBayNotify.loading_preset.connect(reLoadingPreset);
         }
 
         function rsplit(str, sep, maxsplit) {
@@ -66,6 +67,7 @@ import "polyconst.js" as Constants
 
         signal reAddModule(string l_effect_id)
         signal reRemoveModule(string l_effect_id)
+        signal reLoadingPreset(bool is_loading_preset)
 
         Connections { 
             target: patch_bay
@@ -100,6 +102,14 @@ import "polyconst.js" as Constants
                     delete effect_map[l_effect_id];
                 }
                 // console.log("done remove module signal", l_effect_id);
+            }
+
+            onReLoadingPreset: {
+                // console.log("loading preset signal", is_loading_preset);
+                // return to main screen 
+                mainStack.pop(null); 
+                // console.log("done loading preset signal", is_loading_preset);
+
             }
         }
 

@@ -36,13 +36,20 @@ Item {
                     spacing: 30
                     // height:parent.height
                     GlowingLabel {
+						width: 400
                         // color: "#ffffff"
-                        text: currentPedalModel.name+" FIRMWARE 2.41"
+                        text: currentPedalModel.name+" FIRMWARE 2.43"
                         color: accent_color.name
+						font {
+							pixelSize: 35
+							capitalization: Font.AllUppercase
+							family: mainFont.name
+						}
                     }
 
                     Button {
-                        text: "Copy IRs"
+						width: 300
+                        text: "COPY IRS"
                         font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
                         onClicked: settingsStack.push(copyIRInfo)
@@ -52,11 +59,13 @@ Item {
                     }
 
                     GlowingLabel {
+						width: 300
                         // color: "#ffffff"
                         text: qsTr("MIDI CHANNEL")
                     }
 
                     SpinBox {
+						width: 300
                         id: midi_channel_spin
                         font.pixelSize: baseFontSize
                         from: 1
@@ -67,6 +76,7 @@ Item {
                     Button {
                         flat: false
                         text: "SET CHANNEL"
+						width: 300
                         font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
                         onClicked: knobs.set_channel(midi_channel_spin.value)
@@ -86,6 +96,7 @@ Item {
                     // }
                     Button {
                         flat: false
+						width: 300
                         text: "COPY LOGS"
                         font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
@@ -94,8 +105,8 @@ Item {
 
                     Button {
                         flat: false
+						width: 300
                         text: currentPedalModel.name == "beebo" ? "Change to Digit" : "Change to Beebo"
-                        font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
 						onClicked: {
 							if(currentPedalModel.name == "beebo"){
@@ -104,11 +115,17 @@ Item {
 								knobs.set_pedal_model("beebo");
 							}
 						}
+						font {
+							pixelSize: 24
+							capitalization: Font.AllUppercase
+							family: mainFont.name
+						}
 
                     }
 
                     Button {
                         flat: false
+						width: 300
                         text: "SET AUTHOR"
                         font.pixelSize: baseFontSize
                         onClicked: settingsStack.push(setAuthor)
@@ -154,6 +171,7 @@ Item {
 
                     Button {
                         flat: false
+						width: 300
                         font.pixelSize: baseFontSize
                         text: "FIRMWARE UPDATE"
                         onClicked: settingsStack.push(updateFirmware)
@@ -213,11 +231,13 @@ Item {
                     //     // }
                     // }
                     GlowingLabel {
+						width: 300
                         // color: "#ffffff"
                         text: qsTr("INPUT LEVEL")
                     }
                     // FIXME
                     SpinBox {
+						width: 300
                         id: input_level_spin
                         font.pixelSize: baseFontSize
                         from: -80
@@ -228,6 +248,7 @@ Item {
                     Button {
                         flat: false
                         text: "SET INPUT LEVEL"
+						width: 300
                         font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
                         onClicked: knobs.set_input_level(input_level_spin.value)
@@ -243,11 +264,28 @@ Item {
 
                     Button {
                         flat: false
-                        text: "QA Check"
+                        text: "QA CHECK"
+						width: 300
                         font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
                         onClicked: mainStack.push("QATest.qml")
                     }
+
+					Switch {
+						text: "MIDI THRU"
+						width: 300
+						checked: Boolean(pedalState["thru"])
+						onToggled: {
+							knobs.set_thru_enabled(!pedalState["thru"]);
+						}
+						font {
+							pixelSize: 24
+							capitalization: Font.AllUppercase
+							family: mainFont.name
+						}
+						Material.foreground: Constants.rainbow[0]
+
+					}
 
                 }
             }
@@ -524,6 +562,7 @@ Item {
                     font {
                         pixelSize: fontSizeMedium
                     }
+					text: pedalState["author"]
                     placeholderText: qsTr("Preset Author")    
                 }
 

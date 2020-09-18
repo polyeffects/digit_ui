@@ -69,7 +69,7 @@ Rectangle {
     // width: (effect_id.length * 1.6) + 100
     width: 115
     // height: is_io ? 80 : 68
-    height: output_keys.length > 2 || input_keys.length > 2 ? (Math.max(output_keys.length, input_keys.length)- 1)*14 + 72 : 72
+    height: output_keys.length > 2 || input_keys.length > 2 ? (Math.max(output_keys.length, input_keys.length)- 1)*18 + 72 : 72
     // spacing: 14
     radius: 6
 
@@ -184,8 +184,8 @@ Rectangle {
                 knobs.set_current_port(false, effect_id, k[matched_id]);
                 // rep1.model.items_changed();
                 patch_bay.externalRefresh();
-                patch_bay.currentMode = PatchBay.Select;
-				patch_bay.current_help_text = Constants.help["select"];
+                // patch_bay.currentMode = PatchBay.Select;
+				// patch_bay.current_help_text = Constants.help["select"];
             }
         }
 

@@ -26,7 +26,7 @@ Item {
             else {
                 // console.log("not instance of patchbay");
                 // patch_single.selected_effect.hide_sliders(true);
-                patchStack.pop()
+                patchStack.pop(null)
             }
         }
     }
