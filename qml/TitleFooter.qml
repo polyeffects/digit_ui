@@ -162,90 +162,90 @@ Item {
             }
         }
 
-        Rectangle {
-            x: 1147
-            y: 15
-            width: 115
-            height: 60
-            radius: 10
-            color: "white"
-            Label {
-                // color: "#ffffff"
-                x: 5
-                y: 3 
-                text: currentBPM.value.toFixed(0) + "\nBPM" 
-                horizontalAlignment: Text.AlignHCenter
-                width: 54
-                height: 54
-                z: 1
-                color: Constants.background_color
-                font {
-                    pixelSize: 20
-                    capitalization: Font.AllUppercase
-                }
-                // MouseArea {
-                //     anchors.fill: parent
-                //     onClicked: {
-                //         mainStack.push("PresetSave.qml")
-                //     }
-                // }
-            }
+        // Rectangle {
+        //     x: 1147
+        //     y: 15
+        //     width: 115
+        //     height: 60
+        //     radius: 10
+        //     color: "white"
+        //     Label {
+        //         // color: "#ffffff"
+        //         x: 5
+        //         y: 3 
+        //         text: currentBPM.value.toFixed(0) + "\nBPM" 
+        //         horizontalAlignment: Text.AlignHCenter
+        //         width: 54
+        //         height: 54
+        //         z: 1
+        //         color: Constants.background_color
+        //         font {
+        //             pixelSize: 20
+        //             capitalization: Font.AllUppercase
+        //         }
+        //         // MouseArea {
+        //         //     anchors.fill: parent
+        //         //     onClicked: {
+        //         //         mainStack.push("PresetSave.qml")
+        //         //     }
+        //         // }
+        //     }
 
-            Rectangle {
-                x: 65
-                y: 13
-                id: beat1
-                width: 15
-                height: 15
-                radius: 7.5
-                color: accent_color.name
-            }
-            Rectangle {
-                x: 86
-                y: 13
-                id: beat2
-                width: 15
-                height: 15
-                radius: 7.5
-                color: accent_color.name
-            }
-            Rectangle {
-                x: 86
-                y: 34
-                id: beat3
-                width: 15
-                height: 15
-                radius: 7.5
-                color: accent_color.name
-            }
-            Rectangle {
-                x: 65
-                y: 34
-                id: beat4
-                width: 15
-                height: 15
-                radius: 7.5
-                color: accent_color.name
-            }
+        //     Rectangle {
+        //         x: 65
+        //         y: 13
+        //         id: beat1
+        //         width: 15
+        //         height: 15
+        //         radius: 7.5
+        //         color: accent_color.name
+        //     }
+        //     Rectangle {
+        //         x: 86
+        //         y: 13
+        //         id: beat2
+        //         width: 15
+        //         height: 15
+        //         radius: 7.5
+        //         color: accent_color.name
+        //     }
+        //     Rectangle {
+        //         x: 86
+        //         y: 34
+        //         id: beat3
+        //         width: 15
+        //         height: 15
+        //         radius: 7.5
+        //         color: accent_color.name
+        //     }
+        //     Rectangle {
+        //         x: 65
+        //         y: 34
+        //         id: beat4
+        //         width: 15
+        //         height: 15
+        //         radius: 7.5
+        //         color: accent_color.name
+        //     }
 
-            SequentialAnimation {
-                running: true
-                loops: Animation.Infinite
-                PropertyAction { target: beat1; property: "opacity"; value: 1 }
-                PauseAnimation { duration: beat_msec }
-                PropertyAction { target: beat2; property: "opacity"; value: 1 }
-                PauseAnimation { duration: beat_msec }
-                PropertyAction { target: beat3; property: "opacity"; value: 1 }
-                PauseAnimation { duration: beat_msec }
-                PropertyAction { target: beat4; property: "opacity"; value: 1 }
-                PauseAnimation { duration: beat_msec / 2 }
-                PropertyAction { target: beat1; property: "opacity"; value: 0 }
-                PropertyAction { target: beat2; property: "opacity"; value: 0 }
-                PropertyAction { target: beat3; property: "opacity"; value: 0 }
-                PropertyAction { target: beat4; property: "opacity"; value: 0 }
-                PauseAnimation { duration: beat_msec / 2 }
-            }
-        }
+        //     SequentialAnimation {
+        //         running: true
+        //         loops: Animation.Infinite
+        //         PropertyAction { target: beat1; property: "opacity"; value: 1 }
+        //         PauseAnimation { duration: beat_msec }
+        //         PropertyAction { target: beat2; property: "opacity"; value: 1 }
+        //         PauseAnimation { duration: beat_msec }
+        //         PropertyAction { target: beat3; property: "opacity"; value: 1 }
+        //         PauseAnimation { duration: beat_msec }
+        //         PropertyAction { target: beat4; property: "opacity"; value: 1 }
+        //         PauseAnimation { duration: beat_msec / 2 }
+        //         PropertyAction { target: beat1; property: "opacity"; value: 0 }
+        //         PropertyAction { target: beat2; property: "opacity"; value: 0 }
+        //         PropertyAction { target: beat3; property: "opacity"; value: 0 }
+        //         PropertyAction { target: beat4; property: "opacity"; value: 0 }
+        //         PauseAnimation { duration: beat_msec / 2 }
+        //     }
+        // }
     }
 
     StackView {
@@ -426,7 +426,7 @@ Item {
                 patch_single.selected_effect.disconnect_clicked()
             }
             HelpLabel {
-                text: "Duplicate"
+                text: "Disconnect"
             }
         }
 

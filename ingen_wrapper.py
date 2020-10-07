@@ -174,6 +174,9 @@ def load_pedalboard(name, current_sub_graph):
     q.put((ingen.copy, name, current_sub_graph))
     # q.put((ingen.copy, name, "/main"))
 
+def set_broadcast(port, is_broadcast):
+    # s.set("/main/plug/left_out", "http://drobilla.net/ns/ingen#broadcast", "true" if is_broadcast else "false")
+    q.put((ingen.set, port, "http://drobilla.net/ns/ingen#broadcast", "true" if is_broadcast else "false"))
 
 def remove_plugin(effect_id):
     # add to delete list, copies wait for delete
