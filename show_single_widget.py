@@ -17,6 +17,7 @@ import icons.icons
 # #, imagine_assets
 import resource_rc
 
+EXIT_PROCESS = [False]
 # import patch_bay_model
 
 
@@ -103,33 +104,30 @@ if __name__ == "__main__":
     # timer.timeout.connect(tick)
     # timer.start(1000)
 
-    # def signalHandler(sig, frame):
-    #     if sig in (SIGINT, SIGTERM):
-    #         # print("frontend got signal")
-    #         # global EXIT_PROCESS
-    #         EXIT_PROCESS[0] = True
-    #         ingen_wrapper._FINISH = True
-    # signal(SIGINT,  signalHandler)
-    # signal(SIGTERM, signalHandler)
+    def signalHandler(sig, frame):
+        if sig in (SIGINT, SIGTERM):
+            # print("frontend got signal")
+            # global EXIT_PROCESS
+            EXIT_PROCESS[0] = True
+            # ingen_wrapper._FINISH = True
+    signal(SIGINT,  signalHandler)
+    signal(SIGTERM, signalHandler)
     # initial_preset = False
     print("starting UI")
-    sys.exit(app.exec_())
-    # ingen_wrapper._FINISH = True
-    # while not EXIT_PROCESS[0]:
-    #     # print("processing events")
-    #     try:
-    #         app.processEvents()
-    #         # print("processing ui messages")
-    #         process_ui_messages()
-    #     except Exception as e:
-    #         print("########## e is:", e)
-    #         ex_type, ex_value, tb = sys.exc_info()
-    #         error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
-    #         print("EXception is:", error)
-    #         sys.exit()
-    #     sleep(0.01)
+    while not EXIT_PROCESS[0]:
+        # debug_print("processing events")
+        try:
+            app.processEvents()
+            # debug_print("processing ui messages")
+        except Exception as e:
+            qCritical("########## e is:"+ str(e))
+            ex_type, ex_value, tb = sys.exc_info()
+            error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
+            # debug_print("EXception is:", error)
+            sys.exit()
+        sleep(0.01)
 
-        # if not initial_preset:
-        #     load_preset("/presets/Default Preset.json")
-        #     update_counter.value+=1
-        #     initial_preset = True
+    qWarning("mainloop exited")
+    app.exit()
+    sys.exit()
+    qWarning("sys exit called")

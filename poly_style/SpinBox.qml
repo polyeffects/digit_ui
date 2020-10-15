@@ -64,21 +64,13 @@ T.SpinBox {
         top: Math.max(control.from, control.to)
     }
 
-    contentItem: TextInput {
+    contentItem: Text {
         text: control.displayText
-
         font: control.font
-        color: enabled ? control.Material.foreground : control.Material.hintTextColor
-        selectionColor: control.Material.textSelectionColor
-        selectedTextColor: control.Material.foreground
+        color: "white"
         horizontalAlignment: Qt.AlignHCenter
         verticalAlignment: Qt.AlignVCenter
-
-        cursorDelegate: CursorDelegate { }
-
-        readOnly: !control.editable
-        validator: control.validator
-        inputMethodHints: control.inputMethodHints
+        height: parent.height
     }
 
     up.indicator: Item {
@@ -113,6 +105,19 @@ T.SpinBox {
             height: Math.min(parent.width / 3, parent.height / 3)
             color: enabled ? control.Material.foreground : control.Material.spinBoxDisabledIconColor
         }
+
+        Rectangle {
+            x: 0
+            y: 0
+            width: parent.width
+            height: parent.height
+            color: "transparent"
+            radius: 7
+            border { 
+                width:2; 
+                color: control.Material.foreground
+            }
+        }
     }
 
     down.indicator: Item {
@@ -140,18 +145,35 @@ T.SpinBox {
             height: 2
             color: enabled ? control.Material.foreground : control.Material.spinBoxDisabledIconColor
         }
+        Rectangle {
+            x: 0
+            y: 0
+            width: parent.width
+            height: parent.height
+            color: "transparent"
+            radius: 7
+            border { 
+                width:2; 
+                color: control.Material.foreground
+            }
+        }
     }
 
     background: Item {
-        implicitWidth: 192
+        implicitWidth: 180
         implicitHeight: 48
 
         Rectangle {
-            x: parent.width / 2 - width / 2
-            y: parent.y + parent.height - height - control.bottomPadding / 2
-            width: control.availableWidth
-            height: control.activeFocus ? 2 : 1
-            color: control.activeFocus ? control.Material.accentColor : control.Material.hintTextColor
+            x: 0
+            y: 0
+            width: parent.width
+            height: parent.height
+            color: "transparent"
+            radius: 7
+            border { 
+                width:2; 
+                color: control.Material.foreground
+            }
         }
     }
 }

@@ -67,14 +67,34 @@ T.Slider {
     Text {
         // anchors.centerIn: parent
         x: control.leftPadding + (control.horizontal ? handle.width + padding : (control.availableWidth - width) / 2)
-        y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : control.availableHeight - 40 - (width / 2))
-        text: title + "  " + control.value.toFixed(2)
+        y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : control.availableHeight + 20 )
+        text: title + (control.horizontal ? "  "+control.value.toFixed(2) : "")
         // height: 15
         color: "white"
-        rotation: control.horizontal ? 0 : 270
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
         font {
             // pixelSize: fontSizeMedium
             pixelSize: 24
+            capitalization: Font.AllUppercase
+            family: mainFont.name
+        }
+        z: 10
+    }
+
+    Text {
+        visible : !(control.horizontal)
+        // anchors.centerIn: parent
+        x: control.leftPadding + (control.horizontal ? handle.width + padding : (control.availableWidth - width) / 2)
+        y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : control.availableHeight + 45 ) 
+        text: control.value.toFixed(2)
+        // height: 15
+        color: accent
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        font {
+            // pixelSize: fontSizeMedium
+            pixelSize: 30
             capitalization: Font.AllUppercase
             family: mainFont.name
         }
@@ -89,9 +109,9 @@ T.Slider {
         // handlePressed: control.pressed
         // handleHovered: control.hovered
         id: handleRect
-        width: control.horizontal ? 25 : control.availableWidth - 1
-        height: control.horizontal ? control.availableHeight - 1 : 25
-        radius: 6 
+        width: control.horizontal ? 25 : 46
+        height: control.horizontal ? control.availableHeight - 1 : 46
+        radius: control.horizontal ? 6 : 23
         color: accent
         scale: control.pressed ? 1.5 : 1
 
@@ -122,18 +142,24 @@ T.Slider {
         width: control.availableWidth 
         height: control.availableHeight
         color: control.Material.background
-        border { width:2; color: accent}
+        border { 
+            width:control.horizontal ? 2 : 0;
+            color: accent;
+        }
         scale: control.horizontal && control.mirrored ? -1 : 1
         radius: 6
         
 
-        // Rectangle {
-        //     x: control.horizontal ? 0 : (parent.width - width) / 2
-        //     y: control.horizontal ? (parent.height - height) / 2 : control.visualPosition * parent.height
-        //     width: control.horizontal ? control.position * parent.width : 3
-        //     height: control.horizontal ? 3 : control.position * parent.height
-
-        //     color: control.Material.accentColor
-        // }
+        Rectangle {
+            visible: !control.horizontal
+            x: (parent.width - width) / 2
+            y: 0
+            radius: 3
+            // y: control.visualPosition * parent.height
+            width: 10
+            // height: control.position * parent.height
+            height: parent.height
+            color: Constants.outline_color
+        }
     }
 }

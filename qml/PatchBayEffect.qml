@@ -266,6 +266,14 @@ Rectangle {
             patchStack.push("EQWidget.qml", {"effect": effect_id});
             patch_bay.current_help_text = Constants.help["eq_detail"];
         }
+        else if (effect_type == "step_sequencer"){
+            patchStack.push("StepSequencer.qml", {"effect": effect_id, "effect_type":"step_sequencer"});
+            patch_bay.current_help_text = "" // Constants.help[""];
+        }
+        else if (effect_type == "step_sequencer_ext"){
+            patchStack.push("StepSequencer.qml", {"effect": effect_id});
+            patch_bay.current_help_text = "" // Constants.help[""];
+        }
         else if (effect_type == "delay"){
             patchStack.push(editDelay);
             patch_bay.current_help_text = Constants.help["delay_detail"];

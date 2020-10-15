@@ -46,6 +46,7 @@ port_connections = {} # key is port, value is list of ports
 current_patchbay_mode = 0
 current_selected_effect = ""
 footswitch_assignments = {}
+preset_started_loading_time = 0
 
 def reset_footswitch_assignments():
     global footswitch_assignments
@@ -138,6 +139,8 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         'toggle': 'http://polyeffects.com/lv2/basic_modular#toggle',
         'harmonic_tremolo': 'http://polyeffects.com/lv2/harm_trem',
         'harmonic_trem_ext': 'http://polyeffects.com/lv2/harm_trem_ext',
+        'step_sequencer_ext': 'http://polyeffects.com/lv2/step_sequencer',
+        'step_sequencer': 'http://polyeffects.com/lv2/step_sequencer_bpm',
     },
     "beebo" : { "delay": "http://polyeffects.com/lv2/digit_delay",
         "warmth": "http://moddevices.com/plugins/tap/tubewarmth",
@@ -240,6 +243,8 @@ effect_type_maps = {"digit":  { "delay": "http://polyeffects.com/lv2/digit_delay
         'flanger_ext': 'http://polyeffects.com/lv2/flanger_ext',
         'vibrato': 'http://polyeffects.com/lv2/vibrato',
         'vibrato_ext': 'http://polyeffects.com/lv2/vibrato_ext',
+        'step_sequencer_ext': 'http://polyeffects.com/lv2/step_sequencer',
+        'step_sequencer': 'http://polyeffects.com/lv2/step_sequencer_bpm',
         }}
 
 # categories effect, IO, control, synth, 
@@ -1997,6 +2002,66 @@ effect_prototypes_models_all = {
                      'inputs': {'in1': ['in', 'AudioPort'],
                                 'lfo_cv': ['LFO CV', 'CVPort']},
                      'outputs': {'out0': ['out', 'AudioPort']}},
+    'step_sequencer': {'category': 2,
+                    'controls': {'bpm': ['BPM', 120, 20, 320],
+                                 'glide': ['Glide', 0.5, 0.0, 1.0],
+                                 'note_length': ['Note Length',
+                                                 0.125,
+                                                 0.03125,
+                                                 1],
+                                 'steps': ['Loop Steps', 16, 1, 16],
+                                 'play': ['play', 0.0, 0.0, 1.0],
+                                 'back_gate': ['back', 0.0, 0.0, 1.0],
+                                 'val0': ['Value 0', 0.5, 0.0, 1.0],
+                                 'val0': ['Value 0', 0.5, 0.0, 1.0],
+                                 'val1': ['Value 1', 0.5, 0.0, 1.0],
+                                 'val2': ['Value 2', 0.5, 0.0, 1.0],
+                                 'val3': ['Value 3', 0.5, 0.0, 1.0],
+                                 'val4': ['Value 4', 0.5, 0.0, 1.0],
+                                 'val5': ['Value 5', 0.5, 0.0, 1.0],
+                                 'val6': ['Value 6', 0.5, 0.0, 1.0],
+                                 'val7': ['Value 7', 0.5, 0.0, 1.0],
+                                 'val8': ['Value 8', 0.5, 0.0, 1.0],
+                                 'val9': ['Value 9', 0.5, 0.0, 1.0],
+                                 'val10': ['Value 10', 0.5, 0.0, 1.0],
+                                 'val11': ['Value 11', 0.5, 0.0, 1.0],
+                                 'val12': ['Value 12', 0.5, 0.0, 1.0],
+                                 'val13': ['Value 13', 0.5, 0.0, 1.0],
+                                 'val14': ['Value 14', 0.5, 0.0, 1.0],
+                                 'val15': ['Value 15', 0.5, 0.0, 1.0]},
+                    'description': '16 Step sequencer with internal clock',
+                    'inputs': {'back_gate': ['Back Gate', 'CVPort'],
+                               'reset': ['Reset Trigger', 'CVPort'],
+                               'play': ['Play', 'CVPort'],
+                               'bpm': ['BPM', 'ControlPort'],
+                               },
+                    'broadcast_ports': {'current_step_out': ['current step out', 0, 0, 16]},
+                    'outputs': {'out': ['Value Out', 'CVPort']}},
+    'step_sequencer_ext': {'category': 2,
+                    'controls': {'glide': ['Glide', 0.5, 0.0, 1.0],
+                                 'steps': ['Loop Steps', 16, 1, 16],
+                                 'val0': ['Value 0', 0.5, 0.0, 1.0],
+                                 'val1': ['Value 1', 0.5, 0.0, 1.0],
+                                 'val2': ['Value 2', 0.5, 0.0, 1.0],
+                                 'val3': ['Value 3', 0.5, 0.0, 1.0],
+                                 'val4': ['Value 4', 0.5, 0.0, 1.0],
+                                 'val5': ['Value 5', 0.5, 0.0, 1.0],
+                                 'val6': ['Value 6', 0.5, 0.0, 1.0],
+                                 'val7': ['Value 7', 0.5, 0.0, 1.0],
+                                 'val8': ['Value 8', 0.5, 0.0, 1.0],
+                                 'val9': ['Value 9', 0.5, 0.0, 1.0],
+                                 'val10': ['Value 10', 0.5, 0.0, 1.0],
+                                 'val11': ['Value 11', 0.5, 0.0, 1.0],
+                                 'val12': ['Value 12', 0.5, 0.0, 1.0],
+                                 'val13': ['Value 13', 0.5, 0.0, 1.0],
+                                 'val14': ['Value 14', 0.5, 0.0, 1.0],
+                                 'val15': ['Value 15', 0.5, 0.0, 1.0]},
+                    'description': '16 Step sequencer that takes in a trigger for next or previous',
+                    'inputs': {'back_trigger': ['Back Trigger', 'CVPort'],
+                               'reset': ['Reset Trigger', 'CVPort'],
+                               'trigger': ['Step Trigger', 'CVPort']},
+                    'broadcast_ports': {'current_step_out': ['current step out', 0, 0, 16]},
+                    'outputs': {'out': ['Value Out', 'CVPort']}},
                      }
 
 
@@ -2370,6 +2435,8 @@ def load_preset(name, initial=False, force=False):
     if is_loading.value == True and not force:
         return
     is_loading.value = True
+    global preset_started_loading_time
+    preset_started_loading_time = time.perf_counter()
     # is_loading.value = True
     # delete existing blocks
     port_connections.clear()
@@ -2396,17 +2463,21 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
     # debug_print("from backend new effect", effect_name, effect_type)
     if effect_type in effect_prototypes:
+        broadcast_ports = {}
+        if "broadcast_ports" in effect_prototypes[effect_type]:
+            broadcast_ports = {k : PolyValue(*v) for k,v in effect_prototypes[effect_type]["broadcast_ports"].items()}
         current_effects[effect_name] = {"x": x, "y": y, "effect_type": effect_type,
                 "controls": {k : PolyValue(*v) for k,v in effect_prototypes[effect_type]["controls"].items()},
                 "assigned_footswitch": PolyStr(""),
+                "broadcast_ports" : broadcast_ports,
                 "highlight": PolyBool(False), "enabled": PolyBool(True)}
         # insert in context or model? 
         # emit add signal
         context.setContextProperty("currentEffects", current_effects) # might be slow
         patch_bay_notify.add_module.emit(effect_name)
-        if effect_type == "midi_clock_in":
-            # set broadcast on port
-            ingen_wrapper.set_broadcast(effect_name+"/bpm", True)
+        # if effect_type == "midi_clock_in":
+        #     # set broadcast on port
+        #     ingen_wrapper.set_broadcast(effect_name+"/bpm", True)
     else:
         debug_print("### backend tried to add an unknown effect!")
 
@@ -2470,6 +2541,7 @@ def from_backend_add_connection(head, tail):
     else:
         if effect_id_port_name[0] == "/main":
             return
+        print("effect_id_port_name", effect_id_port_name)
         t_effect, t_port = effect_id_port_name
         # debug_print("## tail not in sub_graph", tail, t_effect, t_port, sub_graphs)
         if t_effect not in current_effects:
@@ -3028,6 +3100,15 @@ class Knobs(QObject):
         ret_obj = subprocess.run("hostname -I", capture_output=True, shell=True)
         current_ip.name = ret_obj.stdout.decode()
 
+    @Slot(str, bool)
+    def set_broadcast(self, effect_name, is_broadcast):
+        # debug_print(x, y, z)
+        if (effect_name in current_effects) and ("broadcast_ports" in current_effects[effect_name]):
+            for parameter in current_effects[effect_name]["broadcast_ports"].keys():
+                ingen_wrapper.set_broadcast(effect_name+"/"+parameter, is_broadcast)
+        else:
+            debug_print("effect not found", effect_name, effect_name in current_effects)
+
 def io_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
     # debug_print("from backend new effect", effect_name, effect_type)
@@ -3303,7 +3384,9 @@ def process_ui_messages():
                 print ("pedalboard loaded", subgraph, file_name, current_sub_graph)
                 if subgraph == current_sub_graph.rstrip("/"):
                     is_loading.value = False
+                    done_loading_time = time.perf_counter()
                     # check if we've got MIDI IO, if not add them
+                    print("### preset loaded in ", done_loading_time - preset_started_loading_time)
                     debug_print("checking if MIDI exists")
                     if not (current_sub_graph+"midi_in" in current_effects):
                         ingen_wrapper.add_midi_input(current_sub_graph+"midi_in", x=1192, y=(80 * 5))
@@ -3354,6 +3437,16 @@ def process_ui_messages():
             elif m[0] == "exit":
                 # global EXIT_PROCESS
                 EXIT_PROCESS[0] = True
+            elif m[0] == "broadcast_update":
+                # debug_print("got value change in process_ui")
+                effect_name_parameter, value = m[1:]
+                effect_name, parameter = effect_name_parameter.rsplit("/", 1)
+                try:
+                    if (effect_name in current_effects) and (parameter in current_effects[effect_name]["broadcast_ports"]):
+                        current_effects[effect_name]["broadcast_ports"][parameter].value = float(value)
+                        # print("updated ", effect_name, parameter, value)
+                except ValueError:
+                    pass
     except queue.Empty:
         pass
 
@@ -3534,7 +3627,7 @@ if __name__ == "__main__":
     context.setContextProperty("favourites", favourites)
     context.setContextProperty("pedalState", pedal_state)
     context.setContextProperty("currentIP", current_ip)
-    engine.load(QUrl("qml/TopLevelWindow.qml")) # XXX 
+    engine.load(QUrl("qml/TopLevelWindow.qml"))
     debug_print("starting send thread")
     ingen_wrapper.start_send_thread()
     debug_print("starting recv thread")
@@ -3549,7 +3642,7 @@ if __name__ == "__main__":
     try:
         add_io()
     except Exception as e:
-        debug_print("########## e is:", e)
+        debug_print("########## e1 is:", e)
         ex_type, ex_value, tb = sys.exc_info()
         error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
         debug_print("EXception is:", error)
@@ -3599,10 +3692,11 @@ if __name__ == "__main__":
             process_ui_messages()
             pedal_hardware.process_input()
         except Exception as e:
-            qCritical("########## e is:"+ str(e))
+            qCritical("########## e2 is:"+ str(e))
             ex_type, ex_value, tb = sys.exc_info()
             error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
             debug_print("EXception is:", error)
+            qCritical("########## exception is:"+ str(error))
             sys.exit()
         sleep(0.01)
 

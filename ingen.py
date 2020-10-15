@@ -15,7 +15,6 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import os
-import rdflib
 import re
 import socket
 import sys
@@ -27,19 +26,6 @@ except ImportError:
 
 _FINISH = False
 
-class NS:
-    atom   = rdflib.Namespace('http://lv2plug.in/ns/ext/atom#')
-    ingen  = rdflib.Namespace('http://drobilla.net/ns/ingen#')
-    ingerr = rdflib.Namespace('http://drobilla.net/ns/ingen/errors#')
-    lv2    = rdflib.Namespace('http://lv2plug.in/ns/lv2core#')
-    patch  = rdflib.Namespace('http://lv2plug.in/ns/ext/patch#')
-    midi   = rdflib.Namespace('http://lv2plug.in/ns/ext/midi#')
-    rdf    = rdflib.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
-    rsz    = rdflib.Namespace('http://lv2plug.in/ns/ext/resize-port#')
-    rdfs   = rdflib.Namespace('http://www.w3.org/2000/01/rdf-schema#')
-    xsd    = rdflib.Namespace('http://www.w3.org/2001/XMLSchema#')
-    doap   = rdflib.Namespace("http://usefulinc.com/ns/doap#")
-    poly = rdflib.Namespace('http://polyeffects.com/ns/core#')
 
 class Interface:
     'The core Ingen interface'
@@ -99,24 +85,18 @@ def lv2_path():
                                 '/usr/lib/lv2',
                                 '/usr/local/lib/lv2'])
 
-def ingen_bundle_path():
-    for d in lv2_path().split(os.pathsep):
-        bundle = os.path.abspath(os.path.join(d, 'ingen.lv2'))
-        if os.path.exists(bundle):
-            return bundle
-    return None
 
 class Remote(Interface):
     def __init__(self, uri='unix:///tmp/ingen.sock'):
         self.msg_id      = 1
         self.server_base = uri + '/'
-        self.model       = rdflib.Graph()
-        self.ns_manager  = rdflib.namespace.NamespaceManager(self.model)
-        self.ns_manager.bind('server', self.server_base)
+        # self.model       = rdflib.Graph()
+        # self.ns_manager  = rdflib.namespace.NamespaceManager(self.model)
+        # self.ns_manager.bind('server', self.server_base)
         connected = False
-        for (k, v) in NS.__dict__.items():
-            if not k.startswith("__"):
-                self.ns_manager.bind(k, v)
+        # for (k, v) in NS.__dict__.items():
+        #     if not k.startswith("__"):
+        #         self.ns_manager.bind(k, v)
         while not connected:
             try:
                 if uri.startswith('unix://'):
@@ -134,35 +114,16 @@ class Remote(Interface):
             except ConnectionError as e:
                 pass
 
-        # Parse error description from Ingen bundle for pretty printing
-        bundle = ingen_bundle_path()
-        if bundle:
-            self.model.parse(os.path.join(bundle, 'errors.ttl'), format='n3')
 
     def __del__(self):
         self.sock.close()
 
-    def _get_prefixes_string(self):
-        s = ''
-        for k, v in self.ns_manager.namespaces():
-            s += '@prefix %s: <%s> .\n' % (k, v)
-        return s
 
     def msgencode(self, msg):
         if sys.version_info[0] == 3:
             return bytes(msg, 'utf-8')
         else:
             return msg
-
-    def update_model(self, update):
-        for i in update.triples([None, NS.rdf.type, NS.patch.Put]):
-            put     = i[0]
-            subject = update.value(put, NS.patch.subject, None)
-            body    = update.value(put, NS.patch.body, None)
-            desc    = {}
-            for i in update.triples([body, None, None]):
-                self.model.add([subject, i[1], i[2]])
-        return update
 
     def uri_to_path(self, uri):
         path = uri
@@ -171,95 +132,30 @@ class Remote(Interface):
         return uri
 
     def recv(self):
-        'Read from socket until a null terminator is received'
+        """Read from socket until a null terminator is received
+        or split on \n\n
+        """
         msg = u''
         while not _FINISH:
             chunk = self.sock.recv(1, 0)
             if not chunk or chunk[0] == 0:  # End of transmission
                 break
+            # print(chunk.decode('utf-8'), end="")
 
             msg += chunk.decode('utf-8')
+            if msg[-2:] == '\n\n':
+                break
+        # print("msg is ", msg)
 
         return msg
-
-    def blank_closure(self, graph, node):
-        def blank_walk(node, g):
-            for i in g.triples([node, None, None]):
-                if type(i[2]) == rdflib.BNode and i[2] != node:
-                    yield i[2]
-                    blank_walk(i[2], g)
-
-        closure = [node]
-        for b in graph.transitiveClosure(blank_walk, node):
-            closure += [b]
-
-        return closure
-
-    def raise_error(self, code, cause):
-        klass = self.model.value(None, NS.ingerr.errorCode, rdflib.Literal(code))
-        if not klass:
-            raise Error('error %d' % code, cause)
-
-        fmt = self.model.value(klass, NS.ingerr.formatString, None)
-        if not fmt:
-            raise Error('%s' % klass, cause)
-
-        raise Error(fmt, cause)
 
     def send(self, msg):
         if type(msg) == list:
             msg = '\n'.join(msg)
 
+        # print("sending", msg)
         # Send message to server
         self.sock.sendall(self.msgencode(msg) + b'\0')
-
-    def parse_response(self, response_str):
-        response_model = rdflib.Graph(namespace_manager=self.ns_manager)
-
-        # Because rdflib has embarrassingly broken base URI resolution that
-        # just drops path components from the base URI entirely (seriously),
-        # unfortunate the real server base URI can not be used here.  Use
-        # <ingen:/> instead to at least avoid complete nonsense
-        response_model.parse(StringIO(response_str), 'ingen:/', format='n3')
-
-        # Add new prefixes to prepend to future responses because rdflib sucks
-        for line in response_str.split('\n'):
-            if line.startswith('@prefix'):
-                match = re.search('@prefix ([^:]*): <(.*)> *\.', line)
-                if match:
-                    name = match.group(1)
-                    uri  = match.group(2)
-                    self.ns_manager.bind(match.group(1), match.group(2))
-
-        # Handle response (though there should be only one)
-        blanks        = []
-        response_desc = []
-        for i in response_model.triples([None, NS.rdf.type, NS.patch.Response]):
-            response = i[0]
-            subject  = response_model.value(response, NS.patch.subject, None)
-            body     = response_model.value(response, NS.patch.body, None)
-
-            response_desc += [i]
-            blanks        += [response]
-            if body != 0:
-                self.raise_error(int(body), msg)  # Raise exception on server error
-
-        # Find the blank node closure of all responses
-        blank_closure = []
-        for b in blanks:
-            blank_closure += self.blank_closure(response_model, b)
-
-        # Remove response descriptions from model
-        for b in blank_closure:
-            for t in response_model.triples([b, None, None]):
-                response_model.remove(t)
-
-        # Remove triples describing responses from response model
-        for i in response_desc:
-            response_model.remove(i)
-
-        # Update model with remaining information, e.g. patch:Put updates
-        return self.update_model(response_model)
 
     def get(self, subject):
         return self.send('''

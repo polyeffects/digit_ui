@@ -98,7 +98,7 @@ T.Button {
         radius: control.radius
         color: !control.enabled ? control.Material.buttonDisabledColor :
                 control.highlighted ? control.Material.highlightedButtonColor : control.Material.buttonColor
-		border {width: control.highlighted || control.checked ? 3 : 0; color: control.checked ? control.Material.accentColor : "white"}
+		border {width: control.highlighted || control.checked ? 3 : 0; color: control.checked ? control.Material.foreground : "white"}
 
         // PaddedRectangle {
         //     y: parent.height - 4

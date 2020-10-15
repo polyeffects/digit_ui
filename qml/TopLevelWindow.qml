@@ -16,7 +16,7 @@ ApplicationWindow {
     // contentOrientation: Qt.LandscapeOrientation
     contentOrientation: Qt.InvertedLandscapeOrientation
     
-    property bool onDevice: false // Qt.platform.os == "linux" 
+    property bool onDevice: Qt.platform.os == "linux" 
     readonly property int baseFontSize: 20 
     readonly property int tabHeight: 60 
     readonly property int fontSizeExtraSmall: baseFontSize * 0.8
@@ -41,8 +41,8 @@ ApplicationWindow {
         id: mainView
         // PatchBay {
         // }
-        // TitleFooter {
-        // }
+        TitleFooter {
+        }
 
         // Item {
         //     width: 1280
@@ -119,13 +119,10 @@ ApplicationWindow {
         //     stepSize: 10
         // }
     // }
-        // EQWidget {
-        
-        // }
-        StepSequencer {
-        
-        }
     }
+    // // EQWidget {
+    
+    // }
     // PresetSave {
     // }
     // Settings {

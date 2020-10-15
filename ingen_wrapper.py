@@ -1,7 +1,6 @@
 import ingen
-from ingen import NS
 from queue import Queue
-import rdflib
+import serd
 import queue
 import time, re
 import threading, subprocess
@@ -11,6 +10,84 @@ import logging
 import urllib.parse
 import platform
 import os.path
+
+connected = False
+
+# atom_AtomPort = serd.uri("http://lv2plug.in/ns/ext/atom#AtomPort")
+# ingen_max_run_load = serd.uri("http://drobilla.net/ns/ingen#maxRunLoad")
+# ingen_mean_run_load = serd.uri("http://drobilla.net/ns/ingen#meanRunLoad")
+# ingen_min_run_load = serd.uri("http://drobilla.net/ns/ingen#minRunLoad")
+# ingen_Arc = serd.uri("http://drobilla.net/ns/ingen#Arc")
+# ingen_Block = serd.uri("http://drobilla.net/ns/ingen#Block")
+# ingen_canvasX = serd.uri("http://drobilla.net/ns/ingen#canvasX")
+# ingen_canvasY = serd.uri("http://drobilla.net/ns/ingen#canvasY")
+# ingen_enabled = serd.uri("http://drobilla.net/ns/ingen#enabled")
+# ingen_file = serd.uri("http://drobilla.net/ns/ingen#file")
+# ingen_head = serd.uri("http://drobilla.net/ns/ingen#head")
+# ingen_minRunLoad = serd.uri("http://drobilla.net/ns/ingen#minRunLoad")
+# ingen_tail = serd.uri("http://drobilla.net/ns/ingen#tail")
+# ingen_value = serd.uri("http://drobilla.net/ns/ingen#value")
+# lv2_AudioPort = serd.uri("http://lv2plug.in/ns/lv2core#AudioPort")
+# lv2_AtomPort = serd.uri("http://lv2plug.in/ns/lv2core#AtomPort")
+# lv2_InputPort = serd.uri("http://lv2plug.in/ns/lv2core#InputPort")
+# lv2_OutputPort = serd.uri("http://lv2plug.in/ns/lv2core#OutputPort")
+# lv2_prototype = serd.uri("http://lv2plug.in/ns/lv2core#prototype")
+# patch_Put = serd.uri("http://lv2plug.in/ns/ext/patch#Put")
+# patch_Delete = serd.uri("http://lv2plug.in/ns/ext/patch#Delete")
+# patch_Set = serd.uri("http://lv2plug.in/ns/ext/patch#Set")
+# patch_body = serd.uri("http://lv2plug.in/ns/ext/patch#body")
+# patch_property = serd.uri("http://lv2plug.in/ns/ext/patch#property")
+# patch_subject = serd.uri("http://lv2plug.in/ns/ext/patch#subject")
+# patch_value = serd.uri("http://lv2plug.in/ns/ext/patch#value")
+# poly_assigned_footswitch = serd.uri("http://polyeffects.com/ns/core#assigned_footswitch")
+# rdf_type = serd.uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+# rdfs_comment = serd.uri("http://www.w3.org/2000/01/rdf-schema#comment")
+
+atom_AtomPort = serd.curie("atom:AtomPort")
+ingen_max_run_load = serd.curie("ingen:maxRunLoad")
+ingen_mean_run_load = serd.curie("ingen:meanRunLoad")
+ingen_min_run_load = serd.curie("ingen:minRunLoad")
+ingen_Arc = serd.curie("ingen:Arc")
+ingen_Block = serd.curie("ingen:Block")
+ingen_canvasX = serd.curie("ingen:canvasX")
+ingen_canvasY = serd.curie("ingen:canvasY")
+ingen_enabled = serd.curie("ingen:enabled")
+ingen_file = serd.curie("ingen:file")
+ingen_head = serd.curie("ingen:head")
+ingen_minRunLoad = serd.curie("ingen:minRunLoad")
+ingen_tail = serd.curie("ingen:tail")
+ingen_value = serd.curie("ingen:value")
+lv2_AudioPort = serd.curie("lv2:AudioPort")
+lv2_AtomPort = serd.curie("lv2:AtomPort")
+lv2_InputPort = serd.curie("lv2:InputPort")
+lv2_OutputPort = serd.curie("lv2:OutputPort")
+lv2_prototype = serd.curie("lv2:prototype")
+patch_Put = serd.curie("patch:Put")
+patch_Delete = serd.curie("patch:Delete")
+patch_Set = serd.curie("patch:Set")
+patch_body = serd.curie("patch:body")
+patch_property = serd.curie("patch:property")
+patch_subject = serd.curie("patch:subject")
+patch_value = serd.curie("patch:value")
+poly_assigned_footswitch = serd.curie("poly:assigned_footswitch")
+rdf_type = serd.curie("rdf:type")
+rdfs_comment = serd.curie("rdfs:comment")
+
+ir_url = serd.uri("http://polyeffects.com/lv2/polyconvo#ir")
+
+prefix_header = """@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix atom: <http://lv2plug.in/ns/ext/atom#> .
+@prefix ingen: <http://drobilla.net/ns/ingen#> .
+@prefix ingerr: <http://drobilla.net/ns/ingen/errors#> .
+@prefix lv2: <http://lv2plug.in/ns/lv2core#> .
+@prefix patch: <http://lv2plug.in/ns/ext/patch#> .
+@prefix midi: <http://lv2plug.in/ns/ext/midi#> .
+@prefix rsz: <http://lv2plug.in/ns/ext/resize-port#> .
+@prefix doap: <http://usefulinc.com/ns/doap#> .
+@prefix poly: <http://polyeffects.com/ns/core#> ."""
 
 class ExceptionThread(threading.Thread):
     def __init__(self, *args, **kwargs):
@@ -26,7 +103,6 @@ class ExceptionThread(threading.Thread):
 q = Queue()
 _FINISH = False
 ui_queue = None
-ir_url = rdflib.URIRef("http://polyeffects.com/lv2/polyconvo#ir")
 # to_delete = set()
 # to_delete_lock = threading.Lock()
 
@@ -214,12 +290,13 @@ def ingen_recv_thread( ) :
             ingen._FINISH = True
             break
         r = ingen.recv()
+        # print("recv in ingen_wrapper", r)
         for s in r.split("\n\n"):
             if len(s) > 10:
-                if not (len(s) < 80 and ("ingen:BundleEnd" in s or "ingen:BundleStart" in s)):
+                if not (len(s) < 80 and ("ingen:BundleEnd" in s or "ingen:BundleStart" in s) or "@prefix" in s):
                     # print("len is ", len(s), )
-                    a = ingen._get_prefixes_string() + s
-                    parse_ingen(a)
+                    # a = prefix_header + s
+                    parse_ingen(s)
 
 connected_ports = set()
 def connect_jack_port(port, x, y):
@@ -264,79 +341,116 @@ def connect_jack_port(port, x, y):
                         connect_port(port, "/main/"+port_suffix)
                     ui_queue.put(("add_plugin", port, plugin, x, y))
 
+def get_value(model, p):
+    # seg fault if it doesn't exist, could ask first
+    return str(tuple(model.range((None, p, None)))[0].object())
+
+def get_node(model, p):
+    # seg fault if it doesn't exist, could ask first
+    return tuple(model.range((None, p, None)))[0].object()
+
+def has_predicate(body, p):
+    return len([b for b in body if b.predicate() == p]) > 0
+
+def has_object(body, o):
+    return len([b for b in body if b.object() == o]) > 0
+
+def get_body_value(body, p):
+    return str([b for b in body if b.predicate() == p][0].object())
+
+def get_body(model):
+    try:
+        b_n = get_node(model, patch_body)
+        return tuple(model.range((b_n, None, None)))
+    except:
+        return None
+
 def parse_ingen(to_parse):
-    g = rdflib.Graph()
-    g.parse(StringIO(to_parse), format="n3")
-    # print("parsing", to_parse)
-    for t in g.triples([None, NS.rdf.type, NS.patch.Put]):
-        response = t[0]
-        r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
+    world = serd.World()
+    try:
+        # print("parsing", to_parse)
+        m = world.loads(to_parse)
+    except:
+        print("parsing", to_parse)
+        print("###\n###\n###\nfailed to parse")
+        return
+    if m.ask(None, None, patch_Put):
+        r_subject = get_value(m, patch_subject)
+        # r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
         subject  = r_subject #[6:]
-        body     = g.value(response, NS.patch.body, None)
-        if body is not None:
-            # p = list(g.triples([body, None, None]))
+        # print("put subject is", subject)
+
+        if m.ask(None, patch_body, None):
+            body = get_body(m)
+            if body is None:
+                return
+
             if r_subject == "/engine":
                 max_load = 0
                 mean_load = 0
                 min_load = 0
                 send = False
-                for p in g.triples([body, None, None]):
-                    if p[1] == NS.ingen.maxRunLoad:
+                for p in body:
+                    if p.predicate() == ingen_max_run_load:
                         send = True
-                        max_load = float(p[2])
-                    elif p[1] == NS.ingen.meanRunLoad:
-                        mean_load = float(p[2])
+                        max_load = float(str(p.object()))
+                    elif p.predicate() == ingen_mean_run_load:
+                        mean_load = float(str(p.object()))
                         send = True
-                    elif p[1] == NS.ingen.minRunLoad:
-                        min_load = float(p[2])
+                    elif p.predicate() == ingen_min_run_load:
+                        min_load = float(str(p.object()))
                         send = True
                 # print("load subject", subject, max_load, mean_load, min_load)
                 if send:
                     ui_queue.put(("dsp_load", max_load, mean_load, min_load))
-            if (body, NS.rdfs.comment, None) in g:
-                value = str(g.value(body, NS.rdfs.comment, None))
+            elif has_predicate(body, rdfs_comment):
+                value = get_body_value(body, rdfs_comment)
                 ui_queue.put(("set_comment", value, subject))
-            if (body, NS.poly.assigned_footswitch, None) in g:
-                value = str(g.value(body, NS.poly.assigned_footswitch, None))
+            elif has_predicate(body, poly_assigned_footswitch):
+                value = get_body_value(body, poly_assigned_footswitch)
                 ui_queue.put(("assign_footswitch", value, subject))
-            if (body, NS.rdf.type, NS.ingen.Block) in g:
+
+            elif has_object(body, ingen_Block):
                 # print("response is", t[0], "subject is", subject, "body is", body)
                 # adding new block
                 x = 0
                 y = 0
                 plugin = ""
                 ir = None
-                for p in g.triples([body, None, None]):
+                for p in body:
                     # print("got a block, triples are ")
-                    if p[1] == NS.lv2.prototype:
-                        plugin = str(p[2])
-                    elif p[1] == NS.ingen.canvasY:
-                        y = float(p[2])
-                    elif p[1] == NS.ingen.canvasX:
-                        x = float(p[2])
-                    elif p[1] == ir_url:
-                        ir = str(p[2])
+                    if p.predicate() == lv2_prototype:
+                        plugin = str(p.object())
+                    elif p.predicate() == ingen_canvasY:
+                        y = float(str(p.object()))
+                    elif p.predicate() == ingen_canvasX:
+                        x = float(str(p.object()))
+                    elif p.predicate() == ir_url:
+                        ir = str(p.object())
                 # print("x", x, "y", y, "plugin", plugin, "subject", subject)
                 ui_queue.put(("add_plugin", subject, plugin, x, y))
                 if ir is not None:
+                    ir = "file://" + ir
+                    # print("#### ir file is ", ir)
                     ui_queue.put(("set_file", subject, ir))
 
-            elif (body, NS.ingen.value, None) in g:
+            elif has_predicate(body, ingen_value):
                 # setting value
-                value = str(g.value(body, NS.ingen.value, None))
+                value = get_body_value(body, ingen_value)
                 # print("value", value, "subject", subject)
                 ui_queue.put(("value_change", subject, value))
-            elif (body, NS.rdf.type, NS.ingen.Arc) in g:
+            elif has_object(body, ingen_Arc):
                 head = ""
                 tail = ""
-                for p in g.triples([body, None, None]):
-                    if p[1] == NS.ingen.head:
-                        head = str(p[2])
-                    elif p[1] == NS.ingen.tail:
-                        tail = str(p[2])
-                # print("arc head", head, "tail", tail)
-                ui_queue.put(("add_connection", head[7:], tail[7:]))
-            elif ((body, NS.rdf.type, NS.lv2.AudioPort) in g) or ((body, NS.rdf.type, NS.atom.AtomPort) in g):
+                for p in body:
+                    if p.predicate() == ingen_head:
+                        head = str(p.object())
+                    elif p.predicate() == ingen_tail:
+                        tail = str(p.object())
+                # print("##### \n\n ### \n arc head", head, "tail", tail)
+                # ui_queue.put(("add_connection", head[7:], tail[7:]))
+                ui_queue.put(("add_connection", head, tail))
+            elif has_object(body, lv2_AudioPort) or has_object(body, lv2_AtomPort):
                 # setting value
                 is_in = None
                 is_audio = None
@@ -344,19 +458,19 @@ def parse_ingen(to_parse):
                 # print("lv2.name", str(subject))
                 x = None
                 y = None
-                for p in g.triples([body, None, None]):
-                    if p[2] == NS.lv2.OutputPort:
+                for p in body:
+                    if p.object() == lv2_OutputPort:
                         is_in = False
-                    elif p[2] == NS.lv2.InputPort:
+                    elif p.object() == lv2_InputPort:
                         is_in = True
-                    elif p[2] == NS.lv2.AudioPort:
+                    elif p.object() == lv2_AudioPort:
                         is_audio = True
-                    elif p[2] == NS.atom.AtomPort:
+                    elif p.object() == atom_AtomPort:
                         is_midi = True
-                    elif p[1] == NS.ingen.canvasY:
-                        y = float(p[2])
-                    elif p[1] == NS.ingen.canvasX:
-                        x = float(p[2])
+                    elif p.predicate() == ingen_canvasY:
+                        y = float(str(p.object()))
+                    elif p.predicate() == ingen_canvasX:
+                        x = float(str(p.object()))
                 if is_in is not None and (is_audio or is_midi):
                     # print("connecting jack port", is_in, "subject", subject)
                     # connect to jack port
@@ -364,57 +478,60 @@ def parse_ingen(to_parse):
                         connect_jack_port(subject, x, y)
                 # else:
                 #     print("None! port is_in", is_in, "subject", subject)
-            elif (body, NS.ingen.enabled, None) in g:
+            elif has_predicate(body, ingen_enabled):
                 # setting value
-                value = g.value(body, NS.ingen.enabled, None)
+                value = get_body_value(body, ingen_enabled)
                 # print("in put enabled", subject, "value", value)
                 # print("in put enabled", subject, "value", value, "b value", bool(value))
                 # print("to parse", to_parse)
                 ui_queue.put(("enabled_change", subject, bool(value)))
 
-    for t in g.triples([None, NS.rdf.type, NS.patch.Set]):
-        response = t[0]
-        subject  = str(g.value(response, NS.patch.subject, None))[7:]
-        # if (response, NS.patch.property, NS.ingen.value) in g:
-        #     value = g.value(response, NS.patch.value, None)
-        #     print("in set subject", subject, "value", value)
-        #     ui_queue.put(("value_change", subject, value))
-        if (response, NS.patch.property, NS.ingen.enabled) in g:
-            value = g.value(response, NS.patch.value, None)
+    elif m.ask(None, None, patch_Set) > 0:
+        # print ("in patch_Set")
+        r_subject = get_value(m, patch_subject)
+        # r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
+        subject  = r_subject #[6:]
+        # print("set subject is", subject)
+        # print ("after get_value")
+        if m.ask(None, patch_property, ingen_enabled):
+            value = get_value(m, patch_value)
             # print("in set enabled", subject, "value", value, "b value", bool(value))
             ui_queue.put(("enabled_change", subject, bool(value)))
-        elif (response, NS.patch.property, NS.ingen.file) in g:
-            value = g.value(response, NS.patch.value, None)
+        elif m.ask(None, patch_property, ingen_file):
+            value = get_value(m, patch_value)
             # print("in set enabled", subject, "value", value, "b value", bool(value))
             ui_queue.put(("pedalboard_loaded", subject, str(value)))
-    for t in g.triples([None, NS.rdf.type, NS.patch.Delete]):
-        response = t[0]
-        body     = g.value(response, NS.patch.body, None)
-        if body is None:
-            subject  = g.value(response, NS.patch.subject, None)
+        elif m.ask(None, patch_property, ingen_value):
+            value = get_value(m, patch_value)
+            # print("broadcast_update parsed", subject, "value", value)
+            ui_queue.put(("broadcast_update", subject, float(str(value))))
+
+    elif m.ask(None, None, patch_Delete):
+        if not m.ask(None, patch_body, None):
+            subject = get_value(m, patch_subject)
             if subject is not None:
-                subject = str(subject)[7:]
+                # subject = str(subject)[7:]
+                # subject = str(subject)[7:]
                 # print("in delete subject", subject)
-                try:
-                    # print("trying to in delete subject", subject, "to_delete", to_delete)
-                    # with to_delete_lock:
-                    #     to_delete.remove(subject)
-                    # print("### queued remove", subject)
-                    ui_queue.put(("remove_plugin", subject))
-                except KeyError:
-                    # print("didn't find subject ", subject, "in to_delete", to_delete)
-                    pass
-        elif (body, NS.rdf.type, NS.ingen.Arc) in g:
-            head = ""
-            tail = ""
-            for p in g.triples([body, None, None]):
-                if p[1] == NS.ingen.head:
-                    head = str(p[2])
-                elif p[1] == NS.ingen.tail:
-                    tail = str(p[2])
-            if head and tail:
-                # print("in remove arc head", head, "tail", tail)
-                ui_queue.put(("remove_connection", head[7:], tail[7:]))
+                ui_queue.put(("remove_plugin", subject))
+        else:
+            body = get_body(m)
+            if body is None:
+                return
+            if has_object(body, ingen_Arc):
+                head = ""
+                tail = ""
+                for p in body:
+                    if p.predicate() == ingen_head:
+                        head = str(p.object())
+                    elif p.predicate() == ingen_tail:
+                        tail = str(p.object())
+                if head and tail:
+                    # print("in remove arc head", head, "tail", tail)
+                    # ui_queue.put(("remove_connection", head[7:], tail[7:]))
+                    ui_queue.put(("remove_connection", head, tail))
+
+
 
 r_thread = None
 def start_recv_thread(r_q):
