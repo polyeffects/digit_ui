@@ -131,4 +131,16 @@ Item {
 		radius: 15
 	}
 
+	IconButton {
+		x: 485
+        anchors.verticalCenter: parent.verticalCenter
+        icon.source: (currentEffects[current_effect]["controls"][row_param].cc == -1) ?  "../icons/digit/midi_inactive.png" : "../icons/digit/midi_active.png"  
+		width: 60
+		height: 60
+		onClicked: {
+            knobs.midi_learn(current_effect, row_param);
+		}
+		radius: 15
+	}
+
 }

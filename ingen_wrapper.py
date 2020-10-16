@@ -58,11 +58,13 @@ ingen_minRunLoad = serd.curie("ingen:minRunLoad")
 ingen_tail = serd.curie("ingen:tail")
 ingen_value = serd.curie("ingen:value")
 lv2_AudioPort = serd.curie("lv2:AudioPort")
-lv2_AtomPort = serd.curie("lv2:AtomPort")
 lv2_InputPort = serd.curie("lv2:InputPort")
 lv2_OutputPort = serd.curie("lv2:OutputPort")
 lv2_prototype = serd.curie("lv2:prototype")
+midi_binding = serd.curie("midi:binding")
+midi_controllerNumber = serd.curie("midi:controllerNumber")
 patch_Put = serd.curie("patch:Put")
+patch_Patch = serd.curie("patch:Patch")
 patch_Delete = serd.curie("patch:Delete")
 patch_Set = serd.curie("patch:Set")
 patch_body = serd.curie("patch:body")
@@ -75,19 +77,19 @@ rdfs_comment = serd.curie("rdfs:comment")
 
 ir_url = serd.uri("http://polyeffects.com/lv2/polyconvo#ir")
 
-prefix_header = """@prefix xml: <http://www.w3.org/XML/1998/namespace> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix atom: <http://lv2plug.in/ns/ext/atom#> .
-@prefix ingen: <http://drobilla.net/ns/ingen#> .
-@prefix ingerr: <http://drobilla.net/ns/ingen/errors#> .
-@prefix lv2: <http://lv2plug.in/ns/lv2core#> .
-@prefix patch: <http://lv2plug.in/ns/ext/patch#> .
-@prefix midi: <http://lv2plug.in/ns/ext/midi#> .
-@prefix rsz: <http://lv2plug.in/ns/ext/resize-port#> .
-@prefix doap: <http://usefulinc.com/ns/doap#> .
-@prefix poly: <http://polyeffects.com/ns/core#> ."""
+# prefix_header = """@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+# @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+# @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+# @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+# @prefix atom: <http://lv2plug.in/ns/ext/atom#> .
+# @prefix ingen: <http://drobilla.net/ns/ingen#> .
+# @prefix ingerr: <http://drobilla.net/ns/ingen/errors#> .
+# @prefix lv2: <http://lv2plug.in/ns/lv2core#> .
+# @prefix patch: <http://lv2plug.in/ns/ext/patch#> .
+# @prefix midi: <http://lv2plug.in/ns/ext/midi#> .
+# @prefix rsz: <http://lv2plug.in/ns/ext/resize-port#> .
+# @prefix doap: <http://usefulinc.com/ns/doap#> .
+# @prefix poly: <http://polyeffects.com/ns/core#> ."""
 
 class ExceptionThread(threading.Thread):
     def __init__(self, *args, **kwargs):
@@ -180,6 +182,12 @@ def add_sub_graph(effect_id):
     ingen:polyphony "1"^^xsd:int ;
     a ingen:Graph"""
     ))
+
+def midi_learn(port):
+    q.put((ingen.set, port, "http://lv2plug.in/ns/ext/midi#binding", "<http://lv2plug.in/ns/ext/patch#wildcard>"))
+
+def midi_forget(port):
+    q.put((ingen.patch, port, "midi:binding patch:wildcard", ""))
 
 def add_input(port_id, x, y):
     # put /main/left_in 'a lv2:InputPort ; a lv2:AudioPort'
@@ -368,7 +376,7 @@ def get_body(model):
 def parse_ingen(to_parse):
     world = serd.World()
     try:
-        # print("parsing", to_parse)
+        print("parsing", to_parse)
         m = world.loads(to_parse)
     except:
         print("parsing", to_parse)
@@ -450,7 +458,7 @@ def parse_ingen(to_parse):
                 # print("##### \n\n ### \n arc head", head, "tail", tail)
                 # ui_queue.put(("add_connection", head[7:], tail[7:]))
                 ui_queue.put(("add_connection", head, tail))
-            elif has_object(body, lv2_AudioPort) or has_object(body, lv2_AtomPort):
+            elif has_object(body, lv2_AudioPort) or has_object(body, atom_AtomPort):
                 # setting value
                 is_in = None
                 is_audio = None
@@ -486,7 +494,7 @@ def parse_ingen(to_parse):
                 # print("to parse", to_parse)
                 ui_queue.put(("enabled_change", subject, bool(value)))
 
-    elif m.ask(None, None, patch_Set) > 0:
+    elif m.ask(None, None, patch_Set):
         # print ("in patch_Set")
         r_subject = get_value(m, patch_subject)
         # r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
@@ -505,6 +513,11 @@ def parse_ingen(to_parse):
             value = get_value(m, patch_value)
             # print("broadcast_update parsed", subject, "value", value)
             ui_queue.put(("broadcast_update", subject, float(str(value))))
+        elif m.ask(None, patch_property, midi_binding):
+            value = get_value(m, midi_controllerNumber)
+            print("midi learn parsed", subject, "value", value)
+            ui_queue.put(("midi_learn", subject, int(str(value))))
+
 
     elif m.ask(None, None, patch_Delete):
         if not m.ask(None, patch_body, None):
@@ -530,6 +543,17 @@ def parse_ingen(to_parse):
                     # print("in remove arc head", head, "tail", tail)
                     # ui_queue.put(("remove_connection", head[7:], tail[7:]))
                     ui_queue.put(("remove_connection", head, tail))
+
+    elif m.ask(None, None, patch_Patch):
+        # print ("in patch_Set")
+        r_subject = get_value(m, patch_subject)
+        # r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
+        subject  = r_subject #[6:]
+        # print("set subject is", subject)
+        # print ("after get_value")
+        if m.ask(None, midi_binding, None):
+            print("midi unlearn parsed", subject)
+            ui_queue.put(("midi_learn", subject, -1))
 
 
 

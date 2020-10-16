@@ -2252,13 +2252,14 @@ class PatchBayNotify(QObject):
 
 class PolyValue(QObject):
     # name, min, max, value
-    def __init__(self, startname="", startval=0, startmin=0, startmax=1, v_type="float", curve_type="lin"):
+    def __init__(self, startname="", startval=0, startmin=0, startmax=1, v_type="float", curve_type="lin", startcc=-1):
         QObject.__init__(self)
         self.nameval = startname
         self.valueval = startval
         self.defaultval = startval
         self.rminval = startmin
         self.rmax = startmax
+        self.ccval = startcc
 
     def readValue(self):
         return self.valueval
@@ -2289,6 +2290,20 @@ class PolyValue(QObject):
         pass
 
     default_value = Property(float, readDefaultValue, setDefaultValue, notify=default_value_changed)
+
+    def readCC(self):
+        return self.ccval
+
+    def setCC(self,val):
+        self.ccval = val
+        self.cc_changed.emit()
+        # debug_print("setting value", val)
+
+    @Signal
+    def cc_changed(self):
+        pass
+
+    cc = Property(float, readCC, setCC, notify=cc_changed)
 
     def readName(self):
         return self.nameval
@@ -3109,6 +3124,18 @@ class Knobs(QObject):
         else:
             debug_print("effect not found", effect_name, effect_name in current_effects)
 
+    @Slot(str, str)
+    def midi_learn(self, effect_name, parameter):
+        # this toggles, if we're already learned, forget. No way to currently cancel waiting for midi
+        if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
+            if current_effects[effect_name]["controls"][parameter].cc > -1:
+                # have current, forget
+                ingen_wrapper.midi_forget(effect_name+"/"+parameter)
+            else:
+                ingen_wrapper.midi_learn(effect_name+"/"+parameter)
+        else:
+            debug_print("effect not found", effect_name, parameter, value, effect_name in current_effects)
+
 def io_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
     # debug_print("from backend new effect", effect_name, effect_type)
@@ -3441,9 +3468,27 @@ def process_ui_messages():
                 # debug_print("got value change in process_ui")
                 effect_name_parameter, value = m[1:]
                 effect_name, parameter = effect_name_parameter.rsplit("/", 1)
+
+                if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
+                    effect_type = current_effects[effect_name]["effect_type"]
+                    # debug_print("value set", value, effect_type, parameter )
+                    if "kill_dry" in effect_prototypes[effect_type] and parameter == "enabled":
+                        # debug_print("kill dry value set", value)
+                        current_effects[effect_name]["enabled"].value = bool(float(value))
+                    current_effects[effect_name]["controls"][parameter].value = float(value)
                 try:
                     if (effect_name in current_effects) and (parameter in current_effects[effect_name]["broadcast_ports"]):
                         current_effects[effect_name]["broadcast_ports"][parameter].value = float(value)
+                        # print("updated ", effect_name, parameter, value)
+                except ValueError:
+                    pass
+            elif m[0] == "midi_learn":
+                debug_print("got midi_learn in process_ui")
+                effect_name_parameter, value = m[1:]
+                effect_name, parameter = effect_name_parameter.rsplit("/", 1)
+                try:
+                    if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
+                        current_effects[effect_name]["controls"][parameter].cc = int(value)
                         # print("updated ", effect_name, parameter, value)
                 except ValueError:
                     pass
