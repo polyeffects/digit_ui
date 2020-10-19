@@ -657,6 +657,15 @@ Rectangle {
         Component {
             id: editDelay
             Item {
+				Component.onDestruction: {
+					// if we're not visable, turn off broadcast
+					// console.log("setting broadcast false in step");
+					knobs.set_broadcast(effect_id, false);
+				}
+				Component.onCompleted: {
+					// console.log("setting broadcast true in step");
+					knobs.set_broadcast(effect_id, true);
+				}
                 z: 3
                 height:540
                 width:1280
@@ -809,6 +818,15 @@ Rectangle {
         Component {
             id: editLfo
             Item {
+				Component.onDestruction: {
+					// if we're not visable, turn off broadcast
+					// console.log("setting broadcast false in step");
+					knobs.set_broadcast(effect_id, false);
+				}
+				Component.onCompleted: {
+					// console.log("setting broadcast true in step");
+					knobs.set_broadcast(effect_id, true);
+				}
                 z: 3
                 height:540
                 width:1280
@@ -1903,6 +1921,15 @@ Rectangle {
         Component {
             id: editGeneric
             Item {
+				Component.onDestruction: {
+					// if we're not visable, turn off broadcast
+					// console.log("setting broadcast false in step");
+					knobs.set_broadcast(effect_id, false);
+				}
+				Component.onCompleted: {
+					// console.log("setting broadcast true in step");
+					knobs.set_broadcast(effect_id, true);
+				}
                 height:546
 				width: 1280
 				ActionIcons {

@@ -296,6 +296,7 @@ effect_prototypes_models_all = {
                     'Feedback_4': ['Feedback', 'CVPort'],
                     'Warp_2': ['Warp', 'CVPort'],
                     'in0': ['in', 'AudioPort']},
+         'broadcast_ports': {'BPM_0': ['tempo', 120, 1, 320]},
          'outputs': {'out0': ['out', 'AudioPort']}},
      'env_follower': {'description': 'Track an input signal and convert it into a control signal', 
         'category': 2,
@@ -382,6 +383,8 @@ effect_prototypes_models_all = {
              'inputs': {'reset': ['Reset', 'CVPort'],
                     'tempo': ['BPM', 'ControlPort']
                  },
+
+             'broadcast_ports': {'tempo': ['tempo', 120, 1, 320]},
              'outputs': {'output': ['Output', 'CVPort']}},
      'mix_vca': {'description': 'Voltage controlled amplifier. Used to change the level from a control signal.',
         'category': 2,
@@ -1715,6 +1718,7 @@ effect_prototypes_models_all = {
                               'swing_cv': ['swing cv', 'CVPort'],
                               'tempo': ['BPM', 'ControlPort'],
                               },
+                   'broadcast_ports': {'tempo': ['tempo', 120, 1, 320]},
                    'outputs': {'bd_acc_output': ['bass drum accent',
                                                  'CVPort'],
                                'bd_output': ['bass drum trigger', 'CVPort'],
@@ -1883,6 +1887,7 @@ effect_prototypes_models_all = {
                       'inputs': {'in0': ['in', 'AudioPort'],
                               'BPM_0': ['BPM', 'ControlPort'],
                           },
+                   'broadcast_ports': {'BPM_0': ['tempo', 120, 1, 320]},
                       'outputs': {'out0': ['out', 'AudioPort']}},
     'harmonic_trem_ext': {'controls': {'CrossoverFreq_0': ['CrossoverFreq',
                                                         800,
@@ -1902,6 +1907,7 @@ effect_prototypes_models_all = {
                                },
                   'description': '8 voice multi dimensional chorus',
                   'category': 0,
+                   'broadcast_ports': {'BPM_1': ['tempo', 120, 1, 320]},
                   'inputs': {'in0': ['in', 'AudioPort'],
                              'BPM_1': ['BPM', 'ControlPort'],
                       },
@@ -1924,6 +1930,7 @@ effect_prototypes_models_all = {
                               'Invert_3': ['Invert', 0, 0, 1, "bool"],
                               'Waveshape_5': ['Waveshape', 0, 0, 1]},
                  'description': 'flanger with internal LFO',
+                 'broadcast_ports': {'BPM_1': ['tempo', 120, 1, 320]},
                  'inputs': {'in0': ['in', 'AudioPort'],
                             'BPM_1': ['BPM', 'ControlPort'],
                      },
@@ -1964,6 +1971,7 @@ effect_prototypes_models_all = {
                               'Phase_4': ['Phase', 0, 0, 1],
                               'Vibrato_Mode_1': ['Vibrato Mode', 1.0, 0.0, 1.0, "bool"]},
                  'description': 'vibrato with internal LFO',
+                 'broadcast_ports': {'BPM_1': ['tempo', 120, 1, 320]},
                  'inputs': {'in0': ['in', 'AudioPort'], 
                             'BPM_9': ['BPM', 'ControlPort'],
                      },
@@ -2035,7 +2043,8 @@ effect_prototypes_models_all = {
                                'play': ['Play', 'CVPort'],
                                'bpm': ['BPM', 'ControlPort'],
                                },
-                    'broadcast_ports': {'current_step_out': ['current step out', 0, 0, 16]},
+                    'broadcast_ports': {'current_step_out': ['current step out', 0, 0, 16],
+                                        'bpm': ['tempo', 120, 1, 320], },
                     'outputs': {'out': ['Value Out', 'CVPort']}},
     'step_sequencer_ext': {'category': 2,
                     'controls': {'glide': ['Glide', 0.5, 0.0, 1.0],
@@ -2556,7 +2565,7 @@ def from_backend_add_connection(head, tail):
     else:
         if effect_id_port_name[0] == "/main":
             return
-        print("effect_id_port_name", effect_id_port_name)
+        # print("effect_id_port_name", effect_id_port_name)
         t_effect, t_port = effect_id_port_name
         # debug_print("## tail not in sub_graph", tail, t_effect, t_port, sub_graphs)
         if t_effect not in current_effects:

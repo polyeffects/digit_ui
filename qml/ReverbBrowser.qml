@@ -3,7 +3,7 @@ import QtQuick.Controls 2.3
 // import QtQuick.Window 2.2
 import Qt.labs.folderlistmodel 2.2
 import "polyconst.js" as Constants
-// import QtQuick.Controls.Material 2.3
+import QtQuick.Controls.Material 2.3
 
 // ApplicationWindow {
 //     visible: true
@@ -203,12 +203,13 @@ Item {
         x: 1100
         y: 50
         width: 60 
-        height: 450
+        height: 400
         orientation: Qt.Vertical
         title: "Gain (dB)"
         value: currentEffects[effect]["controls"]["gain"].value
         from: currentEffects[effect]["controls"]["gain"].rmin
         to: currentEffects[effect]["controls"]["gain"].rmax
+		Material.foreground: Constants.poly_blue
         onMoved: {
             knobs.ui_knob_change(effect, "gain", value);
         }

@@ -4,6 +4,7 @@ import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
 
 Item {
+    id: control
     height: 62
     width:  472
     property string row_param: "Amp_5"
@@ -106,41 +107,53 @@ Item {
     
     }
 
-	IconButton {
-		x: 425
-        anchors.verticalCenter: parent.verticalCenter
-		icon.source: "../icons/digit/clouds/Knob.png"
-        visible: row_param != "ir"
-		width: 60
-		height: 60
-		Timer {
-			id: timer
-			interval: 400
-		}
-		onClicked: {
-			if (timer.running){
-				knobs.ui_knob_change(current_effect, row_param, currentEffects[current_effect]["controls"][row_param].default_value);
-				timer.stop()
+	// IconButton {
+	// 	x: 410
+        // anchors.verticalCenter: parent.verticalCenter
+	// 	icon.source: "../icons/digit/clouds/Knob.png"
+        // visible: row_param != "ir"
+	// 	width: 60
+	// 	height: 60
+	// 	Timer {
+	// 		id: timer
+	// 		interval: 400
+	// 	}
+	// 	onClicked: {
+	// 		if (timer.running){
+	// 			knobs.ui_knob_change(current_effect, row_param, currentEffects[current_effect]["controls"][row_param].default_value);
+	// 			timer.stop()
 
-			}
-			else {
-				knobs.set_knob_current_effect(current_effect, row_param);
-				timer.restart()
-			}
-		}
-		radius: 15
-	}
+	// 		}
+	// 		else {
+	// 			knobs.set_knob_current_effect(current_effect, row_param);
+	// 			timer.restart()
+	// 		}
+	// 	}
+	// 	radius: 15
+	// }
 
 	IconButton {
-		x: 485
+        id: midiBut
+        property bool learning: false
+		x: 420
         anchors.verticalCenter: parent.verticalCenter
         icon.source: (currentEffects[current_effect]["controls"][row_param].cc == -1) ?  "../icons/digit/midi_inactive.png" : "../icons/digit/midi_active.png"  
 		width: 60
 		height: 60
 		onClicked: {
             knobs.midi_learn(current_effect, row_param);
+            learning = !learning;
 		}
 		radius: 15
+
+        SequentialAnimation {
+                            id: blinkLearn;
+                            loops: Animation.Infinite;
+                            alwaysRunToEnd: true;
+                            running: currentEffects[current_effect]["controls"][row_param].cc == -1 && midiBut.learning;
+                            ColorAnimation { target: midiBut; property: "Material.foreground"; from: control.Material.foreground; to: "white"; duration: 1000 }
+                            ColorAnimation { target: midiBut; property: "Material.foreground"; to: control.Material.foreground; from: "white"; duration: 1000 }
+                        }
 	}
 
 }

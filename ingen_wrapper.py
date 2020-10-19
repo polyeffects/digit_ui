@@ -71,7 +71,7 @@ patch_body = serd.curie("patch:body")
 patch_property = serd.curie("patch:property")
 patch_subject = serd.curie("patch:subject")
 patch_value = serd.curie("patch:value")
-poly_assigned_footswitch = serd.curie("poly:assigned_footswitch")
+poly_assigned_footswitch = serd.uri("http://polyeffects.com/ns/core#assigned_footswitch")
 rdf_type = serd.curie("rdf:type")
 rdfs_comment = serd.curie("rdfs:comment")
 
@@ -318,6 +318,7 @@ def connect_jack_port(port, x, y):
                     "/main/in_3": "system:capture_3 ingen:in_3",
                     "/main/in_4": "system:capture_5 ingen:in_4",
                     "/main/midi_in": "ttymidi:MIDI_in ingen:midi_in",
+                    "/main/control": "ttymidi:MIDI_in ingen:control",
                     "/main/midi_out": "ttymidi:MIDI_out ingen:midi_out"
                     }
             # if connected_ports == set(port_map.keys()):
@@ -376,7 +377,7 @@ def get_body(model):
 def parse_ingen(to_parse):
     world = serd.World()
     try:
-        print("parsing", to_parse)
+        # print("parsing", to_parse)
         m = world.loads(to_parse)
     except:
         print("parsing", to_parse)
@@ -416,6 +417,7 @@ def parse_ingen(to_parse):
                 ui_queue.put(("set_comment", value, subject))
             elif has_predicate(body, poly_assigned_footswitch):
                 value = get_body_value(body, poly_assigned_footswitch)
+                # print("### Got assigned foot switch", value, subject)
                 ui_queue.put(("assign_footswitch", value, subject))
 
             elif has_object(body, ingen_Block):
@@ -490,9 +492,9 @@ def parse_ingen(to_parse):
                 # setting value
                 value = get_body_value(body, ingen_enabled)
                 # print("in put enabled", subject, "value", value)
-                # print("in put enabled", subject, "value", value, "b value", bool(value))
+                # print("in put enabled", subject, "value", value, "b value", value != "false")
                 # print("to parse", to_parse)
-                ui_queue.put(("enabled_change", subject, bool(value)))
+                ui_queue.put(("enabled_change", subject, str(value) != "false"))
 
     elif m.ask(None, None, patch_Set):
         # print ("in patch_Set")
@@ -504,7 +506,7 @@ def parse_ingen(to_parse):
         if m.ask(None, patch_property, ingen_enabled):
             value = get_value(m, patch_value)
             # print("in set enabled", subject, "value", value, "b value", bool(value))
-            ui_queue.put(("enabled_change", subject, bool(value)))
+            ui_queue.put(("enabled_change", subject, str(value) != "false"))
         elif m.ask(None, patch_property, ingen_file):
             value = get_value(m, patch_value)
             # print("in set enabled", subject, "value", value, "b value", bool(value))
@@ -515,7 +517,7 @@ def parse_ingen(to_parse):
             ui_queue.put(("broadcast_update", subject, float(str(value))))
         elif m.ask(None, patch_property, midi_binding):
             value = get_value(m, midi_controllerNumber)
-            print("midi learn parsed", subject, "value", value)
+            # print("midi learn parsed", subject, "value", value)
             ui_queue.put(("midi_learn", subject, int(str(value))))
 
 
@@ -552,7 +554,7 @@ def parse_ingen(to_parse):
         # print("set subject is", subject)
         # print ("after get_value")
         if m.ask(None, midi_binding, None):
-            print("midi unlearn parsed", subject)
+            # print("midi unlearn parsed", subject)
             ui_queue.put(("midi_learn", subject, -1))
 
 
@@ -576,6 +578,7 @@ if platform.system() == "Linux":
     server = "unix:///tmp/ingen.sock"
     while not os.path.exists("/tmp/ingen.sock"):
         time.sleep(0.1)
+    time.sleep(0.2)
 else:
     # server = "tcp://192.168.1.139:16180"
     server = "tcp://192.168.1.125:16180"
