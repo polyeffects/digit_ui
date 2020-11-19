@@ -8,10 +8,10 @@ from io import StringIO as StringIO
 import traceback
 import logging
 import urllib.parse
-import platform
 import os.path
 
 connected = False
+from static_globals import IS_REMOTE_TEST
 
 # atom_AtomPort = serd.uri("http://lv2plug.in/ns/ext/atom#AtomPort")
 # ingen_max_run_load = serd.uri("http://drobilla.net/ns/ingen#maxRunLoad")
@@ -326,7 +326,7 @@ def connect_jack_port(port, x, y):
             if port in port_map:
                 connected_ports.add(port)
                 command = ["/usr/bin/jack_connect",  *port_map[port].split()]
-                if platform.system() == "Linux":
+                if not IS_REMOTE_TEST:
                     ret_var = subprocess.run(command)
             else:
                 # check if it's a sub module io we need to connect
@@ -348,7 +348,7 @@ def connect_jack_port(port, x, y):
                     else:
                         plugin = "output"
                         connect_port(port, "/main/"+port_suffix)
-                    ui_queue.put(("add_plugin", port, plugin, x, y))
+                    ui_queue.put(("add_plugin", port, plugin, x, y, True))
 
 def get_value(model, p):
     # seg fault if it doesn't exist, could ask first
@@ -420,13 +420,14 @@ def parse_ingen(to_parse):
                 # print("### Got assigned foot switch", value, subject)
                 ui_queue.put(("assign_footswitch", value, subject))
 
-            elif has_object(body, ingen_Block):
+            if has_object(body, ingen_Block):
                 # print("response is", t[0], "subject is", subject, "body is", body)
                 # adding new block
                 x = 0
                 y = 0
                 plugin = ""
                 ir = None
+                is_enabled = True
                 for p in body:
                     # print("got a block, triples are ")
                     if p.predicate() == lv2_prototype:
@@ -437,8 +438,11 @@ def parse_ingen(to_parse):
                         x = float(str(p.object()))
                     elif p.predicate() == ir_url:
                         ir = str(p.object())
+                    elif p.predicate() == ingen_enabled:
+                        is_enabled = str(p.object()) != "false"
+                        # print("## is enabled", is_enabled)
                 # print("x", x, "y", y, "plugin", plugin, "subject", subject)
-                ui_queue.put(("add_plugin", subject, plugin, x, y))
+                ui_queue.put(("add_plugin", subject, plugin, x, y, is_enabled))
                 if ir is not None:
                     ir = "file://" + ir
                     # print("#### ir file is ", ir)
@@ -507,7 +511,7 @@ def parse_ingen(to_parse):
             value = get_value(m, patch_value)
             # print("in set enabled", subject, "value", value, "b value", bool(value))
             ui_queue.put(("enabled_change", subject, str(value) != "false"))
-        elif m.ask(None, patch_property, ingen_file):
+        if m.ask(None, patch_property, ingen_file):
             value = get_value(m, patch_value)
             # print("in set enabled", subject, "value", value, "b value", bool(value))
             ui_queue.put(("pedalboard_loaded", subject, str(value)))
@@ -573,7 +577,7 @@ def start_send_thread():
     s_thread = ExceptionThread(target=DestinationThread)
     s_thread.start()
 
-if platform.system() == "Linux":
+if not IS_REMOTE_TEST:
     # server = "tcp://127.0.0.1:16180"
     server = "unix:///tmp/ingen.sock"
     while not os.path.exists("/tmp/ingen.sock"):
@@ -581,7 +585,7 @@ if platform.system() == "Linux":
     time.sleep(0.2)
 else:
     # server = "tcp://192.168.1.139:16180"
-    server = "tcp://192.168.1.125:16180"
+    server = "tcp://10.1.1.246:16180"
 # server = "tcp://192.168.1.140:16180"
 ingen = ingen.Remote(server)
 

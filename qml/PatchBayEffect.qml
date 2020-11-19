@@ -329,6 +329,10 @@ Rectangle {
                 })
             });
         }
+        else if (effect_type == "quantizer"){
+            patchStack.push(editQuantizer);
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+        }
 		else if (['input', 'output', 'midi_input', 'midi_output'].indexOf(effect_type) >= 0){
             patchStack.push(editIO);
             // patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
@@ -2010,6 +2014,63 @@ Rectangle {
 				}
                 
             }
+        }
+
+        Component {
+            id: editQuantizer
+
+			Item {
+				z: 3
+				x: 0
+				height:540
+				width:1280
+				// ActionIcons {
+				
+				// }
+				Item {
+                    anchors.centerIn: parent
+					width: 1113
+					height: 420
+
+					Repeater {
+						model: ['n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'n10', 'n11', 'n12', 'n1', 'n2', 'n3']
+						Button {
+							x : index < 5 ? index * 83 : (index + 1) * 83
+							y : ['n2', 'n5', 'n7', 'n10', 'n12'].indexOf(modelData) < 0 ? 93 : 0
+							z : ['n2', 'n5', 'n7', 'n10', 'n12'].indexOf(modelData) < 0 ? 0 : 1
+							Material.foreground: Constants.rainbow[index]
+							Material.background: Constants.background_color
+							width: 139
+							height: 227
+							checked: currentEffects[effect_id]["controls"][modelData].value >= 1
+							onClicked: {
+								knobs.ui_knob_change(effect_id, modelData, 1.0 - currentEffects[effect_id]["controls"][modelData].value);
+							}
+
+							contentItem: Text {
+								text: currentEffects[effect_id]["controls"][modelData].name
+								color:  checked ? Constants.background_color : Constants.rainbow[index] 
+								horizontalAlignment: Text.AlignHCenter
+								verticalAlignment: Text.AlignBottom
+								elide: Text.ElideRight
+								height: 227
+								font {
+									pixelSize: 48
+								}
+							}
+
+							background: Rectangle {
+								width: 139
+								height: 227
+								color: checked ? Constants.rainbow[index] : Constants.background_color  
+								border.color: Constants.rainbow[index] 
+								border.width: 2
+								radius: 20
+							}
+						}
+					}	
+				}
+			}
         }
 
 }

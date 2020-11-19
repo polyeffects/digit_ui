@@ -5,7 +5,7 @@ import time, queue, threading, json
 # from Adafruit_BBIO.Encoder import RotaryEncoder, eQEP2, eQEP0
 # left_encoder = RotaryEncoder(eQEP0)
 # right_encoder = RotaryEncoder(eQEP2)
-
+from static_globals import IS_REMOTE_TEST
 # is_on = False
 KNOB_MAX = 255
 EXIT_THREADS = False
@@ -226,8 +226,7 @@ def add_hardware_listeners():
     # # 
     # for knob in "left", "right":
     #     on_knob_change(knob)
-    import platform
-    if platform.system() == "Linux":
+    if not IS_REMOTE_TEST:
         global hw_thread
         hw_thread = threading.Thread(target=input_worker)
         hw_thread.start()

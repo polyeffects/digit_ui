@@ -9,11 +9,13 @@ Item {
 	height: 720//Screen.width
 
 	Grid {
+        width: 1280//Screen.height
+        height: 720//Screen.width
 		columns: 3
-		spacing: 2
+		spacing: 1
 		Label {
-			width: 400
-			height: 200
+			width: 300
+			height: 150
 			text: "knob left "+encoderQA["left"].value.toFixed(2)
 			font {
 				pixelSize: fontSizeLarge
@@ -22,17 +24,35 @@ Item {
 		}
 
 		Label {
-			width: 400
-			height: 200
+			width: 300
+			height: 150
 			text: "knob right "+encoderQA["right"].value.toFixed(2) 
 			font {
 				pixelSize: fontSizeLarge
 			}
 			background: Rectangle { color: encoderQA["right"].value < 0.9 ? "red" : "green"; width: parent.width; height: parent.height }
 		}
+
+        Switch {
+            text: "ENCODER INV"
+            height: 150
+            width: 300
+            checked: Boolean(pedalState["invert_enc"])
+            onToggled: {
+                knobs.set_enc_invert(!pedalState["invert_enc"]);
+            }
+            font {
+                pixelSize: 24
+                capitalization: Font.AllUppercase
+                family: mainFont.name
+            }
+            Material.foreground: Constants.rainbow[0]
+
+        }
+
 		Label {
-			width: 200
-			height: 200
+			width: 400
+			height: 150
 			text: "a "+footSwitchQA["a"].value 
 			font {
 				pixelSize: fontSizeLarge
@@ -40,8 +60,8 @@ Item {
 			background: Rectangle { color: footSwitchQA["a"].value < 0.9 ? "red" : "green"; width: parent.width; height: parent.height }
 		}
 		Label {
-			width: 200
-			height: 200
+			width: 400
+			height: 150
 			text: "b "+footSwitchQA["b"].value 
 			font {
 				pixelSize: fontSizeLarge
@@ -49,8 +69,8 @@ Item {
 			background: Rectangle { color: footSwitchQA["b"].value < 0.9 ? "red" : "green"; width: parent.width; height: parent.height }
 		}
 		Label {
-			width: 200
-			height: 200
+			width: 400
+			height: 150
 			text: "c "+footSwitchQA["c"].value 
 			font {
 				pixelSize: fontSizeLarge
@@ -73,6 +93,7 @@ Item {
 				pixelSize: fontSizeLarge
 			}
 		}
+
 
 		Button {
 			width: 300

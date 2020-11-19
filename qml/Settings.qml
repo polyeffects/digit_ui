@@ -19,7 +19,7 @@ import QtQuick.VirtualKeyboard 2.1
 Item {
     id: preset_widget
     height:700
-    width:ngen1280
+    width:1280
     Component {
         id: mainSettings
         Item {
@@ -38,7 +38,7 @@ Item {
                     GlowingLabel {
 						width: 400
                         // color: "#ffffff"
-                        text: currentPedalModel.name+" FIRMWARE 2.47"
+                        text: currentPedalModel.name+" FIRMWARE 2.48"
                         color: accent_color.name
 						font {
 							pixelSize: 35
