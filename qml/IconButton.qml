@@ -46,7 +46,7 @@ T.Button {
     id: control
     property int radius: 20
     property int extra_padding: 0
-    // property bool has_border: false
+    property bool has_border: false
 
     implicitWidth: Math.max(background ? background.implicitWidth : 0,
                             contentItem.implicitWidth + leftPadding + rightPadding)
@@ -98,7 +98,10 @@ T.Button {
         radius: control.radius
         color: !control.enabled ? control.Material.buttonDisabledColor :
                 control.highlighted ? control.Material.highlightedButtonColor : control.Material.buttonColor
-		border {width: control.highlighted || control.checked ? 3 : 0; color: control.checked ? control.Material.accentColor : "white"}
+                border {
+                    width: control.highlighted || control.checked || control.has_border ? 2 : 0; 
+                    color: control.checked ? control.Material.accentColor : "grey"
+                }
 
         // PaddedRectangle {
         //     y: parent.height - 4

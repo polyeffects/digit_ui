@@ -89,7 +89,7 @@ Item {
         Image {
             x: 10
             y: 9
-            source: currentPedalModel.name == "beebo" ? "../icons/digit/Beebo.png" : "../icons/digit/Digit.png" 
+            source: currentPedalModel.name == "beebo" ? "../icons/digit/Beebo.png" : "../icons/digit/Hector.png" 
         }
 
         Label {

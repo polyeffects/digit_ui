@@ -122,7 +122,7 @@ ApplicationWindow {
         // EQWidget {
         
         // }
-        StepSequencer {
+        Marbles {
         
         }
     }

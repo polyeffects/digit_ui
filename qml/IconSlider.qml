@@ -1,39 +1,3 @@
-/****************************************************************************
-**
-** Copyright (C) 2017 The Qt Company Ltd.
-** Contact: http://www.qt.io/licensing/
-**
-** This file is part of the Qt Quick Controls 2 module of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:LGPL3$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see http://www.qt.io/terms-conditions. For further
-** information use the contact form at http://www.qt.io/contact-us.
-**
-** GNU Lesser General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 3 as published by the Free Software
-** Foundation and appearing in the file LICENSE.LGPLv3 included in the
-** packaging of this file. Please review the following information to
-** ensure the GNU Lesser General Public License version 3 requirements
-** will be met: https://www.gnu.org/licenses/lgpl.html.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 2.0 or later as published by the Free
-** Software Foundation and appearing in the file LICENSE.GPL included in
-** the packaging of this file. Please review the following information to
-** ensure the GNU General Public License version 2.0 requirements will be
-** met: http://www.gnu.org/licenses/gpl-2.0.html.
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
-
 import QtQuick 2.11
 import QtQuick.Controls 2.4
 import QtQuick.Templates 2.4 as T
@@ -48,6 +12,8 @@ T.Slider {
     property string current_effect
     property string row_param: "int_osc"
     property bool only_top: false
+    property bool only_bottom: false
+    property bool show_labels: true
     property var icons: ['Crossfade.png', 'Crossfold.png', 'Diode Ring Modulation.png', 'Digital Ring Modulation.png', 'Bitwise XOR Modulation.png', 'Octaver Comparator.png', 'Vocoder 1.png', 'Vocoder 2.png', 'Freeze.png']
     property string  icon_path: "../icons/digit/warps/slider/"
 
@@ -137,9 +103,10 @@ T.Slider {
             model: icons
             Image {
                 x: 2*control.leftPadding + (index  * ((main_line.width - 4*control.leftPadding) / (icons.length-1))) - (width / 2)
-                y: index % 2 == 0 || only_top ? -height + 16 + (parent.height / 2 ) : -16 + (parent.height / 2)
+                y: (index % 2 == 0 || only_top) && !only_bottom ? -height + 16 + (parent.height / 2 ) : -16 + (parent.height / 2)
                 source: icon_path+modelData
                 Label {
+                    visible: show_labels
                     x: -19 //- (parent.width / 2) + 30
                     y: index % 2 == 0 && !only_top ? -70 : parent.height + 5 //+ parent.height
                     text: remove_suffix(modelData)

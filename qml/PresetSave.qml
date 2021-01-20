@@ -359,7 +359,7 @@ import QtQuick.Controls.Material 2.3
                         // Layout.fillHeight: true
                         height: 546
                         width: 1280
-						top_folder: "file:///mnt/presets/"+currentPedalModel.name+"/"
+						top_folder: "file:///mnt/presets/beebo/"
                         current_selected: ""
 						after_file_selected: (function(name) { 
 							console.log("loading preset file");
@@ -713,7 +713,7 @@ import QtQuick.Controls.Material 2.3
                         // Layout.fillHeight: true
                         height: 650
                         width: 500
-						top_folder: "file:///mnt/presets/"+currentPedalModel.name+"/"
+						top_folder: "file:///mnt/presets/beebo/"
                         current_selected: ""
 						after_file_selected: (function(name) { 
 							console.log("mapping preset file");

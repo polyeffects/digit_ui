@@ -14,6 +14,7 @@ Item {
 	property int button_width: 180
 	property int button_spacing: 50
 	property int label_offset: 30
+    property bool show_labels: true
     z: 3
     height:540
     width:1280
@@ -44,6 +45,7 @@ Item {
                 Material.accent: "white"
                 radius: 10
                 Label {
+                    visible: show_labels
                     x: 0
                     y: label_offset 
                     text: remove_suffix(modelData)

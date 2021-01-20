@@ -5,10 +5,13 @@ var control_color = "#AC8EFF";
 var midi_color = "#FFD645";
 var background_color = "#000000";
 var outline_color = "#4c4c4c"; 
-var poly_pink = "#FF75D0";
+var poly_pink = "#FFA0E0";
 var poly_blue = "#53A2FD";
 var poly_green = "#80FFE8";
 var poly_yellow = "#FFD645";
+var poly_purple = "#AC8EFF";
+var poly_dark_grey = "#282828";
+var poly_grey = "#323232";
 var left_col = 130; 
 var port_color_map = {"AudioPort": audio_color, "CVPort": cv_color, 
     "ControlPort": control_color, "AtomPort": midi_color};

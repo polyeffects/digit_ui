@@ -274,6 +274,10 @@ Rectangle {
             patchStack.push("StepSequencer.qml", {"effect": effect_id});
             patch_bay.current_help_text = "" // Constants.help[""];
         }
+        else if (effect_type == "chaos_controller"){
+            patchStack.push("Marbles.qml", {"effect_id": effect_id});
+            patch_bay.current_help_text = "" // Constants.help[""];
+        }
         else if (effect_type == "delay"){
             patchStack.push(editDelay);
             patch_bay.current_help_text = Constants.help["delay_detail"];
@@ -294,7 +298,7 @@ Rectangle {
             patchStack.push(editPlaits, {"objectName":"editPlaits"});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}
-		else if (['algo_reverb', 'granular', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch'].indexOf(effect_type) >= 0){
+		else if (['algo_reverb', 'granular', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch', 'beat_repeat'].indexOf(effect_type) >= 0){
             patchStack.push(editClouds);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}
@@ -331,6 +335,10 @@ Rectangle {
         }
         else if (effect_type == "quantizer"){
             patchStack.push(editQuantizer);
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+        }
+        else if (effect_type == "multi_resonator"){
+            patchStack.push(editResonator);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
         }
 		else if (['input', 'output', 'midi_input', 'midi_output'].indexOf(effect_type) >= 0){
@@ -2028,7 +2036,8 @@ Rectangle {
 				
 				// }
 				Item {
-                    anchors.centerIn: parent
+					anchors.horizontalCenter: parent.horizontalCenter
+					y: 95
 					width: 1113
 					height: 420
 
@@ -2071,6 +2080,154 @@ Rectangle {
 					}	
 				}
 			}
+        }
+
+        Component {
+            id: editResonator
+            Item {
+                z: 3
+                height:540
+                width:1280
+				
+				ActionIcons {
+
+				}
+
+
+                Item {
+                    width: 1150
+                    height: 546
+                    x: 130
+                    y: 0
+                    TabBar {
+                        id: resonatorBar
+                        width: parent.width
+                        height: 47
+                        TabButton {
+                            text: qsTr("Model")
+                            font {
+                                pixelSize: 24
+                                capitalization: Font.AllUppercase
+                            }
+                        }
+                        TabButton {
+                            text: qsTr("Tone")
+                            font {
+                                pixelSize: 24
+                                capitalization: Font.AllUppercase
+                            }
+                        }
+                        TabButton {
+                            text: qsTr("Modulation")
+                            font {
+                                pixelSize: 24
+                                capitalization: Font.AllUppercase
+                            }
+                        }
+                    }	
+
+
+                    StackLayout {
+                        y: 100
+                        x: 0
+                        width: 1150
+                        currentIndex: resonatorBar.currentIndex	
+                        Column {
+                            spacing: 60
+                            width: 70 
+							Row {
+								Label {
+									text: "polyphony"
+									horizontalAlignment: Text.AlignHCenter
+									width: 200
+									color: Constants.poly_pink
+									font {
+										pixelSize: 32
+										capitalization: Font.AllUppercase
+									}
+								}
+								TextButtonSelector {
+									current_effect: effect_id
+									labels: ["1", "2", "4"]
+									pixel_size: 32
+									color: Constants.poly_pink
+									row_param: "polyphony_param"
+									width: 600
+									center: true
+								}
+							}
+							Row {
+								Label {
+									text: "model"
+									horizontalAlignment: Text.AlignHCenter
+									width: 200
+									color: Constants.poly_green
+									font {
+										pixelSize: 32
+										capitalization: Font.AllUppercase
+									}
+								}
+								IconSelector {
+									current_effect: effect_id
+									height: 160
+									width: 600
+									row_param: "resonator_param"
+									icon_prefix: "../icons/digit/rings/"
+									icons: ['rings.png', 'strings.png', 'brrings.png']
+									button_height: 220
+									button_width:140
+									icon_size: 60
+									button_spacing: 10
+									label_offset: 140
+								}
+							}
+                        } 
+
+                        Item {
+                            width: parent.width
+                            Grid {
+                                // x: 300
+                                // y: 100
+
+                                anchors.centerIn: parent
+                                spacing: 60
+                                columns: 2
+
+                                // Tone
+                                Repeater {
+                                    model: ['frequency_param', 'structure_param',  'brightness_param', 'damping_param', 'position_param', "internal_exciter_param"] 
+                                    DelayRow {
+                                        row_param: modelData
+                                        current_effect: effect_id
+                                        Material.foreground: Constants.rainbow[index+5]
+										v_type: effectPrototypes[effect_type]["controls"][modelData].length > 4 ? effectPrototypes[effect_type]["controls"][modelData][4] : "float"
+                                    }
+                                }
+                            }
+                        }
+
+                        Item {
+                            width: parent.width
+                            Grid {
+                                anchors.centerIn: parent
+                                // x: 300
+                                // y: 100
+                                spacing: 60
+                                columns: 2
+                                // Modulation 
+                                Repeater {
+                                    model: ['frequency_mod_param', 'structure_mod_param',  'brightness_mod_param', 'damping_mod_param', 'position_mod_param'] 
+                                    DelayRow {
+                                        row_param: modelData
+                                        current_effect: effect_id
+                                        Material.foreground: Constants.rainbow[index+5]
+                                    }
+                                }
+                            }	
+                        }
+                    }
+				}
+            }
         }
 
 }

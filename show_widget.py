@@ -82,9 +82,7 @@ for k, v in effect_prototypes_models_all.items():
             n = n + 1
     effect_prototypes_models_all[k]["num_cv_in"] = n
 
-effect_prototypes_models = {"digit": {k:effect_prototypes_models_all[k] for k in effect_type_maps["digit"].keys()},
-    "beebo": {k:effect_prototypes_models_all[k] for k in effect_type_maps["beebo"].keys()},
-    }
+effect_prototypes_models = {"beebo": {k:effect_prototypes_models_all[k] for k in effect_type_maps["beebo"].keys()}}
 
 for k in effect_prototypes_models.keys():
     effect_prototypes_models[k]["input"] = {"inputs": {},
@@ -125,13 +123,10 @@ hardware_info = {}
 def load_preset_list():
     global preset_list
     try:
-        with open("/mnt/pedal_state/"+current_pedal_model.name+"_preset_list.json") as f:
+        with open("/mnt/pedal_state/beebo_preset_list.json") as f:
             preset_list = json.load(f)
     except:
-        if current_pedal_model.name == "digit":
-            preset_list = ["file:///mnt/presets/digit/Default_Preset.ingen"]
-        elif current_pedal_model.name == "beebo":
-            preset_list = ["file:///mnt/presets/beebo/Empty.ingen"]
+        preset_list = ["file:///mnt/presets/beebo/Empty.ingen"]
     preset_list_model.setStringList(preset_list)
 
 try:
@@ -139,7 +134,10 @@ try:
         hardware_info = json.load(f)
     hardware_info["revision"]
 except:
-    hardware_info = {"revision": 10, "pedal": "digit"}
+    hardware_info = {"revision": 10, "pedal": "beebo"}
+
+if hardware_info["pedal"] == "digit":
+    hardware_info["pedal"] = "beebo"
 
 class MyEmitter(QObject):
     # setting up custom signal
@@ -415,14 +413,13 @@ def load_pedal_state():
                 pedal_state["midi_channel"] = 1
             if "author" not in pedal_state:
                 pedal_state["author"] = "poly player"
-            if "model" not in pedal_state:
-                pedal_state["model"] = "digit"
+            pedal_state["model"] = hardware_info["pedal"]
             if "thru" not in pedal_state:
                 pedal_state["thru"] = True
             if "invert_enc" not in pedal_state:
                 pedal_state["invert_enc"] = False
     except:
-        pedal_state = {"input_level": 0, "midi_channel": 1, "author": "poly player", "model": "digit", "thru": True, "invert_enc": False}
+        pedal_state = {"input_level": 0, "midi_channel": 1, "author": "poly player", "model": "beebo", "thru": True, "invert_enc": False}
 
 
 selected_source_effect_ports = QStringListModel()
@@ -465,6 +462,7 @@ def load_preset(name, initial=False, force=False):
     # delete existing blocks
     port_connections.clear()
     reset_footswitch_assignments()
+    preset_description.name = "Tap here to enter preset description"
     to_delete = list(current_effects.keys())
     for effect_id in to_delete:
         if effect_id in ["/main/out_1", "/main/out_2", "/main/out_3", "/main/out_4", "/main/in_1", "/main/in_2", "/main/in_3", "/main/in_4"]:
@@ -826,10 +824,7 @@ class Knobs(QObject):
 
     @Slot()
     def ui_load_empty_preset(self):
-        if current_pedal_model.name == "digit":
-            knobs.ui_load_preset_by_name("file:///mnt/presets/digit/Empty.ingen")
-        elif current_pedal_model.name == "beebo":
-            knobs.ui_load_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
+        knobs.ui_load_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
 
     @Slot(str)
     def ui_load_preset_by_name(self, preset_file):
@@ -864,12 +859,12 @@ class Knobs(QObject):
         # TODO add folders
         current_preset.name = pedalboard_name
         ingen_wrapper.set_author(current_sub_graph.rstrip("/"), pedal_state["author"])
-        ingen_wrapper.save_pedalboard(current_pedal_model.name, pedalboard_name, current_sub_graph.rstrip("/"))
+        ingen_wrapper.save_pedalboard("beebo", pedalboard_name, current_sub_graph.rstrip("/"))
         self.launch_task(2, os.sync) # wait 2 seconds then sync to drive
         # update preset meta
         clean_filename = ingen_wrapper.get_valid_filename(pedalboard_name)
         if len(clean_filename) > 0:
-            filename = "/mnt/presets/"+current_pedal_model.name+"/"+clean_filename+".ingen"
+            filename = "/mnt/presets/beebo/"+clean_filename+".ingen"
             global current_preset_filename
             current_preset_filename = filename
             if filename in preset_meta_data:
@@ -901,8 +896,8 @@ class Knobs(QObject):
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
         # remount RW 
-        command = """ sudo mount -o remount,rw /dev/mmcblk0p2 /mnt; if [ -d /usb_flash/reverbs ]; then cd /usb_flash/reverbs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/reverbs --parents; fi;
-        if [ -d /usb_flash/cabs ]; then cd /usb_flash/cabs; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/cabs --parents; fi; sudo mount -o remount,ro /dev/mmcblk0p2 /mnt;"""
+        command = """ sudo mount -o remount,rw /dev/mmcblk0p2 /mnt; if [ -d /usb_flash/reverbs ]; then cd /usb_flash/reverbs; rename 's/[^a-zA-Z0-9. _-]/_/g' **; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/reverbs --parents; fi;
+        if [ -d /usb_flash/cabs ]; then cd /usb_flash/cabs; rename 's/[^a-zA-Z0-9. _-]/_/g' **; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/cabs --parents; fi; sudo mount -o remount,ro /dev/mmcblk0p2 /mnt;"""
         # copy all wavs in /usb/reverbs and /usr/cabs to /audio/reverbs and /audio/cabs
         command_status[0].value = -1
         self.launch_subprocess(command)
@@ -913,7 +908,8 @@ class Knobs(QObject):
         # debug_print("copy presets from USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
-        command = """cd /usb_flash/presets; find . -iname "*.ingen" -type d -print0 | xargs -0 cp -r --target-directory=/mnt/presets --parents"""
+        command = """cd /usb_flash/presets; find . -iname "*.ingen" -type d -print0 | xargs -0 cp -r --target-directory=/mnt/presets --parents; cd /mnt/presets; find
+        /usb_flash/presets/ -iname "*.instr" -type f -exec tar -xjf {} \; ; find /mnt/presets/digit/ -iname '*.ingen' -type d -exec mv -t /mnt/presets/beebo/ {} +"""
         command_status[0].value = -1
         self.launch_subprocess(command, after=get_meta_from_files)
         # after presets have copied we need to parse all the tags / author and update cache
@@ -921,7 +917,9 @@ class Knobs(QObject):
     @Slot()
     def export_presets(self):
         # debug_print("copy presets to USB")
-        command = """cd /mnt/presets; mkdir -p /usb_flash/presets; find . -iname "*.ingen" -type d -print0 | xargs -0 cp -r --target-directory=/usb_flash/presets --parents;sudo umount /usb_flash"""
+        # export as tar.bz2
+        # 
+        command = """cd /mnt/presets; mkdir -p /usb_flash/presets; find . -iname "*.ingen" -type d -exec bash -c 'tar -cjf /usb_flash/presets/$(basename "$@" .ingen).instr $@' _ {} \; ;sudo umount /usb_flash"""
         command_status[0].value = -1
         self.launch_subprocess(command)
 
@@ -930,7 +928,7 @@ class Knobs(QObject):
         # debug_print("copy current preset to USB")
         i = current_preset_filename.find("presets")+len("presets")+1
         out_file = current_preset_filename[i:] # strip starting folders
-        command = """cd /mnt/presets; mkdir -p /usb_flash/presets; cp -r --target-directory=/usb_flash/presets --parents """+out_file+""";sudo umount /usb_flash"""
+        command = """cd /mnt/presets; mkdir -p /usb_flash/presets; tar -cjf /usb_flash/presets/"""+out_file.split("/")[1][:-len(".ingen")]+".instr " + out_file +""" ;sudo umount /usb_flash"""
         command_status[0].value = -1
         self.launch_subprocess(command)
 
@@ -1002,10 +1000,7 @@ class Knobs(QObject):
     def set_preset_list_length(self, v):
         if v > len(preset_list_model.stringList()):
             # debug_print("inserting new row in preset list", v)
-            if current_pedal_model.name == "digit":
-                insert_row(preset_list_model, "file:///mnt/presets/digit/Default_Preset.ingen")
-            elif current_pedal_model.name == "beebo":
-                insert_row(preset_list_model, "file:///mnt/presets/beebo/Empty.ingen")
+            insert_row(preset_list_model, "file:///mnt/presets/digit/Default_Preset.ingen")
         else:
             # debug_print("removing row in preset list", v)
             preset_list_model.removeRows(v, 1)
@@ -1017,7 +1012,7 @@ class Knobs(QObject):
     @Slot()
     def save_preset_list(self):
         # debug_print("saving preset list")
-        with open("/mnt/pedal_state/"+current_pedal_model.name+"_preset_list.json", "w") as f:
+        with open("/mnt/pedal_state/beebo_preset_list.json", "w") as f:
             json.dump(preset_list_model.stringList(), f)
         os.sync()
 
@@ -1083,6 +1078,24 @@ class Knobs(QObject):
         command = "sudo mount -o remount,ro /dev/mmcblk0p2 /mnt"
         ret_var = subprocess.call(command, shell=True)
 
+    @Slot()
+    def delete_all_irs(self):
+        # debug_print("delete: ir files is ", ir)
+        # can be a directory or file
+        # check if it isn't a base dir. 
+        # delete
+        # remount as RW
+        command = "sudo mount -o remount,rw /dev/mmcblk0p2 /mnt"
+        ret_var = subprocess.call(command, shell=True)
+        shutil.rmtree("/mnt/audio/cabs")
+        shutil.rmtree("/mnt/audio/reverbs")
+        os.mkdir("/mnt/audio/cabs")
+        os.mkdir("/mnt/audio/reverbs")
+        os.sync()
+        # remount as RO
+        command = "sudo mount -o remount,ro /dev/mmcblk0p2 /mnt"
+        ret_var = subprocess.call(command, shell=True)
+
     @Slot(str)
     def delete_preset(self, in_preset_file):
         preset_file = in_preset_file[len("file://"):]
@@ -1105,7 +1118,7 @@ class Knobs(QObject):
     @Slot()
     def save_preset_list(self):
         debug_print("saving preset list")
-        with open("/mnt/pedal_state/"+current_pedal_model.name+"_preset_list.json", "w") as f:
+        with open("/mnt/pedal_state/beebo_preset_list.json", "w") as f:
             json.dump(preset_list_model.stringList(), f)
         os.sync()
     preset_list_model.setStringList(preset_list)
@@ -1441,6 +1454,9 @@ def process_ui_messages():
                         debug_print("adding MIDI")
                     if not (current_sub_graph+"midi_out" in current_effects):
                         ingen_wrapper.add_midi_output(current_sub_graph+"midi_out", x=-20, y=(80 * 5))
+                    if current_pedal_model.name == "hector" and not (current_sub_graph+"out_5" in current_effects):
+                        # add hector IO TODO
+                        pass
 
             elif m[0] == "dsp_load":
                 max_load, mean_load, min_load = m[1:]
@@ -1544,28 +1560,22 @@ def set_available_effects():
     # available_effects.setStringList(list(effects))
 
 def change_pedal_model(name, initial=False):
+    _name = "beebo" # override
     global inv_effect_type_map
     global effect_type_map
     global effect_prototypes
-    effect_type_map = effect_type_maps[name]
-    effect_prototypes = effect_prototypes_models[name]
+    effect_type_map = effect_type_maps[_name]
+    effect_prototypes = effect_prototypes_models[_name]
 
     set_available_effects()
     context.setContextProperty("effectPrototypes", effect_prototypes)
-    accent_color_models = {"beebo": "#8BB8E8", "digit": "#FF75D0"}
+    accent_color_models = {"beebo": "#FFA0E0", "digit": "#FFA0E0", "hector": "#32D2BE"}
     accent_color.name = accent_color_models[name]
 
     inv_effect_type_map = {v:k for k, v in effect_type_map.items()}
     current_pedal_model.name = name
     load_preset_list()
-    # if not initial:
-    if True:
-        if current_pedal_model.name == "digit":
-            jump_to_preset(False, 0)
-            # knobs.ui_load_preset_by_name("file:///mnt/presets/digit/Default_Preset.ingen")
-        elif current_pedal_model.name == "beebo":
-            jump_to_preset(False, 0)
-            # knobs.ui_load_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
+    jump_to_preset(False, 0)
 
 def handle_MIDI_program_change():
     # This is pretty dodgy... but I don't want to depend on jack in the main process as it'll slow down startup
@@ -1613,11 +1623,16 @@ if __name__ == "__main__":
     QIcon.setThemeName("digit")
 
     # preset might not have been copied on an update, as file system might not have been supported
-    if not os.path.isfile("/mnt/presets/digit/Default_Preset.ingen/main.ttl") and not IS_REMOTE_TEST:
+    if not os.path.isfile("/mnt/presets/beebo/Empty.ingen/main.ttl") and not IS_REMOTE_TEST:
         # rsync
         command = "sudo rsync -a /to_nor_flash/ /nor_flash"
         ret_var = subprocess.call(command, shell=True)
 
+    if os.path.isfile("/mnt/presets/digit/Empty.ingen/main.ttl") and not IS_REMOTE_TEST:
+        # first time running after merge update
+        command = "mv -f /mnt/presets/digit/* /mnt/presets/beebo/;rm -rf /mnt/presets/digit/*"
+        ret_var = subprocess.call(command, shell=True)
+        get_meta_from_files(True)
 
     # Instantiate the Python object.
     knobs = Knobs()
@@ -1655,7 +1670,8 @@ if __name__ == "__main__":
     available_effects = [QStringListModel() for i in range(4)]
     set_available_effects()
     engine = QQmlApplicationEngine()
-    current_pedal_model = PolyValue(pedal_state["model"], 0, -1, 1)
+
+    current_pedal_model = PolyValue(hardware_info["pedal"], 0, -1, 1)
     # accent_color = PolyValue("#8BB8E8", 0, -1, 1)
     accent_color = PolyValue("#FF75D0", 0, -1, 1)
     current_ip = PolyValue("", 0, -1, 1)
@@ -1742,10 +1758,6 @@ if __name__ == "__main__":
     signal(SIGTERM, signalHandler)
     initial_preset = False
     debug_print("starting UI")
-    # if current_pedal_model.name == "digit":
-    #     load_preset("file:///mnt/presets/digit/Default_Preset.ingen/main.ttl", True, True)
-    # elif current_pedal_model.name == "beebo":
-    #     load_preset("file:///mnt/presets/beebo/Empty.ingen/main.ttl", True, True)
     time.sleep(0.2)
     ingen_wrapper.get_state("/main")
     # load_preset("file:///mnt/presets/Default_Preset.ingen/main.ttl", False)

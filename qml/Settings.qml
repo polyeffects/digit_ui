@@ -38,7 +38,7 @@ Item {
                     GlowingLabel {
 						width: 400
                         // color: "#ffffff"
-                        text: currentPedalModel.name+" FIRMWARE 2.48"
+                        text: currentPedalModel.name+" FIRMWARE 3.0"
                         color: accent_color.name
 						font {
 							pixelSize: 35
@@ -53,6 +53,17 @@ Item {
                         font.pixelSize: baseFontSize
                         // show screen explaining to put USB flash drive in
                         onClicked: settingsStack.push(copyIRInfo)
+                        flat: false
+                        Material.foreground: "white"
+                        Material.background: Constants.outline_color
+                    }
+
+                    Button {
+						width: 300
+                        text: "DELETE ALL IRS"
+                        font.pixelSize: baseFontSize
+                        // show screen explaining to put USB flash drive in
+                        onClicked: settingsStack.push(deleteIRInfo)
                         flat: false
                         Material.foreground: "white"
                         Material.background: Constants.outline_color
@@ -103,34 +114,6 @@ Item {
                         onClicked: knobs.copy_logs()
                     }
 
-                    Button {
-                        flat: false
-						width: 300
-                        text: currentPedalModel.name == "beebo" ? "Change to Digit" : "Change to Beebo"
-                        // show screen explaining to put USB flash drive in
-						onClicked: {
-							if(currentPedalModel.name == "beebo"){
-								knobs.set_pedal_model("digit");
-							} else {
-								knobs.set_pedal_model("beebo");
-							}
-						}
-						font {
-							pixelSize: 24
-							capitalization: Font.AllUppercase
-							family: mainFont.name
-						}
-
-                    }
-
-                    Button {
-                        flat: false
-						width: 300
-                        text: "SET AUTHOR"
-                        font.pixelSize: baseFontSize
-                        onClicked: settingsStack.push(setAuthor)
-                    }
-
 
                     // Switch {
                     //     font.pixelSize: baseFontSize
@@ -166,7 +149,7 @@ Item {
                     x: 500
                     // anchors.centerIn: parent
                     // anchors.right: parent.right
-                    spacing: 20
+                    spacing: 30
                     // height:parent.height
 
                     Button {
@@ -287,6 +270,14 @@ Item {
 
 					}
 
+                    Button {
+                        flat: false
+						width: 300
+                        text: "SET AUTHOR"
+                        font.pixelSize: baseFontSize
+                        onClicked: settingsStack.push(setAuthor)
+                    }
+
                 }
             }
 
@@ -336,6 +327,54 @@ Item {
                     onClicked: { 
                         settingsStack.push(irCopyView)
                         knobs.ui_copy_irs();
+                    }
+                }
+            }
+            Button {
+                font {
+                    pixelSize: fontSizeMedium
+                }
+                text: "BACK"
+                anchors.right: parent.right
+                anchors.rightMargin: 10
+                anchors.topMargin: 10
+                width: 100
+                height: 100
+                onClicked: settingsStack.pop()
+            }
+        }
+    }
+
+    Component {
+        id: deleteIRInfo
+        Item {
+            height:700
+            width:1280
+            Row {
+                spacing: 100
+                anchors.centerIn: parent
+
+                Text {
+                    font {
+                        pixelSize: fontSizeMedium
+                    }
+                    color: Material.foreground
+                    text: "This will delete all imported IRs. Only do this if you want to remove everything and start fresh."
+                    width: 300
+                    wrapMode: Text.WordWrap
+                    textFormat: Text.StyledText
+                }
+
+                Button {
+                    flat: false
+                    font {
+                        pixelSize: fontSizeMedium
+                    }
+                    text: "DELETE IRs"
+                    width: 300
+                    onClicked: { 
+                        knobs.delete_all_irs();
+                        settingsStack.pop()
                     }
                 }
             }
