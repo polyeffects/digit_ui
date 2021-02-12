@@ -520,9 +520,13 @@ def parse_ingen(to_parse):
             # print("broadcast_update parsed", subject, "value", value)
             ui_queue.put(("broadcast_update", subject, float(str(value))))
         elif m.ask(None, patch_property, midi_binding):
-            value = get_value(m, midi_controllerNumber)
-            # print("midi learn parsed", subject, "value", value)
-            ui_queue.put(("midi_learn", subject, int(str(value))))
+            print("midi learn parsed", subject, "to_parse:", to_parse)
+            try:
+                value = get_value(m, midi_controllerNumber)
+                ui_queue.put(("midi_learn", subject, int(str(value))))
+            except IndexError:
+                # bender etc are just an out of range CC number... 
+                ui_queue.put(("midi_learn", subject, int(256)))
 
 
     elif m.ask(None, None, patch_Delete):

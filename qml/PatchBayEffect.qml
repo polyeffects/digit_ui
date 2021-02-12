@@ -1193,7 +1193,7 @@ Rectangle {
 					}
 
 					Label {
-						text: "TREMELO\n (FAST)"
+						text: "TREMOLO\n (FAST)"
 						anchors.horizontalCenter: parent.horizontalCenter
 						width: 125
 						height: 73
@@ -1453,7 +1453,7 @@ Rectangle {
 					}
 
 					Label {
-						text: "TREMELO\n (FAST)"
+						text: "TREMOLO\n (FAST)"
 						anchors.horizontalCenter: parent.horizontalCenter
 						width: 125
 						height: 73

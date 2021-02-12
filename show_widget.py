@@ -908,8 +908,16 @@ class Knobs(QObject):
         # debug_print("copy presets from USB")
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
-        command = """cd /usb_flash/presets; find . -iname "*.ingen" -type d -print0 | xargs -0 cp -r --target-directory=/mnt/presets --parents; cd /mnt/presets; find
-        /usb_flash/presets/ -iname "*.instr" -type f -exec tar -xjf {} \; ; find /mnt/presets/digit/ -iname '*.ingen' -type d -exec mv -t /mnt/presets/beebo/ {} +"""
+        command = """cd /usb_flash/presets;
+        if test -n "$(find /usb_flash/presets/ -maxdepth 1 -name '*.ingen' -print -quit)";
+        then find . -iname "*.ingen" -type d -print0 | xargs -0 cp -r --target-directory=/mnt/presets --parents;
+        fi
+        if test -n "$(find /usb_flash/presets/ -maxdepth 1 -name '*.instr' -print -quit)";
+        then cd /mnt/presets;
+        find /usb_flash/presets/ -iname "*.instr" -type f -exec tar -xjf {} \; ;
+        fi
+        find /mnt/presets/digit/ -iname '*.ingen' -type d -exec mv -t /mnt/presets/beebo/ {} + ;
+        rm -rf /mnt/presets/digit/*"""
         command_status[0].value = -1
         self.launch_subprocess(command, after=get_meta_from_files)
         # after presets have copied we need to parse all the tags / author and update cache
