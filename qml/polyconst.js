@@ -19,7 +19,7 @@ var rainbow = ["#FF2C6B", "#FF7B8B", "#FF8540", "#FF9E45", "#FFD645", "#FFF84E",
 var short_rainbow = ["#80FFE8", "#53A2FD", "#FF75D0", "#FFC045", "#FF9E45"];
 var longer_rainbow = ["#53A2FD", "#AC8EFF", "#FF75D0", "#FF7B8B", "#FF9E45", "#FFD645", "#B1FF81", "#4CCBC5", "#80FFE8", "74CBFC"];
 
-var help = {"select": "Tap or add a module, drag to move. Hold to connect.", "connect_to": "Tap a module to connect to", "connect_from": "Tap a module to connect from", "sliders_detail": "Tap the eye to see more. Tapping a slider assigns it to the knobs.", "sliders": "Tapping a slider assigns it to the knobs.", 
+var help = {"select": "Tap or add a module, drag to move. HOLD TO CONNECT.", "connect_to": "Advanced connect. You should use multi touch instead. Tap a module to connect to", "connect_from": "Advanced connect. You should use multi touch instead. Tap a module to connect from", "sliders_detail": "Tap the eye to see more. Tapping a slider assigns it to the knobs.", "sliders": "Tapping a slider assigns it to the knobs.", 
     "delay_detail": "Milliseconds doesn't reflect tap tempo", 
     "eq_detail": "Drag bands",
     "hold": "Now tap the module to you want connect to, while holding this one",

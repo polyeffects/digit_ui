@@ -32,8 +32,8 @@ ApplicationWindow {
     //00
     // FontLoader { id: mainFont; source: "fonts/Dosis-VF.ttf" }
     // FontLoader { id: mainFont; source: "fonts/SourceSerifPro-Semibold.ttf" }
-    FontLoader { id: docFont; source: "fonts/Dosis-Regular.ttf" }
-    FontLoader { id: mainFont; source: "fonts/Dosis-SemiBold.ttf" }
+    FontLoader { id: docFont; source: "fonts/BarlowSemiCondensed-Medium.ttf" }
+    FontLoader { id: mainFont; source: "fonts/BarlowSemiCondensed-SemiBold.ttf" }
     // FontLoader { id: docFont; name: "Open Sans" }
     font.family: mainFont.name
     font.weight: Font.DemiBold

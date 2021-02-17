@@ -58,6 +58,19 @@ Item {
         anchors.centerIn: parent
     }
 
+    Label {
+        // width: 1280
+        // height: 720
+        text: "You are in advanced connect mode. You should be using multi touch hold and tap instead, \n unless you want to interconnect control and audio signals."
+        horizontalAlignment: Text.AlignHCenter
+        font.pixelSize: 40
+        opacity: 0.5
+        color: "grey"
+		visible: patch_single.currentMode == PatchBay.Connect
+        z: 1
+        anchors.centerIn: parent
+    }
+
     Rectangle {
         z: 4
         anchors.fill: parent
@@ -675,10 +688,10 @@ Item {
                 delegate: Item {
                     property string l_effect: edit //.split(":")[1]
                     width: parent.width
-                    height: 90
+                    height: 110
                     Label {
                         x: 34
-                        height: 80
+                        height: 90
                         width: 200
                         text: l_effect.replace(/_/g, " ")
                         anchors.top: parent.top
@@ -692,7 +705,7 @@ Item {
                     Label {
                         x: 334
                         width: 945
-                        height: 80
+                        height: 90
                         text: effectPrototypes[l_effect]["description"]
                         wrapMode: Text.Wrap
                         anchors.top: parent.top
