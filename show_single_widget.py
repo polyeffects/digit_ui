@@ -8,7 +8,7 @@ from collections import OrderedDict
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer, QThreadPool, QRunnable
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
-from PySide2.QtGui import QIcon
+from PySide2.QtGui import QIcon, QFontDatabase, QFont
 # # compiled QML files, compile with pyside2-rcc
 # import qml.qml
 
@@ -16,6 +16,8 @@ os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
 import icons.icons
 # #, imagine_assets
 import resource_rc
+
+import loopler as loopler_lib
 
 EXIT_PROCESS = [False]
 # import patch_bay_model
@@ -36,8 +38,12 @@ if __name__ == "__main__":
     print("in Main")
     app = QGuiApplication(sys.argv)
     QIcon.setThemeName("digit")
+    QFontDatabase.addApplicationFont("qml/fonts/BarlowSemiCondensed-SemiBold.ttf")
+    font = QFont("BarlowSemiCondensed", 20, QFont.DemiBold)
+    app.setFont(font)
     # Instantiate the Python object.
     # knobs = Knobs()
+    loopler = loopler_lib.Loopler()
 
     # update_counter = PolyValue("update counter", 0, 0, 500000)
     # read persistant state
@@ -61,6 +67,7 @@ if __name__ == "__main__":
     # Expose the object to QML.
     # global context
     context = engine.rootContext()
+    context.setContextProperty("loopler", loopler)
     # context.setContextProperty("knobs", knobs)
     # context.setContextProperty("available_effects", available_effects)
     # context.setContextProperty("selectedEffectPorts", selected_effect_ports)
@@ -131,3 +138,11 @@ if __name__ == "__main__":
     app.exit()
     sys.exit()
     qWarning("sys exit called")
+
+"""
+from dooper import LooperThread
+l_thread = LooperThread()
+l_thread.start_server()
+l_thread.verbose = True
+"""
+

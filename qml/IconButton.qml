@@ -40,6 +40,7 @@ import QtQuick.Controls 2.4
 import QtQuick.Controls.impl 2.4
 import QtQuick.Controls.Material 2.4
 import QtQuick.Controls.Material.impl 2.4
+import "../qml/polyconst.js" as Constants
 // import QtQuick.Shapes 1.11
 
 T.Button {
@@ -100,7 +101,7 @@ T.Button {
                 control.highlighted ? control.Material.highlightedButtonColor : control.Material.buttonColor
                 border {
                     width: control.highlighted || control.checked || control.has_border ? 2 : 0; 
-                    color: control.checked ? control.Material.accentColor : "grey"
+                    color: control.checked ? control.Material.accentColor : Constants.poly_dark_grey
                 }
 
         // PaddedRectangle {

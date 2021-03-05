@@ -4,6 +4,7 @@ import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
 import QtQuick.Layouts 1.3
 import "../qml/polyconst.js" as Constants
+import "../qml/looplerconst.js" as LoopMap
 
 // ApplicationWindow {
 
@@ -25,581 +26,954 @@ import "../qml/polyconst.js" as Constants
 Item {
     property string effect_id: "none"
     property int tab_index: 0
+    property int current_loop: loopler.selected_loop_num 
+    property int global_focused: 0
     z: 3
     x: 0
     height:546
     width:1280
 
     // top row is 2 groups, 1 column, 1 grid
-    Row {
-        x: 0
-        y: 0
-        width: parent.width
-        height: 270
-        Column {
-            x: 12
-            y: 12
-            width: 223
-            height: 522
-            spacing: 9
-        
-            Repeater {
-                model: ["Commands", "Level / Sync", "Rate"]
-                Button {
-                    height: 70
-                    width: 170
-                    text: modelData
-                    checked: tab_index == index
-                    onClicked: {
-                        tab_index = index;
-                    }
-
-                    contentItem: Text {
-                        text: modelData
-                        color:  checked ? Constants.background_color : "white"
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        // elide: Text.ElideRight
-                        height: parent.height
-                        wrapMode: Text.WordWrap
-                        width: parent.width
-                        font {
-                            pixelSize: 24
-                            capitalization: Font.AllUppercase
-                        }
-                    }
-
-                    background: Rectangle {
-                        width: parent.width
-                        height: parent.height
-                        color: checked ? Constants.poly_blue : Constants.poly_dark_grey  
-                        border.width: 0
-                        radius: 20
-                    }
-                }
-            }
-        }
-
-        Rectangle {
-            x:  198
-            y: 0
-            width: 2
-            z: 3
-            height: parent.height
-            color: Constants.poly_grey
-        }
-
-    }
-
-
-    // [  'filtatype', 'filtbtype', 'filtdtype',   'link', 'rt_speed']
+    //
 
     StackLayout {
-        width: 1107
+        width: 1280
         height: 522
-        x: 223
+        x: 0
         y: 0
-        currentIndex: tab_index
-
-        Item { // commands
-            x: 2
-            y: 0
-            width: 1107
+        currentIndex: global_focused
+        Item {
+            width: 1280
             height: 522
+            x: 0
+            y: 0
 
-            Grid {
-                spacing: 13 
-                height: 450
-                columns: 6
+            Item {
+                x: 0
+                y: 0
                 width: parent.width
-
-                Repeater {
-                    model: ["undo", "overdub", "replace", "solo", "once", "reverse", 
-                    "redo", "mute", "multiply", "insert", "substitute", "delay"]
-                    ]
-
-                    IconButton {
-                        icon.source: "../icons/digit/loopler/commands/" + modelData + ".png"
-                        width: 296
-                        height: 186
-                        icon.width: 60
-                        icon.height: 60
-                        has_border: true
-                        // checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
-                        checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)
-                        onClicked: {
-                            knobs.ui_knob_change(effect_id, "x_scale", index);
-                        }
-                        Material.background: checked ? Constants.poly_pink : "transparent"
-                        Material.foreground: !checked ? Constants.poly_pink : "black"
-                        Material.accent: Constants.poly_pink 
-                        radius: 10
-                        Label {
-                            x: 0
-                            y: 150 
+                height: 270
+                Column {
+                    x: 12
+                    y: 12
+                    width: 223
+                    height: 522
+                    spacing: 9
+                
+                    Repeater {
+                        model: ["Commands", "Level / Sync", "Rate"]
+                        Button {
+                            height: 70
+                            width: 170
                             text: modelData
-                            horizontalAlignment: Text.AlignHCenter
-                            width: 296
-                            height: 22
-                            z: 1
-                            // color: "white"
-                            font {
-                                pixelSize: 18
-                                capitalization: Font.AllUppercase
+                            checked: tab_index == index
+                            onClicked: {
+                                tab_index = index;
+                            }
+
+                            contentItem: Text {
+                                text: modelData
+                                color:  checked ? Constants.background_color : Constants.loopler_purple
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                // elide: Text.ElideRight
+                                height: parent.height
+                                wrapMode: Text.WordWrap
+                                width: parent.width
+                                font {
+                                    pixelSize: 24
+                                    capitalization: Font.AllUppercase
+                                }
+                            }
+
+                            background: Rectangle {
+                                width: parent.width
+                                height: parent.height
+                                color: checked ? Constants.loopler_purple : Constants.background_color  
+                                border.width: 3
+                                border.color: checked ? Constants.loopler_purple : Constants.poly_dark_grey  
+                                radius: 10
                             }
                         }
                     }
-
-                }
-            }
-        }
-        Item { // x voltage
-            x: 2
-            y: 0
-            width: 1107
-            height: 522
-
-
-            Column {
-                x: 0
-                y: 0
-                spacing: 30
-                width: 515
-                height: 522
-                Label {
-                    width: parent.width
-                    height: 71
-                    text: "Output Voltage Range"
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    color: Constants.poly_green
-                    font {
-                        // pixelSize: fontSizeMedium
-                        pixelSize: 30
-                        capitalization: Font.AllUppercase
-                    }
                 }
 
-                TextButtonSelector {
-                    current_effect: effect_id
-                    labels: ["2 octave", "0 to +V", "-V to +V"]
-                    pixel_size: 24
-                    color: Constants.poly_green
-                    row_param: "x_range_param"
-                }
-
-                DelayRow {
-                    row_param: "x_spread_param"
-                    current_effect: effect_id
-                    Material.foreground: Constants.poly_green
-                }
-
-                DelayRow {
-                    row_param: "x_bias_param"
-                    current_effect: effect_id
-                    Material.foreground: Constants.poly_green
+                Rectangle {
+                    x:  198
+                    y: 0
+                    width: 2
+                    z: 3
+                    height: parent.height
+                    color: Constants.poly_grey
                 }
 
             }
 
-            Column {
-                x: 518
-                y: 0
-                spacing: 30
-                width: 520
-                height: 522
-                Label {
-                    width: parent.width
-                    height: 71
-                    text: "Output Controls"
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    color: Constants.poly_yellow
-                    font {
-                        pixelSize: 30
-                        capitalization: Font.AllUppercase
-                    }
-                }
-
-                IconSelector {
-                    current_effect: effect_id
-                    height: 100
-                    width: 460
-                    row_param: "x_mode_param"
-                    icon_prefix: "../icons/digit/marbles/x_voltage/Output Control icons/"
-                    icons: ["equal.png", "incremental.png", "steppy.png"]
-                    button_height: 100
-                    button_width:108
-                    icon_size: 40
-                    button_spacing: 10
-                    label_offset: 130
-                    show_labels: false
-                    z: 2
-                }
-
-
-                Label {
-                    width: parent.width
-                    height: 71
-                    text: "Smoothness"
-                    z: 2
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    color: Constants.poly_yellow
-                    font {
-                        pixelSize: 30
-                        capitalization: Font.AllUppercase
-                    }
-                }
-
-                IconSlider {
-                    width: 450
-                    row_param: "x_steps_param"
-                    icons: ['Step 1 icon.png', 'Step 2 icon.png', 'Step 3 icon.png']
-                    current_effect: effect_id
-                    icon_path: "../icons/digit/marbles/x_voltage/Step/"
-                    only_top: true
-                    show_labels: false
-                    topPadding: -130
-                }
-
-
-
+            Rectangle {
+                x:  0
+                y: 270
+                width: 1280
+                height: 2
+                z: 3
+                color: Constants.poly_grey
             }
 
-        }
 
-        Item { // deja vu
-            x: 2
-            y: 0
-            width: 1107
-            height: 522
+            // [  'filtatype', 'filtbtype', 'filtdtype',   'link', 'rt_speed']
 
-
-            Column {
-                x: 0
-                y:50
-                spacing: 30
-                width: 515
-                height: 522
-
-                IconButton {
-                    icon.source: "../icons/digit/marbles/deja_vu/T-Generator.png"
-                    width: 296
-                    height: 186
-                    icon.width: 60
-                    icon.height: 60
-                    has_border: true
-                    checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
-                    onClicked: {
-                        knobs.ui_knob_change(effect_id, "t_deja_vu_param", 1 - currentEffects[effect_id]["controls"]["t_deja_vu_param"].value);
-                    }
-                    Material.background: checked ? Constants.poly_pink : "transparent"
-                    Material.foreground: !checked ? Constants.poly_pink : "black"
-                    Material.accent: Constants.poly_pink 
-                    radius: 10
-                    Label {
-                        x: 0
-                        y: 150 
-                        text: "Loop T"
-                        horizontalAlignment: Text.AlignHCenter
-                        width: 296
-                        height: 22
-                        z: 1
-                        // color: "white"
-                        font {
-                            pixelSize: 18
-                            capitalization: Font.AllUppercase
-                        }
-                    }
-                }
-
-                IconButton {
-                    icon.source: "../icons/digit/marbles/deja_vu/X-Generator.png"
-                    width: 296
-                    height: 186
-                    icon.width: 60
-                    icon.height: 60
-                    has_border: true
-                    checked: currentEffects[effect_id]["controls"]["x_deja_vu_param"].value == 1.0
-                    onClicked: {
-                        knobs.ui_knob_change(effect_id, "x_deja_vu_param", 1 - currentEffects[effect_id]["controls"]["x_deja_vu_param"].value);
-                    }
-                    Material.background: checked ? Constants.poly_pink : "transparent"
-                    Material.foreground: !checked ? Constants.poly_pink : "black"
-                    Material.accent: Constants.poly_pink 
-                    radius: 10
-                    Label {
-                        x: 0
-                        y: 150 
-                        text: "Loop X"
-                        horizontalAlignment: Text.AlignHCenter
-                        width: 296
-                        height: 22
-                        z: 1
-                        // color: "white"
-                        font {
-                            pixelSize: 18
-                            capitalization: Font.AllUppercase
-                        }
-                    }
-                }
-            }
-
-            Column {
-                x: 518
-                spacing: 30
-                width: 589
-                // height: 522
-                anchors.verticalCenter: parent.verticalCenter
-                
-
-                DelayRow {
-                    row_param: "deja_vu_length_param"
-                    current_effect: effect_id
-                    Material.foreground: Constants.poly_pink
-                }
-
-                DelayRow {
-                    row_param: "deja_vu_param"
-                    current_effect: effect_id
-                    Material.foreground: Constants.poly_pink
-                }
-
-            }
-
-        }
-
-        Item { // Y 
-            x: 2
-            y: 0
-            width: 1107
-            height: 522
-
-
-            Column {
-                x: 0
-                y: 0
-                spacing: 10
-                width: 515
-                height: 522
-                Row {
-
-                    Label {
-                        width: 140
-                        height: 120
-                        text: "Rate"
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        color: Constants.poly_pink
-                        font {
-                            // pixelSize: fontSizeMedium
-                            pixelSize: 30
-                            capitalization: Font.AllUppercase
-                        }
-                    }
-
-                    IconSlider {
-                        width: 730
-                        height: 120
-                        row_param: "y_divider"
-                        icons: ['Rate 1.png', 'Rate 2.png',  'Rate 3.png',  'Rate 4.png']
-                        current_effect: effect_id
-                        icon_path: "../icons/digit/marbles/y_voltage/Rate icons/"
-                        only_bottom: true
-                        show_labels: false
-                    }
-
-                }
-
-                Row {
-
-                    Label {
-                        width: 140
-                        height: 120
-                        text: "Spread"
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        color: Constants.poly_pink
-                        font {
-                            // pixelSize: fontSizeMedium
-                            pixelSize: 30
-                            capitalization: Font.AllUppercase
-                        }
-                    }
-
-                    IconSlider {
-                        width: 730
-                        height: 120
-                        row_param: "y_spread_param"
-                        icons: ['Spread1.png', 'Spread2.png',  'Spread3.png',  'Spread4.png', 'Spread5.png']
-                        current_effect: effect_id
-                        icon_path: "../icons/digit/marbles/y_voltage/Spread icons/"
-                        only_bottom: true
-                        show_labels: false
-                    }
-
-                }
-
-                Row {
-
-                    Label {
-                        width: 140
-                        height: 120
-                        text: "Bias"
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        color: Constants.poly_pink
-                        font {
-                            // pixelSize: fontSizeMedium
-                            pixelSize: 30
-                            capitalization: Font.AllUppercase
-                        }
-                    }
-
-                    IconSlider {
-                        width: 730
-                        height: 120
-                        row_param: "y_bias_param"
-                        icons: ['Bias1.png', 'Bias2.png',  'Bias3.png',  'Bias4.png', 'Bias5.png']
-                        current_effect: effect_id
-                        icon_path: "../icons/digit/marbles/y_voltage/Bias icons/"
-                        only_bottom: true
-                        show_labels: false
-                    }
-
-                }
-                Row {
-
-                    Label {
-                        width: 140
-                        height: 120
-                        text: "Steps"
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        color: Constants.poly_pink
-                        font {
-                            // pixelSize: fontSizeMedium
-                            pixelSize: 30
-                            capitalization: Font.AllUppercase
-                        }
-                    }
-
-                    IconSlider {
-                        width: 730
-                        height: 120
-                        row_param: "x_steps_param"
-                        icons: ['Steps1.png', 'Steps2.png',  'Steps3.png',  'Steps4.png', 'Steps5.png']
-                        current_effect: effect_id
-                        icon_path: "../icons/digit/marbles/y_voltage/Steps icons/"
-                        only_bottom: true
-                        show_labels: false
-                    }
-
-                }
-
-            }
-        }
-        Item { // Scale 
-            x: 2
-            y: 0
-            width: 1107
-            height: 522
-
-
-            Column {
-                x: 0
-                y: 0
-                spacing: 30
+            StackLayout {
                 width: 1107
                 height: 522
-                Label {
+                x: 223
+                y: 16
+                currentIndex: tab_index
+
+                Item { // commands
+                    x: 2
+                    y: 0
                     width: 1107
-                    height: 77
-                    text: "Scale Selection"
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    color: Constants.poly_pink
-                    font {
-                        // pixelSize: fontSizeMedium
-                        pixelSize: 30
-                        capitalization: Font.AllUppercase
+                    height: 270
+
+                    Grid {
+                        spacing: 13 
+                        height: 270
+                        columns: 6
+                        width: parent.width
+
+                        Repeater {
+                            model: ["undo", "overdub", "replace", "solo", "oneshot", "reverse", 
+                            "redo", "mute", "multiply", "insert", "substitute", "delay"]
+                            // TODO Fix delay mode
+
+                            IconButton {
+                                id: commandButton
+                                icon.source: "../icons/digit/loopler/commands/" + modelData + ".png"
+                                width: 160
+                                height: 110
+                                topPadding: -25
+                                icon.width: 80
+                                icon.height: 70
+                                has_border: true
+                                // checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
+                                checked: LoopMap.command_map[modelData] == loopler.loops[current_loop].state || (modelData == "solo" && loopler.loops[current_loop].is_soloed > 0) || (modelData == "reverse" && loopler.loops[current_loop].rate_output < 0)
+                                onClicked: {
+                                    if (modelData == "delay"){
+                                        loopler.ui_set(current_loop, "delay_trigger", loopler.loops[current_loop].delay_trigger * -1);
+                                    } else {
+                                        loopler.ui_loop_command(current_loop, modelData);
+                                    }
+                                }
+                                Material.background: "transparent"
+                                Material.foreground: "transparent"
+                                // Material.foreground: !checked ? Constants.poly_pink : "black"
+                                // Material.foreground: !checked ? Constants.poly_pink : "black"
+                                Material.accent: Constants.poly_pink 
+                                radius: 3
+                                Label {
+                                    x: 0
+                                    y: 76 
+                                    text: modelData
+                                    horizontalAlignment: Text.AlignHCenter
+                                    width: 157
+                                    height: 22
+                                    z: 1
+                                    color: "white"
+                                    font {
+                                        pixelSize: 20
+                                        capitalization: Font.AllUppercase
+                                    }
+                                }
+                                SequentialAnimation {
+                                    id: blinkCommand;
+                                    loops: Animation.Infinite;
+                                    alwaysRunToEnd: true;
+                                    running: LoopMap.next_command_map[modelData] == loopler.loops[current_loop].next_state
+                                    ColorAnimation { target: commandButton; property: "Material.accent"; from: "yellow"; to: "white"; duration: 1000 }
+                                    ColorAnimation { target: commandButton; property: "Material.accent"; to: "yellow"; from: "white"; duration: 1000 }
+                                }
+                            }
+
+                        }
                     }
                 }
-                Grid {
-                    spacing: 15 
-                    height: 450
-					columns: 3
-                    width: parent.width
 
-                    Repeater {
-                        model: ["Major", "Minor", "Pentatonic", "Pelog", "Raag Bhairav That", "Raag Shrg"]
-                        RoundButton {
-                            width: 337
-                            height: 103
-                            checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)
-                            onClicked: {
-                                knobs.ui_knob_change(effect_id, "x_scale", index);
+                Item { // level Sync
+                    x: 2
+                    y: 0
+                    width: 1107
+                    height: 270
+
+                    Column {
+                        y: 20
+                        x: 0
+                        spacing: 30
+
+                        Item {
+                            Material.foreground: Constants.rainbow[0]
+                            id: loop_slider
+                            height: 62
+                            width:  714
+                            property real multiplier: 1  
+                            property string v_type: "float"
+                            property bool is_log: false
+                            property string selected_parameter: "feedback"
+                            visible: v_type != "hide"
+
+
+                            function logslider(position) {
+                                // linear in to log out
+                                // input position will be between 0 and 1
+                                var minp = 0;
+                                var maxp = 1;
+
+                                // The output result should be between 20 an 20000
+                                var minv = Math.log(20);
+                                var maxv = Math.log(20000);
+
+                                // calculate adjustment factor
+                                var scale = (maxv-minv) / (maxp-minp);
+
+                                return Math.exp(minv + scale*(position-minp));
                             }
-                            // Material.background: "white"
-                            Material.foreground: Constants.poly_pink 
-                            Material.accent: "white"
-                            radius: 10
-                            text: modelData
-                            font {
-                                pixelSize: 24
-                                capitalization: Font.AllUppercase
+
+                            function logposition(value) {
+                                // log in to linear out
+                                // input position will be between 0 and 1
+                                var minp = 0;
+                                var maxp = 1;
+
+                                // The output result should be between 20 an 200000
+                                var minv = Math.log(20);
+                                var maxv = Math.log(20000);
+
+                                // calculate adjustment factor
+                                var scale = (maxv-minv) / (maxp-minp);
+
+                                return (Math.log(value)-minv) / scale + minp;
+                            }
+
+                            Slider {
+                                x: 0
+                                y: 0
+                                visible: loop_slider.v_type != "bool"
+                                snapMode: Slider.SnapAlways
+                                stepSize: loop_slider.v_type == "int" ? 1.0 : 0.0
+                                title: LoopMap.parameter_map[loop_slider.selected_parameter]
+                                width: parent.width - 50
+                                height:parent.height
+                                // value: is_log ? logslider(currentEffects[current_effect]["controls"][row_param].value) : currentEffects[current_effect]["controls"][row_param].value
+                                value: loopler.loops[current_loop][loop_slider.selected_parameter] 
+                                from: loop_slider.is_log ? 20 : 0
+                                to: loop_slider.is_log ? 20000 : 1
+                                onMoved: {
+                                    if (loop_slider.is_log){
+                                        // knobs.ui_knob_change(current_effect, selected_parameter, logposition(value));
+                                        //
+                                    } else {
+                                        // knobs.ui_knob_change(current_effect, selected_parameter, value);
+                                        loopler.ui_set(current_loop, loop_slider.selected_parameter, value)
+                                    }
+                                }
+                                // onPressedChanged: {
+                                //     if (pressed){
+                                //         knobs.set_knob_current_effect(current_effect, row_param);
+                                //     }
+                                // }
+                            }
+
+
+                            // IconButton {
+                            //     id: midiBut
+                            //     property bool learning: false
+                            //     x: parent.width - 50
+                            //     anchors.verticalCenter: parent.verticalCenter
+                            //     icon.source: (currentEffects[current_effect]["controls"][row_param].cc == -1) ?  "../icons/digit/midi_inactive.png" : "../icons/digit/midi_active.png"  
+                            //     width: 60
+                            //     height: 60
+                            //     onClicked: {
+                            //         knobs.midi_learn(current_effect, row_param);
+                            //         learning = !learning;
+                            //     }
+                            //     radius: 15
+
+                            //     SequentialAnimation {
+                            //                         id: blinkLearn;
+                            //                         loops: Animation.Infinite;
+                            //                         alwaysRunToEnd: true;
+                            //                         running: currentEffects[current_effect]["controls"][row_param].cc == -1 && midiBut.learning;
+                            //                         ColorAnimation { target: midiBut; property: "Material.foreground"; from: control.Material.foreground; to: "white"; duration: 1000 }
+                            //                         ColorAnimation { target: midiBut; property: "Material.foreground"; to: control.Material.foreground; from: "white"; duration: 1000 }
+                            //                     }
+                            // }
+
+                        }
+
+                        Row {
+                            spacing: 25 
+                            height: 135
+                            width: parent.width
+
+                            Repeater {
+                                model: ["input_gain", "rec_thresh", "feedback", "wet"]
+
+                                ValueButton {
+                                    width: 160
+                                    height: 110
+                                    // checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
+                                    checked: loop_slider.selected_parameter == modelData
+                                    onClicked: {
+                                         loop_slider.selected_parameter = modelData
+                                         loop_slider.Material.foreground = Constants.short_rainbow[index]
+                                    }
+                                    Material.foreground: Constants.short_rainbow[index]
+                                    text: LoopMap.parameter_map[modelData]
+                                    value: loopler.loops[current_loop][modelData].toFixed(2) //["feedback"].value // [loop_slider.selected_parameter]
+                                }
                             }
                         }
                     }
 
+                    Rectangle {
+                        x:  779
+                        y: -16
+                        width: 2
+                        height: 270
+                        z: 3
+                        color: Constants.poly_grey
+                    }
+
+                    Column {
+                        x: 799
+                        spacing: 14 
+                        height: 270
+                        width: parent.width
+
+                        Repeater {
+                            model: ["sync", "playback_sync", "use_feedback_play"]
+
+                            PolyButton {
+                                width: 252
+                                height: 64
+                                checked: loopler.loops[current_loop][modelData] == 1.0
+                                // checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)
+                                onClicked: {
+                                    loopler.ui_set(current_loop, modelData, 1 - loopler.loops[current_loop][modelData])
+                                }
+                                Material.foreground: Constants.short_rainbow[index]
+                                Material.background: Constants.background_color
+                                text: LoopMap.parameter_map[modelData]
+                                font {
+                                    pixelSize: 24
+                                    capitalization: Font.AllUppercase
+                                }
+                            }
+
+                        }
+                    }
                 }
 
+                Item { // rate
+                    x: 2
+                    y: 0
+                    width: 1107
+                    height: 270
+
+                    Column {
+                        y: 20
+                        x: 0
+                        spacing: 30
+
+                        Item {
+                            Material.foreground: Constants.rainbow[0]
+                            id: loop_slider_rate
+                            height: 62
+                            width:  714
+                            property real multiplier: 1  
+                            property bool is_log: false
+                            property string selected_parameter: "pitch_shift"
+                            property string v_type: selected_parameter == "pitch_shift" ? "int" : "float"
+                            property bool force_update: false
+                            visible: v_type != "hide"
+
+
+                            function logslider(position) {
+                                // linear in to log out
+                                // input position will be between 0 and 1
+                                var minp = 0;
+                                var maxp = 1;
+
+                                // The output result should be between 20 an 20000
+                                var minv = Math.log(20);
+                                var maxv = Math.log(20000);
+
+                                // calculate adjustment factor
+                                var scale = (maxv-minv) / (maxp-minp);
+
+                                return Math.exp(minv + scale*(position-minp));
+                            }
+
+                            function logposition(value) {
+                                // log in to linear out
+                                // input position will be between 0 and 1
+                                var minp = 0;
+                                var maxp = 1;
+
+                                // The output result should be between 20 an 200000
+                                var minv = Math.log(20);
+                                var maxv = Math.log(20000);
+
+                                // calculate adjustment factor
+                                var scale = (maxv-minv) / (maxp-minp);
+
+                                return (Math.log(value)-minv) / scale + minp;
+                            }
+
+                            Slider {
+                                x: 0
+                                y: 0
+                                visible: loop_slider_rate.v_type != "bool"
+                                snapMode: Slider.SnapAlways
+                                stepSize: loop_slider_rate.v_type == "int" ? 1.0 : 0.0
+                                title: LoopMap.parameter_map[loop_slider_rate.selected_parameter]
+                                width: parent.width - 50
+                                height:parent.height
+                                value: loop_slider_rate.force_update, loopler.loops[current_loop][loop_slider_rate.selected_parameter] 
+                                from: loop_slider_rate.selected_parameter  in LoopMap.param_bounds ? LoopMap.param_bounds[loop_slider_rate.selected_parameter][0] : 0
+                                to: loop_slider_rate.selected_parameter in LoopMap.param_bounds ? LoopMap.param_bounds[loop_slider_rate.selected_parameter][1] : 1
+                                onMoved: {
+                                    if (loop_slider_rate.is_log){
+                                        // knobs.ui_knob_change(current_effect, selected_parameter, logposition(value));
+                                        //
+                                    } else {
+                                        // knobs.ui_knob_change(current_effect, selected_parameter, value);
+                                        loopler.ui_set(current_loop, loop_slider_rate.selected_parameter, value)
+                                    }
+                                }
+                                // onPressedChanged: {
+                                //     if (pressed){
+                                //         knobs.set_knob_current_effect(current_effect, row_param);
+                                //     }
+                                // }
+                            }
+
+
+                            // IconButton {
+                            //     id: midiBut
+                            //     property bool learning: false
+                            //     x: parent.width - 50
+                            //     anchors.verticalCenter: parent.verticalCenter
+                            //     icon.source: (currentEffects[current_effect]["controls"][row_param].cc == -1) ?  "../icons/digit/midi_inactive.png" : "../icons/digit/midi_active.png"  
+                            //     width: 60
+                            //     height: 60
+                            //     onClicked: {
+                            //         knobs.midi_learn(current_effect, row_param);
+                            //         learning = !learning;
+                            //     }
+                            //     radius: 15
+
+                            //     SequentialAnimation {
+                            //                         id: blinkLearn;
+                            //                         loops: Animation.Infinite;
+                            //                         alwaysRunToEnd: true;
+                            //                         running: currentEffects[current_effect]["controls"][row_param].cc == -1 && midiBut.learning;
+                            //                         ColorAnimation { target: midiBut; property: "Material.foreground"; from: control.Material.foreground; to: "white"; duration: 1000 }
+                            //                         ColorAnimation { target: midiBut; property: "Material.foreground"; to: control.Material.foreground; from: "white"; duration: 1000 }
+                            //                     }
+                            // }
+
+                        }
+
+                        Row {
+                            spacing: 25 
+                            height: 135
+                            width: parent.width
+
+                            Repeater {
+                                model: ["pitch_shift", "stretch_ratio", "scratch_pos", "rate"]
+
+                                ValueButton {
+                                    width: 160
+                                    height: 110
+                                    // checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
+                                    checked: loop_slider_rate.selected_parameter == modelData
+                                    onClicked: {
+                                         loop_slider_rate.selected_parameter = modelData
+                                         loop_slider_rate.Material.foreground = Constants.short_rainbow[index]
+                                         loop_slider_rate.force_update = !(loop_slider_rate.force_update)
+                                    }
+                                    Material.foreground: Constants.short_rainbow[index]
+                                    text: LoopMap.parameter_map[modelData]
+                                    value: loopler.loops[current_loop][modelData].toFixed(2) //["feedback"].value // [loop_slider.selected_parameter]
+                                }
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        x:  779
+                        y: -16
+                        width: 2
+                        height: 270
+                        z: 3
+                        color: Constants.poly_grey
+                    }
+
+                    Column {
+                        x: 799
+                        spacing: 14 
+                        height: 270
+                        width: parent.width
+
+                        Repeater {
+                            model: ["rate 1/2X", "rate 1X", "rate 2X"]
+
+                            PolyButton {
+                                width: 252
+                                height: 64
+                                checked: loopler.loops[current_loop][modelData] == 1.0
+                                // checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)
+                                onClicked: {
+                                    loopler.ui_set(current_loop, "rate", LoopMap.rate_list[index]);
+                                }
+                                Material.foreground: Constants.short_rainbow[index]
+                                Material.background: Constants.background_color
+                                text: modelData
+                                font {
+                                    pixelSize: 24
+                                    capitalization: Font.AllUppercase
+                                }
+                            }
+
+                        }
+                    }
+                }
             }
+
+            Row {
+                x: 0
+                y: 283
+                id: loop_row
+                width: parent.width
+                height: 250
+                spacing: 13 
+
+                ListView {
+                    x: 0
+                    y: 0
+                    width: 1280
+                    height: 296
+                    clip: true
+                    model: loopler.loops.length
+                    orientation: ListView.Horizontal
+                    spacing: 13 
+
+                    delegate: PolyButton {
+                        // property string l_effect: edit //.split(":")[1]
+                        height: 221
+                        width: 296
+                        // text: modelData
+                        checked: current_loop == index
+                        onClicked: {
+                            loopler.select_loop(index);
+                        }
+
+                        contentItem: Item { 
+                            Image {
+                                x: 12
+                                y: 14
+                                source: "../icons/digit/loopler/commands/"+ LoopMap.state_png_map[loopler.loops[index].state.toString()] +".png"
+                            }
+
+                            Text {
+                                x: 108
+                                y: 22
+                                text: "loop "+modelData
+                                color: "white" // checked ? Constants.background_color : "white"
+                                // horizontalAlignment: Text.AlignHCenter
+                                // verticalAlignment: Text.AlignVCenter
+                                // elide: Text.ElideRight
+                                height: 22
+                                font {
+                                    pixelSize: 22
+                                    capitalization: Font.AllUppercase
+                                }
+                            }
+
+                            Text {
+                                x: 108
+                                y: 51
+                                text: "Cycle: "+ loopler.loops[index].cycle_len.toFixed(3) + "sec"
+                                color: "white"
+                                // horizontalAlignment: Text.AlignHCenter
+                                // verticalAlignment: Text.AlignVCenter
+                                // elide: Text.ElideRight
+                                height: 22
+                                font {
+                                    pixelSize: 18
+                                    capitalization: Font.AllUppercase
+                                }
+                            }
+                            Text {
+                                x: 108
+                                y: 72
+                                text: "total: "+ loopler.loops[index].loop_len.toFixed(2) + "sec"
+                                color: "white"
+                                // horizontalAlignment: Text.AlignHCenter
+                                // verticalAlignment: Text.AlignVCenter
+                                // elide: Text.ElideRight
+                                height: 22
+                                font {
+                                    pixelSize: 18
+                                    capitalization: Font.AllUppercase
+                                }
+                            }
+                            Text {
+                                x: 21
+                                y: 115
+                                text: "Waiting to sync"
+                                color: Constants.loopler_purple
+                                visible: loopler.loops[index].waiting > 0
+                                // horizontalAlignment: Text.AlignHCenter
+                                // verticalAlignment: Text.AlignVCenter
+                                // elide: Text.ElideRight
+                                height: 22
+                                font {
+                                    pixelSize: 18
+                                    capitalization: Font.AllUppercase
+                                }
+                            }
+                            Text {
+                                x: 21
+                                y: 135
+                                text: LoopMap.state_map[loopler.loops[index].state]
+                                color: Constants.loopler_purple
+                                // horizontalAlignment: Text.AlignHCenter
+                                // verticalAlignment: Text.AlignVCenter
+                                // elide: Text.ElideRight
+                                height: 22
+                                font {
+                                    pixelSize: 20
+                                    capitalization: Font.AllUppercase
+                                }
+                            }
+                            ProgressBar {
+                                x: 21
+                                y: 172
+                                from: 0
+                                to: loopler.loops[index].loop_len
+                                value: loopler.loops[index].loop_pos
+                                Material.background: "white"
+                                Material.accent: Constants.loopler_purple 
+                                // horizontalAlignment: Text.AlignHCenter
+                                // verticalAlignment: Text.AlignVCenter
+                                // elide: Text.ElideRight
+                                width: 255
+                                height: 22
+                            }
+                            // Text {
+                            //     x: 144
+                            //     y: 183
+                            //     text: loopler.loops[index].loop_pos.toFixed(2) + " / " + loopler.loops[index].loop_len.toFixed(2) + " sec"
+                            //     color: Constants.poly_yellow
+                            //     // horizontalAlignment: Text.AlignHCenter
+                            //     // verticalAlignment: Text.AlignVCenter
+                            //     // elide: Text.ElideRight
+                            //     height: 22
+                            //     font {
+                            //         pixelSize: 20
+                            //         capitalization: Font.AllUppercase
+                            //     }
+                            // }
+                        
+                        } 
+                        
+                        
+
+                        background: Rectangle {
+                            width: parent.width
+                            height: parent.height
+                            color: Constants.background_color
+                            border.width: 3
+                            border.color: checked ? Constants.loopler_purple : Constants.poly_dark_grey  
+                            radius: 10
+                        }
+                    }
+
+                    footer: Item {
+                        PolyButton {
+                            // property string l_effect: edit //.split(":")[1]
+                            x: 13
+                            height: 221
+                            width: 296
+                            // text: modelData
+                            onClicked: {
+                                // current_loop = index;
+                                // add new loop
+                                loopler.ui_add_loop()
+                            }
+
+                            contentItem: Item { 
+                                // Image {
+                                //     x: 12
+                                //     y: 14
+                                //     source: "../icons/digit/loopler/commands/"+ LoopMap.state_png_map[loopler.loops[index].state.toString()] +".png"
+                                // }
+
+                                Text {
+                                    x: 108
+                                    y: 22
+                                    text: "Add loop"
+                                    color: Constants.poly_dark_grey // checked ? Constants.background_color : "white"
+                                    // horizontalAlignment: Text.AlignHCenter
+                                    // verticalAlignment: Text.AlignVCenter
+                                    // elide: Text.ElideRight
+                                    height: 22
+                                    font {
+                                        pixelSize: 22
+                                        capitalization: Font.AllUppercase
+                                    }
+                                }
+                            } 
+                            
+                            
+
+                            background: Rectangle {
+                                width: parent.width
+                                height: parent.height
+                                color: Constants.background_color
+                                border.width: 3
+                                border.color: Constants.poly_dark_grey  
+                                radius: 10
+                            }
+                        }
+                    }
+
+                    ScrollIndicator.horizontal: ScrollIndicator {
+                        x: 1
+                        anchors.top: parent.top
+                        parent: loop_row
+                        anchors.bottom: parent.bottom
+                    }
+                }
+            }
+        }
+
+        // global
+        Item {
+            width: 1280
+            height: 522
+            x: 0
+            y: 0
+
+            Rectangle {
+                x:  339
+                y: 0
+                z: 3
+                width: 2
+                height: parent.height
+                color: Constants.poly_dark_grey
+            }
+            Row {
+                x: 380
+                y: 70 
+                width: 671
+                spacing: 45
+
+                Slider {
+                    width: 120 
+                    height: 370
+                    orientation: Qt.Vertical
+                    title: "cross fade"
+                    value: loopler.loops[current_loop]["fade_samples"] 
+                    from: 0.0
+                    to: 1024
+                    stepSize: 1
+                    snapMode: Slider.SnapAlways
+                    onMoved: {
+                        loopler.ui_set_all("fade_samples", value)
+                    }
+                    Material.foreground: Constants.short_rainbow[0]
+
+                }
+
+                Slider {
+                    width: 120 
+                    height: 370
+                    orientation: Qt.Vertical
+                    title: "input gain"
+                    value: loopler.input_gain
+                    from: 0.0
+                    to: 1
+                    snapMode: Slider.SnapAlways
+                    onMoved: {
+                        loopler.ui_set_global("input_gain", value)
+                    }
+                    Material.foreground: Constants.short_rainbow[1]
+
+                }
+
+                Slider {
+                    width: 120 
+                    height: 370
+                    orientation: Qt.Vertical
+                    title: "wet"
+                    value: loopler.wet
+                    from: 0.0
+                    to: 1
+                    snapMode: Slider.SnapAlways
+                    onMoved: {
+                        loopler.ui_set_global("wet", value)
+                    }
+                    Material.foreground: Constants.short_rainbow[2]
+
+                }
+
+                Slider {
+                    width: 120 
+                    height: 370
+                    orientation: Qt.Vertical
+                    title: "dry"
+                    value: loopler.wet
+                    from: 0.0
+                    to: 1
+                    snapMode: Slider.SnapAlways
+                    onMoved: {
+                        loopler.ui_set_global("dry", value)
+                    }
+                    Material.foreground: Constants.short_rainbow[3]
+
+                }
+
+            
+            }
+
+            Rectangle {
+                x:  1010
+                y: 0
+                z: 3
+                width: 2
+                height: parent.height
+                color: Constants.poly_dark_grey
+            }
+
         }
     }
 
-    Row {
-        x: 0
-        y: 270
+    Rectangle {
+        x:  0
+        y: 520
+        z: 3
         width: parent.width
-        height: 250
-    
-        Repeater {
-            model: loop_count // TODO
-            Button {
-                height: 221
-                width: 296
-                // text: modelData
-                checked: current_loop == index
-                onClicked: {
-                    current_loop = index;
-                }
+        height: 2
+        color: Constants.poly_dark_grey
+    }
 
-                contentItem: Text {
-                    text: modelData
-                    color:  checked ? Constants.background_color : "white"
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    // elide: Text.ElideRight
-                    height: parent.height
-                    wrapMode: Text.WordWrap
-                    width: parent.width
-                    font {
-                        pixelSize: 24
-                        capitalization: Font.AllUppercase
-                    }
-                }
-
-                background: Rectangle {
-                    width: parent.width
-                    height: parent.height
-                    color: checked ? Constants.poly_blue : Constants.poly_dark_grey  
-                    border.width: 0
-                    radius: 10
-                }
-            }
+    IconButton {
+        x: 198 
+        y: 529
+        width: 86
+        height: 86
+        icon.width: 86
+        icon.height: 86
+        // flat: false
+        icon.source: "../icons/digit/loopler/nav_buttons/Midi.png"
+        Material.background: Constants.background_color
+        onClicked: {
         }
+        // HelpLabel {
+        //     text: "Global"
+        // }
+    }
+
+    IconButton {
+        x: 317 
+        y: 529
+        width: 86
+        height: 86
+        icon.width: 86
+        icon.height: 86
+        // flat: false
+        icon.source: "../icons/digit/loopler/nav_buttons/Global.png"
+        Material.background: Constants.background_color
+        onClicked: {
+            global_focused = 1 - global_focused 
+        }
+        // HelpLabel {
+        //     text: "Global"
+        // }
+    }
+
+    IconButton {
+        x: 491 
+        y: 529
+        width: 86
+        height: 86
+        icon.width: 86
+        icon.height: 86
+        // flat: false
+        icon.source: "../icons/digit/loopler/nav_buttons/Trigger.png"
+        Material.background: Constants.background_color
+        Material.foreground: LoopMap.command_map["trigger"] == loopler.loops[current_loop].state ? Constants.loopler_purple : "white"
+        onClicked: {
+            loopler.ui_loop_command(current_loop, "trigger");
+        }
+        // HelpLabel {
+        //     text: "Global"
+        // }
+    }
+
+    IconButton {
+        x: 597 
+        y: 529
+        width: 86
+        height: 86
+        icon.width: 86
+        icon.height: 86
+        // flat: false
+        icon.source: "../icons/digit/loopler/nav_buttons/Pause.png"
+        Material.background: Constants.background_color
+        Material.foreground: LoopMap.command_map["pause"] == loopler.loops[current_loop].state ? Constants.loopler_purple : "white"
+        onClicked: {
+            loopler.ui_loop_command(current_loop, "pause");
+        }
+        // HelpLabel {
+        //     text: "Global"
+        // }
+    }
+    IconButton {
+        x: 703 
+        y: 529
+        width: 86
+        height: 86
+        icon.width: 86
+        icon.height: 86
+        // flat: false
+        icon.source: "../icons/digit/loopler/nav_buttons/Record.png"
+        Material.background: Constants.background_color
+        Material.foreground: LoopMap.command_map["record"] == loopler.loops[current_loop].state ? Constants.loopler_purple : "white"
+        onClicked: {
+            loopler.ui_loop_command(current_loop, "record");
+        }
+        // HelpLabel {
+        //     text: "Global"
+        // }
+    }
+    IconButton {
+        x: 883 
+        y: 529
+        width: 86
+        height: 86
+        icon.width: 86
+        icon.height: 86
+        // flat: false
+        icon.source: "../icons/digit/loopler/nav_buttons/Bin.png"
+        Material.background: Constants.background_color
+        onClicked: {
+            loopler.ui_remove_loop()
+        }
+        // HelpLabel {
+        //     text: "Global"
+        // }
     }
 
 }

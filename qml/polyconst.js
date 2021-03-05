@@ -10,6 +10,7 @@ var poly_blue = "#53A2FD";
 var poly_green = "#80FFE8";
 var poly_yellow = "#FFD645";
 var poly_purple = "#AC8EFF";
+var loopler_purple = "#E68BFF";
 var poly_dark_grey = "#282828";
 var poly_grey = "#323232";
 var left_col = 130; 
