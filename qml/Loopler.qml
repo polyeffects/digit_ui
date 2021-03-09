@@ -30,7 +30,7 @@ Item {
     property int current_loop: loopler.selected_loop_num 
     property int global_focused: 0
     property bool midi_learn_select: false
-    property bool midi_learn_waiting: false
+    property bool midi_learn_waiting: loopler.midi_learn_waiting
     z: 3
     x: 0
     height:546
@@ -1030,6 +1030,7 @@ Item {
     }
 
     IconButton {
+        id: midiButton
         x: 198 
         y: 529
         width: 86
@@ -1042,6 +1043,14 @@ Item {
         Material.foreground: midi_learn_select ? Constants.loopler_purple : "white"
         onClicked: {
             midi_learn_select = !midi_learn_select;
+        }
+
+        SequentialAnimation {
+            loops: Animation.Infinite;
+            alwaysRunToEnd: true;
+            running: midi_learn_waiting
+            ColorAnimation { target: midiButton; property: "Material.background"; to: Constants.loopler_purple; from: Constants.background_color; duration: 1000 }
+            ColorAnimation { target: midiButton; property: "Material.background"; from: Constants.loopler_purple; to: Constants.background_color; duration: 1000 }
         }
         // HelpLabel {
         //     text: "Global"

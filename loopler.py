@@ -103,6 +103,7 @@ class Loopler(QObject, metaclass=PropertyMeta):
     eighth_per_cycle = Property(int)
     sync_source = Property(int)
     relative_sync = Property(float)   # per loop 0 -> ...
+    midi_learn_waiting = Property(bool)   # per loop 0 -> ...
     # mute_quantized = Property(int) # per loop
     # overdub_quantized = Property(int) # per loop
 
@@ -113,9 +114,11 @@ class Loopler(QObject, metaclass=PropertyMeta):
         l_thread.looper_callbacks.append(self.looper_responder)
         l_thread.loop_added_callbacks.append(self.loop_added_responder)
         l_thread.loop_removed_callbacks.append(self.loop_removed_responder)
+        l_thread.midi_binding_callbacks.append(self.midi_binding_responder)
         self.loopAddedSignal.connect(self.add_loop)
         self.loopRemovedSignal.connect(self.remove_loop)
         self.selected_loop_num = l_thread.selected_loop_num
+        self.midi_learn_waiting = False
 
         a = list(l_thread.__dict__.items())
         for k, v in a:
@@ -172,6 +175,10 @@ class Loopler(QObject, metaclass=PropertyMeta):
         # QMetaObject.invokeMethod(self, b"add_loop", Qt.QueuedConnection, loop_num)
         self.loopAddedSignal.emit(loop_num)
 
+    def midi_binding_responder(self, args):
+        # QMetaObject.invokeMethod(self, b"add_loop", Qt.QueuedConnection, loop_num)
+        self.midi_learn_waiting = False
+
     def add_loop(self, loop_num):
         self.loops.append(Loop(loop_num))
 
@@ -185,6 +192,7 @@ class Loopler(QObject, metaclass=PropertyMeta):
 
     @Slot(str, int)
     def ui_bind_request(self, control, loop_num):
+        self.midi_learn_waiting = True
         l_thread.midi_learn(control, loop_num)
 
    # if (style == GainStyle) {

@@ -152,6 +152,7 @@ class LooperThread:
         self.ping_callbacks = []
         self.loop_added_callbacks = []
         self.loop_removed_callbacks = []
+        self.midi_binding_callbacks = []
 
         #self.start_server()
 
@@ -175,6 +176,7 @@ class LooperThread:
             self.server.add_method('/sl/loop', None, self.loop_responder)
             self.server.add_method('/sl/looper', None, self.looper_responder)
             self.server.add_method('/sl/loop_num', None, self.loop_num_responder)
+            self.server.add_method('/sl/midi_bindings', None, self.midi_binding_responder)
 
             self.server.start()
             self.initialize()
@@ -271,6 +273,19 @@ class LooperThread:
 
         for f in self.looper_callbacks:
             f(args)
+
+    def midi_binding_responder(self, path, args):
+        """ Listens for replies from SL about midi bindings"""
+        if self.verbose:
+            print('midi binding responder Received OSC message: {} {} server {}'.format(path, args, self.server.url))
+            #/sl/midi_bindings ['done', '0 n 57  note overdub 1  0 1  norm 0 127'] server osc.udp://loki-ldesktop:9950/
+        if args[0] == "done":
+            for f in self.midi_binding_callbacks:
+                f(args)
+
+        # self.__dict__[args[1]] = args[2]
+        # for f in self.looper_callbacks:
+        #     f(args)
 
     def send(self, path1, path2, *args):
         message = '/sl/' + str(path1)
