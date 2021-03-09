@@ -5,6 +5,7 @@ Tracks full state and provides interface to all loop commands. Almost a complete
 """
 
 import liblo
+from collections import namedtuple
 from threading import Event, Lock
 
 # Quantize and relative sync are actually global looper parameters, but SL handles them via the loop interface. We handle them separately as special cases so they are commented below but left for reference.
@@ -17,7 +18,7 @@ loop_parameters_settable = (
     'rate',        	# range 0.25 -> 4.0
     'scratch_pos',  	 # 0 -> 1
     'delay_trigger',  # any changes
-#   'quantize', # 0 = off, 1 = cycle, 2 = 8th, 3 = loop
+    'quantize', # 0 = off, 1 = cycle, 2 = 8th, 3 = loop
     'round',          # 0 = off,  not 0 = on
     'redo_is_tap',    # 0 = off,  not 0 = on
     'sync',           # 0 = off,  not 0 = on
@@ -27,7 +28,7 @@ loop_parameters_settable = (
     'use_feedback_play',   # 0 = off,  not 0 = on
     'use_common_ins',   # 0 = off,  not 0 = on
     'use_common_outs',   # 0 = off,  not 0 = on
-#   'relative_sync',   # 0 = off, not 0 = on
+   'relative_sync',   # 0 = off, not 0 = on
     'use_safety_feedback',   # 0 = off, not 0 = on
     'pan_1',        	# range 0 -> 1
     'pan_2',        	# range 0 -> 1
@@ -340,19 +341,136 @@ class LooperThread:
 
     @property
     def sync_source(self):
-        s = self.__dict__['sync_source']
-        if s > 0:
-            return int(s)
-        else:
-            return ('none', 'internal', 'midi', 'jack')[i]
+        # s = self.__dict__['sync_source']
+        # if s > 0:
+        return int(s)
+        # else:
+        #     return ('none', 'internal', 'midi', 'jack')[i]
 
     @sync_source.setter
     def sync_source(self, val):
-        if isinstance(val, str):
-            s = - ('none', 'jack', 'midi', 'internal').index(val)
-        else:
-            s = val
+        # if isinstance(val, str):
+        #     s = - ('none', 'jack', 'midi', 'internal').index(val)
+        # else:
+        s = val
         self.set('sync_source', s)
+
+    def midi_learn(self, control, loop_num):
+
+        info = namedtuple('MidiBinding', ['channel', 'type', "param", "command", "control", "instance", "lbound", "ubound", "style"])
+        donothing = False
+        val = control
+
+        info.channel = 0
+        info.type = "cc"
+        info.command = "set"
+        info.instance = loop_num
+        info.lbound = 0.0
+        info.ubound = 1.0
+        info.style = "norm"
+
+        if (val == "tempo"):
+            info.lbound = 20.0
+            info.ubound = 274.0
+            info.control = "tempo"
+
+        elif (val == "taptempo"):
+            info.control = "tap_tempo"
+
+        elif (val == "eighth"):
+            info.control = "eighth_per_cycle"
+            info.lbound = 1.0
+            info.ubound = 128.0
+
+        elif (val == "fade_samples"):
+            info.control = "fade_samples"
+            info.lbound = 0.0
+            info.ubound = 16384.0
+
+        elif (val == "dry"):
+            info.control = "dry"
+            info.style = "gain"
+
+        elif (val == "wet"):
+            info.control = "wet"
+            info.style = "gain"
+
+        elif (val == "input_gain"):
+            info.control = "input_gain"
+            info.style = "gain"
+
+        elif (val == "round"):
+            info.instance = -1
+            info.control = "round"
+
+        elif (val == "sync"):
+            info.control = "sync_source"
+            info.lbound = -3.0
+            info.ubound = 16.0
+
+        elif (val == "quantize"):
+            info.instance = -1
+            info.control = "quantize"
+            info.lbound = 0.0
+            info.ubound = 3.0
+
+        elif (val == "mute_quantized"):
+            info.control = "mute_quantized"
+            info.instance = -1
+
+        elif (val == "overdub_quantized"):
+            info.control = "overdub_quantized"
+            info.instance = -1
+
+        elif (val == "replace_quantized"):
+            info.control = "replace_quantized"
+            info.instance = -1
+
+        elif (val == "smart_eighths"):
+            info.control = "smart_eighths"
+            info.instance = -1
+
+        elif (val == "rate_1"):
+            info.type = "n"
+            info.control = "rate"
+            info.command = "set"
+            info.lbound = 1.0
+            info.ubound = 1.0
+
+        elif (val == "rate_05"):
+            info.type = "n"
+            info.control = "rate"
+            info.command = "set"
+            info.lbound = 0.5
+            info.ubound = 0.5
+
+        elif (val == "rate_2"):
+            info.type = "n"
+            info.control = "rate"
+            info.command = "set"
+            info.lbound = 2.0
+            info.ubound = 2.0
+
+        else:
+            info.type = "n"
+            info.control = val
+            info.command = "note"
+            #donothing = true
+
+        if info.command == "set":
+            info.param = 0
+        else:
+            info.param = 2013629443
+
+
+        if not donothing:
+
+        # info = namedtuple('MidiBinding', ['channel', 'type', "command", "instance", "lbound", "ubound", "style"])
+   #      // i:ch s:type i:param  s:cmd  s:ctrl i:instance f:min_val_bound f:max_val_bound s:valstyle i:min_data i:max_data
+            info_str = "{} {} {} {} {} {} {} {} {} 0 127".format(info.channel, info.type, info.param, info.command, info.control, info.instance, info.lbound, info.ubound, info.style)
+
+            self.send_osc('/learn_midi_binding', info_str, 'exclusive', self.server.url, '/sl/midi_bindings')
+
 
 
 class Loop:

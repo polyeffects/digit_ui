@@ -1,16 +1,12 @@
-from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer, QThreadPool, QRunnable, QMetaObject, Qt
 
+from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer, QThreadPool, QRunnable, QMetaObject, Qt
 from dooper import LooperThread, loop_parameters, looper_parameters
 from properties import PropertyMeta, Property
 
 l_thread = LooperThread()
 l_thread.start_server()
 
-parameter_map = {"in gain":"input_gain", "feedback": "feedback", "threshold": "rec_thresh",
-        "out": "wet", "play sync" : "playback_sync", "play feedback" : "playback_sync",
-        "sync" : "sync"}
-
-unused = ('redo_is_tap', 'use_rate', 'use_common_ins', 'use_common_outs', 'use_safety_feedback', 'pan_1', 'pan_2', 'pan_3', 'pan_4', 'input_latency', 'output_latency', 'trigger_latency', 'autoset_latency', 'relative_sync', 'quantize')
+unused = ('redo_is_tap', 'use_rate', 'use_common_ins', 'use_common_outs', 'use_safety_feedback', 'pan_1', 'pan_2', 'pan_3', 'pan_4', 'input_latency', 'output_latency', 'trigger_latency', 'autoset_latency')
 
 unused_looper = ( 'tap_tempo', # any changes
         'save_loop', # any change triggers quick save, be careful
@@ -76,7 +72,8 @@ class Loop(QObject, metaclass=PropertyMeta):
     stretch_ratio = Property(float)
     waiting = Property(float)
     fade_samples = Property(float)   # per loop 0 -> ...
-#   'relative_sync',   # 0 = off, not 0 = on
+    relative_sync = Property(float)   # per loop 0 -> ...
+    quantize = Property(int)   # per loop 0 -> ...
 #   'quantize', # 0 = off, 1 = cycle, 2 = 8th, 3 = loop
 
     def __init__(self, loop_num, parent=None):
@@ -105,6 +102,7 @@ class Loopler(QObject, metaclass=PropertyMeta):
     tempo = Property(float)
     eighth_per_cycle = Property(int)
     sync_source = Property(int)
+    relative_sync = Property(float)   # per loop 0 -> ...
     # mute_quantized = Property(int) # per loop
     # overdub_quantized = Property(int) # per loop
 
@@ -166,6 +164,7 @@ class Loopler(QObject, metaclass=PropertyMeta):
     def looper_responder(self, args):
         """ Listens for replies from SL about looper global state"""
         control, value = args[1:]
+        # print("looper responder",  control, value)
         if control in type(self).__dict__:
             type(self).__dict__[control].setter(self, value)
 
@@ -181,3 +180,24 @@ class Loopler(QObject, metaclass=PropertyMeta):
 
     def remove_loop(self, loop_num):
         self.loops.pop()
+
+## learn
+
+    @Slot(str, int)
+    def ui_bind_request(self, control, loop_num):
+        l_thread.midi_learn(control, loop_num)
+
+   # if (style == GainStyle) {
+   #              snprintf(stylebuf, sizeof(stylebuf), "gain");
+   #      } else if (style == ToggleStyle) {
+   #              snprintf(stylebuf, sizeof(stylebuf), "toggle");
+   #      } else if (style == IntegerStyle) {
+   #              snprintf(stylebuf, sizeof(stylebuf), "integer");
+   #      } else {
+   #              strncpy(stylebuf, "norm", sizeof(stylebuf));
+   #      }
+
+   #      // i:ch s:type i:param  s:cmd  s:ctrl i:instance f:min_val_bound f:max_val_bound s:valstyle i:min_data i:max_data
+   #      snprintf(buf, sizeof(buf), "%d %s %d  %s %s %d  %.9g %.9g  %s %d %d",
+   #               channel, type.c_str(), param, command.c_str(),
+   #               control.c_str(), instance, lbound, ubound, stylebuf, data_min, data_max);

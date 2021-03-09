@@ -144,5 +144,28 @@ from dooper import LooperThread
 l_thread = LooperThread()
 l_thread.start_server()
 l_thread.verbose = True
+
+
+
+
+path: </learn_midi_binding>
+arg 0 's' "0 cc 0  set wet 0  0 1  gain 0 127"
+arg 1 's' "exclusive"
+arg 2 's' "osc.udp://127.0.0.1:11642/"
+arg 3 's' "/recv_midi_bindings"
+
+path: </learn_midi_binding>
+arg 0 's' "0 cc 0  set feedback 0  0 1  norm 0 127"
+arg 1 's' "exclusive"
+arg 2 's' "osc.udp://127.0.0.1:11642/"
+arg 3 's' "/recv_midi_bindings"
+
+path: </learn_midi_binding>
+arg 0 's' "0 n 2013629443  note overdub 0  0 1  norm 0 127"
+arg 1 's' "exclusive"
+arg 2 's' "osc.udp://127.0.0.1:11642/"
+arg 3 's' "/recv_midi_bindings"
+
+
 """
 

@@ -24,10 +24,13 @@ import "../qml/looplerconst.js" as LoopMap
 //     visible: true
 
 Item {
+    id: looper_widget
     property string effect_id: "none"
     property int tab_index: 0
     property int current_loop: loopler.selected_loop_num 
     property int global_focused: 0
+    property bool midi_learn_select: false
+    property bool midi_learn_waiting: false
     z: 3
     x: 0
     height:546
@@ -35,6 +38,16 @@ Item {
 
     // top row is 2 groups, 1 column, 1 grid
     //
+    function midiLearn(param){
+        if (midi_learn_select){
+            loopler.ui_bind_request(param, current_loop);
+            midi_learn_select = false;
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
     StackLayout {
         width: 1280
@@ -157,6 +170,9 @@ Item {
                                 // checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
                                 checked: LoopMap.command_map[modelData] == loopler.loops[current_loop].state || (modelData == "solo" && loopler.loops[current_loop].is_soloed > 0) || (modelData == "reverse" && loopler.loops[current_loop].rate_output < 0)
                                 onClicked: {
+                                    if (looper_widget.midiLearn(modelData)){
+                                        return;
+                                    }
                                     if (modelData == "delay"){
                                         loopler.ui_set(current_loop, "delay_trigger", loopler.loops[current_loop].delay_trigger * -1);
                                     } else {
@@ -209,7 +225,6 @@ Item {
                         spacing: 30
 
                         Item {
-                            Material.foreground: Constants.rainbow[0]
                             id: loop_slider
                             height: 62
                             width:  714
@@ -255,6 +270,7 @@ Item {
                             Slider {
                                 x: 0
                                 y: 0
+                                Material.foreground: Constants.short_rainbow[2]
                                 visible: loop_slider.v_type != "bool"
                                 snapMode: Slider.SnapAlways
                                 stepSize: loop_slider.v_type == "int" ? 1.0 : 0.0
@@ -322,6 +338,9 @@ Item {
                                     // checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
                                     checked: loop_slider.selected_parameter == modelData
                                     onClicked: {
+                                        if (looper_widget.midiLearn(modelData)){
+                                            return;
+                                        }
                                          loop_slider.selected_parameter = modelData
                                          loop_slider.Material.foreground = Constants.short_rainbow[index]
                                     }
@@ -357,6 +376,9 @@ Item {
                                 checked: loopler.loops[current_loop][modelData] == 1.0
                                 // checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)
                                 onClicked: {
+                                    if (looper_widget.midiLearn(modelData)){
+                                        return;
+                                    }
                                     loopler.ui_set(current_loop, modelData, 1 - loopler.loops[current_loop][modelData])
                                 }
                                 Material.foreground: Constants.short_rainbow[index]
@@ -431,6 +453,7 @@ Item {
                             Slider {
                                 x: 0
                                 y: 0
+                                Material.foreground: Constants.short_rainbow[0]
                                 visible: loop_slider_rate.v_type != "bool"
                                 snapMode: Slider.SnapAlways
                                 stepSize: loop_slider_rate.v_type == "int" ? 1.0 : 0.0
@@ -497,9 +520,12 @@ Item {
                                     // checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
                                     checked: loop_slider_rate.selected_parameter == modelData
                                     onClicked: {
-                                         loop_slider_rate.selected_parameter = modelData
-                                         loop_slider_rate.Material.foreground = Constants.short_rainbow[index]
-                                         loop_slider_rate.force_update = !(loop_slider_rate.force_update)
+                                        if (looper_widget.midiLearn(modelData)){
+                                            return;
+                                        }
+                                        loop_slider_rate.selected_parameter = modelData
+                                        loop_slider_rate.Material.foreground = Constants.short_rainbow[index]
+                                        loop_slider_rate.force_update = !(loop_slider_rate.force_update)
                                     }
                                     Material.foreground: Constants.short_rainbow[index]
                                     text: LoopMap.parameter_map[modelData]
@@ -533,6 +559,9 @@ Item {
                                 checked: loopler.loops[current_loop][modelData] == 1.0
                                 // checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)
                                 onClicked: {
+                                    if (looper_widget.midiLearn(LoopMap.rate_bind_list[index])){
+                                        return;
+                                    }
                                     loopler.ui_set(current_loop, "rate", LoopMap.rate_list[index]);
                                 }
                                 Material.foreground: Constants.short_rainbow[index]
@@ -765,6 +794,80 @@ Item {
             x: 0
             y: 0
 
+            Column {
+                x: 0
+                y: 20
+                height: 515
+                spacing: 14 
+                width: 339
+
+                Text {
+                    text: "SYNC TO"
+                    color: "white"
+                    font.pixelSize: 24
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                PolySpin {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: 285
+                    height: 100
+                    font.pixelSize: 24
+                    items: ["internal", "midi", "none", "loop 1"]
+                    Material.foreground: Constants.loopler_purple
+                    value: LoopMap.sync_to_index[loopler.sync_source.toString()]
+                    onValueModified: {
+                        loopler.ui_set_global("sync_source", LoopMap.sync_to_map[Number(value)]);
+                    }
+
+                }
+
+                Text {
+                    text: "BPM"
+                    color: "white"
+                    font.pixelSize: 24
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                SpinBox {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: 285
+                    height: 100
+                    font.pixelSize: 36
+                    from: 20
+                    to: 320
+                    Material.foreground: Constants.poly_pink
+                    value: loopler.tempo
+                    onValueModified: {
+                        loopler.ui_set_global("tempo", Number(value));
+                    }
+
+                }
+
+                Text {
+                    text: "8TH/CYCLE"
+                    color: "white"
+                    font.pixelSize: 24
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                SpinBox {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: 285
+                    height: 100
+                    font.pixelSize: 36
+                    from: 1
+                    to: 128
+                    Material.foreground: Constants.poly_pink
+                    value: loopler.eighth_per_cycle
+                    onValueModified: {
+                        loopler.ui_set_global("eighth_per_cycle", Number(value));
+                    }
+
+                }
+            
+            }
+
             Rectangle {
                 x:  339
                 y: 0
@@ -856,6 +959,64 @@ Item {
                 color: Constants.poly_dark_grey
             }
 
+            Column {
+                x: 1034
+                y: 20
+                height: 515
+                spacing: 14 
+                width: 270
+
+                Text {
+                    text: "Quantize"
+                    color: "white"
+                    font {
+                        pixelSize: 24
+                        capitalization: Font.AllUppercase
+                    }
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                PolySpin {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: 252
+                    height: 100
+                    font.pixelSize: 24
+                    Material.foreground: Constants.poly_green
+                    value: loopler.loops[0].quantize
+                    onValueModified: {
+                        loopler.ui_set_all("quantize", Number(value));
+                    }
+
+                }
+
+
+                Repeater {
+                    model: ["mute_quantized", "overdub_quantized", "relative_sync"]
+
+                    PolyButton {
+                        width: 252
+                        height: 64
+                        checked: loopler.loops[0][modelData] == 1.0
+                        // checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)
+                        onClicked: {
+                            if (looper_widget.midiLearn(modelData)){
+                                return;
+                            }
+                            loopler.ui_set_all(modelData, 1 - loopler.loops[current_loop][modelData])
+                        }
+                        Material.foreground: Constants.short_rainbow[index]
+                        Material.background: Constants.background_color
+                        text: LoopMap.parameter_map[modelData]
+                        font {
+                            pixelSize: 24
+                            capitalization: Font.AllUppercase
+                        }
+                    }
+
+                }
+            
+            }
+
         }
     }
 
@@ -878,7 +1039,9 @@ Item {
         // flat: false
         icon.source: "../icons/digit/loopler/nav_buttons/Midi.png"
         Material.background: Constants.background_color
+        Material.foreground: midi_learn_select ? Constants.loopler_purple : "white"
         onClicked: {
+            midi_learn_select = !midi_learn_select;
         }
         // HelpLabel {
         //     text: "Global"
@@ -895,6 +1058,7 @@ Item {
         // flat: false
         icon.source: "../icons/digit/loopler/nav_buttons/Global.png"
         Material.background: Constants.background_color
+        Material.foreground: global_focused == 1 ? Constants.loopler_purple : "white"
         onClicked: {
             global_focused = 1 - global_focused 
         }
@@ -915,6 +1079,9 @@ Item {
         Material.background: Constants.background_color
         Material.foreground: LoopMap.command_map["trigger"] == loopler.loops[current_loop].state ? Constants.loopler_purple : "white"
         onClicked: {
+            if (looper_widget.midiLearn("trigger")){
+                return;
+            }
             loopler.ui_loop_command(current_loop, "trigger");
         }
         // HelpLabel {
@@ -934,6 +1101,9 @@ Item {
         Material.background: Constants.background_color
         Material.foreground: LoopMap.command_map["pause"] == loopler.loops[current_loop].state ? Constants.loopler_purple : "white"
         onClicked: {
+            if (looper_widget.midiLearn("pause")){
+                return;
+            }
             loopler.ui_loop_command(current_loop, "pause");
         }
         // HelpLabel {
@@ -952,6 +1122,9 @@ Item {
         Material.background: Constants.background_color
         Material.foreground: LoopMap.command_map["record"] == loopler.loops[current_loop].state ? Constants.loopler_purple : "white"
         onClicked: {
+            if (looper_widget.midiLearn("record")){
+                return;
+            }
             loopler.ui_loop_command(current_loop, "record");
         }
         // HelpLabel {
