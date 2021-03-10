@@ -93,7 +93,10 @@ effect_type_maps = {"beebo" : {'ad_env_level': 'http://drobilla.net/plugins/omin
      'warmth': 'http://moddevices.com/plugins/tap/tubewarmth',
      'wavefolder': 'http://polyeffects.com/lv2/polywarps#fold',
      'wet_dry': 'http://polyeffects.com/lv2/wet_dry',
-     'wet_dry_stereo': 'http://polyeffects.com/lv2/wet_dry_stereo'}}
+     'wet_dry_stereo': 'http://polyeffects.com/lv2/wet_dry_stereo',
+     'loop_common_out': 'http://polyeffects.com/lv2/loop_common_out',
+     'loop_common_in': 'http://polyeffects.com/lv2/loop_common_in',
+     }}
 
 # categories effect, IO, control, synth, 
 
@@ -1868,6 +1871,18 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                             'trig': ['Trigger', 'CVPort']},
                  'outputs': {'l_out': ['L Out', 'AudioPort'],
                              'r_out': ['R Out', 'AudioPort']}},
+'loop_common_in': {'category': 1,
+             'controls': {},
+             'description': 'Common input to the loopler',
+             'inputs': {'input': ['out', 'AudioPort']},
+             'long_description': '',
+             'outputs': {}},
+'loop_common_out': {'category': 1,
+             'controls': {},
+             'description': 'Common output from the loopler',
+             "inputs": {},
+             'long_description': '',
+             "outputs": {"output": ["in", "AudioPort"]}},
                     }
 
 #unused

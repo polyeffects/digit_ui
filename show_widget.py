@@ -11,7 +11,7 @@ import urllib.parse
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer, QThreadPool, QRunnable, qWarning, qCritical, qDebug
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
-from PySide2.QtGui import QIcon
+from PySide2.QtGui import QIcon, QFontDatabase, QFont
 # # compiled QML files, compile with pyside2-rcc
 # import qml.qml
 
@@ -32,6 +32,7 @@ import ingen_wrapper
 import pedal_hardware
 import module_info
 from static_globals import IS_REMOTE_TEST
+import loopler as loopler_lib
 
 worker_pool = QThreadPool()
 EXIT_PROCESS = [False]
@@ -67,8 +68,8 @@ class PatchMode(IntEnum):
 context = None
 
 def debug_print(*args, **kwargs):
-    pass
-    # print( "From py: "+" ".join(map(str,args)), **kwargs)
+    # pass
+    print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 
 effect_type_maps = module_info.effect_type_maps
@@ -102,7 +103,7 @@ for k in effect_prototypes_models.keys():
             "num_cv_in": 0,
             "controls": {}}
 
-bare_ports = ["input", "output", "midi_input", "midi_output"]
+bare_ports = ["input", "output", "midi_input", "midi_output", "loop_common_in", "loop_common_out"]
 
 
 def clamp(v, min_value, max_value):
@@ -534,9 +535,9 @@ def from_backend_add_connection(head, tail):
         if s_effect not in current_effects:
             return
         s_effect_type = current_effects[s_effect]["effect_type"]
-        if s_effect_type in ("output", "midi_output"):
+        if s_effect_type in ("output", "midi_output", "loop_common_in"):
             s_port = "input"
-        elif s_effect_type in ("input", "midi_input"):
+        elif s_effect_type in ("input", "midi_input", "loop_common_out"):
             s_port = "output"
         current_source_port = s_effect + "/" + s_port
         # debug_print("## current_source_port", current_source_port)
@@ -553,9 +554,9 @@ def from_backend_add_connection(head, tail):
             return
         t_effect_type = current_effects[t_effect]["effect_type"]
         t_port = None
-        if t_effect_type in ("output", "midi_output"):
+        if t_effect_type in ("output", "midi_output", "loop_common_in"):
             t_port = "input"
-        elif t_effect_type in ("input", "midi_input"):
+        elif t_effect_type in ("input", "midi_input", "loop_common_out"):
             t_port = "output"
         # debug_print("## tail in sub_graph", tail, t_effect, t_port)
         if t_port is None:
@@ -761,12 +762,26 @@ class Knobs(QObject):
         seq_num = seq_num + 1
         # debug_print("add new effect", effect_type)
         # if there's existing effects of this type, increment the ID
-        effect_name = current_sub_graph+effect_type+str(1)
+        is_bare_port = effect_type in bare_ports
+        num_sep = ""
+        if is_bare_port:
+            num_sep = "_"
+
+        effect_name = current_sub_graph+effect_type+num_sep+str(1)
         for i in range(1, 1000):
-            if current_sub_graph+effect_type+str(i) not in current_effects:
-                effect_name = current_sub_graph+effect_type+str(i)
+            if current_sub_graph+effect_type+num_sep+str(i) not in current_effects:
+                effect_name = current_sub_graph+effect_type+num_sep+str(i)
                 break
-        ingen_wrapper.add_plugin(effect_name, effect_type_map[effect_type])
+
+        if is_bare_port:
+            bare_ports_map = {"input" : "in", "output" : "out", "midi_input" : "midi_in", "midi_output" : "midi_out", "loop_common_in" : "out", "loop_common_out" : "in"}
+            if bare_ports_map[effect_type] == "in":
+                ingen_wrapper.add_input(effect_name, 900, 150)
+            if bare_ports_map[effect_type] == "out":
+                ingen_wrapper.add_output(effect_name, 900, 150)
+            # ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
+        else:
+            ingen_wrapper.add_plugin(effect_name, effect_type_map[effect_type])
         # from_backend_new_effect(effect_name, effect_type)
 
 
@@ -1187,6 +1202,10 @@ def add_io():
         ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
     ingen_wrapper.add_midi_input("/main/midi_in", x=1192, y=(80 * 5))
     ingen_wrapper.add_midi_output("/main/midi_out", x=-20, y=(80 * 5))
+    ingen_wrapper.add_output("/main/loop_common_in_1", x=1092, y=(80*1))
+    ingen_wrapper.add_output("/main/loop_common_in_2", x=1092, y=(80*2))
+    ingen_wrapper.add_input("/main/loop_common_out_1", x=20, y=(80*1))
+    ingen_wrapper.add_input("/main/loop_common_out_2", x=20, y=(80*2))
 
 class Encoder():
     # name, min, max, value
@@ -1433,6 +1452,7 @@ def process_ui_messages():
                         if mapped_type in effect_type_map:
                             from_backend_new_effect(effect_name, mapped_type, x, y, is_enabled)
                     elif effect_type in bare_ports:
+                        debug_print("### adding in bare ports", m)
                         from_backend_new_effect(effect_name, effect_type, x, y, is_enabled)
                     else:
                         from_backend_new_effect(effect_name, inv_effect_type_map[effect_type], x, y, is_enabled)
@@ -1629,6 +1649,9 @@ if __name__ == "__main__":
     debug_print("in Main")
     app = QGuiApplication(sys.argv)
     QIcon.setThemeName("digit")
+    QFontDatabase.addApplicationFont("qml/fonts/BarlowSemiCondensed-SemiBold.ttf")
+    font = QFont("BarlowSemiCondensed", 20, QFont.DemiBold)
+    app.setFont(font)
 
     # preset might not have been copied on an update, as file system might not have been supported
     if not os.path.isfile("/mnt/presets/beebo/Empty.ingen/main.ttl") and not IS_REMOTE_TEST:
@@ -1644,6 +1667,7 @@ if __name__ == "__main__":
 
     # Instantiate the Python object.
     knobs = Knobs()
+    loopler = loopler_lib.Loopler()
 
 
     update_counter = PolyValue("update counter", 0, 0, 500000)
@@ -1688,6 +1712,7 @@ if __name__ == "__main__":
     # global context
     context = engine.rootContext()
     context.setContextProperty("knobs", knobs)
+    context.setContextProperty("loopler", loopler)
     change_pedal_model(pedal_state["model"], True)
     context.setContextProperty("available_effects", available_effects)
     context.setContextProperty("selectedSourceEffectPorts", selected_source_effect_ports)

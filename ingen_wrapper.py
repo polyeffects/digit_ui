@@ -72,6 +72,7 @@ patch_property = serd.curie("patch:property")
 patch_subject = serd.curie("patch:subject")
 patch_value = serd.curie("patch:value")
 poly_assigned_footswitch = serd.uri("http://polyeffects.com/ns/core#assigned_footswitch")
+poly_physical_port = serd.uri("http://polyeffects.com/ns/core#physical_port")
 rdf_type = serd.curie("rdf:type")
 rdfs_comment = serd.curie("rdfs:comment")
 
@@ -153,6 +154,9 @@ def set_tags(current_sub_graph, description):
 
 def set_footswitch_control(effect_id, foot_switch):
     q.put((ingen.put, effect_id, '<http://polyeffects.com/ns/core#assigned_footswitch> """%s"""' % foot_switch))
+
+def set_physical_port(effect_id, port):
+    q.put((ingen.put, effect_id, '<http://polyeffects.com/ns/core#physical_port> """%s"""' % port))
 
 def set_parameter_value(port, value):
     #ingen.set("/main/tone/output", "ingen:value", "0.8") 
@@ -306,8 +310,14 @@ def ingen_recv_thread( ) :
                     # a = prefix_header + s
                     parse_ingen(s)
 
+"""
+sooperlooper:loop0_in_1
+sooperlooper:loop0_out_1
+"""
+
+# on enabled / disable looper add / remove ports
 connected_ports = set()
-def connect_jack_port(port, x, y):
+def connect_jack_port(port, x, y, physical_port):
     if port not in connected_ports:
             port_map = {"/main/out_1": "ingen:out_1 system:playback_3",
                     "/main/out_2": "ingen:out_2 system:playback_4",
@@ -318,8 +328,12 @@ def connect_jack_port(port, x, y):
                     "/main/in_3": "system:capture_3 ingen:in_3",
                     "/main/in_4": "system:capture_5 ingen:in_4",
                     "/main/midi_in": "ttymidi:MIDI_in ingen:midi_in",
+                    "/main/midi_out": "ttymidi:MIDI_out ingen:midi_out",
                     "/main/control": "ttymidi:MIDI_in ingen:control",
-                    "/main/midi_out": "ttymidi:MIDI_out ingen:midi_out"
+                    "/main/loop_common_in_1": "ingen:loop_common_in_1 sooperlooper:common_in_1",
+                    "/main/loop_common_in_2": "ingen:loop_common_in_2 sooperlooper:common_in_2",
+                    "/main/loop_common_out_1": "sooperlooper:common_out_1 ingen:loop_common_out_1",
+                    "/main/loop_common_out_2": "sooperlooper:common_out_2 ingen:loop_common_out_2",
                     }
             # if connected_ports == set(port_map.keys()):
             #     all_connected = True
@@ -331,8 +345,10 @@ def connect_jack_port(port, x, y):
             else:
                 # check if it's a sub module io we need to connect
                 port_suffix = port.rsplit("/", 1)[1]
-                io_ports = ['in_1', 'in_2', 'in_3', 'in_4', 'out_1', 'out_2', 'out_3', 'out_4', "midi_in", "midi_out"]
-                if port_suffix in io_ports:
+                # print("got port", port, x, y, port_suffix)
+                io_ports = ['in_1', 'in_2', 'in_3', 'in_4', "in_5", "in_6", 'out_1', 'out_2', 'out_3', 'out_4', 'out_5', 'out_6', 'out_7', 'out_8', "midi_in", "midi_out"]
+                # XXX loop common in / out, loop 1 in loop 1 out etc
+                if port_suffix in io_ports or "loop_common_" in port_suffix:
                     plugin = ""
                     if port_suffix == "midi_in":
                         #connect to in
@@ -341,6 +357,12 @@ def connect_jack_port(port, x, y):
                     elif port_suffix == "midi_out":
                         plugin = "midi_output"
                         connect_port(port, "/main/"+port_suffix)
+                    elif "loop_common_in" in port_suffix:
+                        plugin = "loop_common_in"
+                        connect_port(port, "/main/"+port_suffix)
+                    elif "loop_common_out" in port_suffix:
+                        plugin = "loop_common_out"
+                        connect_port("/main/"+port_suffix, port)
                     elif "in" in port_suffix:
                         #connect to in
                         plugin = "input"
@@ -349,6 +371,8 @@ def connect_jack_port(port, x, y):
                         plugin = "output"
                         connect_port(port, "/main/"+port_suffix)
                     ui_queue.put(("add_plugin", port, plugin, x, y, True))
+                else:
+                    print("got port we don't know", port, x, y, physical_port)
 
 def get_value(model, p):
     # seg fault if it doesn't exist, could ask first
@@ -472,6 +496,7 @@ def parse_ingen(to_parse):
                 # print("lv2.name", str(subject))
                 x = None
                 y = None
+                physical_port = None
                 for p in body:
                     if p.object() == lv2_OutputPort:
                         is_in = False
@@ -485,11 +510,13 @@ def parse_ingen(to_parse):
                         y = float(str(p.object()))
                     elif p.predicate() == ingen_canvasX:
                         x = float(str(p.object()))
+                    elif p.predicate() == poly_physical_port:
+                        physical_port = str(p.object())
                 if is_in is not None and (is_audio or is_midi):
                     # print("connecting jack port", is_in, "subject", subject)
                     # connect to jack port
                     if x is not None and y is not None:
-                        connect_jack_port(subject, x, y)
+                        connect_jack_port(subject, x, y, physical_port)
                 # else:
                 #     print("None! port is_in", is_in, "subject", subject)
             elif has_predicate(body, ingen_enabled):

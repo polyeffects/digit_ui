@@ -1,7 +1,7 @@
 """
 A Python library for interfacing with SooperLooper.
 
-Tracks full state and provides interface to all loop commands. Almost a complete client, just missing changing loop count, saving sessions, and modifying midi bindings.
+Tracks full state and provides interface to all loop commands. Almost a complete client, just missing saving sessions.
 """
 
 import liblo

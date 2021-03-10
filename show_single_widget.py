@@ -166,6 +166,10 @@ arg 1 's' "exclusive"
 arg 2 's' "osc.udp://127.0.0.1:11642/"
 arg 3 's' "/recv_midi_bindings"
 
-
+path: </learn_midi_binding>
+arg 0 's' "0 n 2013573580  set rate 0  1 1  norm 0 127"
+arg 1 's' "exclusive"
+arg 2 's' "osc.udp://127.0.0.1:11642/"
+arg 3 's' "/recv_midi_bindings"
 """
 

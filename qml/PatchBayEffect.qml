@@ -341,6 +341,10 @@ Rectangle {
             patchStack.push(editResonator);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
         }
+		else if (['loop_common_in', 'loop_common_out'].indexOf(effect_type) >= 0){
+            patchStack.push("Loopler.qml");
+            patch_bay.current_help_text = "" // Constants.help[""];
+        }
 		else if (['input', 'output', 'midi_input', 'midi_output'].indexOf(effect_type) >= 0){
             patchStack.push(editIO);
             // patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
