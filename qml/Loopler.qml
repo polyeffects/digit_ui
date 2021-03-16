@@ -33,7 +33,7 @@ Item {
     property bool midi_learn_waiting: loopler.midi_learn_waiting
     z: 3
     x: 0
-    height:546
+    height:613
     width:1280
 
     // top row is 2 groups, 1 column, 1 grid
@@ -178,7 +178,18 @@ Item {
                                     } else {
                                         loopler.ui_loop_command(current_loop, modelData);
                                     }
+                                    loopler.ui_unset_current_command();
                                 }
+                                onPressed: {
+                                    if (modelData == "delay"){
+                                        loopler.ui_set_current_command("ui_set", [current_loop, "delay_trigger", loopler.loops[current_loop].delay_trigger * -1]);
+                                    } else {
+                                        loopler.ui_set_current_command("ui_loop_command", [current_loop, modelData]);
+                                    }
+                                
+                                }
+                                // onReleased: {
+                                // }
                                 Material.background: "transparent"
                                 Material.foreground: "transparent"
                                 // Material.foreground: !checked ? Constants.poly_pink : "black"
@@ -380,6 +391,10 @@ Item {
                                         return;
                                     }
                                     loopler.ui_set(current_loop, modelData, 1 - loopler.loops[current_loop][modelData])
+                                    loopler.ui_unset_current_command();
+                                }
+                                onPressed: {
+                                    loopler.ui_set_current_command("ui_set", [current_loop, modelData, 1 - loopler.loops[current_loop][modelData]]);
                                 }
                                 Material.foreground: Constants.short_rainbow[index]
                                 Material.background: Constants.background_color
@@ -563,6 +578,10 @@ Item {
                                         return;
                                     }
                                     loopler.ui_set(current_loop, "rate", LoopMap.rate_list[index]);
+                                    loopler.ui_unset_current_command();
+                                }
+                                onPressed: {
+                                    loopler.ui_set_current_command("ui_set", [current_loop, "rate", LoopMap.rate_list[index]]);
                                 }
                                 Material.foreground: Constants.short_rainbow[index]
                                 Material.background: Constants.background_color
@@ -587,6 +606,7 @@ Item {
                 spacing: 13 
 
                 ListView {
+                    id: loop_list_view
                     x: 0
                     y: 0
                     width: 1280
@@ -595,6 +615,7 @@ Item {
                     model: loopler.loops.length
                     orientation: ListView.Horizontal
                     spacing: 13 
+                    highlightRangeMode: ListView.StrictlyEnforceRange 
 
                     delegate: PolyButton {
                         // property string l_effect: edit //.split(":")[1]
@@ -752,7 +773,7 @@ Item {
                                     x: 108
                                     y: 22
                                     text: "Add loop"
-                                    color: Constants.poly_dark_grey // checked ? Constants.background_color : "white"
+                                    color: "white" // Constants.poly_grey // checked ? Constants.background_color : "white"
                                     // horizontalAlignment: Text.AlignHCenter
                                     // verticalAlignment: Text.AlignVCenter
                                     // elide: Text.ElideRight
@@ -777,12 +798,13 @@ Item {
                         }
                     }
 
-                    ScrollIndicator.horizontal: ScrollIndicator {
-                        x: 1
-                        anchors.top: parent.top
-                        parent: loop_row
-                        anchors.bottom: parent.bottom
-                    }
+                    // ScrollIndicator.horizontal: ScrollIndicator {
+                    //     // x: 1
+                    //     anchors.top: loop_list_view.top
+                    //     parent: loop_list_view.parent
+                    //     // anchors.left: loop_list_view.left
+                    //     anchors.bottom: loop_list_view.bottom
+                    // }
                 }
             }
         }
@@ -1003,6 +1025,10 @@ Item {
                                 return;
                             }
                             loopler.ui_set_all(modelData, 1 - loopler.loops[current_loop][modelData])
+                            loopler.ui_unset_current_command();
+                        }
+                        onPressed: {
+                            loopler.ui_set_current_command("ui_set_all", [modelData, 1 - loopler.loops[current_loop][modelData]]);
                         }
                         Material.foreground: Constants.short_rainbow[index]
                         Material.background: Constants.background_color
@@ -1029,6 +1055,7 @@ Item {
         color: Constants.poly_dark_grey
     }
 
+
     IconButton {
         id: midiButton
         x: 198 
@@ -1042,7 +1069,13 @@ Item {
         Material.background: Constants.background_color
         Material.foreground: midi_learn_select ? Constants.loopler_purple : "white"
         onClicked: {
-            midi_learn_select = !midi_learn_select;
+            if (midi_learn_waiting){
+                midi_learn_select = false;
+                loopler.ui_cancel_bind_request();
+            } else {
+                midi_learn_select = !midi_learn_select;
+            }
+
         }
 
         SequentialAnimation {
@@ -1092,6 +1125,10 @@ Item {
                 return;
             }
             loopler.ui_loop_command(current_loop, "trigger");
+            loopler.ui_unset_current_command();
+        }
+        onPressed: {
+            loopler.ui_set_current_command("ui_loop_command", [current_loop, "trigger"]);
         }
         // HelpLabel {
         //     text: "Global"
@@ -1114,6 +1151,10 @@ Item {
                 return;
             }
             loopler.ui_loop_command(current_loop, "pause");
+            loopler.ui_unset_current_command();
+        }
+        onPressed: {
+            loopler.ui_set_current_command("ui_loop_command", [current_loop, "pause"]);
         }
         // HelpLabel {
         //     text: "Global"
@@ -1135,6 +1176,10 @@ Item {
                 return;
             }
             loopler.ui_loop_command(current_loop, "record");
+            loopler.ui_unset_current_command();
+        }
+        onPressed: {
+            loopler.ui_set_current_command("ui_loop_command", [current_loop, "record"]);
         }
         // HelpLabel {
         //     text: "Global"

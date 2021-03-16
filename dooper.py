@@ -370,6 +370,10 @@ class LooperThread:
         s = val
         self.set('sync_source', s)
 
+    def cancel_midi_learn(self):
+         # /cancel_midi_learn    s:returl  s:retpath
+        self.send_osc('/cancel_midi_learn', self.server.url, '/sl/midi_bindings')
+
     def midi_learn(self, control, loop_num):
 
         info = namedtuple('MidiBinding', ['channel', 'type', "param", "command", "control", "instance", "lbound", "ubound", "style"])

@@ -105,7 +105,8 @@ class Loopler(QObject, metaclass=PropertyMeta):
     relative_sync = Property(float)   # per loop 0 -> ...
     midi_learn_waiting = Property(bool)   # per loop 0 -> ...
     # mute_quantized = Property(int) # per loop
-    # overdub_quantized = Property(int) # per loop
+    # overdub_quantized = Property(int) # per loopo
+    current_command_params = None
 
     def __init__(self):
         super().__init__()
@@ -127,6 +128,11 @@ class Loopler(QObject, metaclass=PropertyMeta):
 
     @Slot(int, str)
     def ui_loop_command(self, loop_id, command):
+        l_thread.loops[loop_id].hit(command)
+
+    def loop_command(self, loop_id, command):
+        print("loop id is", loop_id, "command is", command)
+        loop_id = int(loop_id)
         l_thread.loops[loop_id].hit(command)
 
     @Slot(int, str, "double")
@@ -153,6 +159,17 @@ class Loopler(QObject, metaclass=PropertyMeta):
     @Slot()
     def ui_remove_loop(self):
         l_thread.remove_loop()
+
+    @Slot(str, "QVariantList")
+    def ui_set_current_command(self, command, args):
+        self.current_command_params = (command, args)
+        # XXX
+        print("current_command", repr(self.current_command_params))
+
+    @Slot()
+    def ui_unset_current_command(self):
+        print("unset current_command")
+        self.current_command_params = None
 
     def loop_responder(self, args):
         """ Listens for replies from SL about loops, then updates loop object accordingly."""
@@ -194,6 +211,11 @@ class Loopler(QObject, metaclass=PropertyMeta):
     def ui_bind_request(self, control, loop_num):
         self.midi_learn_waiting = True
         l_thread.midi_learn(control, loop_num)
+
+    @Slot()
+    def ui_cancel_bind_request(self):
+        self.midi_learn_waiting = False
+        l_thread.cancel_midi_learn()
 
    # if (style == GainStyle) {
    #              snprintf(stylebuf, sizeof(stylebuf), "gain");

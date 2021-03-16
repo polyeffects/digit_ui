@@ -268,16 +268,16 @@ Item {
         initialItem: PatchBay {
         }
     }
-    Rectangle {
-        color: "white" //Constants.background_color
-        x: 0
-        // y: 86
-        y: 633
-        height:1
-        width: 1280
-        // height: 720-86-86
-        // border { width:1; color: "white"}
-    }
+    // Rectangle {
+    //     color: Constants.poly_dark_grey //Constants.background_color
+    //     x: 0
+    //     // y: 86
+    //     y: 633
+    //     height:1
+    //     width: 1280
+    //     // height: 720-86-86
+    //     // border { width:1; color: "white"}
+    // }
     Item {
         // color: Constants.background_color
         x: 0
@@ -285,28 +285,49 @@ Item {
         width: 1280
         height: 86
         // border { width:2; color: "white"}
-
         IconButton {
-            x: 34 
-            y: 12
-            icon.width: 15
-            icon.height: 25
-            width: 119
-            height: 62
-            text: "BACK"
-            font {
-                pixelSize: 24
-            }
-            flat: false
-            icon.name: "back"
-            Material.background: "white"
-            Material.foreground: Constants.outline_color
+
+            x: 31 
+            y: -20
+            width: 100
+            height: 86
+            icon.width: 100
+            icon.height: 86
+            // flat: false
+            icon.source: "../icons/digit/bottom_menu/Home.png"
+            // Material.background: Constants.background_color
+            Material.background: Constants.background_color
+            Material.foreground: "white"
             visible: patch_single.currentMode != PatchBay.Select && patch_single.currentMode != PatchBay.Hold  
             onClicked: {
-                // mainStack.push("Settings.qml")
-				patch_single.selected_effect.back_action();
+                patch_single.selected_effect.back_action();
             }
+            // HelpLabel {
+            //     text: "Global"
+            // }
         }
+
+        // IconButton {
+        //     x: 34 
+        //     y: 12
+        //     icon.width: 15
+        //     icon.height: 25
+        //     width: 119
+        //     height: 62
+        //     text: "BACK"
+        //     font {
+        //         pixelSize: 24
+        //     }
+        //     flat: false
+        //     icon.name: "back"
+        //     Material.background: "white"
+        //     Material.foreground: Constants.outline_color
+        //     visible: patch_single.currentMode != PatchBay.Select && patch_single.currentMode != PatchBay.Hold  
+        //     onClicked: {
+        //         // mainStack.push("Settings.qml")
+				// patch_single.selected_effect.back_action();
+        //     }
+        // }
 
         IconButton {
             visible: patch_single.currentMode == PatchBay.Hold && !(patch_single.selected_effect.is_io)
@@ -480,26 +501,26 @@ Item {
 
 
 
-        IconButton {
-            visible: patch_single.currentMode != PatchBay.Hold
-            x: 1121 
-            y: 12
-            width: 62
-            height: 62
-            flat: false
-            icon.source: "../icons/digit/bottom_menu/Help.png"
-            Material.background: accent_color.name
-            onClicked: {
-                title_footer.show_help = !title_footer.show_help
-            }
-            highlighted: show_help
-            HelpLabel {
-                text: "help"
-            }
-        }
+        // IconButton {
+        //     visible: patch_single.currentMode != PatchBay.Hold
+        //     x: 1121 
+        //     y: 12
+        //     width: 62
+        //     height: 62
+        //     flat: false
+        //     icon.source: "../icons/digit/bottom_menu/Help.png"
+        //     Material.background: accent_color.name
+        //     onClicked: {
+        //         title_footer.show_help = !title_footer.show_help
+        //     }
+        //     highlighted: show_help
+        //     HelpLabel {
+        //         text: "help"
+        //     }
+        // }
 
         IconButton {
-            visible: patch_single.currentMode != PatchBay.Hold
+            visible: patch_single.currentMode == PatchBay.Select
             x: 1201 
             y: 12
             width: 62

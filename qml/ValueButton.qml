@@ -48,10 +48,13 @@ T.Button {
         }
         Label {
             text: control.value + control.value_suffix
-            font.pointSize: 36
             anchors.horizontalCenter: parent.horizontalCenter
             color: !control.enabled ? control.Material.hintTextColor :
                 control.checked ? Constants.background_color: control.Material.foreground
+            font {
+                pixelSize: 36
+                capitalization: Font.AllUppercase
+            }
         }
     }
 

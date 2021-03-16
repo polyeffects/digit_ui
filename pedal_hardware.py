@@ -133,15 +133,45 @@ def set_master_time_sig():
 initial_press = {30: True, 48: True, 46: True}
 switch_down = {30: 1, 48: 1, 46: 1}
 switch_up = {30: 0, 48: 0, 46: 0}
+same_time_delay = 0.015 # 5 ms
+
+prev_t = None
+e_code = 0
+e_value = 0
+was_multi = False
+multi_combo = ""
 
 def button_is_together(a_t, b_t):
     return abs(a_t - b_t) < 0.02
 
 def process_input():
     # pop from queue
+    # t = time.perf_counter()
     try:
+        global tap_down_timestamp
+        global bypass_down_timestamp
+        global step_down_timestamp
+        global prev_t
+        global e_code
+        global e_value
+        global was_multi
+        global multi_combo
+
         while True:
-            # check if we get a down while other swtch is down, if so it's a multi press
+            if prev_t and (time.perf_counter() - prev_t) > same_time_delay:
+                # send switch press
+                prev_t = None
+                was_multi = False
+                print("got button press")
+                if e_code == 30 and e_value == switch_down[e_code]: # tap down
+                    foot_callback("tap_down", tap_down_timestamp)
+                elif e_code == 48 and e_value == switch_down[e_code]: # tap down
+                    foot_callback("step_down", step_down_timestamp)
+                elif e_code == 46 and e_value == switch_down[e_code]: # tap down
+                    foot_callback("bypass_down", bypass_down_timestamp)
+            if prev_t:
+                print("prev_t", prev_t, time.perf_counter( )-prev_t)
+
             e = input_queue.get(block=False)
             if e.code in (30, 48, 46) and initial_press[e.code] == True :
                 # pressed down, so this value must be down
@@ -150,36 +180,67 @@ def process_input():
                 initial_press[e.code] = False
                 print("setting initial button state")
 
-            if e.code == 30 and e.value == switch_down[e.code]: # tap down
-                global tap_down_timestamp
-                tap_down_timestamp = e.timestamp()
-                foot_callback("tap_down", tap_down_timestamp)
-            elif e.code == 48 and e.value == switch_down[e.code]: # step
-                global step_down_timestamp
-                step_down_timestamp = e.timestamp()
-                foot_callback("step_down", step_down_timestamp)
-            elif e.code == 46 and e.value == switch_down[e.code]: # bypass
-                global bypass_down_timestamp
-                bypass_down_timestamp = e.timestamp()
-                foot_callback("bypass_down", bypass_down_timestamp)
+            if prev_t:
+                # if another press arrives before send, send it and cancel previous 
+                if e.code in (30, 48) and e.value == switch_down[e.code] and e_code in  (30, 48): # tap + step down
+                    prev_t = None
+                    was_multi = True
+                    multi_combo = "tap_step"
+                    tap_down_timestamp = e.timestamp()
+                    foot_callback("tap_step_down", tap_down_timestamp)
+                elif e.code in (46, 48) and e.value == switch_down[e.code] and e_code in (46, 48): # step + bypass
+                    prev_t = None
+                    was_multi = True
+                    bypass_down_timestamp = e.timestamp()
+                    multi_combo = "step_bypass"
+                    foot_callback("step_bypass_down", bypass_down_timestamp)
+            else:
+                if e.code == 30 and e.value == switch_down[e.code]: # tap down
+                    prev_t = time.perf_counter()
+                    tap_down_timestamp = e.timestamp()
+                    e_code = e.code
+                    e_value = e.value
+                elif e.code == 48 and e.value == switch_down[e.code]: # step
+                    prev_t = time.perf_counter()
+                    step_down_timestamp = e.timestamp()
+                    e_code = e.code
+                    e_value = e.value
+                elif e.code == 46 and e.value == switch_down[e.code]: # bypass
+                    prev_t = time.perf_counter()
+                    bypass_down_timestamp = e.timestamp()
+                    e_code = e.code
+                    e_value = e.value
 
             # each action clears the others states if multiple
-            elif e.code == 30 and e.value == switch_up[e.code]: # tap up
-                if button_is_together(tap_down_timestamp, step_down_timestamp):
+            # if we get an up before down time is elapsed, send down first
+
+            if e.code == 30 and e.value == switch_up[e.code]: # tap up
+                if was_multi and multi_combo == "tap_step":
                     foot_callback("tap_step_up", tap_down_timestamp)
                 else:
+                    if prev_t:
+                        prev_t = None
+                        foot_callback("tap_down", tap_down_timestamp)
                     foot_callback("tap_up", tap_down_timestamp)
             elif e.code == 48 and e.value == switch_up[e.code]: # step
-                if button_is_together(tap_down_timestamp, step_down_timestamp):
+                prev_t = None
+                if was_multi and multi_combo == "tap_step":
                     foot_callback("tap_step_up", step_down_timestamp)
-                elif button_is_together(bypass_down_timestamp, step_down_timestamp):
+                if was_multi and multi_combo == "step_bypass":
                     foot_callback("step_bypass_up", step_down_timestamp)
                 else:
+                    if prev_t:
+                        prev_t = None
+                        foot_callback("step_down", step_down_timestamp)
                     foot_callback("step_up", step_down_timestamp)
             elif e.code == 46 and e.value == switch_up[e.code]: # bypass
-                if button_is_together(bypass_down_timestamp, step_down_timestamp):
+                prev_t = None
+                if was_multi and multi_combo == "step_bypass":
                     foot_callback("step_bypass_up", bypass_down_timestamp)
                 else:
+                    if prev_t:
+                        prev_t = None
+                        foot_callback("bypass_down", bypass_down_timestamp)
                     foot_callback("bypass_up", bypass_down_timestamp)
 
             if e.type == 2: # knob

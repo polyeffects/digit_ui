@@ -49,6 +49,7 @@ port_connections = {} # key is port, value is list of ports
 current_patchbay_mode = 0
 current_selected_effect = ""
 footswitch_assignments = {}
+looper_footswitch_assignments = {}
 preset_started_loading_time = 0
 
 def reset_footswitch_assignments():
@@ -56,6 +57,12 @@ def reset_footswitch_assignments():
     footswitch_assignments = {"a":set(), "b":set(), "c":set(), "d":set(), "e":set()}
 
 reset_footswitch_assignments()
+
+def reset_looper_footswitch_assignments():
+    global looper_footswitch_assignments
+    looper_footswitch_assignments = {"a":[], "b":[], "c":[], "d":[], "e":[]}
+
+reset_looper_footswitch_assignments()
 
 class PatchMode(IntEnum):
     SELECT = 0
@@ -1281,7 +1288,9 @@ toggle_effect
 """)
 foot_action_groups = [{"tap_up":[Actions.set_value] , "step_up": [Actions.set_value], "bypass_up":[Actions.set_value],
     "tap_down":[Actions.set_value_down] , "step_down": [Actions.set_value_down], "bypass_down":[Actions.set_value_down],
-    "tap_step_up": [Actions.previous_preset], "step_bypass_up": [Actions.next_preset]}]
+    "tap_step_up": [Actions.set_value], "step_bypass_up": [Actions.set_value],
+    "tap_step_down": [Actions.set_value_down], "step_bypass_down": [Actions.set_value_down]}]
+    # "tap_step_up": [Actions.previous_preset], "step_bypass_up": [Actions.next_preset]}]
 current_action_group = 0
 
 def handle_bypass():
@@ -1295,14 +1304,29 @@ def handle_bypass():
 def hide_foot_switch_warning():
     foot_switch_warning.value = False
 
+def looper_footswitch_action(foot_switch_name):
+    # command, value, set_all, global value, add loop, remove loop, 
+    # foot switches store command and arguments
+    for action_params in looper_footswitch_assignments[foot_switch_name]:
+        # getattr(loopler, "cancel_midi_learn")() 
+        print("command is ", action_params[0], "params", repr(action_params[1]))
+        func = getattr(loopler, action_params[0])
+        func(*action_params[1])
+        return True
+    return False
+
 def send_to_footswitch_blocks(timestamp, switch_name, value=0):
     # send to all foot switch blocks
     # qDebug("sending to switch_name "+str(switch_name) + "value" + str(value))
-    if "tap" in switch_name:
+    if "tap_step" in switch_name:
+        foot_switch_name = "foot_switch_d"
+    elif "step_bypass" in switch_name:
+        foot_switch_name = "foot_switch_e"
+    elif "tap" in switch_name:
         foot_switch_name = "foot_switch_a"
-    if "step" in switch_name:
+    elif "step" in switch_name:
         foot_switch_name = "foot_switch_b"
-    if "bypass" in switch_name:
+    elif "bypass" in switch_name:
         foot_switch_name = "foot_switch_c"
 
     trimmed_name = foot_switch_name[-1]
@@ -1315,6 +1339,12 @@ def send_to_footswitch_blocks(timestamp, switch_name, value=0):
             else:
                 ingen_wrapper.set_footswitch_control(current_selected_effect, foot_switch_name[-1])
             return
+
+    #  
+    if value == 0 and loopler.current_command_params:
+        looper_footswitch_assignments[foot_switch_name[-1]] = [loopler.current_command_params]
+        loopler.current_command_params = None
+        return
 
     if True: # qa_view
         foot_switch_qa[foot_switch_name[-1]].value = value
@@ -1329,6 +1359,8 @@ def send_to_footswitch_blocks(timestamp, switch_name, value=0):
         for effect_id in footswitch_assignments[trimmed_name]:
             enabled = current_effects[effect_id]["enabled"].value
             knobs.set_bypass(effect_id, not enabled) # toggle
+            found_effect = True
+        if looper_footswitch_action(trimmed_name):
             found_effect = True
 
     for effect_id, effect in current_effects.items():
@@ -1349,6 +1381,7 @@ def send_to_footswitch_blocks(timestamp, switch_name, value=0):
     if not found_effect and value == 0:
         if foot_switch_name == "foot_switch_c":
             handle_bypass()
+            # TODO add next / previous here
         else:
             # show you're pressing a footswitch that isn't connected to anything
             foot_switch_warning.value = True
@@ -1368,6 +1401,7 @@ def handle_foot_change(switch_name, timestamp):
     params = None
     if len(foot_action_groups[current_action_group][switch_name]) > 1:
         params = foot_action_groups[current_action_group][switch_name][1:]
+
     if action is Actions.tap:
         pass
     elif action is Actions.toggle_pedal:
@@ -1389,7 +1423,7 @@ def handle_foot_change(switch_name, timestamp):
     elif action is Actions.toggle_effect:
         pass
 
-start_tap_time = {"foot_switch_a":None, "foot_switch_b":None, "foot_switch_c":None}
+start_tap_time = {"foot_switch_a":None, "foot_switch_b":None, "foot_switch_c":None, "foot_switch_d":None, "foot_switch_e":None}
 ## tap callback is called by hardware button from the GPIO checking thread
 def handle_tap(footswitch, timestamp):
     current_tap = timestamp
@@ -1681,7 +1715,7 @@ if __name__ == "__main__":
     command_status = [PolyValue("command status", -1, -10, 100000), PolyValue("command status", -1, -10, 100000)]
     delay_num_bars = PolyValue("Num bars", 1, 1, 16)
     dsp_load = PolyValue("DSP Load", 0, 0, 0.3)
-    foot_switch_qa = {"a":PolyValue("a", 0, 0, 1), "b":PolyValue("b", 0, 0, 1), "c":PolyValue("c", 0, 0, 1)}
+    foot_switch_qa = {"a":PolyValue("a", 0, 0, 1), "b":PolyValue("b", 0, 0, 1), "c":PolyValue("c", 0, 0, 1), "d":PolyValue("d", 0, 0, 1), "e":PolyValue("e", 0, 0, 1)}
     encoder_qa = {"left":PolyValue("a", 0, 0, 1), "right":PolyValue("b", 0, 0, 1)}
     connect_source_port = PolyValue("", 1, 1, 16) # for sharing what type the selected source is
     midi_channel = PolyValue("channel", pedal_state["midi_channel"], 1, 16)

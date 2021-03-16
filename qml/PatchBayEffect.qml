@@ -711,10 +711,20 @@ Rectangle {
 							id: timeRadio
 							checked: true
 							text: qsTr("Time (MS)")
+                            font {
+                                // family: mainFont.name
+                                pixelSize: 24
+                                capitalization: Font.AllUppercase
+                            }
 						}
 						RadioButton {
 							id: beatsRadio
 							text: qsTr("Beats")
+                            font {
+                                // family: mainFont.name
+                                pixelSize: 24
+                                capitalization: Font.AllUppercase
+                            }
 						}
 					}
 
@@ -753,9 +763,25 @@ Rectangle {
 						visible: beatsRadio.checked
                         // visible: !Qt.inputMethod.visible
 						width: 500
-						height: 60
+						height: 100
                         id: note_subdivisions
 						textRole: "text"
+                        font {
+                            // family: mainFont.name
+                            pixelSize: 32
+                            capitalization: Font.AllUppercase
+                        }
+                        delegate: ItemDelegate {
+                            width: note_subdivisions.width
+                            contentItem: Text {
+                                text: modelData.text
+                                color: "white"
+                                font: note_subdivisions.font
+                                elide: Text.ElideRight
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                            highlighted: note_subdivisions.highlightedIndex === index
+                        }
 
 						model: [{text: "1/4", value: 1},
 						{text: "2/3", value: 8/3.0}, {text: "1/3", value: 4/3.0}, {text: "1/8 .", value: 0.75},
