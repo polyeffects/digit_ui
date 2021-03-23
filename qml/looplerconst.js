@@ -2,10 +2,12 @@
 var parameter_map = {'input_gain': 'in gain', 'feedback': 'feedback', 'rec_thresh': 'threshold',
     'wet': 'out', 'playback_sync': 'play sync', 'use_feedback_play': 'play feedback', 'sync': 'sync',
     "pitch_shift": "pitch", "stretch_ratio": "stretch", "scratch_pos": "scratch", "rate":"rate",
-    "mute_quantized":"mute quantized", "overdub_quantized":"overdub quantized", "relative_sync":"relative sync"};
+    "mute_quantized":"mute quantized", "overdub_quantized":"overdub quantized", "relative_sync":"relative sync",
+    "fade_samples": "cross fade", "input_gain":"input gain", "wet": "wet", "dry":"dry"
+};
 var rate_list = [0.5, 1, 2];
 var rate_bind_list = ["rate_05", "rate_1", "rate_2"];
-var param_bounds = {"rate": [0.25, 4.0], "stretch_ratio": [0.5, 4.0], "pitch_shift": [-12.0, 12.0]}
+var param_bounds = {"rate": [0.25, 4.0], "stretch_ratio": [0.5, 4.0], "pitch_shift": [-12.0, 12.0], "fade_samples": [0, 1024]}
 
 var sync_to_map = [-3, -2, 0, 1];
 var sync_to_index = {"-3":0, "-2":1, "0": 2, "1": 3};

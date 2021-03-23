@@ -183,9 +183,12 @@ class LooperThread:
             self.register_updates()
 
     def initialize(self):
-        if not self.ping():
-            print("No ping reply from SooperLooper")
-            return
+        attempt = 0
+        while not self.ping():
+            attempt = attempt + 1
+            if attempt > 50: # 50 seconds
+                print("No ping reply from SooperLooper")
+                return
 
         for param in looper_parameters:
             self.send_osc('/get', param, self.server.url, '/sl/looper')
@@ -236,9 +239,9 @@ class LooperThread:
                 self.send_osc('/sl/' + str(loop_num) + '/register_auto_update', param, 100, self.server.url, '/sl/loop')
         elif self.loop_count < prev_loop_count:
             loop_num = self.loop_count # instead of + 1 as they are counting from 1
-            self.loops.pop()
             for f in self.loop_removed_callbacks:
-                f(loop_num)
+                f(loop_num) # UI needs to pop first, otherwise it'll try to get data that isn't available
+            self.loops.pop()
             for param in loop_parameters:
                 self.send_osc('/sl/' + str(loop_num) + '/unregister_auto_update', param, self.server.url, '/sl/loop')
         # self.__dict__[args[1]] = args[2]

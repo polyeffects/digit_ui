@@ -1078,6 +1078,21 @@ class Knobs(QObject):
             knob_map[knob].parameter = parameter
             knob_map[knob].rmin = current_effects[effect_id]["controls"][parameter].rmin
             knob_map[knob].rmax = current_effects[effect_id]["controls"][parameter].rmax
+            knob_map[knob].is_loopler = False
+
+    @Slot(str, int, str, float, float)
+    def set_loopler_knob(self, effect_id, loop_index, parameter, rmin, rmax):
+        # get current value and update encoder / cache.
+        # qDebug("setting knob current effect" + parameter)
+        knob = "left"
+        if not (knob_map[knob].effect == effect_id and knob_map[knob].parameter == parameter and
+                knob_map[knob].loop_index == loop_index):
+            knob_map[knob].effect = effect_id
+            knob_map[knob].parameter = parameter
+            knob_map[knob].rmin = rmin
+            knob_map[knob].rmax = rmax
+            knob_map[knob].is_loopler = True
+            knob_map[knob].loop_index = loop_index
 
     @Slot(str)
     def set_pedal_model(self, pedal_model):
@@ -1222,8 +1237,10 @@ class Encoder():
         self.speed = s_speed
         self.rmin = 0
         self.rmax = 1
+        self.is_loopler = False
+        self.loop_index = -1
 
-knob_map = {"left": Encoder(s_speed=0.05), "right": Encoder(s_speed=1)}
+knob_map = {"left": Encoder(s_speed=0.04), "right": Encoder(s_speed=0.8)}
 
 def handle_encoder_change(is_left, change):
     # debug_print(is_left, change)
@@ -1251,20 +1268,24 @@ def handle_encoder_change(is_left, change):
         value = value + (change * knob_speed * base_speed)
         encoder_qa[qa_k].value = value
 
-    if not knob_effect or knob_effect not in current_effects:
+    if not knob_effect or knob_effect not in current_effects and not knob_map[knob].is_loopler:
         return
-    value = current_effects[knob_effect]["controls"][knob_parameter].value
     if is_left:
         knob_speed = knob_map["left"].speed
     else:
         knob_speed = knob_map["right"].speed
     # base speed * speed multiplier
     base_speed = (abs(knob_map[knob].rmin) + abs(knob_map[knob].rmax)) / normal_speed
-    value = value + (change * knob_speed * base_speed)
 
-    # debug_print("knob value is", value)
-    # knob change handles clamping
-    knobs.ui_knob_change(knob_effect, knob_parameter, value)
+    if knob_map[knob].is_loopler:
+        loopler.change_from_knob(knob_effect, knob_parameter, knob_map[knob].loop_index, change, knob_speed * base_speed, knob_map[knob].rmin, knob_map[knob].rmax)
+    else:
+        value = current_effects[knob_effect]["controls"][knob_parameter].value
+        value = value + (change * knob_speed * base_speed)
+
+        # debug_print("knob value is", value)
+        # knob change handles clamping
+        knobs.ui_knob_change(knob_effect, knob_parameter, value)
 
 def set_bpm(bpm):
     current_bpm.value = bpm
@@ -1343,6 +1364,8 @@ def send_to_footswitch_blocks(timestamp, switch_name, value=0):
     #  
     if value == 0 and loopler.current_command_params:
         looper_footswitch_assignments[foot_switch_name[-1]] = [loopler.current_command_params]
+        # show foot switch selection screen, choose if for current loop, all loops, momentary, latching, toggle?
+        # exclusive or adds on
         loopler.current_command_params = None
         return
 

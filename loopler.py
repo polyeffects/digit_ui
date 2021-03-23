@@ -8,6 +8,9 @@ l_thread.start_server()
 
 unused = ('redo_is_tap', 'use_rate', 'use_common_ins', 'use_common_outs', 'use_safety_feedback', 'pan_1', 'pan_2', 'pan_3', 'pan_4', 'input_latency', 'output_latency', 'trigger_latency', 'autoset_latency')
 
+def clamp(v, min_value, max_value):
+    return max(min(v, max_value), min_value)
+
 unused_looper = ( 'tap_tempo', # any changes
         'save_loop', # any change triggers quick save, be careful
     'auto_disable_latency',  # when 1, disables compensation when monitoring main inputs
@@ -131,7 +134,6 @@ class Loopler(QObject, metaclass=PropertyMeta):
         l_thread.loops[loop_id].hit(command)
 
     def loop_command(self, loop_id, command):
-        print("loop id is", loop_id, "command is", command)
         loop_id = int(loop_id)
         l_thread.loops[loop_id].hit(command)
 
@@ -163,12 +165,11 @@ class Loopler(QObject, metaclass=PropertyMeta):
     @Slot(str, "QVariantList")
     def ui_set_current_command(self, command, args):
         self.current_command_params = (command, args)
-        # XXX
-        print("current_command", repr(self.current_command_params))
+        # print("current_command", repr(self.current_command_params))
 
     @Slot()
     def ui_unset_current_command(self):
-        print("unset current_command")
+        # print("unset current_command")
         self.current_command_params = None
 
     def loop_responder(self, args):
@@ -204,6 +205,20 @@ class Loopler(QObject, metaclass=PropertyMeta):
 
     def remove_loop(self, loop_num):
         self.loops.pop()
+
+    def change_from_knob(self, command, parameter, loop_num, change, knob_speed, rmin, rmax):
+        if command == "ui_set_global":
+            v = self.__dict__["_" + parameter] + (change * knob_speed)
+            v = clamp(v, rmin, rmax)
+            self.ui_set_global(parameter, v)
+        elif command == "ui_set":
+            v = self.loops[loop_num].__dict__["_" + parameter] + (change * knob_speed)
+            v = clamp(v, rmin, rmax)
+            self.ui_set(loop_num, parameter, v)
+        else:
+            v = self.loops[0].__dict__["_" + parameter] + (change * knob_speed)
+            v = clamp(v, rmin, rmax)
+            self.ui_set_all(parameter, v)
 
 ## learn
 

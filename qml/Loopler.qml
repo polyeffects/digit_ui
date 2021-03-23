@@ -244,6 +244,7 @@ Item {
                             property bool is_log: false
                             property string selected_parameter: "feedback"
                             visible: v_type != "hide"
+                            Material.foreground: Constants.short_rainbow[2]
 
 
                             function logslider(position) {
@@ -281,7 +282,7 @@ Item {
                             Slider {
                                 x: 0
                                 y: 0
-                                Material.foreground: Constants.short_rainbow[2]
+                                Material.foreground: parent.Material.foreground
                                 visible: loop_slider.v_type != "bool"
                                 snapMode: Slider.SnapAlways
                                 stepSize: loop_slider.v_type == "int" ? 1.0 : 0.0
@@ -301,11 +302,11 @@ Item {
                                         loopler.ui_set(current_loop, loop_slider.selected_parameter, value)
                                     }
                                 }
-                                // onPressedChanged: {
-                                //     if (pressed){
-                                //         knobs.set_knob_current_effect(current_effect, row_param);
-                                //     }
-                                // }
+                                onPressedChanged: {
+                                    if (pressed){
+                                        knobs.set_loopler_knob("ui_set", current_loop, loop_slider.selected_parameter, from, to);
+                                    }
+                                }
                             }
 
 
@@ -421,7 +422,6 @@ Item {
                         spacing: 30
 
                         Item {
-                            Material.foreground: Constants.rainbow[0]
                             id: loop_slider_rate
                             height: 62
                             width:  714
@@ -431,6 +431,7 @@ Item {
                             property string v_type: selected_parameter == "pitch_shift" ? "int" : "float"
                             property bool force_update: false
                             visible: v_type != "hide"
+                            Material.foreground: Constants.short_rainbow[0]
 
 
                             function logslider(position) {
@@ -468,7 +469,7 @@ Item {
                             Slider {
                                 x: 0
                                 y: 0
-                                Material.foreground: Constants.short_rainbow[0]
+                                Material.foreground: parent.Material.foreground
                                 visible: loop_slider_rate.v_type != "bool"
                                 snapMode: Slider.SnapAlways
                                 stepSize: loop_slider_rate.v_type == "int" ? 1.0 : 0.0
@@ -487,11 +488,11 @@ Item {
                                         loopler.ui_set(current_loop, loop_slider_rate.selected_parameter, value)
                                     }
                                 }
-                                // onPressedChanged: {
-                                //     if (pressed){
-                                //         knobs.set_knob_current_effect(current_effect, row_param);
-                                //     }
-                                // }
+                                onPressedChanged: {
+                                    if (pressed){
+                                        knobs.set_loopler_knob("ui_set", current_loop, loop_slider_rate.selected_parameter, from, to);
+                                    }
+                                }
                             }
 
 
@@ -898,79 +899,149 @@ Item {
                 height: parent.height
                 color: Constants.poly_dark_grey
             }
-            Row {
+
+            Item { // rate
                 x: 380
                 y: 70 
-                width: 671
-                spacing: 45
+                width: 640
+                // height: 270
 
-                Slider {
-                    width: 120 
-                    height: 370
-                    orientation: Qt.Vertical
-                    title: "cross fade"
-                    value: loopler.loops[current_loop]["fade_samples"] 
-                    from: 0.0
-                    to: 1024
-                    stepSize: 1
-                    snapMode: Slider.SnapAlways
-                    onMoved: {
-                        loopler.ui_set_all("fade_samples", value)
+                Column {
+                    y: 20
+                    x: 0
+                    spacing: 30
+
+					Text {
+						text: "Global Settings"
+						color: Constants.loopler_purple
+						width: 580
+						font {
+							pixelSize: 24
+							capitalization: Font.AllUppercase
+						}
+						horizontalAlignment: Text.AlignHCenter
+					}
+
+                    Item {
+                        Material.foreground: Constants.short_rainbow[0]
+                        id: global_slider
+                        height: 62
+                        width:  640
+                        property real multiplier: 1  
+                        property bool is_log: false
+                        property string selected_parameter: "input_gain"
+                        property string v_type: selected_parameter == "fade_samples" ? "int" : "float"
+                        property bool force_update: false
+
+                        function logslider(position) {
+                            // linear in to log out
+                            // input position will be between 0 and 1
+                            var minp = 0;
+                            var maxp = 1;
+
+                            // The output result should be between 20 an 20000
+                            var minv = Math.log(20);
+                            var maxv = Math.log(20000);
+
+                            // calculate adjustment factor
+                            var scale = (maxv-minv) / (maxp-minp);
+
+                            return Math.exp(minv + scale*(position-minp));
+                        }
+
+                        function logposition(value) {
+                            // log in to linear out
+                            // input position will be between 0 and 1
+                            var minp = 0;
+                            var maxp = 1;
+
+                            // The output result should be between 20 an 200000
+                            var minv = Math.log(20);
+                            var maxv = Math.log(20000);
+
+                            // calculate adjustment factor
+                            var scale = (maxv-minv) / (maxp-minp);
+
+                            return (Math.log(value)-minv) / scale + minp;
+                        }
+
+                        Slider {
+                            x: 0
+                            y: 0
+                            Material.foreground: parent.Material.foreground
+                            snapMode: Slider.SnapAlways
+                            stepSize: global_slider.v_type == "int" ? 1.0 : 0.0
+                            title: LoopMap.parameter_map[global_slider.selected_parameter]
+                            width: parent.width - 50
+                            height:parent.height
+                            value: global_slider.force_update, global_slider.selected_parameter == "fade_samples" ? loopler.loops[0][global_slider.selected_parameter] : loopler[global_slider.selected_parameter]
+                            from: global_slider.selected_parameter  in LoopMap.param_bounds ? LoopMap.param_bounds[global_slider.selected_parameter][0] : 0
+                            to: global_slider.selected_parameter in LoopMap.param_bounds ? LoopMap.param_bounds[global_slider.selected_parameter][1] : 1
+                            onMoved: {
+                                if (global_slider.selected_parameter == "fade_samples"){
+                                    loopler.ui_set_all("fade_samples", value)
+                                    //
+                                } else {
+                                    loopler.ui_set_global(global_slider.selected_parameter, value);
+                                }
+                            }
+							onPressedChanged: {
+								if (pressed){
+									if (global_slider.selected_parameter == "fade_samples"){
+										knobs.set_loopler_knob("ui_set_all", -1, "fade_samples", from, to);
+										//
+									} else {
+										knobs.set_loopler_knob("ui_set_global", -1, global_slider.selected_parameter, from, to);
+									}
+								}
+							}
+                        }
+
+
                     }
-                    Material.foreground: Constants.short_rainbow[0]
 
+                    Row {
+                        spacing: 25 
+                        height: 135
+                        width: parent.width
+
+                        Repeater {
+                            model: ["input_gain", "wet", "dry", "fade_samples"]
+
+                            ValueButton {
+                                width: 130
+                                height: 110
+                                // checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
+                                checked: global_slider.selected_parameter == modelData
+                                onClicked: {
+                                    if (looper_widget.midiLearn(modelData)){
+                                        return;
+                                    }
+                                    global_slider.selected_parameter = modelData
+                                    global_slider.Material.foreground = Constants.short_rainbow[index]
+                                    global_slider.force_update = !(global_slider.force_update)
+                                }
+                                Material.foreground: Constants.short_rainbow[index]
+                                text: LoopMap.parameter_map[modelData]
+                                value: modelData == "fade_samples" ? loopler.loops[0]["fade_samples"].toFixed(2)  : loopler[modelData].toFixed(2)
+                            }
+                        }
+                    }
                 }
 
-                Slider {
-                    width: 120 
-                    height: 370
-                    orientation: Qt.Vertical
-                    title: "input gain"
-                    value: loopler.input_gain
-                    from: 0.0
-                    to: 1
-                    snapMode: Slider.SnapAlways
-                    onMoved: {
-                        loopler.ui_set_global("input_gain", value)
-                    }
-                    Material.foreground: Constants.short_rainbow[1]
+                // Rectangle {
+                //     x:  779
+                //     y: -16
+                //     width: 2
+                //     height: 270
+                //     z: 3
+                //     color: Constants.poly_grey
+                // }
 
-                }
+            }
 
-                Slider {
-                    width: 120 
-                    height: 370
-                    orientation: Qt.Vertical
-                    title: "wet"
-                    value: loopler.wet
-                    from: 0.0
-                    to: 1
-                    snapMode: Slider.SnapAlways
-                    onMoved: {
-                        loopler.ui_set_global("wet", value)
-                    }
-                    Material.foreground: Constants.short_rainbow[2]
-
-                }
-
-                Slider {
-                    width: 120 
-                    height: 370
-                    orientation: Qt.Vertical
-                    title: "dry"
-                    value: loopler.wet
-                    from: 0.0
-                    to: 1
-                    snapMode: Slider.SnapAlways
-                    onMoved: {
-                        loopler.ui_set_global("dry", value)
-                    }
-                    Material.foreground: Constants.short_rainbow[3]
-
-                }
 
             
-            }
 
             Rectangle {
                 x:  1010
@@ -990,16 +1061,17 @@ Item {
 
                 Text {
                     text: "Quantize"
-                    color: "white"
+					color: Constants.loopler_purple
+                    width: 252
                     font {
                         pixelSize: 24
                         capitalization: Font.AllUppercase
                     }
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    horizontalAlignment: Text.AlignHCenter
                 }
 
                 PolySpin {
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    // anchors.horizontalCenter: parent.horizontalCenter
                     width: 252
                     height: 100
                     font.pixelSize: 24
@@ -1192,6 +1264,7 @@ Item {
         height: 86
         icon.width: 86
         icon.height: 86
+        visible: loopler.loops.length > 1
         // flat: false
         icon.source: "../icons/digit/loopler/nav_buttons/Bin.png"
         Material.background: Constants.background_color

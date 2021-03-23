@@ -338,10 +338,11 @@ def connect_jack_port(port, x, y, physical_port):
             # if connected_ports == set(port_map.keys()):
             #     all_connected = True
             if port in port_map:
-                connected_ports.add(port)
-                command = ["/usr/bin/jack_connect",  *port_map[port].split()]
-                if not IS_REMOTE_TEST:
-                    ret_var = subprocess.run(command)
+                pass
+                # connected_ports.add(port)
+                # command = ["/usr/bin/jack_connect",  *port_map[port].split()]
+                # if not IS_REMOTE_TEST:
+                #     ret_var = subprocess.run(command)
             else:
                 # check if it's a sub module io we need to connect
                 port_suffix = port.rsplit("/", 1)[1]
