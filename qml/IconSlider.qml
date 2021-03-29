@@ -87,7 +87,7 @@ T.Slider {
         // height: control.horizontal ? 30 : control.availableHeight
         width: control.availableWidth 
         height: control.availableHeight
-        color: control.Material.background
+        color: "transparent" // control.Material.background
         border { width:0; color: accent}
         scale: control.horizontal && control.mirrored ? -1 : 1
         Rectangle {

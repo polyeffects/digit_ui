@@ -59,7 +59,6 @@ Rectangle {
 
     property var input_keys: Object.keys(effectPrototypes[effect_type]["inputs"]).filter(isRightInput) 
     property var output_keys: Object.keys(effectPrototypes[effect_type]["outputs"])
-    property bool no_sliders: ["mono_EQ", "stereo_EQ", "input", "output", "lfo", 'algo_reverb', 'granular', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch'].indexOf(effect_type) >= 0
     property bool has_ui: ['bitmangle', 'comparator', 'chebyschev_waveshaper', 'meta_modulation', 'wavefolder', 'vocoder', 'doppler_panner', 'twist_delay', 'frequency_shifter', 'rotary_advanced'].indexOf(effect_type) >= 0
     property bool is_io: ["input", "output", "midi_input", "midi_output"].indexOf(effect_type) >= 0
     property var sliders; 
@@ -296,6 +295,10 @@ Rectangle {
 		}
 		else if (effect_type == "macro_osc"){
             patchStack.push(editPlaits, {"objectName":"editPlaits"});
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+		}
+		else if (['granular'].indexOf(effect_type) >= 0){
+            patchStack.push(editGranular);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}
 		else if (['algo_reverb', 'granular', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch', 'beat_repeat'].indexOf(effect_type) >= 0){
@@ -1784,6 +1787,86 @@ Rectangle {
 			}
 		}
 
+        Component {
+            id: editGranular
+			Item {
+				z: 3
+				x: 0
+				height:540
+				width:1280
+				ValueButtonsSlider {
+					current_effect: effect_id
+				}
+
+				Rectangle {
+					y: 0
+					x: 475
+					width:2
+					height: 522
+					color: Constants.poly_dark_grey
+				}
+				IconSlider {
+					x: 500
+					y: -20
+					width: 720
+					row_param: "texture_param"
+					icons: ['Square.png', 'ramp.png',  'sawtooth.png',  'Triangle.png', 'diffused triangle.png']
+					current_effect: effect_id
+					icon_path: "../icons/digit/clouds/"
+					only_top: true
+				}
+
+				IconSlider {
+					x: 500
+					y: 215
+					width: 720
+					row_param: "density_param"
+					icons: ['d1.png', 'd2.png', 'd3.png', 'd4.png', 'd5.png', 'd6.png', 'd7.png']
+					current_effect: effect_id
+					icon_path: "../icons/digit/granular/"
+					only_top: true
+					show_labels: false
+				}
+
+				Row {
+					width: 720
+					x: 500
+					y: 420
+					spacing: 23
+				
+					EffectSwitch {
+						width: 350
+						height: 110
+						row_param: "freeze_param"
+						current_effect: effect_id
+						icon_source: "/clouds/Freeze.png"
+						has_border: true
+						text: "FREEZE"
+						radius: 11
+						display: Button.TextUnderIcon
+						font {
+							pixelSize: 24
+							capitalization: Font.AllUppercase
+						}
+					}
+					EffectSwitch {
+						width: 350
+						height: 110
+						row_param: "reverse_param"
+						current_effect: effect_id
+						icon_source: "/clouds/Reverse.png"
+						has_border: true
+						text: "REVERSE"
+						radius: 11
+						display: Button.TextUnderIcon
+						font {
+							pixelSize: 24
+							capitalization: Font.AllUppercase
+						}
+					}
+				}
+			}
+        }
 
         Component {
             id: editClouds
@@ -1947,16 +2030,6 @@ Rectangle {
 				// ActionIcons {
 				
 				// }
-				IconSlider {
-					x: 175
-					y: 122
-					width: 1008
-					row_param: "texture_param"
-					icons: ['Square.png', 'ramp.png',  'sawtooth.png',  'Triangle.png', 'diffused triangle.png']
-					current_effect: effect_id
-					icon_path: "../icons/digit/clouds/"
-					only_top: true
-				}
 			}
         }
 
@@ -2260,5 +2333,4 @@ Rectangle {
 				}
             }
         }
-
 }

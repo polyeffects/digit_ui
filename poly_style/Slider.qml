@@ -44,6 +44,7 @@ T.Slider {
     id: control
     property string title
     property color accent: Material.foreground
+    property bool show_labels: true
 
     implicitWidth: Math.max(background ? background.implicitWidth : 0,
                            (handle ? handle.implicitWidth : 0) + leftPadding + rightPadding)
@@ -64,7 +65,8 @@ T.Slider {
         title_footer.current_footer_value = value
     }
 
-    Text {
+	Text { 
+		visible: control.show_labels
         // anchors.centerIn: parent
         x: control.leftPadding + (control.horizontal ? handle.width + padding : (control.availableWidth - width) / 2)
         y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : control.availableHeight + 20 )
@@ -83,7 +85,7 @@ T.Slider {
     }
 
     Text {
-        visible : !(control.horizontal)
+        visible : !(control.horizontal) && control.show_labels
         // anchors.centerIn: parent
         x: control.leftPadding + (control.horizontal ? handle.width + padding : (control.availableWidth - width) / 2)
         y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : control.availableHeight + 45 ) 
