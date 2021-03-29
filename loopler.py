@@ -82,15 +82,23 @@ class Loop(QObject, metaclass=PropertyMeta):
     def __init__(self, loop_num, parent=None):
         super().__init__(parent)
         a = list(l_thread.loops[loop_num].__dict__.items())
+        self.loop_len = 0
+        set_params = set(loop_parameters) - set(unused)
         for k, v in a:
             if k in loop_parameters and k not in unused:
                 # print("adding loop num", loop_num, k, v)
                 # self.__dict__[k] = v
                 type(self).__dict__[k].setter(self, v)
+                try:
+                    set_params.remove(k)
+                except:
+                    pass
                 # if k == "feedback":
                 #     self.feedback = v
                 #     print("adding loop num", loop_num, k, v)
         # self.name = name
+        for k in set_params:
+            type(self).__dict__[k].setter(self, 0)
 
 class Loopler(QObject, metaclass=PropertyMeta):
     # @Slot(bool, str, str)
@@ -231,6 +239,12 @@ class Loopler(QObject, metaclass=PropertyMeta):
     def ui_cancel_bind_request(self):
         self.midi_learn_waiting = False
         l_thread.cancel_midi_learn()
+
+    def save_session(self, f):
+        l_thread.save_session(f)
+
+    def load_session(self, f):
+        l_thread.load_session(f)
 
    # if (style == GainStyle) {
    #              snprintf(stylebuf, sizeof(stylebuf), "gain");

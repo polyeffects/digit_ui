@@ -342,6 +342,7 @@ Rectangle {
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
         }
 		else if (['loop_common_in', 'loop_common_out'].indexOf(effect_type) >= 0){
+            title_text = "Loopler"
             patchStack.push("Loopler.qml");
             patch_bay.current_help_text = "" // Constants.help[""];
         }

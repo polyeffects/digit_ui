@@ -373,7 +373,8 @@ def connect_jack_port(port, x, y, physical_port):
                         connect_port(port, "/main/"+port_suffix)
                     ui_queue.put(("add_plugin", port, plugin, x, y, True))
                 else:
-                    print("got port we don't know", port, x, y, physical_port)
+                    pass
+                    # print("got port we don't know", port, x, y, physical_port)
 
 def get_value(model, p):
     # seg fault if it doesn't exist, could ask first
@@ -548,7 +549,7 @@ def parse_ingen(to_parse):
             # print("broadcast_update parsed", subject, "value", value)
             ui_queue.put(("broadcast_update", subject, float(str(value))))
         elif m.ask(None, patch_property, midi_binding):
-            print("midi learn parsed", subject, "to_parse:", to_parse)
+            # print("midi learn parsed", subject, "to_parse:", to_parse)
             try:
                 value = get_value(m, midi_controllerNumber)
                 ui_queue.put(("midi_learn", subject, int(str(value))))

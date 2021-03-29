@@ -75,8 +75,8 @@ class PatchMode(IntEnum):
 context = None
 
 def debug_print(*args, **kwargs):
-    # pass
-    print( "From py: "+" ".join(map(str,args)), **kwargs)
+    pass
+    # print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 
 effect_type_maps = module_info.effect_type_maps
@@ -111,6 +111,7 @@ for k in effect_prototypes_models.keys():
             "controls": {}}
 
 bare_ports = ["input", "output", "midi_input", "midi_output", "loop_common_in", "loop_common_out"]
+loopler_modules = ["loop_common_in", "loop_common_out"]
 
 
 def clamp(v, min_value, max_value):
@@ -460,6 +461,14 @@ def delete_sub_graph(name):
         ingen_wrapper.remove_plugin(name)
         sub_graphs.remove(name)
 
+def loopler_in_use():
+    # debug_print("checking if loopler is in use", current_effects.keys())
+    for effect in current_effects.values():
+        if effect["effect_type"] in loopler_modules:
+            return True
+    return False
+
+
 def load_preset(name, initial=False, force=False):
     if is_loading.value == True and not force:
         return
@@ -486,6 +495,14 @@ def load_preset(name, initial=False, force=False):
     ingen_wrapper.load_pedalboard(name, current_sub_graph.rstrip("/"))
     context.setContextProperty("currentEffects", current_effects) # might be slow
     context.setContextProperty("portConnections", port_connections)
+    # if this preset has a looper config, load it
+    # check if preset file exists
+
+    loopler_file = name[len("file://"):].rsplit("/", 1)[0] + "/loopler.slsess"
+    # debug_print("checking if loopler_file exists", loopler_file)
+    if os.path.exists(loopler_file):
+        loopler.load_session(loopler_file)
+        # debug_print("it does", loopler_file)
     time.sleep(0.1)
     ingen_wrapper.get_state("/engine")
 
@@ -896,6 +913,11 @@ class Knobs(QObject):
                 preset_meta_data[filename] = {"author": pedal_state["author"], "description": preset_description.name}
 
             context.setContextProperty("presetMeta", preset_meta_data)
+            # check if loopler in use
+            if loopler_in_use():
+                loopler_file = filename + "/loopler.slsess"
+                loopler.save_session(loopler_file)
+
             # flush to file
             write_preset_meta_cache()
 

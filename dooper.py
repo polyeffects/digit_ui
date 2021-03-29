@@ -229,14 +229,14 @@ class LooperThread:
         prev_loop_count = self.loop_count
         self.loop_count = args[2]
         if self.loop_count > prev_loop_count:
+            for loop_num in range(prev_loop_count, self.loop_count):
             # register new loop
-            loop_num = self.loop_count - 1
-            self.loops.append(Loop(self, loop_num))
-            for f in self.loop_added_callbacks:
-                f(loop_num)
-            for param in loop_parameters:
-                self.loops[loop_num].get(param)
-                self.send_osc('/sl/' + str(loop_num) + '/register_auto_update', param, 100, self.server.url, '/sl/loop')
+                self.loops.append(Loop(self, loop_num))
+                for f in self.loop_added_callbacks:
+                    f(loop_num)
+                for param in loop_parameters:
+                    self.loops[loop_num].get(param)
+                    self.send_osc('/sl/' + str(loop_num) + '/register_auto_update', param, 100, self.server.url, '/sl/loop')
         elif self.loop_count < prev_loop_count:
             loop_num = self.loop_count # instead of + 1 as they are counting from 1
             for f in self.loop_removed_callbacks:
@@ -376,6 +376,12 @@ class LooperThread:
     def cancel_midi_learn(self):
          # /cancel_midi_learn    s:returl  s:retpath
         self.send_osc('/cancel_midi_learn', self.server.url, '/sl/midi_bindings')
+
+    def save_session(self, target_file):
+        self.send_osc('/save_session', target_file, self.server.url, '/error')
+
+    def load_session(self, target_file):
+        self.send_osc('/load_session', target_file, self.server.url, '/error')
 
     def midi_learn(self, control, loop_num):
 
