@@ -110,7 +110,9 @@ for k in effect_prototypes_models.keys():
             "num_cv_in": 0,
             "controls": {}}
 
-bare_ports = ["input", "output", "midi_input", "midi_output", "loop_common_in", "loop_common_out"]
+bare_output_ports =  ("output", "midi_output", "loop_common_in")
+bare_input_ports = ("input", "midi_input", "loop_common_out")
+bare_ports = bare_output_ports + bare_input_ports
 loopler_modules = ["loop_common_in", "loop_common_out"]
 
 
@@ -559,9 +561,9 @@ def from_backend_add_connection(head, tail):
         if s_effect not in current_effects:
             return
         s_effect_type = current_effects[s_effect]["effect_type"]
-        if s_effect_type in ("output", "midi_output", "loop_common_in"):
+        if s_effect_type in bare_output_ports:
             s_port = "input"
-        elif s_effect_type in ("input", "midi_input", "loop_common_out"):
+        elif s_effect_type in bare_input_ports:
             s_port = "output"
         current_source_port = s_effect + "/" + s_port
         # debug_print("## current_source_port", current_source_port)
@@ -578,9 +580,9 @@ def from_backend_add_connection(head, tail):
             return
         t_effect_type = current_effects[t_effect]["effect_type"]
         t_port = None
-        if t_effect_type in ("output", "midi_output", "loop_common_in"):
+        if t_effect_type in bare_output_ports:
             t_port = "input"
-        elif t_effect_type in ("input", "midi_input", "loop_common_out"):
+        elif t_effect_type in bare_input_ports:
             t_port = "output"
         # debug_print("## tail in sub_graph", tail, t_effect, t_port)
         if t_port is None:
@@ -611,9 +613,9 @@ def from_backend_disconnect(head, tail):
     if current_source_port.rsplit("/", 1)[0] in sub_graphs:
         s_effect = current_source_port
         s_effect_type = current_effects[s_effect]["effect_type"]
-        if s_effect_type in ("output", "midi_output"):
+        if s_effect_type in bare_output_ports:
             s_port = "input"
-        elif s_effect_type in ("input", "midi_input"):
+        elif s_effect_type in bare_input_ports:
             s_port = "output"
         current_source_port = s_effect + "/" + s_port
 
@@ -621,9 +623,9 @@ def from_backend_disconnect(head, tail):
     if effect_id_port_name[0] in sub_graphs:
         t_effect = tail
         t_effect_type = current_effects[t_effect]["effect_type"]
-        if t_effect_type in ("output", "midi_output"):
+        if t_effect_type in bare_output_ports:
             t_port = "input"
-        elif t_effect_type in ("input", "midi_input"):
+        elif t_effect_type in bare_input_ports:
             t_port = "output"
     else:
         t_effect, t_port = effect_id_port_name
