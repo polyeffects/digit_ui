@@ -174,7 +174,7 @@ Item {
                                         return;
                                     }
                                     if (modelData == "delay"){
-                                        loopler.ui_set(current_loop, "delay_trigger", loopler.loops[current_loop].delay_trigger * -1);
+										loopler.ui_set_delay(current_loop);
                                     } else {
                                         loopler.ui_loop_command(current_loop, modelData);
                                     }
@@ -182,7 +182,7 @@ Item {
                                 }
                                 onPressed: {
                                     if (modelData == "delay"){
-                                        loopler.ui_set_current_command("ui_set", [current_loop, "delay_trigger", loopler.loops[current_loop].delay_trigger * -1]);
+                                        loopler.ui_set_current_command("ui_set_delay", [current_loop]);
                                     } else {
                                         loopler.ui_set_current_command("ui_loop_command", [current_loop, modelData]);
                                     }

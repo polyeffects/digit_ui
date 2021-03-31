@@ -139,15 +139,34 @@ class Loopler(QObject, metaclass=PropertyMeta):
 
     @Slot(int, str)
     def ui_loop_command(self, loop_id, command):
-        l_thread.loops[loop_id].hit(command)
+        try:
+            l_thread.loops[loop_id].hit(command)
+        except IndexError:
+            pass
 
     def loop_command(self, loop_id, command):
         loop_id = int(loop_id)
-        l_thread.loops[loop_id].hit(command)
+        try:
+            l_thread.loops[loop_id].hit(command)
+        except IndexError:
+            pass
 
     @Slot(int, str, "double")
     def ui_set(self, loop_id, parameter, value):
-        l_thread.loops[loop_id].loop_set(parameter, value)
+        try:
+            l_thread.loops[loop_id].loop_set(parameter, value)
+        except IndexError:
+            pass
+
+    @Slot(int)
+    def ui_set_delay(self, loop_id):
+        try:
+            if l_thread.loops[loop_id].delay_trigger < 0:
+                l_thread.loops[loop_id].loop_set("delay_trigger", 1)
+            else:
+                l_thread.loops[loop_id].loop_set("delay_trigger", -1)
+        except IndexError:
+            pass
 
     @Slot(str, "double")
     def ui_set_all(self, parameter, value):
