@@ -44,6 +44,7 @@ if __name__ == "__main__":
     # Instantiate the Python object.
     # knobs = Knobs()
     loopler = loopler_lib.Loopler()
+    loopler.start_loopler()
 
     # update_counter = PolyValue("update counter", 0, 0, 500000)
     # read persistant state
@@ -135,6 +136,7 @@ if __name__ == "__main__":
         sleep(0.01)
 
     qWarning("mainloop exited")
+    loopler.stop_loopler()
     app.exit()
     sys.exit()
     qWarning("sys exit called")

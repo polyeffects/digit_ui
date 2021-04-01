@@ -7,6 +7,7 @@ Tracks full state and provides interface to all loop commands. Almost a complete
 import liblo
 from collections import namedtuple
 from threading import Event, Lock
+import subprocess
 
 # Quantize and relative sync are actually global looper parameters, but SL handles them via the loop interface. We handle them separately as special cases so they are commented below but left for reference.
 loop_parameters_settable = (
@@ -171,16 +172,30 @@ class LooperThread:
             self.__dict__[name] = val
 
     def start_server(self):
+        # actually spawn sooplerlooper as well
+        subprocess.Popen(['/usr/bin/sooperlooper'])
 
-            self.server.add_method('/sl/ping', None, self.ping_responder)
-            self.server.add_method('/sl/loop', None, self.loop_responder)
-            self.server.add_method('/sl/looper', None, self.looper_responder)
-            self.server.add_method('/sl/loop_num', None, self.loop_num_responder)
-            self.server.add_method('/sl/midi_bindings', None, self.midi_binding_responder)
+        self.server.add_method('/sl/ping', None, self.ping_responder)
+        self.server.add_method('/sl/loop', None, self.loop_responder)
+        self.server.add_method('/sl/looper', None, self.looper_responder)
+        self.server.add_method('/sl/loop_num', None, self.loop_num_responder)
+        self.server.add_method('/sl/midi_bindings', None, self.midi_binding_responder)
 
-            self.server.start()
-            self.initialize()
-            self.register_updates()
+        self.server.start()
+        self.initialize()
+        self.register_updates()
+
+    def stop_server(self):
+        self.server.del_method('/sl/ping', None)
+        self.server.del_method('/sl/loop', None)
+        self.server.del_method('/sl/looper', None)
+        self.server.del_method('/sl/loop_num', None)
+        self.server.del_method('/sl/midi_bindings', None)
+        # actually kill sooplerlooper as well
+        self.send_osc('/quit')
+
+        self.unregister_updates()
+        self.server.stop()
 
     def initialize(self):
         attempt = 0
@@ -311,6 +326,19 @@ class LooperThread:
         for loop in self.loops:
             for param in loop_parameters:
                 self.send_osc('/sl/' + str(loop.number) + '/register_auto_update', param, 100, self.server.url, '/sl/loop')
+
+    def unregister_updates(self):
+        """ Ask SL to stop updating us"""
+
+        for param in looper_parameters:
+            self.send_osc('/unregister_auto_update', param, self.server.url, '/sl/looper')
+
+        self.send_osc('/sl/0/unregister_auto_update', 'quantize', self.server.url, '/sl/looper')
+        self.send_osc('/unregister', self.server.url, '/sl/loop_num')
+
+        for loop in self.loops:
+            for param in loop_parameters:
+                self.send_osc('/sl/' + str(loop.number) + '/unregister_auto_update', param, self.server.url, '/sl/loop')
 
     def ping(self, timeout=1):
         self.ping_flag.clear()

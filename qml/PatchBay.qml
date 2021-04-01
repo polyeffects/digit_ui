@@ -101,6 +101,8 @@ import "polyconst.js" as Constants
                     effect_map[l_effect_id].destroy(1);
                     delete effect_map[l_effect_id];
                 }
+                knobs.finish_remove_effect(l_effect_id)
+
                 // console.log("done remove module signal", l_effect_id);
             }
 

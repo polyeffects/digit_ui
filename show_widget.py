@@ -75,8 +75,8 @@ class PatchMode(IntEnum):
 context = None
 
 def debug_print(*args, **kwargs):
-    pass
-    # print( "From py: "+" ".join(map(str,args)), **kwargs)
+    # pass
+    print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 
 effect_type_maps = module_info.effect_type_maps
@@ -488,7 +488,10 @@ def load_preset(name, initial=False, force=False):
             pass
         else:
             patch_bay_notify.remove_module.emit(effect_id)
-            current_effects.pop(effect_id)
+            try:
+                current_effects.pop(effect_id)
+            except:
+                pass
     if not initial:
         # debug_print("deleting sub graph", current_sub_graph)
         delete_sub_graph(current_sub_graph)
@@ -524,6 +527,10 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=Tru
         # emit add signal
         context.setContextProperty("currentEffects", current_effects) # might be slow
         patch_bay_notify.add_module.emit(effect_name)
+        # if loopler isn't already running, start it
+        if effect_type in loopler_modules:
+            if not loopler.is_running:
+                loopler.start_loopler()
         # if effect_type == "midi_clock_in":
         #     # set broadcast on port
         #     ingen_wrapper.set_broadcast(effect_name+"/bpm", True)
@@ -534,7 +541,8 @@ def from_backend_remove_effect(effect_name):
     # called by engine code when effect is removed
     if effect_name not in current_effects:
         return
-    # debug_print("### from backend removing effect")
+    effect_type = current_effects[effect_name]["effect_type"]
+    debug_print("### from backend removing effect")
     # emit remove signal
     for source_port, targets in list(port_connections.items()):
         s_effect, s_port = source_port.rsplit("/", 1)
@@ -545,8 +553,14 @@ def from_backend_remove_effect(effect_name):
     patch_bay_notify.remove_module.emit(effect_name)
     for k in footswitch_assignments.keys(): # if this module has a foot switch assigned to it
         footswitch_assignments[k].discard(effect_name)
-    # current_effects.pop(effect_name)
-    context.setContextProperty("currentEffects", current_effects) # might be slow
+    # if this was a looper module, check if there are any left
+    if effect_type in loopler_modules:
+        if not loopler_in_use():
+            if loopler.is_running:
+                loopler.stop_loopler()
+    debug_print("removing effects, current keys", current_effects.keys())
+
+    # current_effects.pop(effect_name) # done after UI removes it
     context.setContextProperty("portConnections", port_connections)
     ingen_wrapper.get_state("/engine")
     # debug_print("### from backend removing effect setting portConnections")
@@ -610,25 +624,28 @@ def from_backend_add_connection(head, tail):
 def from_backend_disconnect(head, tail):
     # debug_print("head ", head, "tail", tail)
     current_source_port = head
-    if current_source_port.rsplit("/", 1)[0] in sub_graphs:
-        s_effect = current_source_port
-        s_effect_type = current_effects[s_effect]["effect_type"]
-        if s_effect_type in bare_output_ports:
-            s_port = "input"
-        elif s_effect_type in bare_input_ports:
-            s_port = "output"
-        current_source_port = s_effect + "/" + s_port
+    try:
+        if current_source_port.rsplit("/", 1)[0] in sub_graphs:
+            s_effect = current_source_port
+            s_effect_type = current_effects[s_effect]["effect_type"]
+            if s_effect_type in bare_output_ports:
+                s_port = "input"
+            elif s_effect_type in bare_input_ports:
+                s_port = "output"
+            current_source_port = s_effect + "/" + s_port
 
-    effect_id_port_name = tail.rsplit("/", 1)
-    if effect_id_port_name[0] in sub_graphs:
-        t_effect = tail
-        t_effect_type = current_effects[t_effect]["effect_type"]
-        if t_effect_type in bare_output_ports:
-            t_port = "input"
-        elif t_effect_type in bare_input_ports:
-            t_port = "output"
-    else:
-        t_effect, t_port = effect_id_port_name
+        effect_id_port_name = tail.rsplit("/", 1)
+        if effect_id_port_name[0] in sub_graphs:
+            t_effect = tail
+            t_effect_type = current_effects[t_effect]["effect_type"]
+            if t_effect_type in bare_output_ports:
+                t_port = "input"
+            elif t_effect_type in bare_input_ports:
+                t_port = "output"
+        else:
+            t_effect, t_port = effect_id_port_name
+    except KeyError:
+        return
 
     # debug_print("before port_connections is", port_connections)
     if current_source_port in port_connections and [t_effect, t_port] in port_connections[current_source_port]:
@@ -829,15 +846,33 @@ class Knobs(QObject):
 
     @Slot(str, int, int)
     def move_effect(self, effect_name, x, y):
-        current_effects[effect_name]["x"] = x
-        current_effects[effect_name]["y"] = y
+        try:
+            current_effects[effect_name]["x"] = x
+            current_effects[effect_name]["y"] = y
+        except KeyError:
+            pass
         ingen_wrapper.set_plugin_position(effect_name, x, y)
 
     @Slot(str)
     def remove_effect(self, effect_id):
         # calls backend to remove effect
         # debug_print("remove effect", effect_id)
-        ingen_wrapper.remove_plugin(effect_id)
+        # if effect is loopler we need to just hide it instead, because otherwise Ingen crashes
+        if effect_id in current_effects and current_effects[effect_id]["effect_type"] in loopler_modules:
+            # find all connections and remove them, disconnect plugin doesn't work
+            for source_port, targets in list(port_connections.items()):
+                # target_pair, source_pair = port_pair.split("---")
+                s_effect, s_port = source_port.rsplit("/", 1)
+                if s_effect == effect_id:
+                    for e, p in port_connections[source_port]:
+                        knobs.disconnect_port(source_port + "---" + "/".join([e, p]) )
+                else:
+                    for e, p in port_connections[source_port]:
+                        if e == effect_id:
+                            knobs.disconnect_port("/".join([e, p]) + "---" + source_port )
+            from_backend_remove_effect(effect_id)
+        else:
+            ingen_wrapper.remove_plugin(effect_id)
 
     @Slot(str, str, 'double')
     def ui_knob_change(self, effect_name, parameter, value):
@@ -1232,6 +1267,14 @@ class Knobs(QObject):
                 ingen_wrapper.midi_learn(effect_name+"/"+parameter)
         else:
             debug_print("effect not found", effect_name, parameter, value, effect_name in current_effects)
+
+    @Slot(str)
+    def finish_remove_effect(self, effect_name):
+        try:
+            current_effects.pop(effect_name) # done after UI removes it
+        except:
+            pass
+        context.setContextProperty("currentEffects", current_effects) # might be slow
 
 def io_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created

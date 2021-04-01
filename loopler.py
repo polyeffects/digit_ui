@@ -4,7 +4,6 @@ from dooper import LooperThread, loop_parameters, looper_parameters
 from properties import PropertyMeta, Property
 
 l_thread = LooperThread()
-l_thread.start_server()
 
 unused = ('redo_is_tap', 'use_rate', 'use_common_ins', 'use_common_outs', 'use_safety_feedback', 'pan_1', 'pan_2', 'pan_3', 'pan_4', 'input_latency', 'output_latency', 'trigger_latency', 'autoset_latency')
 
@@ -101,6 +100,7 @@ class Loop(QObject, metaclass=PropertyMeta):
             type(self).__dict__[k].setter(self, 0)
 
 class Loopler(QObject, metaclass=PropertyMeta):
+    is_running = False
     # @Slot(bool, str, str)
     # @Slot(str, str, 'double')
     loops = Property(list)
@@ -121,21 +121,46 @@ class Loopler(QObject, metaclass=PropertyMeta):
 
     def __init__(self):
         super().__init__()
+        self.selected_loop_num = 0
+        self.midi_learn_waiting = False
+        self.loopAddedSignal.connect(self.add_loop)
+        self.loopRemovedSignal.connect(self.remove_loop)
+
+        # a = list(l_thread.__dict__.items())
+        # for k, v in a:
+        #     if k in looper_parameters and k not in unused_looper:
+        #         type(self).__dict__[k].setter(self, v)
+
+    @Slot()
+    def start_loopler(self):
+        self.selected_loop_num = 0
+        l_thread.start_server()
         self.loops = [Loop(i) for i,l in enumerate(l_thread.loops)]
+        self.midi_learn_waiting = False
         l_thread.loop_callbacks.append(self.loop_responder)
         l_thread.looper_callbacks.append(self.looper_responder)
         l_thread.loop_added_callbacks.append(self.loop_added_responder)
         l_thread.loop_removed_callbacks.append(self.loop_removed_responder)
         l_thread.midi_binding_callbacks.append(self.midi_binding_responder)
-        self.loopAddedSignal.connect(self.add_loop)
-        self.loopRemovedSignal.connect(self.remove_loop)
-        self.selected_loop_num = l_thread.selected_loop_num
-        self.midi_learn_waiting = False
 
         a = list(l_thread.__dict__.items())
         for k, v in a:
             if k in looper_parameters and k not in unused_looper:
                 type(self).__dict__[k].setter(self, v)
+        self.is_running = True
+
+    @Slot()
+    def stop_loopler(self):
+        l_thread.loop_callbacks.clear()
+        l_thread.looper_callbacks.clear()
+        l_thread.loop_added_callbacks.clear()
+        l_thread.loop_removed_callbacks.clear()
+        l_thread.midi_binding_callbacks.clear()
+        self.loops = []
+        self.selected_loop_num = 0
+        self.midi_learn_waiting = False
+        l_thread.stop_server()
+        self.is_running = False
 
     @Slot(int, str)
     def ui_loop_command(self, loop_id, command):
