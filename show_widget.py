@@ -75,8 +75,8 @@ class PatchMode(IntEnum):
 context = None
 
 def debug_print(*args, **kwargs):
-    # pass
-    print( "From py: "+" ".join(map(str,args)), **kwargs)
+    pass
+    # print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 
 effect_type_maps = module_info.effect_type_maps
@@ -465,10 +465,11 @@ def delete_sub_graph(name):
 
 def loopler_in_use():
     # debug_print("checking if loopler is in use", current_effects.keys())
+    num_modules = 0
     for effect in current_effects.values():
         if effect["effect_type"] in loopler_modules:
-            return True
-    return False
+            num_modules = num_modules + 1
+    return num_modules
 
 
 def load_preset(name, initial=False, force=False):
@@ -495,6 +496,8 @@ def load_preset(name, initial=False, force=False):
     if not initial:
         # debug_print("deleting sub graph", current_sub_graph)
         delete_sub_graph(current_sub_graph)
+        if loopler.is_running:
+            loopler.stop_loopler()
     add_inc_sub_graph(False)
     # debug_print("adding inc sub graph", current_sub_graph)
     ingen_wrapper.load_pedalboard(name, current_sub_graph.rstrip("/"))
@@ -550,14 +553,15 @@ def from_backend_remove_effect(effect_name):
             del port_connections[source_port]
         else:
             port_connections[source_port] = [[e, p] for e, p in port_connections[source_port] if e != effect_name]
+
+    # if this was a looper module, check if there are any left
+    if effect_type in loopler_modules:
+        if loopler_in_use() <= 1:
+            if loopler.is_running:
+                loopler.stop_loopler()
     patch_bay_notify.remove_module.emit(effect_name)
     for k in footswitch_assignments.keys(): # if this module has a foot switch assigned to it
         footswitch_assignments[k].discard(effect_name)
-    # if this was a looper module, check if there are any left
-    if effect_type in loopler_modules:
-        if not loopler_in_use():
-            if loopler.is_running:
-                loopler.stop_loopler()
     debug_print("removing effects, current keys", current_effects.keys())
 
     # current_effects.pop(effect_name) # done after UI removes it
