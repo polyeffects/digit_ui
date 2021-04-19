@@ -105,13 +105,25 @@ Item {
                     //         knobs.set_bypass_type(model[index]);
                     //     }
                     // }
-                    Button {
-                        flat: false
-						width: 300
-                        text: "COPY LOGS"
-                        font.pixelSize: baseFontSize
-                        // show screen explaining to put USB flash drive in
-                        onClicked: knobs.copy_logs()
+                    Row {
+                        width: 300
+                        spacing: 10
+                        Button {
+                            flat: false
+                            width: 140
+                            text: "COPY LOGS"
+                            font.pixelSize: baseFontSize
+                            // show screen explaining to put USB flash drive in
+                            onClicked: knobs.copy_logs()
+                        }
+
+                        Button {
+                            flat: false
+                            width: 140
+                            text: "RESET SET LIST"
+                            font.pixelSize: baseFontSize
+                            onClicked: knobs.reset_preset_list()
+                        }
                     }
 
 

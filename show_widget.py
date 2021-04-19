@@ -1093,7 +1093,7 @@ class Knobs(QObject):
     def set_preset_list_length(self, v):
         if v > len(preset_list_model.stringList()):
             # debug_print("inserting new row in preset list", v)
-            insert_row(preset_list_model, "file:///mnt/presets/digit/Default_Preset.ingen")
+            insert_row(preset_list_model, "file:///mnt/presets/beebo/Default_Preset.ingen")
         else:
             # debug_print("removing row in preset list", v)
             preset_list_model.removeRows(v, 1)
@@ -1108,6 +1108,12 @@ class Knobs(QObject):
         with open("/mnt/pedal_state/beebo_preset_list.json", "w") as f:
             json.dump(preset_list_model.stringList(), f)
         os.sync()
+
+    @Slot()
+    def reset_preset_list(self):
+        preset_list = ["file:///mnt/presets/beebo/Empty.ingen"]
+        preset_list_model.setStringList(preset_list)
+        self.save_preset_list()
 
     @Slot(int)
     def on_worker_done(self, ret_var):
