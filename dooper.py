@@ -198,6 +198,8 @@ class LooperThread:
         self.server.stop()
 
     def initialize(self):
+        self.loop_count = 0
+        self.loops = []
         attempt = 0
         while not self.ping():
             attempt = attempt + 1

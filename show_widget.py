@@ -1923,6 +1923,8 @@ if __name__ == "__main__":
     ingen_wrapper.get_state("/main")
     # load_preset("file:///mnt/presets/Default_Preset.ingen/main.ttl", False)
     # ingen_wrapper._FINISH = True
+    update_dsp_usage_count = 200
+    num_loops = 0
     while not EXIT_PROCESS[0]:
         # debug_print("processing events")
         try:
@@ -1930,6 +1932,9 @@ if __name__ == "__main__":
             # debug_print("processing ui messages")
             process_ui_messages()
             pedal_hardware.process_input()
+            if num_loops > update_dsp_usage_count:
+                num_loops = 0
+                ingen_wrapper.get_state("/engine")
         except Exception as e:
             qCritical("########## e2 is:"+ str(e))
             ex_type, ex_value, tb = sys.exc_info()
