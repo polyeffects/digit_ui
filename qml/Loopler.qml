@@ -861,8 +861,15 @@ Item {
                     to: 320
                     Material.foreground: Constants.poly_pink
                     value: loopler.tempo
-                    onValueModified: {
-                        loopler.ui_set_global("tempo", Number(value));
+                    up.onPressedChanged: {
+                        if (!(up.pressed)){
+                            loopler.ui_set_global("tempo", Number(value));
+                        }
+                    }
+                    down.onPressedChanged: {
+                        if (!(down.pressed)){
+                            loopler.ui_set_global("tempo", Number(value));
+                        }
                     }
 
                 }
@@ -883,8 +890,15 @@ Item {
                     to: 128
                     Material.foreground: Constants.poly_pink
                     value: loopler.eighth_per_cycle
-                    onValueModified: {
-                        loopler.ui_set_global("eighth_per_cycle", Number(value));
+                    up.onPressedChanged: {
+                        if (!(up.pressed)){
+                            loopler.ui_set_global("eighth_per_cycle", Number(value));
+                        }
+                    }
+                    down.onPressedChanged: {
+                        if (!(down.pressed)){
+                            loopler.ui_set_global("eighth_per_cycle", Number(value));
+                        }
                     }
 
                 }
