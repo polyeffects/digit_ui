@@ -347,8 +347,8 @@ class LooperThread:
         self.send_osc('/ping', self.server.url, '/sl/ping')
         return self.ping_flag.wait(timeout)
 
-    def add_loop(self):
-        self.send_osc('/loop_add', 1, 43.0)
+    def add_loop(self, num_channels):
+        self.send_osc('/loop_add', num_channels, 43.0)
 
     def remove_loop(self):
         self.send_osc('/loop_del', -1)

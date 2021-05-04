@@ -754,13 +754,13 @@ Item {
                         PolyButton {
                             // property string l_effect: edit //.split(":")[1]
                             x: 13
-                            height: 221
+                            height: 100
                             width: 296
                             // text: modelData
                             onClicked: {
                                 // current_loop = index;
                                 // add new loop
-                                loopler.ui_add_loop()
+                                loopler.ui_add_loop(1)
                             }
 
                             contentItem: Item { 
@@ -773,7 +773,54 @@ Item {
                                 Text {
                                     x: 108
                                     y: 22
-                                    text: "Add loop"
+                                    text: "Add Mono Loop"
+                                    color: "white" // Constants.poly_grey // checked ? Constants.background_color : "white"
+                                    // horizontalAlignment: Text.AlignHCenter
+                                    // verticalAlignment: Text.AlignVCenter
+                                    // elide: Text.ElideRight
+                                    height: 22
+                                    font {
+                                        pixelSize: 22
+                                        capitalization: Font.AllUppercase
+                                    }
+                                }
+                            } 
+                            
+                            
+
+                            background: Rectangle {
+                                width: parent.width
+                                height: parent.height
+                                color: Constants.background_color
+                                border.width: 3
+                                border.color: Constants.poly_dark_grey  
+                                radius: 10
+                            }
+                        }
+                        PolyButton {
+                            // property string l_effect: edit //.split(":")[1]
+                            x: 13
+                            y: 110
+                            height: 100
+                            width: 296
+                            // text: modelData
+                            onClicked: {
+                                // current_loop = index;
+                                // add new loop
+                                loopler.ui_add_loop(2)
+                            }
+
+                            contentItem: Item { 
+                                // Image {
+                                //     x: 12
+                                //     y: 14
+                                //     source: "../icons/digit/loopler/commands/"+ LoopMap.state_png_map[loopler.loops[index].state.toString()] +".png"
+                                // }
+
+                                Text {
+                                    x: 108
+                                    y: 22
+                                    text: "Add stereo loop"
                                     color: "white" // Constants.poly_grey // checked ? Constants.background_color : "white"
                                     // horizontalAlignment: Text.AlignHCenter
                                     // verticalAlignment: Text.AlignVCenter

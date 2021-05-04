@@ -206,9 +206,9 @@ class Loopler(QObject, metaclass=PropertyMeta):
     def select_loop(self, loop_id):
         l_thread.select_loop(loop_id)
 
-    @Slot()
-    def ui_add_loop(self):
-        l_thread.add_loop()
+    @Slot(int)
+    def ui_add_loop(self, num_channels):
+        l_thread.add_loop(num_channels)
 
     @Slot()
     def ui_remove_loop(self):
