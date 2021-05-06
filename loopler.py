@@ -34,6 +34,7 @@ unused_looper = ( 'tap_tempo', # any changes
 class Loop(QObject, metaclass=PropertyMeta):
     state = Property(int)   # codes mapped below
     next_state = Property(int)  # same as state
+    channel_count = Property(int) 
     loop_len = Property(float)  # in seconds
     loop_pos = Property(float)  # in seconds
     cycle_len = Property(float) # in seconds
@@ -82,6 +83,7 @@ class Loop(QObject, metaclass=PropertyMeta):
         super().__init__(parent)
         a = list(l_thread.loops[loop_num].__dict__.items())
         self.loop_len = 0
+        self.channel_count = 1
         set_params = set(loop_parameters) - set(unused)
         for k, v in a:
             if k in loop_parameters and k not in unused:

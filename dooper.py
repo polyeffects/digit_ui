@@ -54,6 +54,7 @@ loop_parameters_gettable = (
     'free_time', # in seconds
     'total_time', # in seconds
     'rate_output',
+    'channel_count',
     'in_peak_meter',  # absolute float sample value 0.0 -> 1.0 (or higher)
     'out_peak_meter',  # absolute float sample value 0.0 -> 1.0 (or higher)
     'is_soloed',       # 1 if soloed, 0 if not

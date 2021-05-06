@@ -147,21 +147,19 @@ Item {
                     width: 1107
                     height: 270
 
-                    Grid {
-                        spacing: 13 
-                        height: 270
-                        columns: 6
+                    Row {
+                        spacing: 12 
+                        height: 120
                         width: parent.width
 
                         Repeater {
-                            model: ["undo", "overdub", "replace", "solo", "oneshot", "reverse", 
-                            "redo", "mute", "multiply", "insert", "substitute", "delay"]
+                            model: ["undo", "redo", "record", "overdub", "trigger", "reverse", "pause"]
                             // TODO Fix delay mode
 
                             IconButton {
                                 id: commandButton
-                                icon.source: "../icons/digit/loopler/commands/" + modelData + ".png"
-                                width: 160
+                                icon.source: "../icons/digit/loopler/commands/inactive/" + modelData + ".png"
+                                width: 140
                                 height: 110
                                 topPadding: -25
                                 icon.width: 80
@@ -201,7 +199,81 @@ Item {
                                     y: 76 
                                     text: modelData
                                     horizontalAlignment: Text.AlignHCenter
-                                    width: 157
+                                    width: 140
+                                    height: 22
+                                    z: 1
+                                    color: "white"
+                                    font {
+                                        pixelSize: 20
+                                        capitalization: Font.AllUppercase
+                                    }
+                                }
+                                SequentialAnimation {
+                                    id: blinkCommand;
+                                    loops: Animation.Infinite;
+                                    alwaysRunToEnd: true;
+                                    running: LoopMap.next_command_map[modelData] == loopler.loops[current_loop].next_state
+                                    ColorAnimation { target: commandButton; property: "Material.accent"; from: "yellow"; to: "white"; duration: 1000 }
+                                    ColorAnimation { target: commandButton; property: "Material.accent"; to: "yellow"; from: "white"; duration: 1000 }
+                                }
+                            }
+
+                        }
+                    }
+                    Row {
+                        y: 130
+                        spacing: 13 
+                        height: 120
+                        width: parent.width
+
+                        Repeater {
+                            model: ["multiply", "replace", "insert", "substitute", "delay", "oneshot", "solo", "mute"]
+                            // TODO Fix delay mode
+
+                            IconButton {
+                                id: commandButton
+                                icon.source: "../icons/digit/loopler/commands/inactive/" + modelData + ".png"
+                                width: 120
+                                height: 110
+                                topPadding: -25
+                                icon.width: 80
+                                icon.height: 70
+                                has_border: true
+                                // checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
+                                checked: LoopMap.command_map[modelData] == loopler.loops[current_loop].state || (modelData == "solo" && loopler.loops[current_loop].is_soloed > 0) || (modelData == "reverse" && loopler.loops[current_loop].rate_output < 0)
+                                onClicked: {
+                                    if (looper_widget.midiLearn(modelData)){
+                                        return;
+                                    }
+                                    if (modelData == "delay"){
+										loopler.ui_set_delay(current_loop);
+                                    } else {
+                                        loopler.ui_loop_command(current_loop, modelData);
+                                    }
+                                    loopler.ui_unset_current_command();
+                                }
+                                onPressed: {
+                                    if (modelData == "delay"){
+                                        loopler.ui_set_current_command("ui_set_delay", [current_loop]);
+                                    } else {
+                                        loopler.ui_set_current_command("ui_loop_command", [current_loop, modelData]);
+                                    }
+                                
+                                }
+                                // onReleased: {
+                                // }
+                                Material.background: "transparent"
+                                Material.foreground: "transparent"
+                                // Material.foreground: !checked ? Constants.poly_pink : "black"
+                                // Material.foreground: !checked ? Constants.poly_pink : "black"
+                                Material.accent: Constants.poly_pink 
+                                radius: 3
+                                Label {
+                                    x: 0
+                                    y: 76 
+                                    text: modelData
+                                    horizontalAlignment: Text.AlignHCenter
+                                    width: 120
                                     height: 22
                                     z: 1
                                     color: "white"
@@ -632,7 +704,15 @@ Item {
                             Image {
                                 x: 12
                                 y: 14
-                                source: "../icons/digit/loopler/commands/"+ LoopMap.state_png_map[loopler.loops[index].state.toString()] +".png"
+                                source: "../icons/digit/loopler/commands/inactive/"+ LoopMap.state_png_map[loopler.loops[index].state.toString()] +".png"
+                            }
+
+                            Image {
+                                x: 250
+                                y: 6
+                                width:27 
+                                height: 27
+                                source: loopler.loops[index].channel_count > 1 ? "../icons/digit/loopler/stereo-large.png" : "../icons/digit/loopler/mono-large.png"
                             }
 
                             Text {
@@ -764,16 +844,16 @@ Item {
                             }
 
                             contentItem: Item { 
-                                // Image {
-                                //     x: 12
-                                //     y: 14
-                                //     source: "../icons/digit/loopler/commands/"+ LoopMap.state_png_map[loopler.loops[index].state.toString()] +".png"
-                                // }
+                                Image {
+                                    x: 19
+                                    y: 7
+                                    source: "../icons/digit/loopler/mono-large.png"
+                                }
 
                                 Text {
                                     x: 108
-                                    y: 22
-                                    text: "Add Mono Loop"
+                                    y: 7
+                                    text: "Add Mono\nLoop"
                                     color: "white" // Constants.poly_grey // checked ? Constants.background_color : "white"
                                     // horizontalAlignment: Text.AlignHCenter
                                     // verticalAlignment: Text.AlignVCenter
@@ -811,16 +891,16 @@ Item {
                             }
 
                             contentItem: Item { 
-                                // Image {
-                                //     x: 12
-                                //     y: 14
-                                //     source: "../icons/digit/loopler/commands/"+ LoopMap.state_png_map[loopler.loops[index].state.toString()] +".png"
-                                // }
+                                Image {
+                                    x: 19
+                                    y: 7
+                                    source: "../icons/digit/loopler/stereo-large.png"
+                                }
 
                                 Text {
                                     x: 108
-                                    y: 22
-                                    text: "Add stereo loop"
+                                    y: 7
+                                    text: "Add stereo\nloop"
                                     color: "white" // Constants.poly_grey // checked ? Constants.background_color : "white"
                                     // horizontalAlignment: Text.AlignHCenter
                                     // verticalAlignment: Text.AlignVCenter
