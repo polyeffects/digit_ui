@@ -27,7 +27,8 @@ Item {
     id: looper_widget
     property string effect_id: "none"
     property int tab_index: 0
-    property int current_loop: loopler.selected_loop_num 
+    property int actual_current_loop: loopler.selected_loop_num 
+    property int current_loop: loopler.selected_loop_num > 0 ? loopler.selected_loop_num : 0
     property int global_focused: 0
     property bool midi_learn_select: false
     property bool midi_learn_waiting: loopler.midi_learn_waiting
@@ -40,7 +41,7 @@ Item {
     //
     function midiLearn(param){
         if (midi_learn_select){
-            loopler.ui_bind_request(param, current_loop);
+            loopler.ui_bind_request(param, actual_current_loop);
             midi_learn_select = false;
             return true;
         }
@@ -65,19 +66,19 @@ Item {
                 x: 0
                 y: 0
                 width: parent.width
-                height: 270
+                height: 520
                 Column {
                     x: 12
-                    y: 12
+                    y: 18
                     width: 223
-                    height: 522
-                    spacing: 9
+                    height: 520
+                    spacing: 12
                 
                     Repeater {
                         model: ["Commands", "Level / Sync", "Rate"]
                         Button {
-                            height: 70
-                            width: 170
+                            height: 80
+                            width: 130
                             text: modelData
                             checked: tab_index == index
                             onClicked: {
@@ -109,10 +110,54 @@ Item {
                             }
                         }
                     }
+                    Button {
+                        id: g_but
+                        height: 210
+                        width: 130
+                        text: "Global Settings"
+                        checked: tab_index == 3
+                        onClicked: {
+                            tab_index = 3;
+                        }
+
+                        contentItem: Item {
+                            height: parent.height
+                            width: parent.width
+                            Image {
+                                x: 28
+                                y: 14
+                                source: g_but.checked ? "../icons/digit/loopler/global-1.png" :"../icons/digit/loopler/global.png" 
+                            }
+                            Text {
+                                y: 128
+                                text: "Global Settings"
+                                color:  g_but.checked ? Constants.background_color : Constants.loopler_purple
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                // elide: Text.ElideRight
+                                height: 40
+                                wrapMode: Text.WordWrap
+                                width: parent.width
+                                font {
+                                    pixelSize: 24
+                                    capitalization: Font.AllUppercase
+                                }
+                            }
+                        }
+
+                        background: Rectangle {
+                            width: parent.width
+                            height: parent.height
+                            color: g_but.checked ? Constants.loopler_purple : Constants.background_color  
+                            border.width: 3
+                            border.color: g_but.checked ? Constants.loopler_purple : Constants.poly_dark_grey  
+                            radius: 10
+                        }
+                    }
                 }
 
                 Rectangle {
-                    x:  198
+                    x:  158
                     y: 0
                     width: 2
                     z: 3
@@ -123,9 +168,10 @@ Item {
             }
 
             Rectangle {
-                x:  0
+                visible: tab_index != 3
+                x:  158
                 y: 270
-                width: 1280
+                width: 1128
                 height: 2
                 z: 3
                 color: Constants.poly_grey
@@ -137,7 +183,7 @@ Item {
             StackLayout {
                 width: 1107
                 height: 522
-                x: 223
+                x: 177
                 y: 16
                 currentIndex: tab_index
 
@@ -158,7 +204,7 @@ Item {
 
                             IconButton {
                                 id: commandButton
-                                icon.source: "../icons/digit/loopler/commands/inactive/" + modelData + ".png"
+                                icon.source: checked ? "../icons/digit/loopler/commands/active/" + modelData + ".png" : "../icons/digit/loopler/commands/inactive/" + modelData + ".png" 
                                 width: 140
                                 height: 110
                                 topPadding: -25
@@ -172,27 +218,25 @@ Item {
                                         return;
                                     }
                                     if (modelData == "delay"){
-										loopler.ui_set_delay(current_loop);
+										loopler.ui_set_delay(actual_current_loop);
                                     } else {
-                                        loopler.ui_loop_command(current_loop, modelData);
+                                        loopler.ui_loop_command(actual_current_loop, modelData);
                                     }
                                     loopler.ui_unset_current_command();
                                 }
                                 onPressed: {
                                     if (modelData == "delay"){
-                                        loopler.ui_set_current_command("ui_set_delay", [current_loop]);
+                                        loopler.ui_set_current_command("ui_set_delay", [actual_current_loop]);
                                     } else {
-                                        loopler.ui_set_current_command("ui_loop_command", [current_loop, modelData]);
+                                        loopler.ui_set_current_command("ui_loop_command", [actual_current_loop, modelData]);
                                     }
                                 
                                 }
                                 // onReleased: {
                                 // }
-                                Material.background: "transparent"
+                                Material.background: checked ? Constants.rainbow[index] : "transparent"
                                 Material.foreground: "transparent"
-                                // Material.foreground: !checked ? Constants.poly_pink : "black"
-                                // Material.foreground: !checked ? Constants.poly_pink : "black"
-                                Material.accent: Constants.poly_pink 
+                                Material.accent: Constants.rainbow[index] 
                                 radius: 3
                                 Label {
                                     x: 0
@@ -202,7 +246,7 @@ Item {
                                     width: 140
                                     height: 22
                                     z: 1
-                                    color: "white"
+                                    color: checked ? "black" : "white"
                                     font {
                                         pixelSize: 20
                                         capitalization: Font.AllUppercase
@@ -232,7 +276,7 @@ Item {
 
                             IconButton {
                                 id: commandButton
-                                icon.source: "../icons/digit/loopler/commands/inactive/" + modelData + ".png"
+                                icon.source: checked ? "../icons/digit/loopler/commands/active/" + modelData + ".png" : "../icons/digit/loopler/commands/inactive/" + modelData + ".png" 
                                 width: 120
                                 height: 110
                                 topPadding: -25
@@ -262,11 +306,9 @@ Item {
                                 }
                                 // onReleased: {
                                 // }
-                                Material.background: "transparent"
+                                Material.background: checked ? Constants.rainbow[index] : "transparent"
                                 Material.foreground: "transparent"
-                                // Material.foreground: !checked ? Constants.poly_pink : "black"
-                                // Material.foreground: !checked ? Constants.poly_pink : "black"
-                                Material.accent: Constants.poly_pink 
+                                Material.accent: Constants.rainbow[index] 
                                 radius: 3
                                 Label {
                                     x: 0
@@ -276,7 +318,7 @@ Item {
                                     width: 120
                                     height: 22
                                     z: 1
-                                    color: "white"
+                                    color: checked ? "black" : "white"
                                     font {
                                         pixelSize: 20
                                         capitalization: Font.AllUppercase
@@ -544,7 +586,7 @@ Item {
                                 Material.foreground: parent.Material.foreground
                                 visible: loop_slider_rate.v_type != "bool"
                                 snapMode: Slider.SnapAlways
-                                stepSize: loop_slider_rate.v_type == "int" ? 1.0 : 0.0
+                                stepSize: loop_slider_rate.v_type == "int" ? 1.0 : 0.01
                                 title: LoopMap.parameter_map[loop_slider_rate.selected_parameter]
                                 width: parent.width - 50
                                 height:parent.height
@@ -668,13 +710,326 @@ Item {
                         }
                     }
                 }
+                Item { // global
+                    width: 1280
+                    height: 522
+                    x: 0
+                    y: 0
+
+                    Column {
+                        x: 0
+                        y: 20
+                        height: 515
+                        spacing: 14 
+                        width: 339
+
+                        Text {
+                            text: "SYNC TO"
+                            color: "white"
+                            font.pixelSize: 24
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+
+                        PolySpin {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: 285
+                            height: 100
+                            font.pixelSize: 24
+                            items: ["internal", "midi", "none", "loop 1"]
+                            Material.foreground: Constants.loopler_purple
+                            value: LoopMap.sync_to_index[loopler.sync_source.toString()]
+                            onValueModified: {
+                                loopler.ui_set_global("sync_source", LoopMap.sync_to_map[Number(value)]);
+                            }
+
+                        }
+
+                        Text {
+                            text: "BPM"
+                            color: "white"
+                            font.pixelSize: 24
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+
+                        SpinBox {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: 285
+                            height: 100
+                            font.pixelSize: 36
+                            from: 20
+                            to: 320
+                            Material.foreground: Constants.poly_pink
+                            value: loopler.tempo
+                            up.onPressedChanged: {
+                                if (!(up.pressed)){
+                                    loopler.ui_set_global("tempo", Number(value));
+                                }
+                            }
+                            down.onPressedChanged: {
+                                if (!(down.pressed)){
+                                    loopler.ui_set_global("tempo", Number(value));
+                                }
+                            }
+
+                        }
+
+                        Text {
+                            text: "8TH/CYCLE"
+                            color: "white"
+                            font.pixelSize: 24
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+
+                        SpinBox {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: 285
+                            height: 100
+                            font.pixelSize: 36
+                            from: 1
+                            to: 128
+                            Material.foreground: Constants.poly_pink
+                            value: loopler.eighth_per_cycle
+                            up.onPressedChanged: {
+                                if (!(up.pressed)){
+                                    loopler.ui_set_global("eighth_per_cycle", Number(value));
+                                }
+                            }
+                            down.onPressedChanged: {
+                                if (!(down.pressed)){
+                                    loopler.ui_set_global("eighth_per_cycle", Number(value));
+                                }
+                            }
+
+                        }
+
+                    }
+
+                    Rectangle {
+                        x:  339
+                        y: -16
+                        z: 3
+                        width: 2
+                        height: parent.height
+                        color: Constants.poly_dark_grey
+                    }
+
+                    Item {
+                        x: 390
+                        y: 0 
+                        width: 640
+                        // height: 270
+
+                        Row {
+                            y: 0
+                            x: 0
+                            spacing: 35
+
+
+
+                            Column {
+                                spacing: 25 
+                                height: parent.height
+                                width: 150
+
+                                Repeater {
+                                    model: ["input_gain", "wet", "dry", "fade_samples"]
+
+                                    ValueButton {
+                                        width: 150
+                                        height: 100
+                                        // checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
+                                        checked: global_slider.selected_parameter == modelData
+                                        onClicked: {
+                                            if (looper_widget.midiLearn(modelData)){
+                                                return;
+                                            }
+                                            global_slider.selected_parameter = modelData
+                                            global_slider.Material.foreground = Constants.short_rainbow[index]
+                                            global_slider.force_update = !(global_slider.force_update)
+                                        }
+                                        Material.foreground: Constants.short_rainbow[index]
+                                        text: LoopMap.parameter_map[modelData]
+                                        value: modelData == "fade_samples" ? loopler.loops[0]["fade_samples"].toFixed(2)  : loopler[modelData].toFixed(2)
+                                    }
+                                }
+                            }
+
+                            Item {
+                                Material.foreground: Constants.short_rainbow[0]
+                                id: global_slider
+                                height: 463
+                                width:  90
+                                property real multiplier: 1  
+                                property bool is_log: false
+                                property string selected_parameter: "input_gain"
+                                property string v_type: selected_parameter == "fade_samples" ? "int" : "float"
+                                property bool force_update: false
+
+                                function logslider(position) {
+                                    // linear in to log out
+                                    // input position will be between 0 and 1
+                                    var minp = 0;
+                                    var maxp = 1;
+
+                                    // The output result should be between 20 an 20000
+                                    var minv = Math.log(20);
+                                    var maxv = Math.log(20000);
+
+                                    // calculate adjustment factor
+                                    var scale = (maxv-minv) / (maxp-minp);
+
+                                    return Math.exp(minv + scale*(position-minp));
+                                }
+
+                                function logposition(value) {
+                                    // log in to linear out
+                                    // input position will be between 0 and 1
+                                    var minp = 0;
+                                    var maxp = 1;
+
+                                    // The output result should be between 20 an 200000
+                                    var minv = Math.log(20);
+                                    var maxv = Math.log(20000);
+
+                                    // calculate adjustment factor
+                                    var scale = (maxv-minv) / (maxp-minp);
+
+                                    return (Math.log(value)-minv) / scale + minp;
+                                }
+
+                                Slider {
+                                    x: 0
+                                    y: 0
+                                    Material.foreground: parent.Material.foreground
+                                    snapMode: Slider.SnapAlways
+                                    stepSize: global_slider.v_type == "int" ? 1.0 : 0.0
+                                    orientation: Qt.Vertical
+                                    title: LoopMap.parameter_map[global_slider.selected_parameter]
+                                    width: 90
+                                    show_labels: false
+                                    height:parent.height
+                                    value: global_slider.force_update, global_slider.selected_parameter == "fade_samples" ? loopler.loops[0][global_slider.selected_parameter] : loopler[global_slider.selected_parameter]
+                                    from: global_slider.selected_parameter  in LoopMap.param_bounds ? LoopMap.param_bounds[global_slider.selected_parameter][0] : 0
+                                    to: global_slider.selected_parameter in LoopMap.param_bounds ? LoopMap.param_bounds[global_slider.selected_parameter][1] : 1
+                                    onMoved: {
+                                        if (global_slider.selected_parameter == "fade_samples"){
+                                            loopler.ui_set_all("fade_samples", value)
+                                            //
+                                        } else {
+                                            loopler.ui_set_global(global_slider.selected_parameter, value);
+                                        }
+                                    }
+                                    onPressedChanged: {
+                                        if (pressed){
+                                            if (global_slider.selected_parameter == "fade_samples"){
+                                                knobs.set_loopler_knob("ui_set_all", -1, "fade_samples", from, to);
+                                                //
+                                            } else {
+                                                knobs.set_loopler_knob("ui_set_global", -1, global_slider.selected_parameter, from, to);
+                                            }
+                                        }
+                                    }
+                                }
+
+
+                            }
+                        }
+
+                        // Rectangle {
+                        //     x:  779
+                        //     y: -16
+                        //     width: 2
+                        //     height: 270
+                        //     z: 3
+                        //     color: Constants.poly_grey
+                        // }
+
+                    }
+
+
+
+
+                    Rectangle {
+                        x:  716
+                        y: -16
+                        z: 3
+                        width: 2
+                        height: parent.height
+                        color: Constants.poly_dark_grey
+                    }
+
+                    Column {
+                        x: 740
+                        y: 20
+                        height: 515
+                        spacing: 14 
+                        width: 404
+
+                        Text {
+                            text: "Quantize"
+                            color: Constants.loopler_purple
+                            width: 252
+                            font {
+                                pixelSize: 24
+                                capitalization: Font.AllUppercase
+                            }
+                            horizontalAlignment: Text.AlignHCenter
+                        }
+
+                        PolySpin {
+                            // anchors.horizontalCenter: parent.horizontalCenter
+                            width: 252
+                            height: 100
+                            font.pixelSize: 24
+                            Material.foreground: Constants.poly_green
+                            value: loopler.loops[0].quantize
+                            onValueModified: {
+                                loopler.ui_set_all("quantize", Number(value));
+                            }
+
+                        }
+
+
+                        Repeater {
+                            model: ["mute_quantized", "overdub_quantized", "relative_sync"]
+
+                            PolyButton {
+                                width: 252
+                                height: 64
+                                checked: loopler.loops[0][modelData] == 1.0
+                                // checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)
+                                onClicked: {
+                                    if (looper_widget.midiLearn(modelData)){
+                                        return;
+                                    }
+                                    loopler.ui_set_all(modelData, 1 - loopler.loops[current_loop][modelData])
+                                    loopler.ui_unset_current_command();
+                                }
+                                onPressed: {
+                                    loopler.ui_set_current_command("ui_set_all", [modelData, 1 - loopler.loops[current_loop][modelData]]);
+                                }
+                                Material.foreground: Constants.short_rainbow[index]
+                                Material.background: Constants.background_color
+                                text: LoopMap.parameter_map[modelData]
+                                font {
+                                    pixelSize: 24
+                                    capitalization: Font.AllUppercase
+                                }
+                            }
+
+                        }
+
+                    }
+
+                }
             }
 
             Row {
-                x: 0
+                x: 177
                 y: 283
                 id: loop_row
                 width: parent.width
+                visible: tab_index != 3
                 height: 250
                 spacing: 13 
 
@@ -697,7 +1052,13 @@ Item {
                         // text: modelData
                         checked: current_loop == index
                         onClicked: {
-                            loopler.select_loop(index);
+                            if (current_loop == index){
+                                loopler.select_loop(-1);
+                            }
+                            else
+                            {
+                                loopler.select_loop(index);
+                            }
                         }
 
                         contentItem: Item { 
@@ -834,7 +1195,7 @@ Item {
                         PolyButton {
                             // property string l_effect: edit //.split(":")[1]
                             x: 13
-                            height: 100
+                            height: 105
                             width: 296
                             // text: modelData
                             onClicked: {
@@ -880,8 +1241,8 @@ Item {
                         PolyButton {
                             // property string l_effect: edit //.split(":")[1]
                             x: 13
-                            y: 110
-                            height: 100
+                            y: 116
+                            height: 105
                             width: 296
                             // text: modelData
                             onClicked: {
@@ -938,325 +1299,6 @@ Item {
         }
 
         // global
-        Item {
-            width: 1280
-            height: 522
-            x: 0
-            y: 0
-
-            Column {
-                x: 0
-                y: 20
-                height: 515
-                spacing: 14 
-                width: 339
-
-                Text {
-                    text: "SYNC TO"
-                    color: "white"
-                    font.pixelSize: 24
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-
-                PolySpin {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: 285
-                    height: 100
-                    font.pixelSize: 24
-                    items: ["internal", "midi", "none", "loop 1"]
-                    Material.foreground: Constants.loopler_purple
-                    value: LoopMap.sync_to_index[loopler.sync_source.toString()]
-                    onValueModified: {
-                        loopler.ui_set_global("sync_source", LoopMap.sync_to_map[Number(value)]);
-                    }
-
-                }
-
-                Text {
-                    text: "BPM"
-                    color: "white"
-                    font.pixelSize: 24
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-
-                SpinBox {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: 285
-                    height: 100
-                    font.pixelSize: 36
-                    from: 20
-                    to: 320
-                    Material.foreground: Constants.poly_pink
-                    value: loopler.tempo
-                    up.onPressedChanged: {
-                        if (!(up.pressed)){
-                            loopler.ui_set_global("tempo", Number(value));
-                        }
-                    }
-                    down.onPressedChanged: {
-                        if (!(down.pressed)){
-                            loopler.ui_set_global("tempo", Number(value));
-                        }
-                    }
-
-                }
-
-                Text {
-                    text: "8TH/CYCLE"
-                    color: "white"
-                    font.pixelSize: 24
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-
-                SpinBox {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: 285
-                    height: 100
-                    font.pixelSize: 36
-                    from: 1
-                    to: 128
-                    Material.foreground: Constants.poly_pink
-                    value: loopler.eighth_per_cycle
-                    up.onPressedChanged: {
-                        if (!(up.pressed)){
-                            loopler.ui_set_global("eighth_per_cycle", Number(value));
-                        }
-                    }
-                    down.onPressedChanged: {
-                        if (!(down.pressed)){
-                            loopler.ui_set_global("eighth_per_cycle", Number(value));
-                        }
-                    }
-
-                }
-            
-            }
-
-            Rectangle {
-                x:  339
-                y: 0
-                z: 3
-                width: 2
-                height: parent.height
-                color: Constants.poly_dark_grey
-            }
-
-            Item { // rate
-                x: 380
-                y: 70 
-                width: 640
-                // height: 270
-
-                Column {
-                    y: 20
-                    x: 0
-                    spacing: 30
-
-					Text {
-						text: "Global Settings"
-						color: Constants.loopler_purple
-						width: 580
-						font {
-							pixelSize: 24
-							capitalization: Font.AllUppercase
-						}
-						horizontalAlignment: Text.AlignHCenter
-					}
-
-                    Item {
-                        Material.foreground: Constants.short_rainbow[0]
-                        id: global_slider
-                        height: 62
-                        width:  640
-                        property real multiplier: 1  
-                        property bool is_log: false
-                        property string selected_parameter: "input_gain"
-                        property string v_type: selected_parameter == "fade_samples" ? "int" : "float"
-                        property bool force_update: false
-
-                        function logslider(position) {
-                            // linear in to log out
-                            // input position will be between 0 and 1
-                            var minp = 0;
-                            var maxp = 1;
-
-                            // The output result should be between 20 an 20000
-                            var minv = Math.log(20);
-                            var maxv = Math.log(20000);
-
-                            // calculate adjustment factor
-                            var scale = (maxv-minv) / (maxp-minp);
-
-                            return Math.exp(minv + scale*(position-minp));
-                        }
-
-                        function logposition(value) {
-                            // log in to linear out
-                            // input position will be between 0 and 1
-                            var minp = 0;
-                            var maxp = 1;
-
-                            // The output result should be between 20 an 200000
-                            var minv = Math.log(20);
-                            var maxv = Math.log(20000);
-
-                            // calculate adjustment factor
-                            var scale = (maxv-minv) / (maxp-minp);
-
-                            return (Math.log(value)-minv) / scale + minp;
-                        }
-
-                        Slider {
-                            x: 0
-                            y: 0
-                            Material.foreground: parent.Material.foreground
-                            snapMode: Slider.SnapAlways
-                            stepSize: global_slider.v_type == "int" ? 1.0 : 0.0
-                            title: LoopMap.parameter_map[global_slider.selected_parameter]
-                            width: parent.width - 50
-                            height:parent.height
-                            value: global_slider.force_update, global_slider.selected_parameter == "fade_samples" ? loopler.loops[0][global_slider.selected_parameter] : loopler[global_slider.selected_parameter]
-                            from: global_slider.selected_parameter  in LoopMap.param_bounds ? LoopMap.param_bounds[global_slider.selected_parameter][0] : 0
-                            to: global_slider.selected_parameter in LoopMap.param_bounds ? LoopMap.param_bounds[global_slider.selected_parameter][1] : 1
-                            onMoved: {
-                                if (global_slider.selected_parameter == "fade_samples"){
-                                    loopler.ui_set_all("fade_samples", value)
-                                    //
-                                } else {
-                                    loopler.ui_set_global(global_slider.selected_parameter, value);
-                                }
-                            }
-							onPressedChanged: {
-								if (pressed){
-									if (global_slider.selected_parameter == "fade_samples"){
-										knobs.set_loopler_knob("ui_set_all", -1, "fade_samples", from, to);
-										//
-									} else {
-										knobs.set_loopler_knob("ui_set_global", -1, global_slider.selected_parameter, from, to);
-									}
-								}
-							}
-                        }
-
-
-                    }
-
-                    Row {
-                        spacing: 25 
-                        height: 135
-                        width: parent.width
-
-                        Repeater {
-                            model: ["input_gain", "wet", "dry", "fade_samples"]
-
-                            ValueButton {
-                                width: 130
-                                height: 110
-                                // checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
-                                checked: global_slider.selected_parameter == modelData
-                                onClicked: {
-                                    if (looper_widget.midiLearn(modelData)){
-                                        return;
-                                    }
-                                    global_slider.selected_parameter = modelData
-                                    global_slider.Material.foreground = Constants.short_rainbow[index]
-                                    global_slider.force_update = !(global_slider.force_update)
-                                }
-                                Material.foreground: Constants.short_rainbow[index]
-                                text: LoopMap.parameter_map[modelData]
-                                value: modelData == "fade_samples" ? loopler.loops[0]["fade_samples"].toFixed(2)  : loopler[modelData].toFixed(2)
-                            }
-                        }
-                    }
-                }
-
-                // Rectangle {
-                //     x:  779
-                //     y: -16
-                //     width: 2
-                //     height: 270
-                //     z: 3
-                //     color: Constants.poly_grey
-                // }
-
-            }
-
-
-            
-
-            Rectangle {
-                x:  1010
-                y: 0
-                z: 3
-                width: 2
-                height: parent.height
-                color: Constants.poly_dark_grey
-            }
-
-            Column {
-                x: 1034
-                y: 20
-                height: 515
-                spacing: 14 
-                width: 270
-
-                Text {
-                    text: "Quantize"
-					color: Constants.loopler_purple
-                    width: 252
-                    font {
-                        pixelSize: 24
-                        capitalization: Font.AllUppercase
-                    }
-                    horizontalAlignment: Text.AlignHCenter
-                }
-
-                PolySpin {
-                    // anchors.horizontalCenter: parent.horizontalCenter
-                    width: 252
-                    height: 100
-                    font.pixelSize: 24
-                    Material.foreground: Constants.poly_green
-                    value: loopler.loops[0].quantize
-                    onValueModified: {
-                        loopler.ui_set_all("quantize", Number(value));
-                    }
-
-                }
-
-
-                Repeater {
-                    model: ["mute_quantized", "overdub_quantized", "relative_sync"]
-
-                    PolyButton {
-                        width: 252
-                        height: 64
-                        checked: loopler.loops[0][modelData] == 1.0
-                        // checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)
-                        onClicked: {
-                            if (looper_widget.midiLearn(modelData)){
-                                return;
-                            }
-                            loopler.ui_set_all(modelData, 1 - loopler.loops[current_loop][modelData])
-                            loopler.ui_unset_current_command();
-                        }
-                        onPressed: {
-                            loopler.ui_set_current_command("ui_set_all", [modelData, 1 - loopler.loops[current_loop][modelData]]);
-                        }
-                        Material.foreground: Constants.short_rainbow[index]
-                        Material.background: Constants.background_color
-                        text: LoopMap.parameter_map[modelData]
-                        font {
-                            pixelSize: 24
-                            capitalization: Font.AllUppercase
-                        }
-                    }
-
-                }
-            
-            }
-
-        }
     }
 
     Rectangle {
@@ -1278,7 +1320,7 @@ Item {
         icon.width: 86
         icon.height: 86
         // flat: false
-        icon.source: "../icons/digit/loopler/nav_buttons/Midi.png"
+        icon.source: "../icons/digit/loopler/midi.png"
         Material.background: Constants.background_color
         Material.foreground: midi_learn_select ? Constants.loopler_purple : "white"
         onClicked: {
@@ -1304,101 +1346,6 @@ Item {
     }
 
     IconButton {
-        x: 317 
-        y: 529
-        width: 86
-        height: 86
-        icon.width: 86
-        icon.height: 86
-        // flat: false
-        icon.source: "../icons/digit/loopler/nav_buttons/Global.png"
-        Material.background: Constants.background_color
-        Material.foreground: global_focused == 1 ? Constants.loopler_purple : "white"
-        onClicked: {
-            global_focused = 1 - global_focused 
-        }
-        // HelpLabel {
-        //     text: "Global"
-        // }
-    }
-
-    IconButton {
-        x: 491 
-        y: 529
-        width: 86
-        height: 86
-        icon.width: 86
-        icon.height: 86
-        // flat: false
-        icon.source: "../icons/digit/loopler/nav_buttons/Trigger.png"
-        Material.background: Constants.background_color
-        Material.foreground: LoopMap.command_map["trigger"] == loopler.loops[current_loop].state ? Constants.loopler_purple : "white"
-        onClicked: {
-            if (looper_widget.midiLearn("trigger")){
-                return;
-            }
-            loopler.ui_loop_command(current_loop, "trigger");
-            loopler.ui_unset_current_command();
-        }
-        onPressed: {
-            loopler.ui_set_current_command("ui_loop_command", [current_loop, "trigger"]);
-        }
-        // HelpLabel {
-        //     text: "Global"
-        // }
-    }
-
-    IconButton {
-        x: 597 
-        y: 529
-        width: 86
-        height: 86
-        icon.width: 86
-        icon.height: 86
-        // flat: false
-        icon.source: "../icons/digit/loopler/nav_buttons/Pause.png"
-        Material.background: Constants.background_color
-        Material.foreground: LoopMap.command_map["pause"] == loopler.loops[current_loop].state ? Constants.loopler_purple : "white"
-        onClicked: {
-            if (looper_widget.midiLearn("pause")){
-                return;
-            }
-            loopler.ui_loop_command(current_loop, "pause");
-            loopler.ui_unset_current_command();
-        }
-        onPressed: {
-            loopler.ui_set_current_command("ui_loop_command", [current_loop, "pause"]);
-        }
-        // HelpLabel {
-        //     text: "Global"
-        // }
-    }
-    IconButton {
-        x: 703 
-        y: 529
-        width: 86
-        height: 86
-        icon.width: 86
-        icon.height: 86
-        // flat: false
-        icon.source: "../icons/digit/loopler/nav_buttons/Record.png"
-        Material.background: Constants.background_color
-        Material.foreground: LoopMap.command_map["record"] == loopler.loops[current_loop].state ? Constants.loopler_purple : "white"
-        onClicked: {
-            if (looper_widget.midiLearn("record")){
-                return;
-            }
-            loopler.ui_loop_command(current_loop, "record");
-            loopler.ui_unset_current_command();
-        }
-        onPressed: {
-            loopler.ui_set_current_command("ui_loop_command", [current_loop, "record"]);
-        }
-        // HelpLabel {
-        //     text: "Global"
-        // }
-    }
-    IconButton {
         x: 883 
         y: 529
         width: 86
@@ -1407,7 +1354,7 @@ Item {
         icon.height: 86
         visible: loopler.loops.length > 1
         // flat: false
-        icon.source: "../icons/digit/loopler/nav_buttons/Bin.png"
+        icon.source: "../icons/digit/loopler/bin.png"
         Material.background: Constants.background_color
         onClicked: {
             loopler.ui_remove_loop()
