@@ -234,9 +234,9 @@ Item {
                                 }
                                 // onReleased: {
                                 // }
-                                Material.background: checked ? Constants.rainbow[index] : "transparent"
+                                Material.background: checked ? Constants.loopler_rainbow[index] : "transparent"
                                 Material.foreground: "transparent"
-                                Material.accent: Constants.rainbow[index] 
+                                Material.accent: Constants.loopler_rainbow[index] 
                                 radius: 3
                                 Label {
                                     x: 0
@@ -306,9 +306,9 @@ Item {
                                 }
                                 // onReleased: {
                                 // }
-                                Material.background: checked ? Constants.rainbow[index] : "transparent"
+                                Material.background: checked ? Constants.loopler_rainbow[index+7] : "transparent"
                                 Material.foreground: "transparent"
-                                Material.accent: Constants.rainbow[index] 
+                                Material.accent: Constants.loopler_rainbow[index+7] 
                                 radius: 3
                                 Label {
                                     x: 0
@@ -1065,7 +1065,7 @@ Item {
                             Image {
                                 x: 12
                                 y: 14
-                                source: "../icons/digit/loopler/commands/inactive/"+ LoopMap.state_png_map[loopler.loops[index].state.toString()] +".png"
+                                source: "../icons/digit/loopler/commands/loop_box/"+ LoopMap.state_png_map[loopler.loops[index].state.toString()] +".png"
                             }
 
                             Image {
