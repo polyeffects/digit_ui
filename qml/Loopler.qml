@@ -469,6 +469,9 @@ Item {
                                         }
                                          loop_slider.selected_parameter = modelData
                                          loop_slider.Material.foreground = Constants.short_rainbow[index]
+                                         var from = modelData  in LoopMap.param_bounds ? LoopMap.param_bounds[modelData][0] : 0
+                                         var to = modelData in LoopMap.param_bounds ? LoopMap.param_bounds[modelData][1] : 1
+                                         knobs.set_loopler_knob("ui_set", current_loop, modelData, from, to);
                                     }
                                     Material.foreground: Constants.short_rainbow[index]
                                     text: LoopMap.parameter_map[modelData]
@@ -656,6 +659,9 @@ Item {
                                         loop_slider_rate.selected_parameter = modelData
                                         loop_slider_rate.Material.foreground = Constants.short_rainbow[index]
                                         loop_slider_rate.force_update = !(loop_slider_rate.force_update)
+                                        var from = modelData  in LoopMap.param_bounds ? LoopMap.param_bounds[modelData][0] : 0
+                                        var to = modelData in LoopMap.param_bounds ? LoopMap.param_bounds[modelData][1] : 1
+                                        knobs.set_loopler_knob("ui_set", current_loop, modelData, from, to);
                                     }
                                     Material.foreground: Constants.short_rainbow[index]
                                     text: LoopMap.parameter_map[modelData]
@@ -846,6 +852,14 @@ Item {
                                             global_slider.selected_parameter = modelData
                                             global_slider.Material.foreground = Constants.short_rainbow[index]
                                             global_slider.force_update = !(global_slider.force_update)
+                                            var from = modelData  in LoopMap.param_bounds ? LoopMap.param_bounds[modelData][0] : 0
+                                            var to = modelData in LoopMap.param_bounds ? LoopMap.param_bounds[modelData][1] : 1
+                                            if (modelData == "fade_samples"){
+                                                knobs.set_loopler_knob("ui_set_all", -1, "fade_samples", from, to);
+                                                //
+                                            } else {
+                                                knobs.set_loopler_knob("ui_set_global", -1, modelData, from, to);
+                                            }
                                         }
                                         Material.foreground: Constants.short_rainbow[index]
                                         text: LoopMap.parameter_map[modelData]
