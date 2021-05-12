@@ -661,6 +661,9 @@ Item {
                                         loop_slider_rate.force_update = !(loop_slider_rate.force_update)
                                         var from = modelData  in LoopMap.param_bounds ? LoopMap.param_bounds[modelData][0] : 0
                                         var to = modelData in LoopMap.param_bounds ? LoopMap.param_bounds[modelData][1] : 1
+                                        if (modelData == "scratch_pos"){
+                                            loopler.ui_loop_command(current_loop, "scratch");
+                                        }
                                         knobs.set_loopler_knob("ui_set", current_loop, modelData, from, to);
                                     }
                                     Material.foreground: Constants.short_rainbow[index]

@@ -89,6 +89,7 @@ loop_commands = (
     'record_solo_prev',
     'set_sync_pos',
     'reset_sync_pos'
+    'scratch',
     )
 
 looper_parameters = (
