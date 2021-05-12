@@ -35,4 +35,4 @@ var command_map = {'undo': -2, 'overdub': 5, 'replace': 8, 'record': 2, 'solo': 
 
 var next_command_map = {'undo': -2, 'overdub': 5, 'replace': 8, 'solo': -2, 'oneshot': 12, 'reverse': -2, 'redo': -2, 'mute': 10, 'multiply': 6, 'insert': 7, 'substitute': 13, 'delay': 9, 'trigger': 4, 'pause': 14}
 
-var state_png_map = {'-1': 'play', '0': 'pause', '1': 'record', '2': 'record', '3': 'record', '4': 'play', '5': 'overdub', '6': 'multiply', '7': 'insert', '8': 'replace', '9': 'delay', '10': 'mute', '11': 'scratching', '12': 'oneshot', '13': 'substitute', '14': 'pause', '20': 'mute'}
+var state_png_map = {'-1': 'play', '0': 'pause', '1': 'record', '2': 'record', '3': 'record', '4': 'play', '5': 'overdub', '6': 'multiply', '7': 'insert', '8': 'replace', '9': 'delay', '10': 'mute', '11': 'scratch', '12': 'oneshot', '13': 'substitute', '14': 'pause', '20': 'mute'}

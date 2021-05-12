@@ -544,8 +544,8 @@ Item {
                             width:  714
                             property real multiplier: 1  
                             property bool is_log: false
-                            property string selected_parameter: "pitch_shift"
-                            property string v_type: selected_parameter == "pitch_shift" ? "int" : "float"
+                            property string selected_parameter: "rate"
+                            property string v_type: selected_parameter == "rate" ? "int" : "float"
                             property bool force_update: false
                             visible: v_type != "hide"
                             Material.foreground: Constants.short_rainbow[0]
@@ -645,7 +645,7 @@ Item {
                             width: parent.width
 
                             Repeater {
-                                model: ["pitch_shift", "stretch_ratio", "scratch_pos", "rate"]
+                                model: ["scratch_pos", "rate"]
 
                                 ValueButton {
                                     width: 160
