@@ -498,6 +498,7 @@ def load_preset(name, initial=False, force=False):
         delete_sub_graph(current_sub_graph)
         if loopler.is_running:
             loopler.stop_loopler()
+            reset_looper_footswitch_assignments()
     add_inc_sub_graph(False)
     # debug_print("adding inc sub graph", current_sub_graph)
     ingen_wrapper.load_pedalboard(name, current_sub_graph.rstrip("/"))
@@ -559,6 +560,7 @@ def from_backend_remove_effect(effect_name):
         if loopler_in_use() <= 1:
             if loopler.is_running:
                 loopler.stop_loopler()
+                reset_looper_footswitch_assignments()
     patch_bay_notify.remove_module.emit(effect_name)
     for k in footswitch_assignments.keys(): # if this module has a foot switch assigned to it
         footswitch_assignments[k].discard(effect_name)
@@ -1443,6 +1445,7 @@ def send_to_footswitch_blocks(timestamp, switch_name, value=0):
         looper_footswitch_assignments[foot_switch_name[-1]] = [loopler.current_command_params]
         # show foot switch selection screen, choose if for current loop, all loops, momentary, latching, toggle?
         # exclusive or adds on
+        ingen_wrapper.set_looper_footswitch(current_sub_graph.rstrip("/"), json.dumps(looper_footswitch_assignments))
         loopler.current_command_params = None
         return
 
@@ -1628,6 +1631,10 @@ def process_ui_messages():
             elif m[0] == "set_comment":
                 description, subject = m[1:]
                 preset_description.name = description
+            elif m[0] == "looper_footswitch":
+                footswitch, effect_name = m[1:]
+                global looper_footswitch_assignments
+                looper_footswitch_assignments = json.loads(footswitch)
             elif m[0] == "assign_footswitch":
                 footswitch, effect_name = m[1:]
                 if effect_name in current_effects:

@@ -122,7 +122,10 @@ ApplicationWindow {
         // EQWidget {
         
         // }
-        Loopler {
+        // Loopler {
+        
+        // }
+        ModuleBrowser {
         
         }
     }

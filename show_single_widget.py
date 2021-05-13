@@ -20,7 +20,7 @@ import resource_rc
 import loopler as loopler_lib
 
 EXIT_PROCESS = [False]
-# import patch_bay_model
+import module_browser_model
 
 
 current_source_port = None
@@ -43,6 +43,7 @@ if __name__ == "__main__":
     app.setFont(font)
     # Instantiate the Python object.
     # knobs = Knobs()
+    module_browser_model_s = module_browser_model.ModuleBrowserModel()
     loopler = loopler_lib.Loopler()
     loopler.start_loopler()
 
@@ -69,6 +70,7 @@ if __name__ == "__main__":
     # global context
     context = engine.rootContext()
     context.setContextProperty("loopler", loopler)
+    context.setContextProperty("module_browser_model", module_browser_model_s)
     # context.setContextProperty("knobs", knobs)
     # context.setContextProperty("available_effects", available_effects)
     # context.setContextProperty("selectedEffectPorts", selected_effect_ports)

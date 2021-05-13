@@ -72,6 +72,7 @@ patch_property = serd.curie("patch:property")
 patch_subject = serd.curie("patch:subject")
 patch_value = serd.curie("patch:value")
 poly_assigned_footswitch = serd.uri("http://polyeffects.com/ns/core#assigned_footswitch")
+poly_looper_footswitch = serd.uri("http://polyeffects.com/ns/core#looper_footswitch")
 poly_physical_port = serd.uri("http://polyeffects.com/ns/core#physical_port")
 rdf_type = serd.curie("rdf:type")
 rdfs_comment = serd.curie("rdfs:comment")
@@ -154,6 +155,9 @@ def set_tags(current_sub_graph, description):
 
 def set_footswitch_control(effect_id, foot_switch):
     q.put((ingen.put, effect_id, '<http://polyeffects.com/ns/core#assigned_footswitch> """%s"""' % foot_switch))
+
+def set_looper_footswitch(current_sub_graph, foot_switch):
+    q.put((ingen.put, current_sub_graph+"/control", '<http://polyeffects.com/ns/core#looper_footswitch> """%s"""' % foot_switch))
 
 def set_physical_port(effect_id, port):
     q.put((ingen.put, effect_id, '<http://polyeffects.com/ns/core#physical_port> """%s"""' % port))
@@ -445,6 +449,11 @@ def parse_ingen(to_parse):
                 value = get_body_value(body, poly_assigned_footswitch)
                 # print("### Got assigned foot switch", value, subject)
                 ui_queue.put(("assign_footswitch", value, subject))
+
+            if has_predicate(body, poly_looper_footswitch):
+                value = get_body_value(body, poly_looper_footswitch)
+                # print("### Got assigned foot switch", value, subject)
+                ui_queue.put(("looper_footswitch", value, subject))
 
             if has_object(body, ingen_Block):
                 # print("response is", t[0], "subject is", subject, "body is", body)
