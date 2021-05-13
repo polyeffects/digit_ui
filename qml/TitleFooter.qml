@@ -475,7 +475,7 @@ Item {
             icon.source: "../icons/digit/bottom_menu/Add.png"
             Material.background: accent_color.name
             onClicked: {
-                mainStack.push(addEffectCat);
+                mainStack.push("ModuleBrowser.qml");
             }
             HelpLabel {
                 text: "add"

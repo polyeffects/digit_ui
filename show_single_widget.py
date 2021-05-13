@@ -32,6 +32,99 @@ port_connections = {} # key is port, value is list of ports
 
 context = None
 
+class PolyValue(QObject):
+    # name, min, max, value
+    def __init__(self, startname="", startval=0, startmin=0, startmax=1, v_type="float", curve_type="lin", startcc=-1):
+        QObject.__init__(self)
+        self.nameval = startname
+        self.valueval = startval
+        self.defaultval = startval
+        self.rminval = startmin
+        self.rmax = startmax
+        self.ccval = startcc
+
+    def readValue(self):
+        return self.valueval
+
+    def setValue(self,val):
+        # clamp values
+        self.valueval = clamp(val, self.rmin, self.rmax)
+        self.value_changed.emit()
+        # debug_print("setting value", val)
+
+    @Signal
+    def value_changed(self):
+        pass
+
+    value = Property(float, readValue, setValue, notify=value_changed)
+
+    def readDefaultValue(self):
+        return self.defaultval
+
+    def setDefaultValue(self,val):
+        # clamp values
+        self.defaultval = clamp(val, self.rmin, self.rmax)
+        self.default_value_changed.emit()
+        # debug_print("setting value", val)
+
+    @Signal
+    def default_value_changed(self):
+        pass
+
+    default_value = Property(float, readDefaultValue, setDefaultValue, notify=default_value_changed)
+
+    def readCC(self):
+        return self.ccval
+
+    def setCC(self,val):
+        self.ccval = val
+        self.cc_changed.emit()
+        # debug_print("setting value", val)
+
+    @Signal
+    def cc_changed(self):
+        pass
+
+    cc = Property(float, readCC, setCC, notify=cc_changed)
+
+    def readName(self):
+        return self.nameval
+
+    def setName(self,val):
+        self.nameval = val
+        self.name_changed.emit()
+
+    @Signal
+    def name_changed(self):
+        pass
+
+    name = Property(str, readName, setName, notify=name_changed)
+
+    def readRMin(self):
+        return self.rminval
+
+    def setRMin(self,val):
+        self.rminval = val
+        self.rmin_changed.emit()
+
+    @Signal
+    def rmin_changed(self):
+        pass
+
+    rmin = Property(float, readRMin, setRMin, notify=rmin_changed)
+
+    def readRMax(self):
+        return self.rmaxval
+
+    def setRMax(self,val):
+        self.rmaxval = val
+        self.rmax_changed.emit()
+
+    @Signal
+    def rmax_changed(self):
+        pass
+
+    rmax = Property(float, readRMax, setRMax, notify=rmax_changed)
 
 if __name__ == "__main__":
 
@@ -69,8 +162,13 @@ if __name__ == "__main__":
     # Expose the object to QML.
     # global context
     context = engine.rootContext()
+
+    accent_color = PolyValue("#FFA0E0", 0, -1, 1)
+    current_pedal_model = PolyValue("beebo", 0, -1, 1)
     context.setContextProperty("loopler", loopler)
     context.setContextProperty("module_browser_model", module_browser_model_s)
+    context.setContextProperty("accent_color", accent_color)
+    context.setContextProperty("currentPedalModel", current_pedal_model)
     # context.setContextProperty("knobs", knobs)
     # context.setContextProperty("available_effects", available_effects)
     # context.setContextProperty("selectedEffectPorts", selected_effect_ports)

@@ -12,6 +12,10 @@ T.Button {
     property int radius: 3
     property int extra_padding: 0
     property bool has_border: true
+    property bool b_status: false
+    property color border_color: Constants.poly_dark_grey
+    property color background_color: Constants.background_color
+    property int font_size: 24
 
     implicitWidth: Math.max(background ? background.implicitWidth : 0,
                             contentItem.implicitWidth + leftPadding + rightPadding)
@@ -40,12 +44,12 @@ T.Button {
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             font {
-                pixelSize: 24
+                pixelSize: font_size
                 capitalization: Font.AllUppercase
             }
             // anchors.horizontalCenter: parent.horizontalCenter
             color: !control.enabled ? control.Material.hintTextColor :
-                control.checked ? Constants.background_color: control.Material.foreground
+                control.checked ? control.background_color: control.Material.foreground
         }
 
 
@@ -59,10 +63,10 @@ T.Button {
         width: parent.width
         height: parent.height 
         radius: control.radius
-        color: control.checked ? control.Material.foreground : Constants.background_color
+        color: control.checked ? control.Material.foreground : control.background_color
         border {
-            width: control.checked ? 0 : 3; 
-            color: Constants.poly_dark_grey
+            width: control.checked ? 0 : 2; 
+            color: border_color
         }
     }
 }

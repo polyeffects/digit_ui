@@ -33,6 +33,7 @@ import pedal_hardware
 import module_info
 from static_globals import IS_REMOTE_TEST
 import loopler as loopler_lib
+import module_browser_model
 
 worker_pool = QThreadPool()
 EXIT_PROCESS = [False]
@@ -1809,6 +1810,7 @@ if __name__ == "__main__":
     # Instantiate the Python object.
     knobs = Knobs()
     loopler = loopler_lib.Loopler()
+    module_browser_model_s = module_browser_model.ModuleBrowserModel()
 
 
     update_counter = PolyValue("update counter", 0, 0, 500000)
@@ -1854,6 +1856,7 @@ if __name__ == "__main__":
     context = engine.rootContext()
     context.setContextProperty("knobs", knobs)
     context.setContextProperty("loopler", loopler)
+    context.setContextProperty("module_browser_model", module_browser_model_s)
     change_pedal_model(pedal_state["model"], True)
     context.setContextProperty("available_effects", available_effects)
     context.setContextProperty("selectedSourceEffectPorts", selected_source_effect_ports)
