@@ -122,12 +122,12 @@ ApplicationWindow {
         // EQWidget {
         
         // }
-        // Loopler {
-        
-        // }
-        ModuleBrowser {
+        Loopler {
         
         }
+        // ModuleBrowser {
+        
+        // }
     }
     // PresetSave {
     // }

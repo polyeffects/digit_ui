@@ -17,7 +17,7 @@ needs: title, description, long_description, tags
 module_browser_singleton = None
 current_filters = set()
 current_letter = ""
-effect_prototypes  = {k:v for (k,v) in module_info.effect_prototypes_models_all.items() if k in module_info.effect_type_maps["beebo"]}
+effect_prototypes  = {k:module_info.effect_prototypes_models_all[k] for k in sorted(module_info.effect_prototypes_models_all) if k in module_info.effect_type_maps["beebo"]}
 filtered_modules = effect_prototypes
 
 class ModuleBrowserModel(QAbstractListModel):
@@ -53,6 +53,19 @@ class ModuleBrowserModel(QAbstractListModel):
 
     def endRemove(self):
         self.endRemoveRows()
+
+    @Slot()
+    def clear_filter(self):
+        global current_letter
+        current_letter = ""
+        current_filters.clear()
+
+        self.beginResetModel()
+        global filtered_modules
+
+        filtered_modules = effect_prototypes
+        self.__order = dict(enumerate(filtered_modules.keys()))
+        self.endResetModel()
 
     @Slot(str)
     def add_filter(self, tag):

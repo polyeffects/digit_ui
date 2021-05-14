@@ -645,13 +645,14 @@ Item {
                             width: parent.width
 
                             Repeater {
-                                model: ["scratch_pos", "rate"]
+                                model: ["scratch_pos", "rate", "pan_1", "pan_2"]
 
                                 ValueButton {
                                     width: 160
                                     height: 110
                                     // checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
                                     checked: loop_slider_rate.selected_parameter == modelData
+                                    visible: modelData != "pan_2" || loopler.loops[current_loop].channel_count > 1 
                                     onClicked: {
                                         if (looper_widget.midiLearn(modelData)){
                                             return;

@@ -5,7 +5,7 @@ from properties import PropertyMeta, Property
 
 l_thread = LooperThread()
 
-unused = ('redo_is_tap', 'use_rate', 'use_common_ins', 'use_common_outs', 'use_safety_feedback', 'pan_1', 'pan_2', 'pan_3', 'pan_4', 'input_latency', 'output_latency', 'trigger_latency', 'autoset_latency')
+unused = ('redo_is_tap', 'use_rate', 'use_common_ins', 'use_common_outs', 'use_safety_feedback', 'pan_3', 'pan_4', 'input_latency', 'output_latency', 'trigger_latency', 'autoset_latency')
 
 def clamp(v, min_value, max_value):
     return max(min(v, max_value), min_value)
@@ -61,8 +61,8 @@ class Loop(QObject, metaclass=PropertyMeta):
     # use_common_ins = Property(float)   # 0 = off,  not 0 = on
     # use_common_outs = Property(float)   # 0 = off,  not 0 = on
     # use_safety_feedback = Property(float)   # 0 = off, not 0 = on
-    # pan_1 = Property(float)        	# range 0 -> 1
-    # pan_2 = Property(float)        	# range 0 -> 1
+    pan_1 = Property(float)        	# range 0 -> 1
+    pan_2 = Property(float)        	# range 0 -> 1
     # pan_3 = Property(float)        	# range 0 -> 1
     # pan_4 = Property(float)        	# range 0 -> 1
     # # input_latency = Property(float) # range 0 -> ...

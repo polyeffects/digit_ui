@@ -85,7 +85,7 @@ Item {
             spacing: 12
             width: 420
             Repeater {
-                model: ['effect', 'MIDI', 'foot switch', 'modulation', 'envelope', 'chorus', 'IR', 'synth', 'reverb', 'dynamics', 'basic', 'filters', 'delay', 'controls', 'utilities', 'flanger', 'loops', 'rotary', 'weird', 'pitch', 'phaser']
+                model: ['vital', 'effect', 'MIDI', 'modulation', 'delay', 'chorus', 'synth', 'reverb', 'dynamics',  'filters', 'controls', 'utilities', 'flanger', 'IR', 'loops', 'weird', 'pitch', 'phaser', "mono", "stereo"]
 
                 PolyButton {
                     height: 75
@@ -141,7 +141,7 @@ Item {
                     text: l_effect.replace(/_/g, " ")
                     // anchors.top: parent.top
                     font {
-                        pixelSize: 24
+                        pixelSize: 30
                         family: mainFont.name
                         weight: Font.DemiBold
                         capitalization: Font.AllUppercase
@@ -149,14 +149,14 @@ Item {
                 }
                 Label {
                     x: 31
-                    y: 47
+                    y: 55
                     width: 598
                     height: 30
                     text: description // effectPrototypes[l_effect]["description"]
                     wrapMode: Text.Wrap
                     // anchors.top: parent.top
                     font {
-                        pixelSize: 20
+                        pixelSize: 24
                         family: docFont.name
                         weight: Font.Normal
                         // capitalization: Font.AllUppercase

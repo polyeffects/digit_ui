@@ -475,6 +475,7 @@ Item {
             icon.source: "../icons/digit/bottom_menu/Add.png"
             Material.background: accent_color.name
             onClicked: {
+                module_browser_model.clear_filter();
                 mainStack.push("ModuleBrowser.qml");
             }
             HelpLabel {

@@ -3,7 +3,7 @@ var parameter_map = {'input_gain': 'in gain', 'feedback': 'feedback', 'rec_thres
     'wet': 'out', 'playback_sync': 'play sync', 'use_feedback_play': 'play feedback', 'sync': 'sync',
     "pitch_shift": "pitch", "stretch_ratio": "stretch", "scratch_pos": "scratch", "rate":"rate",
     "mute_quantized":"mute quantized", "overdub_quantized":"overdub quantized", "relative_sync":"relative sync",
-    "fade_samples": "cross fade", "input_gain":"input gain", "wet": "wet", "dry":"dry"
+    "fade_samples": "cross fade", "input_gain":"input gain", "wet": "wet", "dry":"dry", "pan_1":"pan L", "pan_2": "pan R"
 };
 var rate_list = [0.5, 1, 2];
 var rate_bind_list = ["rate_05", "rate_1", "rate_2"];
