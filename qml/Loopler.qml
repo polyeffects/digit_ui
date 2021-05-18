@@ -43,6 +43,7 @@ Item {
         if (midi_learn_select){
             loopler.ui_bind_request(param, actual_current_loop);
             midi_learn_select = false;
+            loopler.ui_unset_current_command();
             return true;
         }
         else {
