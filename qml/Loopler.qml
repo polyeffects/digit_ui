@@ -1069,9 +1069,9 @@ Item {
                         height: 221
                         width: 296
                         // text: modelData
-                        checked: current_loop == index
+                        checked: actual_current_loop == index
                         onClicked: {
-                            if (current_loop == index){
+                            if (actual_current_loop == index){
                                 loopler.select_loop(-1);
                             }
                             else
