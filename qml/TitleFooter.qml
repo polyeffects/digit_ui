@@ -12,13 +12,14 @@ Item {
     property real current_footer_value: 0
     property bool show_footer_value: false
     property real currentPresetNum: currentPreset.value
+    property real loadCounter: presetCounter.value
     property string title_text: ""
     property int category_index: 0
 
-    onCurrentPresetNumChanged: {
-        console.log("presetnumchanged", currentPreset.value);
+    onLoadCounterChanged: {
+        console.log("load_counter_changed", presetCounter.value);
         if (patch_single.currentMode != PatchBay.Select){
-            console.log("hiding sliders");
+            console.log("load_counter_changed patchbay not select");
             if (patchStack.currentItem instanceof PatchBay) 
             {
                 // patch_single.selected_effect.hide_sliders(true);

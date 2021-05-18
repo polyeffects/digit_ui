@@ -29,7 +29,7 @@ var state_map = {//-1: 'unknown',
                12: 'OneShot',
                13: 'Substitute',
                14: 'Paused',
-               20: 'Off and muted'};//20 isn't documented...
+               20: 'Off and muted'};//20 isn't documented...  
 
 var command_map = {'undo': -2, 'overdub': 5, 'replace': 8, 'record': 2, 'solo': -2, 'oneshot': 12, 'reverse': -2, 'redo': -2, 'mute': 10, 'multiply': 6, 'insert': 7, 'substitute': 13, 'pause': 14, 'delay': 9, 'trigger': 4}
 

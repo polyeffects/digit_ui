@@ -226,8 +226,8 @@ Item {
             }
             flat: false
             icon.name: "back"
-            Material.background: "white"
-            Material.foreground: Constants.outline_color
+            Material.background: Constants.background_color
+            Material.foreground: "white" // Constants.outline_color
             onClicked: mainStack.pop()
         }
     }

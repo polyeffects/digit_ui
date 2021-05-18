@@ -365,8 +365,9 @@ def jump_to_preset(is_inc, num):
 
     if is_loading.value == True:
         return
-    # need to call frontend function to jump to home page
+    # TODO need to call frontend function to jump to home page
     p_list = preset_list_model.stringList()
+    preset_load_counter.value = preset_load_counter.value + 1
     if is_inc:
         current_preset.value = (current_preset.value + num) % len(p_list)
     else:
@@ -509,10 +510,10 @@ def load_preset(name, initial=False, force=False):
     # check if preset file exists
 
     loopler_file = name[len("file://"):].rsplit("/", 1)[0] + "/loopler.slsess"
-    # debug_print("checking if loopler_file exists", loopler_file)
+    debug_print("checking if loopler_file exists", loopler_file)
     if os.path.exists(loopler_file):
-        loopler.load_session(loopler_file)
-        # debug_print("it does", loopler_file)
+        loopler.session_file = loopler_file
+        debug_print("it does", loopler_file)
     time.sleep(0.1)
     ingen_wrapper.get_state("/engine")
 
@@ -1485,6 +1486,10 @@ def send_to_footswitch_blocks(timestamp, switch_name, value=0):
     if not found_effect and value == 0:
         if foot_switch_name == "foot_switch_c":
             handle_bypass()
+        elif foot_switch_name == "foot_switch_d":
+            previous_preset()
+        elif foot_switch_name == "foot_switch_e":
+            next_preset()
             # TODO add next / previous here
         else:
             # show you're pressing a footswitch that isn't connected to anything
@@ -1813,12 +1818,12 @@ if __name__ == "__main__":
     module_browser_model_s = module_browser_model.ModuleBrowserModel()
 
 
-    update_counter = PolyValue("update counter", 0, 0, 500000)
     # read persistant state
     pedal_state = {}
     load_pedal_state()
     current_bpm = PolyValue("BPM", 120, 30, 250) # bit of a hack
     current_preset = PolyValue("Default Preset", 0, 0, 127)
+    preset_load_counter = PolyValue("preset count", 0, 0, 500000)
     current_preset_filename = ""
     update_counter = PolyValue("update counter", 0, 0, 500000)
     command_status = [PolyValue("command status", -1, -10, 100000), PolyValue("command status", -1, -10, 100000)]
@@ -1864,6 +1869,7 @@ if __name__ == "__main__":
     context.setContextProperty("portConnections", port_connections)
     context.setContextProperty("effectPrototypes", effect_prototypes)
     context.setContextProperty("updateCounter", update_counter)
+    context.setContextProperty("presetCounter", preset_load_counter)
     context.setContextProperty("currentBPM", current_bpm)
     context.setContextProperty("dspLoad", dsp_load)
     context.setContextProperty("isPedalBypassed", pedal_bypassed)
