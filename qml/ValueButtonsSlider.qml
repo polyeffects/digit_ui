@@ -37,6 +37,11 @@ Item {
 						 slider.Material.foreground = Constants.rainbow[index]
 						 slider.force_update = !(slider.force_update)
 					}
+                    onPressedChanged: {
+                        if (pressed){
+                            knobs.set_knob_current_effect(current_effect, modelData);
+                        }
+                    }
 					Material.foreground: Constants.rainbow[index]
 					text: currentEffects[current_effect]["controls"][modelData].name
 					value: currentEffects[current_effect]["controls"][modelData].value.toFixed(2)
