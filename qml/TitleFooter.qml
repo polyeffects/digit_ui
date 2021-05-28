@@ -17,9 +17,9 @@ Item {
     property int category_index: 0
 
     onLoadCounterChanged: {
-        console.log("load_counter_changed", presetCounter.value);
+        // console.log("load_counter_changed", presetCounter.value);
         if (patch_single.currentMode != PatchBay.Select){
-            console.log("load_counter_changed patchbay not select");
+            // console.log("load_counter_changed patchbay not select");
             if (patchStack.currentItem instanceof PatchBay) 
             {
                 // patch_single.selected_effect.hide_sliders(true);

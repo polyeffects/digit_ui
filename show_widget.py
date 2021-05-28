@@ -1595,7 +1595,7 @@ def process_ui_messages():
                         if mapped_type in effect_type_map:
                             from_backend_new_effect(effect_name, mapped_type, x, y, is_enabled)
                     elif effect_type in bare_ports:
-                        debug_print("### adding in bare ports", m)
+                        # debug_print("### adding in bare ports", m)
                         from_backend_new_effect(effect_name, effect_type, x, y, is_enabled)
                     else:
                         from_backend_new_effect(effect_name, inv_effect_type_map[effect_type], x, y, is_enabled)
@@ -1622,7 +1622,7 @@ def process_ui_messages():
                     debug_print("checking if MIDI exists")
                     if not (current_sub_graph+"midi_in" in current_effects):
                         ingen_wrapper.add_midi_input(current_sub_graph+"midi_in", x=1192, y=(80 * 5))
-                        debug_print("adding MIDI")
+                        # debug_print("adding MIDI")
                     if not (current_sub_graph+"midi_out" in current_effects):
                         ingen_wrapper.add_midi_output(current_sub_graph+"midi_out", x=-20, y=(80 * 5))
                     if current_pedal_model.name == "hector" and not (current_sub_graph+"out_5" in current_effects):
@@ -1695,7 +1695,7 @@ def process_ui_messages():
                 except ValueError:
                     pass
             elif m[0] == "midi_learn":
-                debug_print("got midi_learn in process_ui")
+                # debug_print("got midi_learn in process_ui")
                 effect_name_parameter, value = m[1:]
                 effect_name, parameter = effect_name_parameter.rsplit("/", 1)
                 try:

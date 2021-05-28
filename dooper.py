@@ -533,7 +533,7 @@ class LooperThread:
         # info = namedtuple('MidiBinding', ['channel', 'type', "command", "instance", "lbound", "ubound", "style"])
    #      // i:ch s:type i:param  s:cmd  s:ctrl i:instance f:min_val_bound f:max_val_bound s:valstyle i:min_data i:max_data
             info_str = "{} {} {} {} {} {} {} {} {} 0 127".format(info.channel, info.type, info.param, info.command, info.control, info.instance, info.lbound, info.ubound, info.style)
-            print("learning midi binding", info_str)
+            # print("learning midi binding", info_str)
 
             self.send_osc('/learn_midi_binding', info_str, 'exclusive', self.server.url, '/sl/midi_bindings')
 

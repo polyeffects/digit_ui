@@ -151,10 +151,10 @@ class Loopler(QObject, metaclass=PropertyMeta):
             if k in looper_parameters and k not in unused_looper:
                 type(self).__dict__[k].setter(self, v)
         self.is_running = True
-        print("is session file, ", self.session_file )
+        # print("is session file, ", self.session_file )
         if self.session_file is not None:
             self.load_session(self.session_file)
-            print("loading session file, ", self.session_file )
+            # print("loading session file, ", self.session_file )
             self.session_file = None
 
     @Slot()
