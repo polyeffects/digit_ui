@@ -412,8 +412,14 @@ class LooperThread:
     def save_session(self, target_file):
         self.send_osc('/save_session', target_file, self.server.url, '/error')
 
+    def save_midi_bindings(self, target_file):
+        self.send_osc('/save_midi_bindings', target_file, "")
+
     def load_session(self, target_file):
         self.send_osc('/load_session', target_file, self.server.url, '/error')
+
+    def load_midi_bindings(self, target_file):
+        self.send_osc('/load_midi_bindings', target_file, "")
 
     def midi_learn(self, control, loop_num):
 

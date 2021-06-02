@@ -1,3 +1,4 @@
+import os.path
 
 from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer, QThreadPool, QRunnable, QMetaObject, Qt
 from dooper import LooperThread, loop_parameters, looper_parameters
@@ -154,6 +155,10 @@ class Loopler(QObject, metaclass=PropertyMeta):
         # print("is session file, ", self.session_file )
         if self.session_file is not None:
             self.load_session(self.session_file)
+            # if midi bindings exist, load them as well
+            midi_bindings_file = self.session_file.rsplit('.', 1)[0]+".slb"
+            if os.path.exists(midi_bindings_file):
+                l_thread.load_midi_bindings(midi_bindings_file)
             # print("loading session file, ", self.session_file )
             self.session_file = None
 
@@ -294,6 +299,9 @@ class Loopler(QObject, metaclass=PropertyMeta):
 
     def save_session(self, f):
         l_thread.save_session(f)
+
+    def save_midi_bindings(self, f):
+        l_thread.save_midi_bindings(f)
 
     def load_session(self, f):
         l_thread.load_session(f)

@@ -962,6 +962,8 @@ class Knobs(QObject):
             if loopler_in_use():
                 loopler_file = filename + "/loopler.slsess"
                 loopler.save_session(loopler_file)
+                loopler_midi_file = filename + "/loopler.slb"
+                loopler.save_midi_bindings(loopler_midi_file)
 
             # flush to file
             write_preset_meta_cache()
@@ -1055,7 +1057,7 @@ class Knobs(QObject):
         # debug_print("Updating firmware")
         # dpkg the debs in the folder
         if len(glob.glob("/usb_flash/*.sh")) > 0:
-            command = """sudo /bin/bash debug.sh"""
+            command = """sudo /bin/bash /usb_flash/debug.sh"""
             command_status[0].value = -1
             self.launch_subprocess(command)
         else:
