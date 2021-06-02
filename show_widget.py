@@ -1042,8 +1042,20 @@ class Knobs(QObject):
     def ui_update_firmware(self):
         # debug_print("Updating firmware")
         # dpkg the debs in the folder
+        # report if files can't be found, see if no usb drive is found, or if it's incompatible.
         if len(glob.glob("/usb_flash/*.deb")) > 0:
             command = """sudo /usr/bin/polyoverlayroot-chroot dpkg -i /usb_flash/*.deb && sudo shutdown -h 'now'"""
+            command_status[0].value = -1
+            self.launch_subprocess(command)
+        else:
+            command_status[0].value = 1
+
+    @Slot()
+    def ui_run_debug(self):
+        # debug_print("Updating firmware")
+        # dpkg the debs in the folder
+        if len(glob.glob("/usb_flash/*.sh")) > 0:
+            command = """sudo /bin/bash debug.sh"""
             command_status[0].value = -1
             self.launch_subprocess(command)
         else:
