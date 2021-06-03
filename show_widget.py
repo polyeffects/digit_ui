@@ -361,11 +361,12 @@ class PolyValue(QObject):
 
     rmax = Property(float, readRMax, setRMax, notify=rmax_changed)
 
-def jump_to_preset(is_inc, num):
+def jump_to_preset(is_inc, num, initial=False):
 
     if is_loading.value == True:
         return
     # TODO need to call frontend function to jump to home page
+    before_change_preset_num = current_preset.value
     p_list = preset_list_model.stringList()
     preset_load_counter.value = preset_load_counter.value + 1
     if is_inc:
@@ -375,8 +376,11 @@ def jump_to_preset(is_inc, num):
             current_preset.value = num
         else:
             return
-    debug_print("jumping to preset ", p_list[current_preset.value], "num is", num)
-    knobs.ui_load_preset_by_name(p_list[current_preset.value])
+    if before_change_preset_num == current_preset.value and not initial:
+        debug_print("already on preset, not jumping ", p_list[current_preset.value], "num is", num)
+    else:
+        debug_print("jumping to preset ", p_list[current_preset.value], "num is", num)
+        knobs.ui_load_preset_by_name(p_list[current_preset.value])
 
 def write_pedal_state():
     if IS_REMOTE_TEST:
@@ -1764,7 +1768,7 @@ def change_pedal_model(name, initial=False):
     inv_effect_type_map = {v:k for k, v in effect_type_map.items()}
     current_pedal_model.name = name
     load_preset_list()
-    jump_to_preset(False, 0)
+    jump_to_preset(False, 0, initial)
 
 def handle_MIDI_program_change():
     # This is pretty dodgy... but I don't want to depend on jack in the main process as it'll slow down startup
