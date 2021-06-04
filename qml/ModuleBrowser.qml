@@ -95,9 +95,7 @@ Item {
                     checked: b_status
                     // checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)
                     onClicked: {
-                        console.log("clicked", modelData)
                         module_browser_model.add_filter(modelData);
-                        console.log("checked is", checked);
                         b_status = !b_status;
                     }
                     Material.foreground: Constants.rainbow[index % 17]

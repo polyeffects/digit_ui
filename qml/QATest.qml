@@ -138,7 +138,7 @@ Item {
 
 			width: 250
             height: 200
-			text: "Run debug: " //+ currentIP.name.replace(/ /g, "\n")
+			text: "Run debug: " + commandStatus[1].name //+ currentIP.name.replace(/ /g, "\n")
 			font.pixelSize: 20
             // Component.onCompleted: contentItem.wrapMode = Text.WordWrap
 			// show screen explaining to put USB flash drive in

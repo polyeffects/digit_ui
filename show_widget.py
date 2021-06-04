@@ -154,6 +154,7 @@ if hardware_info["pedal"] == "digit":
 class MyEmitter(QObject):
     # setting up custom signal
     done = Signal(int)
+    stdout = Signal(str)
 
 class MyWorker(QRunnable):
 
@@ -165,10 +166,11 @@ class MyWorker(QRunnable):
 
     def run(self):
         # run subprocesses, grab output
-        ret_var = subprocess.call(self.command, shell=True)
+        ret_var = subprocess.run(self.command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
         if self.after is not None:
             self.after()
-        self.emitter.done.emit(ret_var)
+        self.emitter.done.emit(ret_var.returncode)
+        self.emitter.stdout.emit(ret_var.stdout+ret_var.stderr)
 
 class MyTask(QRunnable):
 
@@ -911,8 +913,12 @@ class Knobs(QObject):
         ingen_wrapper.set_file(effect_id, ir_file, is_cab)
 
     @Slot()
-    def ui_load_empty_preset(self):
-        knobs.ui_load_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
+    def ui_load_empty_preset(self, force=False):
+        if force:
+            # load_preset("file:///mnt/presets/beebo/Empty.ingen/main.ttl", True)
+            knobs.ui_load_qa_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
+        else:
+            knobs.ui_load_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
 
     @Slot(str)
     def ui_load_preset_by_name(self, preset_file):
@@ -945,6 +951,9 @@ class Knobs(QObject):
     def ui_save_pedalboard(self, pedalboard_name):
         # debug_print("saving", preset_name)
         # TODO add folders
+        if pedalboard_name.lower() == 'empty':
+            return
+
         current_preset.name = pedalboard_name
         ingen_wrapper.set_author(current_sub_graph.rstrip("/"), pedal_state["author"])
         ingen_wrapper.save_pedalboard("beebo", pedalboard_name, current_sub_graph.rstrip("/"))
@@ -1045,21 +1054,44 @@ class Knobs(QObject):
         self.launch_subprocess(command)
 
     @Slot()
+    def ui_shutdown(self):
+        ret_obj = subprocess.run("shutdown -h 'now'", shell=True)
+
+    @Slot()
     def ui_update_firmware(self):
         # debug_print("Updating firmware")
         # dpkg the debs in the folder
         # report if files can't be found, see if no usb drive is found, or if it's incompatible.
+        # clear preset to save CPU
+        self.ui_load_empty_preset(True)
+        # if the drive can't be remounted RW then auto repair the drive and restart
+        # /sbin/e2fsck -fy /dev/mmcblk0p1
+        command_status[0].name = "Firmware update failed. The files were found, the flash drive appears to work but something else happened, please contact us. info@polyeffects.com Extra debugging info:"
         if len(glob.glob("/usb_flash/*.deb")) > 0:
-            command = """sudo /usr/bin/polyoverlayroot-chroot dpkg -i /usb_flash/*.deb && sudo shutdown -h 'now'"""
+            command = """sudo /usr/bin/polyoverlayroot-chroot dpkg -i -E -G /usb_flash/*.deb && sync && sudo shutdown -h 'now'"""
+            # sync then sleep before shutdown
             command_status[0].value = -1
             self.launch_subprocess(command)
         else:
+            # no files found, is there a usb drive?
+            if os.path.exists("/dev/sda2"):
+                command_status[0].name = """Firmware update failed. There's a USB drive inserted but it's got more partitions than we expect...
+you'll need to flash the usb flash drive to a format that works for Beebo, please follow the instructions on the website"""
+            elif os.path.exists("/dev/sda1"):
+                # usb drive found, no files
+                command_status[0].name = """Firmware update failed. There's a USB drive inserted but it doesn't have the files unzipped directly on the drive.
+Please unzip the update and copy it directly to the drive. If that doesn't work, please contact info@polyeffects.com"""
+            elif os.path.exists("/dev/sda"):
+                command_status[0].name = """Firmware update failed. There's a USB drive inserted but it doesn't have any partitions on it...
+you'll need to flash the usb flash drive to a format that works for Beebo, please follow the instructions on the website"""
+            else:
+                command_status[0].name = """Firmware update failed. No USB drive found. If you've got another one please try that. If that doesn't work please contact us, info@polyeffecs.com"""
+
+            # 
             command_status[0].value = 1
 
     @Slot()
     def ui_run_debug(self):
-        # debug_print("Updating firmware")
-        # dpkg the debs in the folder
         if len(glob.glob("/usb_flash/*.sh")) > 0:
             command = """sudo /bin/bash /usb_flash/debug.sh"""
             command_status[0].value = -1
@@ -1142,6 +1174,11 @@ class Knobs(QObject):
         # debug_print("updating UI")
         command_status[0].value = ret_var
 
+    @Slot(str)
+    def on_worker_done_output(self, ret_var):
+        # debug_print("updating UI")
+        command_status[1].name = ret_var
+
     @Slot(int)
     def on_task_done(self, ret_var):
         # debug_print("updating UI")
@@ -1151,6 +1188,7 @@ class Knobs(QObject):
         # debug_print("launch_threadpool")
         worker = MyWorker(command, after)
         worker.emitter.done.connect(self.on_worker_done)
+        worker.emitter.stdout.connect(self.on_worker_done_output)
         worker_pool.start(worker)
 
     def launch_task(self, delay, command):
@@ -1841,10 +1879,10 @@ if __name__ == "__main__":
     load_pedal_state()
     current_bpm = PolyValue("BPM", 120, 30, 250) # bit of a hack
     current_preset = PolyValue("Default Preset", 0, 0, 127)
-    preset_load_counter = PolyValue("preset count", 0, 0, 500000)
+    preset_load_counter = PolyValue("", 0, 0, 500000)
     current_preset_filename = ""
-    update_counter = PolyValue("update counter", 0, 0, 500000)
-    command_status = [PolyValue("command status", -1, -10, 100000), PolyValue("command status", -1, -10, 100000)]
+    update_counter = PolyValue("", 0, 0, 500000)
+    command_status = [PolyValue("", -1, -10, 100000), PolyValue("", -1, -10, 100000)]
     delay_num_bars = PolyValue("Num bars", 1, 1, 16)
     dsp_load = PolyValue("DSP Load", 0, 0, 0.3)
     foot_switch_qa = {"a":PolyValue("a", 0, 0, 1), "b":PolyValue("b", 0, 0, 1), "c":PolyValue("c", 0, 0, 1), "d":PolyValue("d", 0, 0, 1), "e":PolyValue("e", 0, 0, 1)}

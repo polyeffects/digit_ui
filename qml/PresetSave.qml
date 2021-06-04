@@ -422,6 +422,7 @@ import QtQuick.Controls.Material 2.3
 							knobs.ui_save_pedalboard(currentPreset.name);
 							mainStack.pop()
 						}
+						visible: currentPreset.name != 'Empty'
                     }
 
                     Button {
