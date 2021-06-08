@@ -122,6 +122,7 @@ class Loopler(QObject, metaclass=PropertyMeta):
     # overdub_quantized = Property(int) # per loopo
     current_command_params = None
     session_file = None
+    change_only = {}
 
     def __init__(self):
         super().__init__()
@@ -214,6 +215,18 @@ class Loopler(QObject, metaclass=PropertyMeta):
     @Slot(str, "double")
     def ui_set_global(self, parameter, value):
         l_thread.set(parameter, value)
+
+    @Slot(str)
+    def ui_set_global_change(self, parameter):
+        if parameter in self.change_only:
+            if self.change_only[parameter] < 0:
+                self.change_only[parameter] = 1
+            else:
+                self.change_only[parameter] = -1
+            l_thread.set(parameter, self.change_only[parameter])
+        else:
+            self.change_only[parameter] = -1
+            l_thread.set(parameter, self.change_only[parameter])
 
     @Slot(int)
     def select_loop(self, loop_id):

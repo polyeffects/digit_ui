@@ -39,7 +39,7 @@ Item {
                     GlowingLabel {
 						width: 400
                         // color: "#ffffff"
-                        text: currentPedalModel.name+" FIRMWARE 3.4"
+                        text: currentPedalModel.name+" FIRMWARE 3.6"
                         color: accent_color.name
 						font {
 							pixelSize: 35
@@ -296,10 +296,10 @@ Item {
 
             IconButton {
                 x: 34 
-                y: 646
+                y: 610
                 icon.width: 15
                 icon.height: 25
-                width: 62
+                width: 120
                 height: 62
                 flat: false
                 icon.name: "back"

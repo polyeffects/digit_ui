@@ -111,10 +111,10 @@ for k in effect_prototypes_models.keys():
             "num_cv_in": 0,
             "controls": {}}
 
-bare_output_ports =  ("output", "midi_output", "loop_common_in")
+bare_output_ports =  ("output", "midi_output", "loop_common_in", "loop_extra_midi")
 bare_input_ports = ("input", "midi_input", "loop_common_out")
 bare_ports = bare_output_ports + bare_input_ports
-loopler_modules = ["loop_common_in", "loop_common_out"]
+loopler_modules = ["loop_common_in", "loop_common_out", "loop_extra_midi"]
 
 
 def clamp(v, min_value, max_value):
@@ -817,7 +817,7 @@ class Knobs(QObject):
         # calls backend to add effect
         global seq_num
         seq_num = seq_num + 1
-        # debug_print("add new effect", effect_type)
+        debug_print("add new effect", effect_type)
         # if there's existing effects of this type, increment the ID
         is_bare_port = effect_type in bare_ports
         num_sep = ""
@@ -831,11 +831,18 @@ class Knobs(QObject):
                 break
 
         if is_bare_port:
-            bare_ports_map = {"input" : "in", "output" : "out", "midi_input" : "midi_in", "midi_output" : "midi_out", "loop_common_in" : "out", "loop_common_out" : "in"}
+            debug_print("new effect si bare port")
+            bare_ports_map = {"input" : "in", "output" : "out", "midi_input" : "midi_in",
+                    "midi_output" : "midi_out", "loop_common_in" : "out",
+                    "loop_common_out" : "in",
+                    "loop_extra_midi": "midi_out"}
             if bare_ports_map[effect_type] == "in":
                 ingen_wrapper.add_input(effect_name, 900, 150)
-            if bare_ports_map[effect_type] == "out":
+            elif bare_ports_map[effect_type] == "out":
                 ingen_wrapper.add_output(effect_name, 900, 150)
+            elif effect_type == "loop_extra_midi":
+                debug_print("added loop midi out")
+                ingen_wrapper.add_loop_extra_midi(effect_name, 900, 150)
             # ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
         else:
             ingen_wrapper.add_plugin(effect_name, effect_type_map[effect_type])
@@ -1360,7 +1367,8 @@ def add_io():
     for i in range(1,5):
         ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
     ingen_wrapper.add_midi_input("/main/midi_in", x=1192, y=(80 * 5))
-    ingen_wrapper.add_midi_output("/main/midi_out", x=-20, y=(80 * 5))
+    ingen_wrapper.add_midi_output("/main/loop_extra_midi", x=20, y=(80 * 3))
+    ingen_wrapper.add_midi_output2("/main/midi_out", x=-20, y=(80 * 5))
     ingen_wrapper.add_output("/main/loop_common_in_1", x=1092, y=(80*1))
     ingen_wrapper.add_output("/main/loop_common_in_2", x=1092, y=(80*2))
     ingen_wrapper.add_input("/main/loop_common_out_1", x=20, y=(80*1))
@@ -1643,15 +1651,15 @@ def process_ui_messages():
                 from_backend_disconnect(head, tail)
             elif m[0] == "add_plugin":
                 effect_name, effect_type, x, y, is_enabled = m[1:6]
-                # debug_print("got add", m)
+                debug_print("got add", m)
                 if (effect_name not in current_effects and (effect_type in inv_effect_type_map or effect_type in bare_ports)):
-                    # debug_print("adding ", m)
+                    debug_print("adding ", m)
                     if effect_type == "http://polyeffects.com/lv2/polyfoot":
                         mapped_type = effect_name.rsplit("/", 1)[1].rstrip("123456789")
                         if mapped_type in effect_type_map:
                             from_backend_new_effect(effect_name, mapped_type, x, y, is_enabled)
                     elif effect_type in bare_ports:
-                        # debug_print("### adding in bare ports", m)
+                        debug_print("### adding in bare ports", m)
                         from_backend_new_effect(effect_name, effect_type, x, y, is_enabled)
                     else:
                         from_backend_new_effect(effect_name, inv_effect_type_map[effect_type], x, y, is_enabled)
