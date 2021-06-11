@@ -572,7 +572,7 @@ def from_backend_remove_effect(effect_name):
     patch_bay_notify.remove_module.emit(effect_name)
     for k in footswitch_assignments.keys(): # if this module has a foot switch assigned to it
         footswitch_assignments[k].discard(effect_name)
-    debug_print("removing effects, current keys", current_effects.keys())
+    # debug_print("removing effects, current keys", current_effects.keys())
 
     # current_effects.pop(effect_name) # done after UI removes it
     context.setContextProperty("portConnections", port_connections)
@@ -831,7 +831,7 @@ class Knobs(QObject):
                 break
 
         if is_bare_port:
-            debug_print("new effect si bare port")
+            # debug_print("new effect si bare port")
             bare_ports_map = {"input" : "in", "output" : "out", "midi_input" : "midi_in",
                     "midi_output" : "midi_out", "loop_common_in" : "out",
                     "loop_common_out" : "in",
@@ -841,7 +841,6 @@ class Knobs(QObject):
             elif bare_ports_map[effect_type] == "out":
                 ingen_wrapper.add_output(effect_name, 900, 150)
             elif effect_type == "loop_extra_midi":
-                debug_print("added loop midi out")
                 ingen_wrapper.add_loop_extra_midi(effect_name, 900, 150)
             # ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
         else:
