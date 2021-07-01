@@ -124,22 +124,31 @@ Item {
 
 		}
 
+		Button {
+			width: 250
+            height: 200
+			text: "back"
+			font.pixelSize: 20
+            // Component.onCompleted: contentItem.wrapMode = Text.WordWrap
+			// show screen explaining to put USB flash drive in
+			onClicked: mainStack.pop()
+
+		}
+		Button {
+
+			width: 250
+            height: 200
+			text: "Run debug: " + commandStatus[1].name //+ currentIP.name.replace(/ /g, "\n")
+			font.pixelSize: 20
+            // Component.onCompleted: contentItem.wrapMode = Text.WordWrap
+			// show screen explaining to put USB flash drive in
+			onClicked: {
+                knobs.ui_run_debug();
+			}
+
+		}
+
 	}
 
 
-	// text: currentBPM.value.toFixed(0) // + " BPM"
-
-	IconButton {
-		x: 14 
-		y: 646
-		icon.width: 15
-		icon.height: 25
-		width: 62
-		height: 62
-		flat: false
-		icon.name: "back"
-		Material.background: "white"
-		Material.foreground: Constants.outline_color
-		onClicked: mainStack.pop()
-	}
 }

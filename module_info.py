@@ -98,6 +98,7 @@ effect_type_maps = {"beebo" : {'ad_env_level': 'http://drobilla.net/plugins/omin
      'wet_dry_stereo': 'http://polyeffects.com/lv2/wet_dry_stereo',
      'loop_common_out': 'http://polyeffects.com/lv2/loop_common_out',
      'loop_common_in': 'http://polyeffects.com/lv2/loop_common_in',
+     'loop_extra_midi': 'http://polyeffects.com/lv2/loop_extra_midi',
      }}
 
 # categories effect, IO, control, synth, 
@@ -2014,6 +2015,13 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
              'long_description': '',
              'tags': {"loops"},
              "outputs": {"output": ["in", "AudioPort"]}},
+'loop_extra_midi': {'category': 1,
+            'controls': {},
+                 'inputs': {'input': ['out', 'AtomPort']},
+                 'description': 'Connect internal MIDI generators to the Looper, do not connect external MIDI here, will duplicate.',
+                 'long_description': 'For example trigger loops with a chaos controller module connected to a CV to CC then to this.',
+                'tags': {"loops"},
+                 'outputs': {}},
                     }
              
 

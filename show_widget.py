@@ -111,10 +111,10 @@ for k in effect_prototypes_models.keys():
             "num_cv_in": 0,
             "controls": {}}
 
-bare_output_ports =  ("output", "midi_output", "loop_common_in")
+bare_output_ports =  ("output", "midi_output", "loop_common_in", "loop_extra_midi")
 bare_input_ports = ("input", "midi_input", "loop_common_out")
 bare_ports = bare_output_ports + bare_input_ports
-loopler_modules = ["loop_common_in", "loop_common_out"]
+loopler_modules = ["loop_common_in", "loop_common_out", "loop_extra_midi"]
 
 
 def clamp(v, min_value, max_value):
@@ -154,6 +154,7 @@ if hardware_info["pedal"] == "digit":
 class MyEmitter(QObject):
     # setting up custom signal
     done = Signal(int)
+    stdout = Signal(str)
 
 class MyWorker(QRunnable):
 
@@ -165,10 +166,11 @@ class MyWorker(QRunnable):
 
     def run(self):
         # run subprocesses, grab output
-        ret_var = subprocess.call(self.command, shell=True)
+        ret_var = subprocess.run(self.command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
         if self.after is not None:
             self.after()
-        self.emitter.done.emit(ret_var)
+        self.emitter.done.emit(ret_var.returncode)
+        self.emitter.stdout.emit(ret_var.stdout+ret_var.stderr)
 
 class MyTask(QRunnable):
 
@@ -361,11 +363,12 @@ class PolyValue(QObject):
 
     rmax = Property(float, readRMax, setRMax, notify=rmax_changed)
 
-def jump_to_preset(is_inc, num):
+def jump_to_preset(is_inc, num, initial=False):
 
     if is_loading.value == True:
         return
     # TODO need to call frontend function to jump to home page
+    before_change_preset_num = current_preset.value
     p_list = preset_list_model.stringList()
     preset_load_counter.value = preset_load_counter.value + 1
     if is_inc:
@@ -375,8 +378,11 @@ def jump_to_preset(is_inc, num):
             current_preset.value = num
         else:
             return
-    debug_print("jumping to preset ", p_list[current_preset.value], "num is", num)
-    knobs.ui_load_preset_by_name(p_list[current_preset.value])
+    if before_change_preset_num == current_preset.value and not initial:
+        debug_print("already on preset, not jumping ", p_list[current_preset.value], "num is", num)
+    else:
+        debug_print("jumping to preset ", p_list[current_preset.value], "num is", num)
+        knobs.ui_load_preset_by_name(p_list[current_preset.value])
 
 def write_pedal_state():
     if IS_REMOTE_TEST:
@@ -566,7 +572,7 @@ def from_backend_remove_effect(effect_name):
     patch_bay_notify.remove_module.emit(effect_name)
     for k in footswitch_assignments.keys(): # if this module has a foot switch assigned to it
         footswitch_assignments[k].discard(effect_name)
-    debug_print("removing effects, current keys", current_effects.keys())
+    # debug_print("removing effects, current keys", current_effects.keys())
 
     # current_effects.pop(effect_name) # done after UI removes it
     context.setContextProperty("portConnections", port_connections)
@@ -811,7 +817,7 @@ class Knobs(QObject):
         # calls backend to add effect
         global seq_num
         seq_num = seq_num + 1
-        # debug_print("add new effect", effect_type)
+        debug_print("add new effect", effect_type)
         # if there's existing effects of this type, increment the ID
         is_bare_port = effect_type in bare_ports
         num_sep = ""
@@ -825,11 +831,17 @@ class Knobs(QObject):
                 break
 
         if is_bare_port:
-            bare_ports_map = {"input" : "in", "output" : "out", "midi_input" : "midi_in", "midi_output" : "midi_out", "loop_common_in" : "out", "loop_common_out" : "in"}
+            # debug_print("new effect si bare port")
+            bare_ports_map = {"input" : "in", "output" : "out", "midi_input" : "midi_in",
+                    "midi_output" : "midi_out", "loop_common_in" : "out",
+                    "loop_common_out" : "in",
+                    "loop_extra_midi": "midi_out"}
             if bare_ports_map[effect_type] == "in":
                 ingen_wrapper.add_input(effect_name, 900, 150)
-            if bare_ports_map[effect_type] == "out":
+            elif bare_ports_map[effect_type] == "out":
                 ingen_wrapper.add_output(effect_name, 900, 150)
+            elif effect_type == "loop_extra_midi":
+                ingen_wrapper.add_loop_extra_midi(effect_name, 900, 150)
             # ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
         else:
             ingen_wrapper.add_plugin(effect_name, effect_type_map[effect_type])
@@ -907,8 +919,12 @@ class Knobs(QObject):
         ingen_wrapper.set_file(effect_id, ir_file, is_cab)
 
     @Slot()
-    def ui_load_empty_preset(self):
-        knobs.ui_load_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
+    def ui_load_empty_preset(self, force=False):
+        if force:
+            # load_preset("file:///mnt/presets/beebo/Empty.ingen/main.ttl", True)
+            knobs.ui_load_qa_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
+        else:
+            knobs.ui_load_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
 
     @Slot(str)
     def ui_load_preset_by_name(self, preset_file):
@@ -941,6 +957,9 @@ class Knobs(QObject):
     def ui_save_pedalboard(self, pedalboard_name):
         # debug_print("saving", preset_name)
         # TODO add folders
+        if pedalboard_name.lower() == 'empty':
+            return
+
         current_preset.name = pedalboard_name
         ingen_wrapper.set_author(current_sub_graph.rstrip("/"), pedal_state["author"])
         ingen_wrapper.save_pedalboard("beebo", pedalboard_name, current_sub_graph.rstrip("/"))
@@ -962,6 +981,8 @@ class Knobs(QObject):
             if loopler_in_use():
                 loopler_file = filename + "/loopler.slsess"
                 loopler.save_session(loopler_file)
+                loopler_midi_file = filename + "/loopler.slb"
+                loopler.save_midi_bindings(loopler_midi_file)
 
             # flush to file
             write_preset_meta_cache()
@@ -1039,11 +1060,46 @@ class Knobs(QObject):
         self.launch_subprocess(command)
 
     @Slot()
+    def ui_shutdown(self):
+        ret_obj = subprocess.run("shutdown -h 'now'", shell=True)
+
+    @Slot()
     def ui_update_firmware(self):
         # debug_print("Updating firmware")
         # dpkg the debs in the folder
+        # report if files can't be found, see if no usb drive is found, or if it's incompatible.
+        # clear preset to save CPU
+        self.ui_load_empty_preset(True)
+        # if the drive can't be remounted RW then auto repair the drive and restart
+        # /sbin/e2fsck -fy /dev/mmcblk0p1
+        command_status[0].name = "Firmware update failed. The files were found, the flash drive appears to work but something else happened, please contact us. info@polyeffects.com Extra debugging info:"
         if len(glob.glob("/usb_flash/*.deb")) > 0:
-            command = """sudo /usr/bin/polyoverlayroot-chroot dpkg -i /usb_flash/*.deb && sudo shutdown -h 'now'"""
+            command = """sudo /usr/bin/polyoverlayroot-chroot dpkg -i -E -G /usb_flash/*.deb && sync && sudo shutdown -h 'now'"""
+            # sync then sleep before shutdown
+            command_status[0].value = -1
+            self.launch_subprocess(command)
+        else:
+            # no files found, is there a usb drive?
+            if os.path.exists("/dev/sda2"):
+                command_status[0].name = """Firmware update failed. There's a USB drive inserted but it's got more partitions than we expect...
+you'll need to flash the usb flash drive to a format that works for Beebo, please follow the instructions on the website"""
+            elif os.path.exists("/dev/sda1"):
+                # usb drive found, no files
+                command_status[0].name = """Firmware update failed. There's a USB drive inserted but it doesn't have the files unzipped directly on the drive.
+Please unzip the update and copy it directly to the drive. If that doesn't work, please contact info@polyeffects.com"""
+            elif os.path.exists("/dev/sda"):
+                command_status[0].name = """Firmware update failed. There's a USB drive inserted but it doesn't have any partitions on it...
+you'll need to flash the usb flash drive to a format that works for Beebo, please follow the instructions on the website"""
+            else:
+                command_status[0].name = """Firmware update failed. No USB drive found. If you've got another one please try that. If that doesn't work please contact us, info@polyeffecs.com"""
+
+            # 
+            command_status[0].value = 1
+
+    @Slot()
+    def ui_run_debug(self):
+        if len(glob.glob("/usb_flash/*.sh")) > 0:
+            command = """sudo /bin/bash /usb_flash/debug.sh"""
             command_status[0].value = -1
             self.launch_subprocess(command)
         else:
@@ -1124,6 +1180,11 @@ class Knobs(QObject):
         # debug_print("updating UI")
         command_status[0].value = ret_var
 
+    @Slot(str)
+    def on_worker_done_output(self, ret_var):
+        # debug_print("updating UI")
+        command_status[1].name = ret_var
+
     @Slot(int)
     def on_task_done(self, ret_var):
         # debug_print("updating UI")
@@ -1133,6 +1194,7 @@ class Knobs(QObject):
         # debug_print("launch_threadpool")
         worker = MyWorker(command, after)
         worker.emitter.done.connect(self.on_worker_done)
+        worker.emitter.stdout.connect(self.on_worker_done_output)
         worker_pool.start(worker)
 
     def launch_task(self, delay, command):
@@ -1304,7 +1366,8 @@ def add_io():
     for i in range(1,5):
         ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
     ingen_wrapper.add_midi_input("/main/midi_in", x=1192, y=(80 * 5))
-    ingen_wrapper.add_midi_output("/main/midi_out", x=-20, y=(80 * 5))
+    ingen_wrapper.add_midi_output("/main/loop_extra_midi", x=20, y=(80 * 3))
+    ingen_wrapper.add_midi_output2("/main/midi_out", x=-20, y=(80 * 5))
     ingen_wrapper.add_output("/main/loop_common_in_1", x=1092, y=(80*1))
     ingen_wrapper.add_output("/main/loop_common_in_2", x=1092, y=(80*2))
     ingen_wrapper.add_input("/main/loop_common_out_1", x=20, y=(80*1))
@@ -1587,15 +1650,15 @@ def process_ui_messages():
                 from_backend_disconnect(head, tail)
             elif m[0] == "add_plugin":
                 effect_name, effect_type, x, y, is_enabled = m[1:6]
-                # debug_print("got add", m)
+                debug_print("got add", m)
                 if (effect_name not in current_effects and (effect_type in inv_effect_type_map or effect_type in bare_ports)):
-                    # debug_print("adding ", m)
+                    debug_print("adding ", m)
                     if effect_type == "http://polyeffects.com/lv2/polyfoot":
                         mapped_type = effect_name.rsplit("/", 1)[1].rstrip("123456789")
                         if mapped_type in effect_type_map:
                             from_backend_new_effect(effect_name, mapped_type, x, y, is_enabled)
                     elif effect_type in bare_ports:
-                        # debug_print("### adding in bare ports", m)
+                        debug_print("### adding in bare ports", m)
                         from_backend_new_effect(effect_name, effect_type, x, y, is_enabled)
                     else:
                         from_backend_new_effect(effect_name, inv_effect_type_map[effect_type], x, y, is_enabled)
@@ -1750,7 +1813,7 @@ def change_pedal_model(name, initial=False):
     inv_effect_type_map = {v:k for k, v in effect_type_map.items()}
     current_pedal_model.name = name
     load_preset_list()
-    jump_to_preset(False, 0)
+    jump_to_preset(False, 0, initial)
 
 def handle_MIDI_program_change():
     # This is pretty dodgy... but I don't want to depend on jack in the main process as it'll slow down startup
@@ -1823,10 +1886,10 @@ if __name__ == "__main__":
     load_pedal_state()
     current_bpm = PolyValue("BPM", 120, 30, 250) # bit of a hack
     current_preset = PolyValue("Default Preset", 0, 0, 127)
-    preset_load_counter = PolyValue("preset count", 0, 0, 500000)
+    preset_load_counter = PolyValue("", 0, 0, 500000)
     current_preset_filename = ""
-    update_counter = PolyValue("update counter", 0, 0, 500000)
-    command_status = [PolyValue("command status", -1, -10, 100000), PolyValue("command status", -1, -10, 100000)]
+    update_counter = PolyValue("", 0, 0, 500000)
+    command_status = [PolyValue("", -1, -10, 100000), PolyValue("", -1, -10, 100000)]
     delay_num_bars = PolyValue("Num bars", 1, 1, 16)
     dsp_load = PolyValue("DSP Load", 0, 0, 0.3)
     foot_switch_qa = {"a":PolyValue("a", 0, 0, 1), "b":PolyValue("b", 0, 0, 1), "c":PolyValue("c", 0, 0, 1), "d":PolyValue("d", 0, 0, 1), "e":PolyValue("e", 0, 0, 1)}

@@ -391,7 +391,7 @@ class LooperThread:
 
     @property
     def sync_source(self):
-        # s = self.__dict__['sync_source']
+        s = self.__dict__['sync_source']
         # if s > 0:
         return int(s)
         # else:
@@ -412,8 +412,14 @@ class LooperThread:
     def save_session(self, target_file):
         self.send_osc('/save_session', target_file, self.server.url, '/error')
 
+    def save_midi_bindings(self, target_file):
+        self.send_osc('/save_midi_bindings', target_file, "")
+
     def load_session(self, target_file):
         self.send_osc('/load_session', target_file, self.server.url, '/error')
+
+    def load_midi_bindings(self, target_file):
+        self.send_osc('/load_midi_bindings', target_file, "")
 
     def midi_learn(self, control, loop_num):
 
@@ -435,7 +441,18 @@ class LooperThread:
             info.control = "tempo"
 
         elif (val == "taptempo"):
+            info.instance = -2
             info.control = "tap_tempo"
+
+        elif (val == "select_next_loop"):
+            info.type = "on"
+            info.instance = -2
+            info.control = "select_next_loop"
+
+        elif (val == "select_prev_loop"):
+            info.type = "on"
+            info.instance = -2
+            info.control = "select_prev_loop"
 
         elif (val == "eighth"):
             info.control = "eighth_per_cycle"
@@ -491,21 +508,21 @@ class LooperThread:
             info.instance = -1
 
         elif (val == "rate_1"):
-            info.type = "n"
+            info.type = "on"
             info.control = "rate"
             info.command = "set"
             info.lbound = 1.0
             info.ubound = 1.0
 
         elif (val == "rate_05"):
-            info.type = "n"
+            info.type = "on"
             info.control = "rate"
             info.command = "set"
             info.lbound = 0.5
             info.ubound = 0.5
 
         elif (val == "rate_2"):
-            info.type = "n"
+            info.type = "on"
             info.control = "rate"
             info.command = "set"
             info.lbound = 2.0
@@ -517,7 +534,7 @@ class LooperThread:
         elif (val in ('rec_thresh', 'feedback', 'scratch_pos', 'pan_1', 'pan_2')):
             info.control = val
         else:
-            info.type = "n"
+            info.type = "on"
             info.control = val
             info.command = "note"
             #donothing = true
@@ -533,7 +550,7 @@ class LooperThread:
         # info = namedtuple('MidiBinding', ['channel', 'type', "command", "instance", "lbound", "ubound", "style"])
    #      // i:ch s:type i:param  s:cmd  s:ctrl i:instance f:min_val_bound f:max_val_bound s:valstyle i:min_data i:max_data
             info_str = "{} {} {} {} {} {} {} {} {} 0 127".format(info.channel, info.type, info.param, info.command, info.control, info.instance, info.lbound, info.ubound, info.style)
-            # print("learning midi binding", info_str)
+            # print("sending osc learning midi binding", info_str)
 
             self.send_osc('/learn_midi_binding', info_str, 'exclusive', self.server.url, '/sl/midi_bindings')
 
