@@ -68,11 +68,6 @@ Rectangle {
     beatsArray = beatsArray.reverse()
     var currentBeatIndex = beatsArray.indexOf(currentBeat[trackIndex])
 
-    if (!trackModel.get(trackIndex).isEnabled) {
-      ctx.globalAlpha = 0
-      return
-    }
-
     for (i = 0; i < steps; i++) {
       if (i === currentBeatIndex) {
         styleStep(2, trackModel.get(trackIndex).trackColor, Constants.background_color, ctx, steps, i, radius, 15.5)
@@ -99,7 +94,9 @@ Rectangle {
       var ctx = getContext("2d");
       ctx.reset()
       for (var i = 0; i < radiusArray.length; i++) {
-        drawArchs(radiusArray[i], ctx, i);
+        if (trackModel.get(i).isEnabled) {
+          drawArchs(radiusArray[i], ctx, i);
+        }
       }
     }
   }
