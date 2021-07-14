@@ -125,7 +125,10 @@ ApplicationWindow {
         // Loopler {
         
         // }
-        ModuleBrowser {
+        // ModuleBrowser {
+        
+        // }
+        EuclideanSequencer {
         
         }
     }

@@ -12,10 +12,13 @@ var poly_yellow = "#FFD645";
 var poly_purple = "#AC8EFF";
 var loopler_purple = "#FFA9EC";
 var poly_dark_grey = "#282828";
+var poly_very_dark_grey = "#151515";
 var poly_grey = "#323232";
 var left_col = 130; 
 var port_color_map = {"AudioPort": audio_color, "CVPort": cv_color, 
     "ControlPort": control_color, "AtomPort": midi_color};
+var port_display_name = {"AudioPort": "AUDIO", "CVPort": "CV", 
+    "ControlPort": "TEMPO", "AtomPort": "MIDI"};
 var rainbow = ["#FF2C6B", "#FF7B8B", "#FF8540", "#FF9E45", "#FFD645", "#FFF84E", "#B1FF81", "#3ED279", "#4CCBC5", "#80FFE8", "#5CE2FF", "#00B2FF", "#74CBFC", "#2077EE", "#AC8EFF", "#E680FF", "#FF75D0"];
 var short_rainbow = ["#80FFE8", "#53A2FD", "#FF75D0", "#FFC045", "#FF9E45"];
 var longer_rainbow = ["#53A2FD", "#AC8EFF", "#FF75D0", "#FF7B8B", "#FF9E45", "#FFD645", "#B1FF81", "#4CCBC5", "#80FFE8", "74CBFC"];

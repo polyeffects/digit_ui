@@ -76,8 +76,8 @@ class PatchMode(IntEnum):
 context = None
 
 def debug_print(*args, **kwargs):
-    pass
-    # print( "From py: "+" ".join(map(str,args)), **kwargs)
+    # pass
+    print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 
 effect_type_maps = module_info.effect_type_maps
@@ -715,6 +715,11 @@ class Knobs(QObject):
                     #     if len(current_effects[id]["controls"]) > 0:
                     #         effect["highlight"] = True
                     # else:
+                    if current_pedal_model.name == "hector":
+                        if effect["effect_type"] == "output":
+                            effect["highlight"].value = True
+                            debug_print("hector port name is", port_name, "effect id", id)
+
                     for input_port, style in effect_prototypes[effect["effect_type"]]["inputs"].items():
                         if style[1] == out_port_type:
                             # highlight and break
@@ -761,17 +766,28 @@ class Knobs(QObject):
     @Slot(bool, str, bool)
     def select_effect(self, is_source, effect_id, restrict_port_types=True):
         effect_type = current_effects[effect_id]["effect_type"]
-        # debug_print("selecting effect type", effect_type)
+        debug_print("selecting effect type", effect_type, is_source, current_pedal_model.name)
         if is_source:
-            ports = [k+'|'+v[0] for k,v in effect_prototypes[effect_type]["outputs"].items()]
+            ports = sorted([v[1]+'|'+v[0]+'|'+k for k,v in effect_prototypes[effect_type]["outputs"].items()])
             selected_source_effect_ports.setStringList(ports)
         else:
+
             s_effect_id, s_port = connect_source_port.name.rsplit("/", 1)
             source_port_type = effect_prototypes[current_effects[s_effect_id]["effect_type"]]["outputs"][s_port][1]
+            # if hector, if source is an physical input or output is a physical output, 
+            # disable restrict_port_types
+            if current_pedal_model.name == "hector":
+                debug_print("is hector select_effect 1", effect_type, current_effects[s_effect_id]["effect_type"])
+                if effect_type in ["output", "midi_output"] or current_effects[s_effect_id]["effect_type"] in ["input", "midi_input"]:
+                    restrict_port_types = False
+                    debug_print("is hector select_effect 1, restrict_port_types", restrict_port_types)
+
             if restrict_port_types or source_port_type == "AtomPort":
-                ports = [k+'|'+v[0] for k,v in effect_prototypes[effect_type]["inputs"].items() if v[1] == source_port_type]
+                ports = sorted([v[1]+'|'+v[0]+'|'+k for k,v in effect_prototypes[effect_type]["inputs"].items() if v[1] == source_port_type])
             else:
-                ports = [k+'|'+v[0] for k,v in effect_prototypes[effect_type]["inputs"].items() if v[1] != "AtomPort"]
+                ports = sorted([v[1]+'|'+v[0]+'|'+k for k,v in effect_prototypes[effect_type]["inputs"].items() if v[1] != "AtomPort"])
+
+            debug_print("ports is ", ports)
             selected_dest_effect_ports.setStringList(ports)
 
     @Slot(str)
@@ -1361,10 +1377,16 @@ def io_new_effect(effect_name, effect_type, x=20, y=30):
                 "highlight": PolyBool(False)}
 
 def add_io():
-    for i in range(1,5):
-        ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
-    for i in range(1,5):
-        ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
+    if current_pedal_model.name == "hector":
+        for i in range(1,7):
+            ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
+        for i in range(1,9):
+            ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
+    else:
+        for i in range(1,5):
+            ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
+        for i in range(1,5):
+            ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
     ingen_wrapper.add_midi_input("/main/midi_in", x=1192, y=(80 * 5))
     ingen_wrapper.add_midi_output("/main/loop_extra_midi", x=20, y=(80 * 3))
     ingen_wrapper.add_midi_output2("/main/midi_out", x=-20, y=(80 * 5))
@@ -1689,8 +1711,11 @@ def process_ui_messages():
                     if not (current_sub_graph+"midi_out" in current_effects):
                         ingen_wrapper.add_midi_output(current_sub_graph+"midi_out", x=-20, y=(80 * 5))
                     if current_pedal_model.name == "hector" and not (current_sub_graph+"out_5" in current_effects):
-                        # add hector IO TODO
-                        pass
+                        # add hector IO
+                        for i in range(5,7):
+                            ingen_wrapper.add_input(current_sub_graph+"in_"+str(i), x=1192, y=(80*i))
+                        for i in range(5,9):
+                            ingen_wrapper.add_output(current_sub_graph+"out_"+str(i), x=-20, y=(80 * i))
 
             elif m[0] == "dsp_load":
                 max_load, mean_load, min_load = m[1:]

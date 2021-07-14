@@ -33,8 +33,9 @@ Rectangle {
 	property int rotaryTabIndex: 0
 	property bool set_hold: false
 	property bool was_hold: false
+    property bool is_io: ["input", "output", "midi_input", "midi_output"].indexOf(effect_type) >= 0
 
-    color: !effect_type.startsWith("foot_switch_") ? Constants.background_color : currentEffects[effect_id]["controls"]["cur_out"].value > 0.9 ? Constants.cv_color : Constants.background_color
+    color: is_io ? Constants.poly_very_dark_grey : !effect_type.startsWith("foot_switch_") ? Constants.background_color : currentEffects[effect_id]["controls"]["cur_out"].value > 0.9 ? Constants.cv_color : Constants.background_color
 
     function isAudio(item){
         return effectPrototypes[effect_type]["inputs"][item][1] == "AudioPort"
@@ -60,7 +61,6 @@ Rectangle {
     property var input_keys: Object.keys(effectPrototypes[effect_type]["inputs"]).filter(isRightInput) 
     property var output_keys: Object.keys(effectPrototypes[effect_type]["outputs"])
     property bool has_ui: ['bitmangle', 'comparator', 'chebyschev_waveshaper', 'meta_modulation', 'wavefolder', 'vocoder', 'doppler_panner', 'twist_delay', 'frequency_shifter', 'rotary_advanced'].indexOf(effect_type) >= 0
-    property bool is_io: ["input", "output", "midi_input", "midi_output"].indexOf(effect_type) >= 0
     property var sliders; 
     // border { width:2; color: Material.color(Material.Cyan, Material.Shade100)}
     // Drag.active: mouseArea.drag.active
@@ -68,7 +68,7 @@ Rectangle {
     // width: (effect_id.length * 1.6) + 100
     width: 115
     // height: is_io ? 80 : 68
-    height: output_keys.length > 2 || input_keys.length > 2 ? (Math.max(output_keys.length, input_keys.length)- 1)*18 + 72 : 72
+    height: output_keys.length > 2 || input_keys.length > 2 ? (Math.max(output_keys.length, input_keys.length)- 1)*18 + 72 : is_io ? 58 : 72
     // spacing: 14
     radius: 6
 
@@ -165,15 +165,35 @@ Rectangle {
             var matched = 0;
             var matched_id = 0;
             // console.log("source port ", source_port_pair);
-            // console.log("source port ", effect_id);
+            console.log("two finger connect source port ", effect_id);
             k = Object.keys(effectPrototypes[effect_type]["inputs"])
-            for (var i in k) {
-                // console.log("port name is ", i[k]);
-                if (effectPrototypes[effect_type]["inputs"][k[i]][1] == source_port_type){
-                    matched++;
-                    matched_id = i;
+
+            if (currentPedalModel.name == "hector"){
+                if (currentEffects[source_port_pair[0]]["effect_type"] == "input" || effect_type == "output"){
+                    matched = k.length;
+                    console.log("matched, hector", matched);
+
+                } else {
+                    for (var i in k) {
+                        // console.log("port name is ", i[k]);
+                        if (effectPrototypes[effect_type]["inputs"][k[i]][1] == source_port_type){
+                            matched++;
+                            matched_id = i;
+                        }
+                    }
+                    console.log("not matched, hector", matched);
                 }
-            }
+            } else {
+                for (var i in k) {
+                    // console.log("port name is ", i[k]);
+                    if (effectPrototypes[effect_type]["inputs"][k[i]][1] == source_port_type){
+                        matched++;
+                        matched_id = i;
+                    }
+                }
+                console.log("not hector", matched);
+            } 
+            console.log("final matched", matched);
             if (matched > 1 )
             {
                 mainStack.push(destPortSelection);
@@ -428,7 +448,10 @@ Rectangle {
     }
 
 
-    border { width:2; color: patch_bay.selected_effect == rect ? accent_color.name : "white"}
+    border { 
+        width: !is_io || patch_bay.selected_effect == rect ? 2 : 0; 
+        color: patch_bay.selected_effect == rect ? accent_color.name : "white"
+    }
 
     Column {
         id: output_rec
@@ -545,7 +568,7 @@ Rectangle {
         anchors.top: parent.top
         anchors.topMargin: 4
         anchors.horizontalCenter: parent.horizontalCenter
-        text: effect_title == "midi in" ? "MIDI\nIN" : effect_title
+        text: !rect.is_io ? effect_title : effect_title == "midi in" || effect_title == "midi out" ? "M" : effect_title.slice(-1) == " " ? "1" : effect_title.slice(-1)
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         wrapMode: Text.WordWrap

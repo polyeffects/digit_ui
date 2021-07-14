@@ -17,7 +17,7 @@ import icons.icons
 # #, imagine_assets
 import resource_rc
 
-import loopler as loopler_lib
+#import loopler as loopler_lib
 
 EXIT_PROCESS = [False]
 import module_browser_model
@@ -137,8 +137,8 @@ if __name__ == "__main__":
     # Instantiate the Python object.
     # knobs = Knobs()
     module_browser_model_s = module_browser_model.ModuleBrowserModel()
-    loopler = loopler_lib.Loopler()
-    loopler.start_loopler()
+    #loopler = loopler_lib.Loopler()
+    #loopler.start_loopler()
 
     # update_counter = PolyValue("update counter", 0, 0, 500000)
     # read persistant state
@@ -165,7 +165,7 @@ if __name__ == "__main__":
 
     accent_color = PolyValue("#FFA0E0", 0, -1, 1)
     current_pedal_model = PolyValue("beebo", 0, -1, 1)
-    context.setContextProperty("loopler", loopler)
+    # context.setContextProperty("loopler", loopler)
     context.setContextProperty("module_browser_model", module_browser_model_s)
     context.setContextProperty("accent_color", accent_color)
     context.setContextProperty("currentPedalModel", current_pedal_model)
@@ -236,7 +236,7 @@ if __name__ == "__main__":
         sleep(0.01)
 
     qWarning("mainloop exited")
-    loopler.stop_loopler()
+    # loopler.stop_loopler()
     app.exit()
     sys.exit()
     qWarning("sys exit called")

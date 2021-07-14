@@ -25,6 +25,7 @@ import "polyconst.js" as Constants
 			Details,
 			Hold
         }
+
         property int active_width: 900
         property int updateCount: updateCounter, externalRefresh()
         property int current_index: -1
@@ -65,6 +66,20 @@ import "polyconst.js" as Constants
             return maxsplit ? [ split.slice(0, -maxsplit).join(sep) ].concat(split.slice(-maxsplit)) : split;
         }
 
+        function calc_io_y(l_effect_id){
+            var effect_type = currentEffects[l_effect_id]["effect_type"];
+            var offset = 40;
+            if (effect_type == "input"){
+                return offset + (74 *  (Number(l_effect_id.slice(-1) - 1)))
+            } else if (effect_type == "output"){
+                return offset + (58 *  (Number(l_effect_id.slice(-1) - 1)))
+            } else if (effect_type == "midi_input"){
+                return offset + (74 *  6)
+            } else if (effect_type == "midi_output"){
+                return offset + (58 *  8)
+            }
+        }
+
         signal reAddModule(string l_effect_id)
         signal reRemoveModule(string l_effect_id)
         signal reLoadingPreset(bool is_loading_preset)
@@ -77,13 +92,26 @@ import "polyconst.js" as Constants
 
                 // console.log("add module signal ", l_effect_id);
                 
-                effect_map[l_effect_id] = patchWrap.createObject(patch_bay, { effect_id: l_effect_id,
-                    effect_type: currentEffects[l_effect_id]["effect_type"],
-                    x: currentEffects[l_effect_id]["x"],
-                    y: currentEffects[l_effect_id]["y"],
-                    // highlight: currentEffects[l_effect_id]["highlight"]
-                });
+                if (currentPedalModel.name == "beebo")
+                {
+                    effect_map[l_effect_id] = patchWrap.createObject(patch_bay, { effect_id: l_effect_id,
+                        effect_type: currentEffects[l_effect_id]["effect_type"],
+                        x: currentEffects[l_effect_id]["x"],
+                        y: currentEffects[l_effect_id]["y"],
+                        // highlight: currentEffects[l_effect_id]["highlight"]
+                    });
                 
+                }
+                else
+                {
+                    var is_io = ["input", "output", "midi_input", "midi_output"].indexOf(currentEffects[l_effect_id]["effect_type"]) >= 0
+                    effect_map[l_effect_id] = patchWrap.createObject(patch_bay, { effect_id: l_effect_id,
+                        effect_type: currentEffects[l_effect_id]["effect_type"],
+                        x: currentEffects[l_effect_id]["x"],
+                        y: !is_io ? currentEffects[l_effect_id]["y"] :  calc_io_y(l_effect_id),
+                        // highlight: currentEffects[l_effect_id]["highlight"]
+                    });
+                }  
 
                 if ("invalid" in effect_map){
                     delete effect_map["invalid"];
@@ -114,6 +142,7 @@ import "polyconst.js" as Constants
 
             }
         }
+
 
         // Repeater {
         //     id: rep1
@@ -266,6 +295,46 @@ import "polyconst.js" as Constants
             }
         }
 
+
+        Rectangle {
+            x: 0
+            y: 0
+            width: 95
+            height: parent.height
+            color: Constants.poly_very_dark_grey
+        }
+
+        Label {
+            x: 15
+            y: 15
+            color: accent_color.name
+            text: "OUT"
+            font {
+                pixelSize: 18
+                capitalization: Font.AllUppercase
+            }
+        }
+
+
+        Rectangle {
+            x: 1195
+            y: 0
+            width: 90
+            height: parent.height
+            color: Constants.poly_very_dark_grey
+        }
+
+        Label {
+            x: 1250
+            y: 15
+            color: accent_color.name
+            text: "IN"
+            font {
+                pixelSize: 18
+                capitalization: Font.AllUppercase
+            }
+        }
+
         Rectangle {
             z: 3
             id: darken_patch
@@ -316,197 +385,382 @@ import "polyconst.js" as Constants
             id: sourcePortSelection
             Item {
                 id: sourcePortSelectionCon
-                y: 50
-                height:700
+                height: 720
                 width:1280
 
-                GlowingLabel {
-                    color: "#ffffff"
-                    text: "Choose Source Port"
-                    font {
-                        pixelSize: fontSizeLarge * 1.2
+                Rectangle {
+                    color: accent_color.name
+                    x: 0
+                    y: 0
+                    width: 1280
+                    height: 100
+
+                    Image {
+                        x: 10
+                        y: 9
+                        source: currentPedalModel.name == "beebo" ? "../icons/digit/Beebo.png" : "../icons/digit/Hector.png" 
                     }
-                    anchors.top: parent.top
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
 
-                ListView {
-                    width: 400
-                    spacing: 5
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.top: parent.top
-                    anchors.topMargin: 90
-                    anchors.bottom: parent.bottom
-                    clip: true
-                    delegate: ItemDelegate {
-                        width: parent.width
-                        height: 90
-                        text: edit.split("|")[1]
-                        bottomPadding: 2
-                        font.pixelSize: fontSizeLarge
-                        topPadding: 2
-                        onClicked: {
-                            // set this as the current port
-                            // and update valid targets
-							// console.log("list_source_effect_id", list_source_effect_id, edit.split("|")[0]);
-                            knobs.set_current_port(true, list_source_effect_id, edit.split("|")[0]);
-                            // rep1.model.items_changed(); //  FIXME
-                            mycanvas.requestPaint();
-							if (patch_bay.from_hold){
-								knobs.select_effect(false, list_dest_effect_id, true);
-								var source_port_pair = [list_source_effect_id, edit.split("|")[0]];
-								var source_port_type = effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
-
-								var k;
-								var matched = 0;
-								var matched_id = 0;
-								// console.log("source port in from hold ", source_port_pair);
-								// console.log("source port ", effect_id);
-								k = Object.keys(effectPrototypes[list_dest_effect_type]["inputs"])
-								for (var i in k) {
-									// console.log("port name is ", i[k]);
-									if (effectPrototypes[list_dest_effect_type]["inputs"][k[i]][1] == source_port_type){
-										matched++;
-										matched_id = i;
-									}
-								}
-								if (matched > 1 )
-								{
-									mainStack.replace(destPortSelection);
-									patch_bay.current_help_text = ""
-								} 
-								else if (matched == 1){
-									knobs.set_current_port(false, list_dest_effect_id, k[matched_id]);
-									// rep1.model.items_changed();
-									patch_bay.externalRefresh();
-									patch_bay.currentMode = PatchBay.Select;
-									patch_bay.current_help_text = Constants.help["select"];
-									mainStack.pop();
-								}
-
-							} 
-							else {
-								mainStack.pop();
-							}
+                    Label {
+                        // color: "#ffffff"
+                        text: "Select Port to Connect From"
+                        elide: Text.ElideRight
+                        anchors.centerIn: parent
+                        anchors.bottomMargin: 25 
+                        horizontalAlignment: Text.AlignHCenter
+                        width: 1000
+                        height: 60
+                        z: 1
+                        color: Constants.background_color
+                        font {
+                            pixelSize: 36
+                            capitalization: Font.AllUppercase
                         }
                     }
-                    ScrollIndicator.vertical: ScrollIndicator {
-                        anchors.top: parent.top
-                        parent: sourcePortSelectionCon
-                        anchors.right: parent.right
-                        anchors.rightMargin: 1
-                        anchors.bottom: parent.bottom
-                    }
-                    model: selectedSourceEffectPorts
                 }
-            
-                
-                IconButton {
-                    x: 34 
-                    y: 596
-                    icon.width: 15
-                    icon.height: 25
-                    width: 119
-                    height: 62
-                    text: "BACK"
-                    font {
-                        pixelSize: 24
-                    }
-                    flat: false
-                    icon.name: "back"
-                    Material.background: "white"
-                    Material.foreground: Constants.outline_color
+                Item {
+                    y: 100
 
-                    onClicked: { 
-                        current_help_text = ""
-                        mainStack.pop()
-						if (patch_bay.currentMode == PatchBay.Hold){
-							patch_bay.currentMode = PatchBay.Select;
-						}
+                    ListView {
+                        width: 1218
+                        x: 29
+                        y: 27
+                        height: 520
+                        spacing: 12
+                        clip: true
+                        delegate: Item {
+                            property var split_port: edit.split("|")
+                            width: 1218
+                            height: 88
+
+                            Rectangle {
+                                width: parent.width
+                                height: parent.height
+                                color: Constants.background_color  
+                                border.width: 2
+                                border.color: Constants.poly_dark_grey  
+                                radius: 12
+                            }
+
+                            PolyButton {
+                                height: 35
+                                width: 74  
+                                x: 44
+                                y: 24
+                                topPadding: 5
+                                leftPadding: 15
+                                rightPadding: 15
+                                radius: 25
+                                Material.foreground: Constants.background_color
+                                border_color: Constants.port_color_map[split_port[0]]
+                                background_color: Constants.port_color_map[split_port[0]]
+                                text: Constants.port_display_name[split_port[0]]
+                                font_size: 24
+                            }
+
+                            Label {
+                                x: 165
+                                y: 17
+                                height: 60
+                                width: 598
+                                text: split_port[1]
+                                // anchors.top: parent.top
+                                font {
+                                    pixelSize: 30
+                                    family: mainFont.name
+                                    weight: Font.DemiBold
+                                    capitalization: Font.AllUppercase
+                                }
+                            }
+                            // Label {
+                            //     x: 31
+                            //     y: 55
+                            //     width: 598
+                            //     height: 30
+                            //     text: description // effectPrototypes[l_effect]["description"]
+                            //     wrapMode: Text.Wrap
+                            //     // anchors.top: parent.top
+                            //     font {
+                            //         pixelSize: 24
+                            //         family: docFont.name
+                            //         weight: Font.Normal
+                            //         // capitalization: Font.AllUppercase
+                            //     }
+                            // }
+
+
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    // set this as the current port
+                                    // and update valid targets
+                                    // console.log("list_source_effect_id", list_source_effect_id, edit.split("|")[0]);
+                                    knobs.set_current_port(true, list_source_effect_id, split_port[2]);
+                                    // rep1.model.items_changed(); //  FIXME
+                                    mycanvas.requestPaint();
+                                    if (patch_bay.from_hold){
+                                        knobs.select_effect(false, list_dest_effect_id, true);
+                                        var source_port_pair = [list_source_effect_id, split_port[2]];
+                                        var source_port_type = effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
+
+                                        var k;
+                                        var matched = 0;
+                                        var matched_id = 0;
+                                        // console.log("source port in from hold ", source_port_pair);
+                                        // console.log("source port ", effect_id);
+                                        k = Object.keys(effectPrototypes[list_dest_effect_type]["inputs"])
+                                        if (currentPedalModel.name == "hector"){
+                                            if (currentEffects[source_port_pair[0]]["effect_type"] == "input" || list_dest_effect_type == "output"){
+                                                matched = k.length;
+                                                console.log("patchbay matched, hector", matched);
+
+                                            } else
+                                            {
+                                                for (var i in k) {
+                                                    // console.log("port name is ", i[k]);
+                                                    if (effectPrototypes[list_dest_effect_type]["inputs"][k[i]][1] == source_port_type){
+                                                        matched++;
+                                                        matched_id = i;
+                                                    }
+                                                }
+                                                console.log("patchbay not matched, hector", matched);
+
+                                            }
+                                        } else{ 
+                                            for (var i in k) {
+                                                // console.log("port name is ", i[k]);
+                                                if (effectPrototypes[list_dest_effect_type]["inputs"][k[i]][1] == source_port_type){
+                                                    matched++;
+                                                    matched_id = i;
+                                                }
+                                            }
+                                            console.log("patchbay not hector");
+                                        }
+                                        if (matched > 1 )
+                                        {
+                                            mainStack.replace(destPortSelection);
+                                            patch_bay.current_help_text = ""
+                                        } 
+                                        else if (matched == 1){
+                                            knobs.set_current_port(false, list_dest_effect_id, k[matched_id]);
+                                            // rep1.model.items_changed();
+                                            patch_bay.externalRefresh();
+                                            patch_bay.currentMode = PatchBay.Select;
+                                            patch_bay.current_help_text = Constants.help["select"];
+                                            mainStack.pop();
+                                        }
+
+                                    } 
+                                    else {
+                                        mainStack.pop();
+                                    }
+                                }
+                            }
+                        }
+                        ScrollIndicator.vertical: ScrollIndicator {
+                            anchors.top: parent.top
+                            parent: sourcePortSelectionCon
+                            anchors.right: parent.right
+                            anchors.rightMargin: 1
+                            anchors.bottom: parent.bottom
+                        }
+                        model: selectedSourceEffectPorts
+
+                        // section.property: "edit"
+                        // section.criteria: ViewSection.FirstCharacter
+                        // section.delegate: sectionHeading
+                    }
+
+                    IconButton {
+                        x: 34 
+                        y: 560
+                        icon.width: 15
+                        icon.height: 25
+                        width: 119
+                        height: 62
+                        text: "BACK"
+                        font {
+                            pixelSize: 24
+                        }
+                        flat: false
+                        icon.name: "back"
+                        Material.background: Constants.background_color
+                        Material.foreground: "white" // Constants.outline_color
+                        onClicked: { 
+                            current_help_text = ""
+                            mainStack.pop()
+                            if (patch_bay.currentMode == PatchBay.Hold){
+                                patch_bay.currentMode = PatchBay.Select;
+                            }
+                        }
                     }
                 }
             }
         }
 
+
+
         Component {
             id: destPortSelection
+
             Item {
-                id: destPortSelectionCon
-                y: 50
-                height:700
+                id: destPortSub
+                height: 720
                 width:1280
 
-                GlowingLabel {
-                    color: "#ffffff"
-                    text: "Choose Destination Port"
-                    font {
-                        pixelSize: fontSizeLarge * 1.2
-                    }
-                    anchors.top: parent.top
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
+                Rectangle {
+                    color: accent_color.name
+                    x: 0
+                    y: 0
+                    width: 1280
+                    height: 100
 
-                ListView {
-                    width: 400
-                    spacing: 5
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.top: parent.top
-                    anchors.topMargin: 90
-                    anchors.bottom: parent.bottom
-                    clip: true
-                    delegate: ItemDelegate {
-                        width: parent.width
-                        height: 90
-                        text: edit.split("|")[1]
-                        bottomPadding: 2
-                        font.pixelSize: fontSizeLarge
-                        topPadding: 2
-                        onClicked: {
-                            // set this as the current port
-                            // and update valid targets
-                            knobs.set_current_port(false, list_dest_effect_id, edit.split("|")[0]);
-                            // rep1.model.items_changed(); //  FIXME
-                            mycanvas.requestPaint();
-							if (patch_bay.from_hold){
-								patch_bay.currentMode = PatchBay.Select;
-								patch_bay.current_help_text = Constants.help["select"];
-							}
-                            mainStack.pop();
+                    Image {
+                        x: 10
+                        y: 9
+                        source: currentPedalModel.name == "beebo" ? "../icons/digit/Beebo.png" : "../icons/digit/Hector.png" 
+                    }
+
+                    Label {
+                        // color: "#ffffff"
+                        text: "Select Port to Connect to"
+                        elide: Text.ElideRight
+                        anchors.centerIn: parent
+                        anchors.bottomMargin: 25 
+                        horizontalAlignment: Text.AlignHCenter
+                        width: 1000
+                        height: 60
+                        z: 1
+                        color: Constants.background_color
+                        font {
+                            pixelSize: 36
+                            capitalization: Font.AllUppercase
                         }
                     }
-                    ScrollIndicator.vertical: ScrollIndicator {
-                        anchors.top: parent.top
-                        parent: destPortSelectionCon
-                        anchors.right: parent.right
-                        anchors.rightMargin: 1
-                        anchors.bottom: parent.bottom
-                    }
-                    model: selectedDestEffectPorts
                 }
-            
-                
-                IconButton {
-                    x: 34 
-                    y: 596
-                    icon.width: 15
-                    icon.height: 25
-                    width: 119
-                    height: 62
-                    text: "BACK"
-                    font {
-                        pixelSize: 24
-                    }
-                    flat: false
-                    icon.name: "back"
-                    Material.background: "white"
-                    Material.foreground: Constants.outline_color
+                Item {
+                    y: 100
 
-                    onClicked: { 
-                        current_help_text = ""
-                        mainStack.pop()
-						if (patch_bay.currentMode == PatchBay.Hold){
-							patch_bay.currentMode = PatchBay.Select;
-						}
+                    ListView {
+                        width: 1218
+                        x: 29
+                        y: 27
+                        height: 520
+                        spacing: 12
+                        clip: true
+                        delegate: Item {
+                            property var split_port: edit.split("|")
+                            width: 1218
+                            height: 88
+
+                            Rectangle {
+                                width: parent.width
+                                height: parent.height
+                                color: Constants.background_color  
+                                border.width: 2
+                                border.color: Constants.poly_dark_grey  
+                                radius: 12
+                            }
+
+                            PolyButton {
+                                height: 35
+                                width: 74  
+                                x: 44
+                                y: 24
+                                topPadding: 5
+                                leftPadding: 15
+                                rightPadding: 15
+                                radius: 25
+                                Material.foreground: Constants.background_color
+                                border_color: Constants.port_color_map[split_port[0]]
+                                background_color: Constants.port_color_map[split_port[0]]
+                                text: Constants.port_display_name[split_port[0]]
+                                font_size: 24
+                            }
+
+                            Label {
+                                x: 165
+                                y: 17
+                                height: 60
+                                width: 598
+                                text: split_port[1]
+                                // anchors.top: parent.top
+                                font {
+                                    pixelSize: 30
+                                    family: mainFont.name
+                                    weight: Font.DemiBold
+                                    capitalization: Font.AllUppercase
+                                }
+                            }
+                            // Label {
+                            //     x: 31
+                            //     y: 55
+                            //     width: 598
+                            //     height: 30
+                            //     text: description // effectPrototypes[l_effect]["description"]
+                            //     wrapMode: Text.Wrap
+                            //     // anchors.top: parent.top
+                            //     font {
+                            //         pixelSize: 24
+                            //         family: docFont.name
+                            //         weight: Font.Normal
+                            //         // capitalization: Font.AllUppercase
+                            //     }
+                            // }
+
+
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    // set this as the current port
+                                    // and update valid targets
+                                    knobs.set_current_port(false, list_dest_effect_id, split_port[2]);
+                                    // rep1.model.items_changed(); //  FIXME
+                                    mycanvas.requestPaint();
+                                    if (patch_bay.from_hold){
+                                        patch_bay.currentMode = PatchBay.Select;
+                                        patch_bay.current_help_text = Constants.help["select"];
+                                    }
+                                    mainStack.pop();
+                                }
+                            }
+                        }
+                        ScrollIndicator.vertical: ScrollIndicator {
+                            anchors.top: parent.top
+                            parent: destPortSub
+                            anchors.right: parent.right
+                            anchors.rightMargin: 1
+                            anchors.bottom: parent.bottom
+                        }
+                        model: selectedDestEffectPorts
+
+                        // section.property: "edit"
+                        // section.criteria: ViewSection.FirstCharacter
+                        // section.delegate: sectionHeading
+                    }
+
+                    IconButton {
+                        x: 34 
+                        y: 560
+                        icon.width: 15
+                        icon.height: 25
+                        width: 119
+                        height: 62
+                        text: "BACK"
+                        font {
+                            pixelSize: 24
+                        }
+                        flat: false
+                        icon.name: "back"
+                        Material.background: Constants.background_color
+                        Material.foreground: "white" // Constants.outline_color
+                        onClicked: { 
+                            current_help_text = ""
+                            mainStack.pop()
+                            if (patch_bay.currentMode == PatchBay.Hold){
+                                patch_bay.currentMode = PatchBay.Select;
+                            }
+                        }
                     }
                 }
             }
