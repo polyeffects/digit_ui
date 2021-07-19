@@ -1126,9 +1126,9 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
     def set_input_level(self, level, write=True):
         if IS_REMOTE_TEST:
             return
-        command = "amixer -- sset ADC1 "+str(level)+"db; amixer -- sset ADC2 "+str(level)+"db"
+        command = "amixer -- sset ADC1 "+str(level)+"db; amixer -- sset ADC2 "+str(level)+"db; amixer -- sset ADC3 "+str(level)+"db"
         command_status[0].value = subprocess.call(command, shell=True)
-        if hardware_info["revision"] <= 10:
+        if hardware_info["revision"] <= 10 and hardware_info["pedal"] != "hector":
             command = "amixer -- sset 'ADC1 Invert' off,on; amixer -- sset 'ADC2 Invert' on,on"
         else:
             command = "amixer -- sset 'ADC1 Invert' off,off; amixer -- sset 'ADC2 Invert' off,off"

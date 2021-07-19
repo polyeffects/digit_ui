@@ -302,6 +302,7 @@ def remove_plugin(effect_id):
 
 def connect_port(src_port, target_port):
     # "connect /main/left_in /main/tone/left_in"
+    # print("### connecting", src_port, target_port)
     q.put((ingen.connect, src_port, target_port))
 
 def disconnect_port(src_port, target_port):
@@ -350,10 +351,16 @@ def connect_jack_port(port, x, y, physical_port):
                     "/main/out_2": "ingen:out_2 system:playback_4",
                     "/main/out_3": "ingen:out_3 system:playback_6",
                     "/main/out_4": "ingen:out_4 system:playback_8",
+                    "/main/out_5": "ingen:out_4 system:playback_8",
+                    "/main/out_6": "ingen:out_4 system:playback_8",
+                    "/main/out_7": "ingen:out_4 system:playback_8",
+                    "/main/out_8": "ingen:out_4 system:playback_8",
                     "/main/in_1": "system:capture_2 ingen:in_1",
                     "/main/in_2": "system:capture_4 ingen:in_2",
                     "/main/in_3": "system:capture_3 ingen:in_3",
                     "/main/in_4": "system:capture_5 ingen:in_4",
+                    "/main/in_5": "system:capture_5 ingen:in_4",
+                    "/main/in_6": "system:capture_5 ingen:in_4",
                     "/main/midi_in": "ttymidi:MIDI_in ingen:midi_in",
                     "/main/midi_out": "ttymidi:MIDI_out ingen:midi_out",
                     "/main/control": "ttymidi:MIDI_in ingen:control",
