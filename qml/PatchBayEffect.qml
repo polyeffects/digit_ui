@@ -369,6 +369,11 @@ Rectangle {
             patchStack.push("Loopler.qml");
             patch_bay.current_help_text = "" // Constants.help[""];
         }
+        else if (effect_type == "euclidean"){
+            // title_text = "Loopler"
+            patchStack.push("EuclideanSequencer.qml", {"effect": effect_id});
+            patch_bay.current_help_text = "" // Constants.help[""];
+        }
 		else if (['input', 'output', 'midi_input', 'midi_output'].indexOf(effect_type) >= 0){
             patchStack.push(editIO);
             // patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME

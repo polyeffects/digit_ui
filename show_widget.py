@@ -718,7 +718,6 @@ class Knobs(QObject):
                     if current_pedal_model.name == "hector":
                         if effect["effect_type"] == "output":
                             effect["highlight"].value = True
-                            debug_print("hector port name is", port_name, "effect id", id)
 
                     for input_port, style in effect_prototypes[effect["effect_type"]]["inputs"].items():
                         if style[1] == out_port_type:
@@ -777,10 +776,8 @@ class Knobs(QObject):
             # if hector, if source is an physical input or output is a physical output, 
             # disable restrict_port_types
             if current_pedal_model.name == "hector":
-                debug_print("is hector select_effect 1", effect_type, current_effects[s_effect_id]["effect_type"])
                 if effect_type in ["output", "midi_output"] or current_effects[s_effect_id]["effect_type"] in ["input", "midi_input"]:
                     restrict_port_types = False
-                    debug_print("is hector select_effect 1, restrict_port_types", restrict_port_types)
 
             if restrict_port_types or source_port_type == "AtomPort":
                 ports = sorted([v[1]+'|'+v[0]+'|'+k for k,v in effect_prototypes[effect_type]["inputs"].items() if v[1] == source_port_type])
@@ -1130,8 +1127,8 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
         command_status[0].value = subprocess.call(command, shell=True)
         if hardware_info["revision"] <= 10 and hardware_info["pedal"] != "hector":
             command = "amixer -- sset 'ADC1 Invert' off,on; amixer -- sset 'ADC2 Invert' on,on"
-        else:
-            command = "amixer -- sset 'ADC1 Invert' off,off; amixer -- sset 'ADC2 Invert' off,off"
+        elif hardware_info["pedal"] == "hector":
+            command = "amixer -- sset 'ADC1 Invert' on,on; amixer -- sset 'ADC2 Invert' on,on; amixer -- sset 'ADC3 Invert' on,on"
         command_status[0].value = subprocess.call(command, shell=True)
         input_level.value = level
         if write:
@@ -1672,7 +1669,7 @@ def process_ui_messages():
                 from_backend_disconnect(head, tail)
             elif m[0] == "add_plugin":
                 effect_name, effect_type, x, y, is_enabled = m[1:6]
-                debug_print("got add", m)
+                # debug_print("got add", m)
                 if (effect_name not in current_effects and (effect_type in inv_effect_type_map or effect_type in bare_ports)):
                     debug_print("adding ", m)
                     if effect_type == "http://polyeffects.com/lv2/polyfoot":
@@ -1680,7 +1677,7 @@ def process_ui_messages():
                         if mapped_type in effect_type_map:
                             from_backend_new_effect(effect_name, mapped_type, x, y, is_enabled)
                     elif effect_type in bare_ports:
-                        debug_print("### adding in bare ports", m)
+                        # debug_print("### adding in bare ports", m)
                         from_backend_new_effect(effect_name, effect_type, x, y, is_enabled)
                     else:
                         from_backend_new_effect(effect_name, inv_effect_type_map[effect_type], x, y, is_enabled)
