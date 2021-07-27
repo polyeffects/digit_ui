@@ -178,7 +178,7 @@ Rectangle {
 							}
 
 							Button {
-								Layout.minimumWidth: 140
+								Layout.minimumWidth: 155
 								Layout.minimumHeight: 70
 								icon.width: iconWidth
 								icon.height: iconHeight
@@ -207,7 +207,7 @@ Rectangle {
 					ColumnLayout {
 						id: columnLayout
 						x: 20; y:171
-						spacing: 19
+						spacing: 30
 						property int columnIndex: index
 
 						Repeater {
@@ -218,7 +218,7 @@ Rectangle {
 
 								Rectangle {
 									width: 54
-									height:65
+									height:85
 									border.width: 2
 									border.color: Constants.poly_grey
 									color: Constants.background_color
@@ -226,7 +226,7 @@ Rectangle {
 
 									Button {
 										width: 41
-										height:60
+										height:80
 										y:2
 										x: 2
 										icon.source: "../icons/digit/euclidean/substract.png"
@@ -262,7 +262,7 @@ Rectangle {
 
 								Rectangle {
 									width: 70
-									height: 65
+									height: 85
 									z: 1
 									color: Constants.background_color
 									border.width: 2
@@ -271,7 +271,7 @@ Rectangle {
 									Rectangle {
 										x:2
 										y:2
-										height: 30
+										height: 38
 										width: 65
 										color: Constants.background_color
 
@@ -289,8 +289,8 @@ Rectangle {
 
 									Rectangle {
 										x:2
-										y: 29
-										height: 30
+										y: 37
+										height: 38
 										width: 65
 										color: Constants.background_color
 
@@ -299,7 +299,7 @@ Rectangle {
 											color: isEnabled ? trackColor : Constants.poly_grey
 											anchors.centerIn: parent
 											font {
-												pixelSize: 30
+												pixelSize: 36
 												capitalization: Font.AllUppercase
 												family: mainFont.name
 											}
@@ -309,7 +309,7 @@ Rectangle {
 
 								Rectangle {
 									width: 54
-									height:65
+									height:85
 									border.width: 2
 									border.color: Constants.poly_grey
 									color: Constants.background_color
@@ -317,7 +317,7 @@ Rectangle {
 
 									Button {
 										width: 41
-										height:60
+										height:80
 										y:2
 										x: 11
 										icon.source: "../icons/digit/euclidean/add.png"
