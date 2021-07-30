@@ -20,7 +20,7 @@ Item {
 
     function remove_suffix(x)
     {
-        return x.replace(/\.[^/.]+$/, "") 
+        return x.replace(/\.[^/.]+$/, "").replace(/_/g, " ")
     }
 
     Column {
