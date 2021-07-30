@@ -212,7 +212,6 @@ def add_midi_input(port_id, x, y):
     q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
     ingen:canvasY "%s"^^xsd:float ;
     atom:bufferType atom:Sequence ;
-    lv2:index "10"^^xsd:int ;
     lv2:name "MIDI In" ;
     a lv2:InputPort ; a atom:AtomPort""" % (x, y)))
 
@@ -220,7 +219,6 @@ def add_midi_output(port_id, x, y):
     q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
     ingen:canvasY "%s"^^xsd:float ;
     atom:bufferType atom:Sequence ;
-    lv2:index "11"^^xsd:int ;
     lv2:name "MIDI Out" ;
     a lv2:OutputPort ; a atom:AtomPort""" % (x, y)))
 
@@ -228,7 +226,6 @@ def add_midi_output2(port_id, x, y):
     q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
     ingen:canvasY "%s"^^xsd:float ;
     atom:bufferType atom:Sequence ;
-    lv2:index "12"^^xsd:int ;
     lv2:name "MIDI Out" ;
     a lv2:OutputPort ; a atom:AtomPort""" % (x, y)))
 
@@ -243,7 +240,6 @@ def add_loop_extra_midi(port_id, x, y):
     q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
     ingen:canvasY "%s"^^xsd:float ;
     atom:bufferType atom:Sequence ;
-    lv2:index "12"^^xsd:int ;
     lv2:name "loop_extra_midi" ;
     a lv2:OutputPort ; a atom:AtomPort""" % (x, y)))
 

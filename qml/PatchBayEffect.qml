@@ -297,6 +297,10 @@ Rectangle {
             patchStack.push("Marbles.qml", {"effect_id": effect_id});
             patch_bay.current_help_text = "" // Constants.help[""];
         }
+        else if (effect_type == "looping_envelope"){
+            patchStack.push("Tides.qml", {"effect_id": effect_id});
+            patch_bay.current_help_text = "" // Constants.help[""];
+        }
         else if (effect_type == "delay"){
             patchStack.push(editDelay);
             patch_bay.current_help_text = Constants.help["delay_detail"];

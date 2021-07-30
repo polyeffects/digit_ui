@@ -432,7 +432,6 @@ def load_pedal_state():
                 pedal_state["midi_channel"] = 1
             if "author" not in pedal_state:
                 pedal_state["author"] = "poly player"
-            pedal_state["model"] = hardware_info["pedal"]
             if "thru" not in pedal_state:
                 pedal_state["thru"] = True
             if "invert_enc" not in pedal_state:
@@ -1125,9 +1124,9 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
             return
         command = "amixer -- sset ADC1 "+str(level)+"db; amixer -- sset ADC2 "+str(level)+"db; amixer -- sset ADC3 "+str(level)+"db"
         command_status[0].value = subprocess.call(command, shell=True)
-        if hardware_info["revision"] <= 10 and hardware_info["pedal"] != "hector":
+        if hardware_info["revision"] <= 10 and pedal_state["model"] != "hector":
             command = "amixer -- sset 'ADC1 Invert' off,on; amixer -- sset 'ADC2 Invert' on,on"
-        elif hardware_info["pedal"] == "hector":
+        elif pedal_state["model"] == "hector":
             command = "amixer -- sset 'ADC1 Invert' on,on; amixer -- sset 'ADC2 Invert' on,on; amixer -- sset 'ADC3 Invert' on,on"
         command_status[0].value = subprocess.call(command, shell=True)
         input_level.value = level
@@ -1374,6 +1373,9 @@ def io_new_effect(effect_name, effect_type, x=20, y=30):
                 "highlight": PolyBool(False)}
 
 def add_io():
+    ingen_wrapper.add_midi_input("/main/midi_in", x=1192, y=(80 * 5))
+    ingen_wrapper.add_midi_output("/main/loop_extra_midi", x=20, y=(80 * 3))
+    ingen_wrapper.add_midi_output2("/main/midi_out", x=-20, y=(80 * 5))
     if current_pedal_model.name == "hector":
         for i in range(1,7):
             ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
@@ -1384,9 +1386,6 @@ def add_io():
             ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
         for i in range(1,5):
             ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
-    ingen_wrapper.add_midi_input("/main/midi_in", x=1192, y=(80 * 5))
-    ingen_wrapper.add_midi_output("/main/loop_extra_midi", x=20, y=(80 * 3))
-    ingen_wrapper.add_midi_output2("/main/midi_out", x=-20, y=(80 * 5))
     ingen_wrapper.add_output("/main/loop_common_in_1", x=1092, y=(80*1))
     ingen_wrapper.add_output("/main/loop_common_in_2", x=1092, y=(80*2))
     ingen_wrapper.add_input("/main/loop_common_out_1", x=20, y=(80*1))
@@ -1936,7 +1935,7 @@ if __name__ == "__main__":
     set_available_effects()
     engine = QQmlApplicationEngine()
 
-    current_pedal_model = PolyValue(hardware_info["pedal"], 0, -1, 1)
+    current_pedal_model = PolyValue(pedal_state["model"], 0, -1, 1)
     # accent_color = PolyValue("#8BB8E8", 0, -1, 1)
     accent_color = PolyValue("#FF75D0", 0, -1, 1)
     current_ip = PolyValue("", 0, -1, 1)

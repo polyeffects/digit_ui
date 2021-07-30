@@ -128,7 +128,10 @@ ApplicationWindow {
         // ModuleBrowser {
         
         // }
-        EuclideanSequencer {
+        // EuclideanSequencer {
+        
+        // }
+        Tides {
         
         }
     }

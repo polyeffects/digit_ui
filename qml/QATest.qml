@@ -95,21 +95,20 @@ Item {
 		}
 
 
-		// Button {
-		// 	width: 300
-		// 	height: 200
-		// 	text: currentPedalModel.name == "beebo" ? "Change to Digit" : "Change to Beebo"
-		// 	font.pixelSize: fontSizeLarge
-		// 	// show screen explaining to put USB flash drive in
-		// 	onClicked: {
-		// 		if(currentPedalModel.name == "beebo"){
-		// 			knobs.set_pedal_model("digit");
-		// 		} else {
-		// 			knobs.set_pedal_model("beebo");
-		// 		}
-		// 	}
+		Button {
+			width: 300
+			height: 200
+			text: currentPedalModel.name == "beebo" ? "Change to Hector" : "Change to Beebo"
+			font.pixelSize: fontSizeLarge
+			onClicked: {
+				if(currentPedalModel.name == "beebo"){
+					knobs.set_pedal_model("hector");
+				} else {
+					knobs.set_pedal_model("beebo");
+				}
+			}
 
-		// }
+		}
 
 		Button {
 			width: 250
