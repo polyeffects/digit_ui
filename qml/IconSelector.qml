@@ -36,6 +36,8 @@ Item {
                 height: button_height
                 icon.width: icon_size
                 icon.height: icon_size
+
+                topPadding: -25
                 checked: index+value_offset == Math.floor(currentEffects[current_effect]["controls"][row_param].value)
                 onClicked: {
                     knobs.ui_knob_change(current_effect, row_param, index+value_offset);
