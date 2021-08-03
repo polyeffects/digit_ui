@@ -373,25 +373,6 @@ Item {
             }
         }
 
-        IconButton {
-            id: connectMode
-            icon.source: "../icons/digit/clouds/Connect.png"
-            visible: patch_single.currentMode == PatchBay.Connect
-            width: 70
-            height: 70
-            x: 584
-            y: 12
-            onClicked: {
-                patch_single.selected_effect.hide_sliders(true);
-            }
-            // Material.background: "white"
-            Material.foreground: "white"
-            radius: 28
-            HelpLabel {
-                text: "connect"
-            }
-        }
-
         Label {
             visible: show_footer_value
             anchors.centerIn: parent
@@ -446,6 +427,7 @@ Item {
             }
         }
 
+
         IconButton {
             visible: patch_single.currentMode == PatchBay.Hold
             x: 696 
@@ -491,7 +473,7 @@ Item {
             width: 62
             height: 62
             flat: false
-            icon.source: "../icons/digit/bottom_menu/Presets.png"
+            icon.source: "../icons/digit/bottom_menu/patch.png"
             Material.background: accent_color.name
             onClicked: {
                 mainStack.push("PresetSave.qml")

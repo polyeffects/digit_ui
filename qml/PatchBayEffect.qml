@@ -302,7 +302,7 @@ Rectangle {
             patch_bay.current_help_text = "" // Constants.help[""];
         }
         else if (effect_type == "delay"){
-            patchStack.push(editDelay);
+            atchStack.push(editDelay);
             patch_bay.current_help_text = Constants.help["delay_detail"];
         }
         else if (effect_type == "lfo"){
@@ -890,6 +890,8 @@ Rectangle {
 
 					visible: Qt.inputMethod.visible
 				}
+                MoreButton {
+                }
             }
         }
 
@@ -975,6 +977,8 @@ Rectangle {
 					}
 
 				}
+                MoreButton {
+                }
             }
         }
 
@@ -1105,6 +1109,8 @@ Rectangle {
                         }
                     }
 				}
+                MoreButton {
+                }
             }
         }
 
@@ -1352,6 +1358,8 @@ Rectangle {
 						}
 					}
 				}
+                MoreButton {
+                }
 			}
 		}
 
@@ -1764,6 +1772,8 @@ Rectangle {
 					}
 
 				}
+                MoreButton {
+                }
 			}
 		}
 
@@ -1897,6 +1907,8 @@ Rectangle {
 						}
 					}
 				}
+                MoreButton {
+                }
 			}
         }
 
@@ -1998,6 +2010,8 @@ Rectangle {
 						}
 					}
 				}
+                MoreButton {
+                }
 			}
         }
 
@@ -2027,6 +2041,8 @@ Rectangle {
 						}
 					}
 				}
+                MoreButton {
+                }
 			}
         }
 
@@ -2048,6 +2064,8 @@ Rectangle {
 					row_param: "algorithm"
 					current_effect: effect_id
 				}
+                MoreButton {
+                }
 			}
         }
 
@@ -2107,6 +2125,9 @@ Rectangle {
 					}
 				
 				}
+
+                MoreButton {
+                }
                 
             }
         }
@@ -2119,26 +2140,6 @@ Rectangle {
 				Row {
 					anchors.centerIn: parent
 					spacing: 40
-					IconButton {
-						icon.source: "../icons/digit/clouds/Connect.png"
-						rightPadding: 20
-						leftPadding: 0
-						visible: patch_bay.selected_effect && (patch_bay.selected_effect.effect_type != "output")
-						width: 110
-						height: 90
-						onClicked: {
-							patch_bay.from_hold = false;
-							connect_clicked(true);
-							patch_bay.currentMode = PatchBay.Connect;
-							patch_bay.current_help_text = Constants.help["connect_to"];
-						}
-						Material.foreground: "white"
-						radius: 30
-
-						SideHelpLabel {
-							text: "connect"
-						}
-					}
 					IconButton {
 						icon.source: "../icons/digit/clouds/Disconnect.png"
 						rightPadding: 20
@@ -2363,6 +2364,8 @@ Rectangle {
                         }
                     }
 				}
+                MoreButton {
+                }
             }
         }
 }

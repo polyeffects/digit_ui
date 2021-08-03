@@ -921,6 +921,29 @@ class Knobs(QObject):
         else:
             debug_print("effect not found", effect_name, parameter, value, effect_name in current_effects)
 
+    @Slot(str, str, bool)
+    def ui_knob_inc(self, effect_name, parameter, is_inc=True):
+        if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
+            v = current_effects[effect_name]["controls"][parameter].value
+            change  = abs(v / 10.0)
+            if change < 0.01:
+                change = 0.01
+
+            if is_inc:
+                v = v + change
+            else:
+                v = v - change
+            # clamping here to make it a bit more obvious
+            v = clamp(v, current_effects[effect_name]["controls"][parameter].rmin, current_effects[effect_name]["controls"][parameter].rmax)
+            # bit sketch but check if BPM here? XXX
+            if parameter == "bpm":
+                set_bpm(v)
+
+            current_effects[effect_name]["controls"][parameter].value = v
+            ingen_wrapper.set_parameter_value(effect_name+"/"+parameter, v)
+        else:
+            debug_print("effect not found", effect_name, parameter, v, effect_name in current_effects)
+
     @Slot(str, str)
     def update_ir(self, effect_id, ir_file):
         is_cab = True

@@ -28,6 +28,10 @@ T.Slider {
         if (pressed){
             knobs.set_knob_current_effect(current_effect, row_param);
             title_footer.show_footer_value = true
+            if (patch_single.more_hold){
+                patch_single.more_hold = false;
+                patchStack.push("More.qml", {"current_effect": current_effect, "row_param": row_param});
+            }
         }
         else {
             title_footer.show_footer_value = false

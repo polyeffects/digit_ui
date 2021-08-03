@@ -40,6 +40,10 @@ Item {
                     onPressedChanged: {
                         if (pressed){
                             knobs.set_knob_current_effect(current_effect, modelData);
+                            if (patch_single.more_hold){
+                                patch_single.more_hold = false;
+                                patchStack.push("More.qml", {"current_effect": current_effect, "row_param": modelData});
+                            }
                         }
                     }
 					Material.foreground: Constants.rainbow[index]
@@ -110,6 +114,10 @@ Item {
 			onPressedChanged: {
 				if (pressed){
 					knobs.set_knob_current_effect(current_effect, selected_parameter);
+                    if (patch_single.more_hold){
+                        patch_single.more_hold = false;
+                        patchStack.push("More.qml", {"current_effect": current_effect, "row_param": selected_parameter});
+                    }
 				}
 			}
 		}

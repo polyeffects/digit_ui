@@ -24,7 +24,7 @@ var short_rainbow = ["#80FFE8", "#53A2FD", "#FF75D0", "#FFC045", "#FF9E45"];
 var longer_rainbow = ["#53A2FD", "#AC8EFF", "#FF75D0", "#FF7B8B", "#FF9E45", "#FFD645", "#B1FF81", "#4CCBC5", "#80FFE8", "74CBFC"];
 var loopler_rainbow = ["#FF75D0", "#FF7B8B", "#FF6464", "#FF8540", "#FFD645", "#FFF84E", "#C3FF76", "#20FF79", "#2DFFC0", "#80FFE8", "#5CE2FF", "#53A2FD", "#AC8EFF", "#E680FF", "#FF2BBF"];
 
-var help = {"select": "Tap or add a module, drag to move. HOLD TO CONNECT.", "connect_to": "Advanced connect. You should use multi touch instead. Tap a module to connect to", "connect_from": "Advanced connect. You should use multi touch instead. Tap a module to connect from", "sliders_detail": "Tap the eye to see more. Tapping a slider assigns it to the knobs.", "sliders": "Tapping a slider assigns it to the knobs.", 
+var help = {"select": "Tap or add a module, drag to move. HOLD TO CONNECT.", "connect_to": "Advanced connect. You should use multi touch instead. Tap a module to connect to", "connect_from": "Advanced connect. You should use multi touch instead. Tap a module to connect from", "sliders_detail": "Tap the eye to see more. Tapping a slider assigns it to the knobs.", "sliders": "Hold dots and press slider for more.", 
     "delay_detail": "Milliseconds doesn't reflect tap tempo", 
     "eq_detail": "Drag bands",
     "hold": "Now tap the module to you want connect to, while holding this one",

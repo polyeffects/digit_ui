@@ -127,24 +127,13 @@ Item {
 
                     }
 
-                    Slider {
+                    VerticalSlider {
                         width: 120 
                         height: 350
-                        orientation: Qt.Vertical
                         title: "BIAS"
-                        value: currentEffects[effect_id]["controls"]["t_bias_param"].value
-                        from: 0.0
-                        to: 1
-                        stepSize: 0.01
-                        onMoved: {
-                            knobs.ui_knob_change(effect_id, "t_bias_param", value);
-                        }
+                        current_effect: effect_id
+						row_param: "t_bias_param"
                         Material.foreground: Constants.poly_pink
-                        onPressedChanged: {
-                            if (pressed){
-                                knobs.set_knob_current_effect(effect_id, "t_bias_param");
-                            }
-                        }
                     }
 
                 }
@@ -617,5 +606,7 @@ Item {
             }
         }
     }
+	MoreButton {
+	}
 }
 

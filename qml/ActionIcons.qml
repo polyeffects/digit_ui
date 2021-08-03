@@ -40,60 +40,23 @@ Item {
             }
         }
 
-        IconButton {
-            icon.source: "../icons/digit/clouds/Connect.png"
-            rightPadding: 20
-            leftPadding: 0
-            visible: patch_single.selected_effect && (patch_single.selected_effect.effect_type != "output")
-            width: 110
-            height: 90
-            onClicked: {
-                patch_single.selected_effect.connect_clicked(true);
-                patch_single.currentMode = PatchBay.Connect;
-                patch_single.current_help_text = Constants.help["connect_to"];
-            }
-            Material.foreground: "white"
-            radius: 30
-
-            SideHelpLabel {
-                text: "connect"
-            }
-        }
-        IconButton {
-            id: disconnectMode
-            icon.source: "../icons/digit/clouds/Disconnect.png"
-            rightPadding: 20
-            leftPadding: 0
-            width: 110
-            height: 90
-            onClicked: {
-                patch_single.selected_effect.disconnect_clicked()
-            }
-            Material.foreground: "white"
-            radius: 30
-
-            SideHelpLabel {
-                text: "disconnect"
-            }
-        }
-
-        IconButton {
-            visible: patch_single.selected_effect && (patch_single.selected_effect.effect_type != "input" && patch_single.selected_effect.effect_type != "output")
-            id: deleteMode
-            icon.source: "../icons/digit/clouds/Bin.png"
-            rightPadding: 20
-            leftPadding: 0
-            width: 110
-            height: 90
-            onClicked: {
-                patch_single.selected_effect.delete_clicked()
-            }
-            Material.foreground: "white"
-            radius: 30
-            SideHelpLabel {
-                text: "delete"
-            }
-        }
+        // IconButton {
+        //     visible: patch_single.selected_effect && (patch_single.selected_effect.effect_type != "input" && patch_single.selected_effect.effect_type != "output")
+        //     id: deleteMode
+        //     icon.source: "../icons/digit/clouds/Bin.png"
+        //     rightPadding: 20
+        //     leftPadding: 0
+        //     width: 110
+        //     height: 90
+        //     onClicked: {
+        //         patch_single.selected_effect.delete_clicked()
+        //     }
+        //     Material.foreground: "white"
+        //     radius: 30
+        //     SideHelpLabel {
+        //         text: "delete"
+        //     }
+        // }
 
         IconButton {
             id: expandMode

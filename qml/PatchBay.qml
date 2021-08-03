@@ -38,6 +38,7 @@ import "polyconst.js" as Constants
         property string list_dest_effect_type
         property bool source_selected: false
         property bool from_hold: false
+        property bool more_hold: false
         property var effect_map: {"invalid":"b"}
         property PatchBayEffect selected_effect
 
@@ -563,6 +564,11 @@ import "polyconst.js" as Constants
                             anchors.right: parent.right
                             anchors.rightMargin: 1
                             anchors.bottom: parent.bottom
+                            contentItem: Rectangle {
+                                implicitWidth: 4
+                                implicitHeight: 100
+                                color: Constants.poly_pink
+                            }
                         }
                         model: selectedSourceEffectPorts
 

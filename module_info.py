@@ -2120,7 +2120,9 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                       'outputs': {'out1': ['out1', 'CVPort'],
                                   'out2': ['out2', 'CVPort'],
                                   'out3': ['out3', 'CVPort'],
-                                  'out4': ['out4', 'CVPort']},
+                                  'out4': ['out4', 'CVPort'],
+                                  'tempo_out': ['tempo out', 'ControlPort']
+                                  },
                       'tags': {'controls'}},
                     }
              
