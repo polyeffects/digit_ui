@@ -164,51 +164,37 @@ Rectangle {
 					}
 					property bool isEnabled: currentEffects[effect]["controls"]["is_enabled"+(index+1)].value > 0.9
 
-					RowLayout {
-						id: grid
-						y: 17; x: 20
-						spacing: 20
-						property int columnIndex: index
 
-						Repeater {
-							model: ListModel {
-								id: iconModel
-								ListElement { name: "eye"; iconWidth: 66; iconHeight: 20}
-								// ListElement { name: "restart"; iconWidth: 30; iconHeight: 30}
-							}
+                    Button {
+                        y: 17; x: 20
+                        width: 155
+                        height: 70
+                        icon.width: 66
+                        icon.height: 20
+                        icon.source: (!isEnabled) ? "../icons/digit/euclidean/hidden.png" : "../icons/digit/euclidean/eye.png"
+                        icon.color: isEnabled ? "black" : trackColor 
 
-							Button {
-								Layout.minimumWidth: 155
-								Layout.minimumHeight: 70
-								icon.width: iconWidth
-								icon.height: iconHeight
-								icon.source: (!isEnabled && index == 0) ? "../icons/digit/euclidean/hidden.png" : "../icons/digit/euclidean/" + name + ".png"
-								icon.color: isEnabled ? (index == 0) ? "black" : trackColor : (index == 0) ? trackColor : Constants.poly_grey
+                        onClicked: {
+                            knobs.ui_knob_change(effect, "is_enabled"+(index+1), 1 - isEnabled);
+                            canvas.requestPaint()
+                        }
 
-								onClicked: {
-									if (index === 0) {
-										knobs.ui_knob_change(effect, "is_enabled"+(grid.columnIndex+1), 1 - isEnabled);
-										canvas.requestPaint()
-									}
-								}
-
-								background: Rectangle {
-									width: parent.width
-									height: parent.height
-									border.width: 2
-									border.color: (isEnabled && index == 0) ? trackColor : Constants.poly_grey
-									color: (!isEnabled && index == 0) ? Constants.poly_grey : (index == 0) ? trackColor : Constants.background_color
-									radius: 11
-								}
-							}
-						}
-					}
+                        background: Rectangle {
+                            width: parent.width
+                            height: parent.height
+                            border.width: 2
+                            border.color: (isEnabled) ? trackColor : Constants.poly_grey
+                            color: (!isEnabled) ? Constants.poly_grey : trackColor
+                            radius: 11
+                        }
+                    }
 
 					ColumnLayout {
 						id: columnLayout
-						x: 20; y:171
-						spacing: 30
+						x: 20; y:90
+						spacing: 10
 						property int columnIndex: index
+						property string selected_parameter: "steps"
 
 						Repeater {
 							model: ["steps", "beats", "shift"]
@@ -216,142 +202,154 @@ Rectangle {
 							RowLayout {
 								spacing: -11
 
-								Rectangle {
-									width: 54
-									height:85
-									border.width: 2
-									border.color: Constants.poly_grey
-									color: Constants.background_color
-									radius: 11
-
-									Button {
-										width: 41
-										height:80
-										y:2
-										x: 2
-										icon.source: "../icons/digit/euclidean/substract.png"
-										icon.color: isEnabled ? "white" : Constants.poly_grey
-										icon.width: 17
-										enabled: isEnabled
-
-										onClicked: {
-											var column = columnLayout.columnIndex
-											var value =  currentEffects[effect]["controls"][modelData + (column+1)].value 
-											if (value > 0) {
-												knobs.ui_knob_change(effect, modelData+(column+1), value - 1);
-												canvas.requestPaint();
-												if (modelData === "steps") {
-													if (value === currentEffects[effect]["controls"]["beats" + (column+1)].value) {
-														knobs.ui_knob_change(effect, "beats"+(column+1), value - 1);
-													}
-													if (value === currentEffects[effect]["controls"]["shift" + (column+1)].value) {
-														knobs.ui_knob_change(effect, "shift"+(column+1), value - 1 > 0 ? value - 1: 0);
-													}
-												}
-											}
-										}
-
-										background: Rectangle {
-											width: parent.width
-											height: parent.height
-											color: Constants.background_color
-											radius: 11
-										}
-									}
-								}
 
 								Rectangle {
-									width: 70
-									height: 85
+									width: 155
+									height: 100
 									z: 1
-									color: Constants.background_color
+									color: modelData == columnLayout.selected_parameter && isEnabled ? trackColor : Constants.background_color 
 									border.width: 2
 									border.color: Constants.poly_grey
+                                    radius: 11
 
-									Rectangle {
-										x:2
-										y:2
-										height: 38
-										width: 65
-										color: Constants.background_color
+                                    Text {
+                                        x:0
+                                        y:0
+                                        height: 100
+                                        width: 100
+                                        text: modelData
+                                        horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
+                                        color: modelData == columnLayout.selected_parameter && isEnabled ? Constants.background_color : isEnabled ? "white" : "#6E6E6E"
+                                        font {
+                                            pixelSize: 24
+                                            capitalization: Font.AllUppercase
+                                            family: mainFont.name
+                                        }
+                                    }
 
-										Text {
-											text: modelData
-											color: isEnabled ? "white" : "#6E6E6E"
-											anchors.centerIn: parent
-											font {
-												pixelSize: 20
-												capitalization: Font.AllUppercase
-												family: mainFont.name
-											}
-										}
-									}
+                                    Text {
+                                        x:100
+                                        y:0 
+                                        height: 100
+                                        width: 55
+                                        horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
+                                        text: currentEffects[effect]["controls"][modelData + (columnLayout.columnIndex+1)].value 
+                                        color: modelData == columnLayout.selected_parameter && isEnabled ? Constants.background_color : isEnabled ? trackColor : Constants.poly_grey
+                                        font {
+                                            pixelSize: 40
+                                            capitalization: Font.AllUppercase
+                                            family: mainFont.name
+                                        }
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: { 
+                                            columnLayout.selected_parameter = modelData;
 
-									Rectangle {
-										x:2
-										y: 37
-										height: 38
-										width: 65
-										color: Constants.background_color
+                                            if (modelData === "beats"){
+                                                if ( currentEffects[effect]["controls"][modelData + (columnLayout.columnIndex+1)].value  < currentEffects[effect]["controls"]["steps" + (columnLayout.columnIndex+1)].value) 
+                                                {  
+                                                    plusButton.enabled = true;
+                                                } else {
+                                                    plusButton.enabled = false;
+                                                } 
+                                            }
+                                            else {
+                                                plusButton.enabled = true;
+                                            }
+                                        }
+                                    }
 
-										Text {
-											text: currentEffects[effect]["controls"][modelData + (columnLayout.columnIndex+1)].value 
-											color: isEnabled ? trackColor : Constants.poly_grey
-											anchors.centerIn: parent
-											font {
-												pixelSize: 36
-												capitalization: Font.AllUppercase
-												family: mainFont.name
-											}
-										}
-									}
 								}
 
-								Rectangle {
-									width: 54
-									height:85
-									border.width: 2
-									border.color: Constants.poly_grey
-									color: Constants.background_color
-									radius: 11
-
-									Button {
-										width: 41
-										height:80
-										y:2
-										x: 11
-										icon.source: "../icons/digit/euclidean/add.png"
-										icon.color: isEnabled ? "white" : Constants.poly_grey
-										icon.width: 17
-										enabled: isEnabled
-
-										onClicked: {
-											var column = columnLayout.columnIndex
-											var value =  currentEffects[effect]["controls"][modelData + (column+1)].value 
-											var l_steps =  currentEffects[effect]["controls"]["steps" + (column+1)].value 
-											if (modelData === "beats" && value === l_steps) {
-												//canvas.requestPaint();
-											}
-											else if (modelData === "shift" && (value + 1) === l_steps) {
-												// canvas.requestPaint();
-											}
-											else if (value >= 0 && value <= 32) {
-												knobs.ui_knob_change(effect, modelData+(column+1), value + 1);
-												canvas.requestPaint();
-											}
-
-										}
-
-										background: Rectangle {
-											width: parent.width
-											height: parent.height
-											color: Constants.background_color
-											radius: 11
-										}
-									}
-								}
 							}
 						}
+                        Item {
+                            height:82
+
+                            Button {
+                                width: 72
+                                height:82
+                                y:2
+                                x: 2
+                                icon.source: "../icons/digit/euclidean/substract.png"
+                                icon.color: isEnabled ? "white" : Constants.poly_grey
+                                icon.width: 28
+                                enabled: isEnabled 
+
+                                onClicked: {
+                                    var column = columnLayout.columnIndex
+                                    var value =  currentEffects[effect]["controls"][columnLayout.selected_parameter + (column+1)].value 
+                                    if (value > 0) {
+                                        knobs.ui_knob_change(effect, columnLayout.selected_parameter+(column+1), value - 1);
+                                        var l_steps =  currentEffects[effect]["controls"]["steps" + (column+1)].value 
+                                        if (columnLayout.selected_parameter === "beats" && value <= l_steps) {
+                                            plusButton.enabled = true;
+                                        }
+                                        canvas.requestPaint();
+                                        if (columnLayout.selected_parameter === "steps") {
+                                            if (value === currentEffects[effect]["controls"]["beats" + (column+1)].value) {
+                                                knobs.ui_knob_change(effect, "beats"+(column+1), value - 1);
+                                            }
+                                            if (value === currentEffects[effect]["controls"]["shift" + (column+1)].value) {
+                                                knobs.ui_knob_change(effect, "shift"+(column+1), value - 1 > 0 ? value - 1: 0);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                background: Rectangle {
+                                    width: parent.width
+                                    height: parent.height
+                                    color: Constants.background_color
+                                    radius: 11
+                                }
+                            }
+
+                            Button {
+                                id: plusButton
+                                width: 72
+                                height:82
+                                y:2
+                                x:84
+                                icon.source: "../icons/digit/euclidean/add.png"
+                                enabled: isEnabled
+                                icon.color: isEnabled && enabled ? "black" : Constants.poly_grey
+                                icon.width: 28
+
+                                onClicked: {
+                                    var column = columnLayout.columnIndex
+                                    var value =  currentEffects[effect]["controls"][columnLayout.selected_parameter + (column+1)].value 
+                                    var l_steps =  currentEffects[effect]["controls"]["steps" + (column+1)].value 
+                                    if (columnLayout.selected_parameter === "beats" && value === l_steps) {
+                                        //canvas.requestPaint();
+                                        enabled = false;
+                                    }
+                                    else if (columnLayout.selected_parameter === "shift" && (value + 1) === l_steps) {
+                                        // canvas.requestPaint();
+                                        enabled = false;
+                                    }
+                                    else if (value >= 0 && value <= 32) {
+                                        knobs.ui_knob_change(effect, columnLayout.selected_parameter+(column+1), value + 1);
+                                        if (columnLayout.selected_parameter === "beats" && value + 1 === l_steps) {
+                                            enabled = false;
+                                        }
+
+                                        canvas.requestPaint();
+                                    }
+
+                                }
+
+                                background: Rectangle {
+                                    width: parent.width
+                                    height: parent.height
+									color: isEnabled && enabled ? trackColor : Constants.poly_dark_grey
+                                    radius: 11
+                                }
+                            }
+                        }
 					}
 				}
 			}

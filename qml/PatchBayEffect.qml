@@ -11,6 +11,7 @@ import QtQuick.Layouts 1.3
 // later exposed parameters
 //
 import "polyconst.js" as Constants
+import "plaits_names.js" as PlaitsNames
 
 Rectangle {
     id: rect
@@ -1002,7 +1003,7 @@ Rectangle {
                     TabBar {
                         id: plaitsBar
                         width: parent.width
-                        height: 47
+                        height: 60
                         TabButton {
                             text: qsTr("Model")
                             font {
@@ -1025,6 +1026,7 @@ Rectangle {
                             }
                         }
                     }	
+
 
 
                     StackLayout {
@@ -1081,7 +1083,9 @@ Rectangle {
                                     model: ['frequency', 'harmonics',  'timbre', 'morph'] 
                                     DelayRow {
                                         row_param: modelData
+                                        width: 740
                                         current_effect: effect_id
+                                        title: modelData == 'frequency' ? 'frequency' : modelData + ": " + PlaitsNames.name_map[currentEffects[effect_id]["controls"]["model"].value][modelData]
                                         Material.foreground: Constants.rainbow[index+5]
                                     }
                                 }
@@ -1109,6 +1113,24 @@ Rectangle {
                         }
                     }
 				}
+
+                Text {
+                    x: 700 
+                    y: 540
+                    height: 90
+                    width: 350
+                    text: "Aux out is " + PlaitsNames.name_map[currentEffects[effect_id]["controls"]["model"].value]["aux"]
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    wrapMode: Text.Wrap
+                    color: "white"
+                    font {
+                        pixelSize: 24
+                        capitalization: Font.AllUppercase
+                        family: mainFont.name
+                    }
+                }
+
                 MoreButton {
                 }
             }

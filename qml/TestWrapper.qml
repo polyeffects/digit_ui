@@ -128,12 +128,12 @@ ApplicationWindow {
         // ModuleBrowser {
         
         // }
-        // EuclideanSequencer {
-        
-        // }
-        More {
+        EuclideanSequencer {
         
         }
+        // More {
+        
+        // }
     }
     // PresetSave {
     // }

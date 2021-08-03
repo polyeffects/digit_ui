@@ -12,6 +12,7 @@ Item {
     property real multiplier: 1  
     property string v_type: "float"
 	property bool is_log: false
+	property string title: currentEffects[current_effect]["controls"][row_param].name
     visible: v_type != "hide"
 
     function basename(ustr)
@@ -68,7 +69,7 @@ Item {
         visible: v_type != "bool"
         snapMode: Slider.SnapAlways
         stepSize: v_type == "int" ? 1.0 : 0.0
-        title: currentEffects[current_effect]["controls"][row_param].name
+        title: control.title
         width: parent.width - 50
         height:parent.height
         value: is_log ? logslider(currentEffects[current_effect]["controls"][row_param].value) : currentEffects[current_effect]["controls"][row_param].value
