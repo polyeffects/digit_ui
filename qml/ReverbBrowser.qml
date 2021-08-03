@@ -199,26 +199,17 @@ Item {
     }
 
 
-    Slider {
+    VerticalSlider {
         x: 1100
         y: 50
         width: 60 
         height: 400
-        orientation: Qt.Vertical
         title: "Gain (dB)"
-        value: currentEffects[effect]["controls"]["gain"].value
-        from: currentEffects[effect]["controls"]["gain"].rmin
-        to: currentEffects[effect]["controls"]["gain"].rmax
-		Material.foreground: Constants.poly_blue
-        onMoved: {
-            knobs.ui_knob_change(effect, "gain", value);
-        }
-        onPressedChanged: {
-            if (pressed){
-                knobs.set_knob_current_effect(effect, "gain");
-            }
-        }
-
+        current_effect: effect
+        row_param: "gain"
+        Material.foreground: Constants.poly_blue
     }
+	MoreButton {
+	}
 }
 // }
