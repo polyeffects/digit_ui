@@ -1003,9 +1003,10 @@ Rectangle {
                     TabBar {
                         id: plaitsBar
                         width: parent.width
-                        height: 60
+                        height: 75
                         TabButton {
                             text: qsTr("Model")
+                            height: parent.height
                             font {
                                 pixelSize: 24
                                 capitalization: Font.AllUppercase
@@ -1013,6 +1014,7 @@ Rectangle {
                         }
                         TabButton {
                             text: qsTr("Tone")
+                            height: parent.height
                             font {
                                 pixelSize: 24
                                 capitalization: Font.AllUppercase
@@ -1020,6 +1022,7 @@ Rectangle {
                         }
                         TabButton {
                             text: qsTr("Modulation")
+                            height: parent.height
                             font {
                                 pixelSize: 24
                                 capitalization: Font.AllUppercase
@@ -1030,7 +1033,7 @@ Rectangle {
 
 
                     StackLayout {
-                        y: 100
+                        y: 115
                         x: 0
                         width: 1150
                         currentIndex: plaitsBar.currentIndex	
@@ -1046,11 +1049,11 @@ Rectangle {
                                 row_param: "model"
                                 icon_prefix: "../icons/digit/plaits/"
                                 icons: ['Pair of classic waveforms.png', 'Waveshaping Oscillator.png', 'Two operator FM.png', 'Granular Formant Oscillator.png', 'Harmonic Oscillator.png', 'Wavetable oscillator.png', 'CHORDS.png', 'Vowel and Speech Synthesis.png']
-                                button_height: 205
+                                button_height: 170
                                 button_width:130
                                 icon_size: 50
                                 button_spacing: 10
-                                label_offset: 130
+                                label_offset: 80
                             }
 
                             IconSelector {
@@ -1061,11 +1064,11 @@ Rectangle {
                                 value_offset: 8
                                 icon_prefix: "../icons/digit/plaits/"
                                 icons: ['GRANULAR CLOUD.png', 'Filtered noise.png', 'Particle Noise.png', 'Inharmonic string modeling .png', 'Modal resonator.png', 'Analog bass drum model.png', 'Analog snare drum model.png','Analog hi-hat model.png'] 
-                                button_height: 205
+                                button_height: 170
                                 button_width:130
                                 icon_size: 50
                                 button_spacing: 10
-                                label_offset: 130
+                                label_offset: 80
                             }
                         } 
 

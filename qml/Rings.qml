@@ -85,6 +85,7 @@ Item {
                 button_width:130
                 icon_size: 50
                 button_spacing: 10
+                icon_offset: 30
                 label_offset: 140
             }
             Row {

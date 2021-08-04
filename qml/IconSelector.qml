@@ -14,6 +14,7 @@ Item {
 	property int button_width: 180
 	property int button_spacing: 50
 	property int label_offset: 30
+	property int icon_offset: label_offset
     property bool show_labels: true
     z: 3
     height:540
@@ -37,14 +38,17 @@ Item {
                 icon.width: icon_size
                 icon.height: icon_size
 
-                topPadding: -25
+                topPadding: show_labels ? -icon_offset : 0
                 checked: index+value_offset == Math.floor(currentEffects[current_effect]["controls"][row_param].value)
                 onClicked: {
                     knobs.ui_knob_change(current_effect, row_param, index+value_offset);
                 }
                 // Material.background: "white"
-                Material.foreground: "transparent"
-                Material.accent: "white"
+                // Material.foreground: "transparent"
+                // Material.accent: "white"
+				Material.background: checked ? Constants.rainbow[index+value_offset] : "transparent"
+				Material.foreground: !checked ? Constants.rainbow[index+value_offset] : "black"
+				Material.accent: Constants.background_color 
                 radius: 10
                 Label {
                     visible: show_labels
@@ -56,7 +60,7 @@ Item {
                     width: button_width
                     height: 22
                     z: 1
-                    color: "white"
+                    // color: "white"
                     font {
                         pixelSize: 18
                         capitalization: Font.AllUppercase
