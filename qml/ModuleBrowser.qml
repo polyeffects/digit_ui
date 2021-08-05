@@ -83,7 +83,7 @@ Item {
             spacing: 12
             width: 420
             Repeater {
-                model: ['vital', 'effect', 'MIDI', 'modulation', 'delay', 'chorus', 'synth', 'reverb', 'dynamics',  'filters', 'controls', 'utilities', 'flanger', 'IR', 'loops', 'weird', 'pitch', 'phaser', "mono", "stereo"]
+                model: ['vital', 'effect', 'MIDI', 'modulation', 'delay', 'chorus', 'synth', 'reverb', 'dynamics',  'filters', 'controls', 'utilities', 'flanger', 'IR', 'loops', 'weird', 'pitch', 'phaser', "mono", "stereo", "favourites"]
 
                 PolyButton {
                     height: 75
@@ -129,69 +129,94 @@ Item {
                     radius: 12
                 }
 
-                Label {
-                    x: 31
-                    y: 17
-                    height: 30
-                    width: 598
-                    text: l_effect.replace(/_/g, " ")
-                    // anchors.top: parent.top
-                    font {
-                        pixelSize: 30
-                        family: mainFont.name
-                        weight: Font.DemiBold
-                        capitalization: Font.AllUppercase
-                    }
-                }
-                Label {
-                    x: 31
-                    y: 55
-                    width: 598
-                    height: 30
-                    text: description // effectPrototypes[l_effect]["description"]
-                    wrapMode: Text.Wrap
-                    // anchors.top: parent.top
-                    font {
-                        pixelSize: 24
-                        family: docFont.name
-                        weight: Font.Normal
-                        // capitalization: Font.AllUppercase
-                    }
-                }
+                Item {
+                    width: 709
+                    height: 198
 
-                Row {
-                    x: 31
-                    y: 153
-                    spacing: 12
-                    width: 1258
-                    Repeater {
-                        model: tags
+                    Label {
+                        x: 31
+                        y: 17
+                        height: 30
+                        width: 598
+                        text: l_effect.replace(/_/g, " ")
+                        // anchors.top: parent.top
+                        font {
+                            pixelSize: 30
+                            family: mainFont.name
+                            weight: Font.DemiBold
+                            capitalization: Font.AllUppercase
+                        }
+                    }
+                    Label {
+                        x: 31
+                        y: 55
+                        width: 598
+                        height: 30
+                        text: description // effectPrototypes[l_effect]["description"]
+                        wrapMode: Text.Wrap
+                        // anchors.top: parent.top
+                        font {
+                            pixelSize: 24
+                            family: docFont.name
+                            weight: Font.Normal
+                            // capitalization: Font.AllUppercase
+                        }
+                    }
 
-                        PolyButton {
-                            height: 36
-                            topPadding: 5
-                            leftPadding: 15
-                            rightPadding: 15
-                            radius: 25
-                            Material.foreground: Constants.background_color
-                            border_color: Constants.poly_yellow
-                            background_color: Constants.poly_yellow
-                            text: modelData
-                            font_size: 18
+                    Row {
+                        x: 31
+                        y: 153
+                        spacing: 12
+                        width: 1258
+                        Repeater {
+                            model: tags
+
+                            PolyButton {
+                                height: 36
+                                topPadding: 5
+                                leftPadding: 15
+                                rightPadding: 15
+                                radius: 25
+                                Material.foreground: Constants.background_color
+                                border_color: Constants.poly_yellow
+                                background_color: Constants.poly_yellow
+                                text: modelData
+                                font_size: 18
+                            }
+                        }
+                    }
+
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            knobs.add_new_effect(l_effect)
+                            // knobs.ui_add_effect(l_effect)
+                            mainStack.pop(null)
+                            // patch_single.currentMode = PatchBay.Move;
+                            patch_single.current_help_text = Constants.help["move"];
+
                         }
                     }
                 }
 
+                Item {
+                    x: 709
+                    y: 0
+                    width: 109
+                    height: 198
 
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        knobs.add_new_effect(l_effect)
-                        // knobs.ui_add_effect(l_effect)
-                        mainStack.pop(null)
-                        // patch_single.currentMode = PatchBay.Move;
-                        patch_single.current_help_text = Constants.help["move"];
-
+                    Image {
+                        x: 10
+                        y: 90
+                        source: is_favourite ? "../icons/digit/fav.png" : "../icons/digit/not_fav.png" 
+                    }
+                    MouseArea {
+                        // fill everything apart from favourite button
+                        anchors.fill: parent
+                        onClicked: {
+                            knobs.toggle_module_favourite(l_effect);
+                        }
                     }
                 }
             }

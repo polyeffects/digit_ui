@@ -49,7 +49,7 @@ T.Button {
             }
             // anchors.horizontalCenter: parent.horizontalCenter
             color: !control.enabled ? control.Material.hintTextColor :
-                control.checked ? control.background_color: control.Material.foreground
+                control.checked || control.down ? control.background_color: control.Material.foreground
         }
 
 
@@ -63,7 +63,7 @@ T.Button {
         width: parent.width
         height: parent.height 
         radius: control.radius
-        color: control.checked ? control.Material.foreground : control.background_color
+        color: control.checked || control.down ? control.Material.foreground : control.background_color
         border {
             width: control.checked ? 0 : 2; 
             color: border_color

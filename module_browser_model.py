@@ -19,6 +19,7 @@ current_filters = set()
 current_letter = ""
 effect_prototypes  = {k:module_info.effect_prototypes_models_all[k] for k in sorted(module_info.effect_prototypes_models_all) if k in module_info.effect_type_maps["beebo"]}
 filtered_modules = effect_prototypes
+favourites = {}
 
 class ModuleBrowserModel(QAbstractListModel):
 
@@ -26,14 +27,17 @@ class ModuleBrowserModel(QAbstractListModel):
     Description = Qt.UserRole + 1
     LongDescription = Qt.UserRole + 2
     Tags = Qt.UserRole + 3
+    Favourite = Qt.UserRole + 4
 
-    def __init__(self):
+    def __init__(self, l_favourites):
         QAbstractListModel.__init__(self)
 
         # self.__effects_count = 3
         self.__effect_types = filtered_modules.keys()
         self.__order = dict(enumerate(filtered_modules.keys()))
         global module_browser_singleton
+        global favourites
+        favourites = l_favourites
         module_browser_singleton = self
 
 
@@ -91,7 +95,9 @@ class ModuleBrowserModel(QAbstractListModel):
             for e in effect_prototypes.items():
                 if "tags" not in e[1]:
                     print("no tags", e)
-            filtered_modules = {k:v for (k,v) in effect_prototypes.items() if current_filters.issubset(v["tags"])}
+            filtered_modules = {k:v for (k,v) in effect_prototypes.items() if (current_filters - set(["favourites"])).issubset(v["tags"])}
+            if "favourites" in current_filters:
+                filtered_modules = {k:v for (k,v) in filtered_modules.items() if k in favourites["modules"]}
         if current_letter != "":
             filtered_modules = {k:v for (k,v) in filtered_modules.items() if k.startswith(current_letter)}
 
@@ -131,6 +137,8 @@ class ModuleBrowserModel(QAbstractListModel):
             elif role == ModuleBrowserModel.Tags:
                 # print("getting tags", filtered_modules[self.__order[index.row()]]["tags"])
                 return list(filtered_modules[self.__order[index.row()]]["tags"])
+            elif role == ModuleBrowserModel.Favourite:
+                return self.__order[index.row()] in favourites["modules"]
         return QVariant()
 
     def roleNames(self):
@@ -139,5 +147,6 @@ class ModuleBrowserModel(QAbstractListModel):
             ModuleBrowserModel.Description: b"description",
             ModuleBrowserModel.LongDescription: b"long_description",
             ModuleBrowserModel.Tags: b"tags",
+            ModuleBrowserModel.Favourite: b"is_favourite",
         }
 

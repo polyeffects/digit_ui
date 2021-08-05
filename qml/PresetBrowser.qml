@@ -117,6 +117,8 @@ Item {
             spacing: 12
             clip: true
             delegate: Item {
+                id: p_item
+                property bool is_pressed: false
                 width: 809
                 height: 198
 
@@ -125,7 +127,7 @@ Item {
                     height: parent.height
                     color: Constants.background_color  
                     border.width: 2
-                    border.color: Constants.poly_dark_grey  
+                    border.color: is_pressed ? Constants.poly_pink: Constants.poly_dark_grey  
                     radius: 12
                 }
 
@@ -193,6 +195,7 @@ Item {
                         onClicked: {
                             // patch_single.current_help_text = Constants.help["move"];
                             // presetBrowserIndex = index;
+                            p_item.is_pressed = true; 
                             if (control.hold_delete){
                                 knobs.delete_preset("file://"+filename);
                                 mainStack.pop(null)
@@ -200,6 +203,7 @@ Item {
                             else {
                                 control.after_file_selected("file://"+filename)
                             }
+                            p_item.is_pressed = false; 
                         }
                     }
                 }

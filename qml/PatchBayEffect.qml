@@ -34,9 +34,10 @@ Rectangle {
 	property int rotaryTabIndex: 0
 	property bool set_hold: false
 	property bool was_hold: false
+	property bool is_pressed: false
     property bool is_io: ["input", "output", "midi_input", "midi_output"].indexOf(effect_type) >= 0
 
-    color: is_io ? Constants.poly_very_dark_grey : !effect_type.startsWith("foot_switch_") ? Constants.background_color : currentEffects[effect_id]["controls"]["cur_out"].value > 0.9 ? Constants.cv_color : Constants.background_color
+    color: is_pressed ? accent_color.name : is_io ? Constants.poly_very_dark_grey : !effect_type.startsWith("foot_switch_") ? Constants.background_color : currentEffects[effect_id]["controls"]["cur_out"].value > 0.9 ? Constants.cv_color : Constants.background_color
 
     function isAudio(item){
         return effectPrototypes[effect_type]["inputs"][item][1] == "AudioPort"
@@ -152,8 +153,11 @@ Rectangle {
 
             patch_bay.list_dest_effect_id = effect_id;
             patch_bay.list_dest_effect_type = effect_type;
+
+            patch_bay.selected_effect.is_pressed = false;
 			
 			if (!patch_bay.source_selected){
+                rect.is_pressed = false;
 				mainStack.push(sourcePortSelection);
 				return;
 			}
@@ -197,6 +201,7 @@ Rectangle {
             console.log("final matched", matched);
             if (matched > 1 )
             {
+                rect.is_pressed = false;
                 mainStack.push(destPortSelection);
                 patch_bay.current_help_text = ""
             } 
@@ -582,7 +587,7 @@ Rectangle {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         wrapMode: Text.WordWrap
-        color: effect_color 
+        color: is_pressed ? Constants.background_color : effect_color 
         lineHeight: 0.65
         fontSizeMode: Text.Fit 
         minimumPixelSize: 16
@@ -650,34 +655,51 @@ Rectangle {
 		}
 
         onPressed: {
+            rect.is_pressed = true;
             // check mode: move, delete, connect, open
             rect.beginDrag = Qt.vector2d(rect.x, rect.y);
 			var point = touchPoints[0];
 			offset = Qt.point(point.x, point.y);
 			dragMove(patch_bay, point);
             rect.set_hold = false;
-			longPressTimer.restart();
+			// longPressTimer.restart();
 			rect.was_hold = false;
 			// console.log("effect proto", Object.keys(effectPrototypes[effect_type]["inputs"]))
-
-            if (patch_bay.currentMode == PatchBay.Connect){
-                connect_clicked(false);
+            if (patch_bay.currentMode == PatchBay.Select){
+                patch_bay.cancel_expand = false;
+                // if there isn't a current pressed point, we are the first one,
+                // record us and display the hold action
+                // if there's an existing point then we're the destination, connect
+                patch_bay.selected_effect = rect
+                patch_bay.currentMode = PatchBay.Hold;
+                rect.set_hold = true;
+                rect.was_hold = true;
+                two_finger_connect_clicked(true);
+                patch_single.current_help_text = Constants.help["hold"];
+                patch_bay.multi_touch_connect = false;
             }
-            else if (patch_bay.currentMode == PatchBay.Move){
-				patch_bay.isMoving = true;
-				patch_bay.externalRefresh();
-			} 
 			else if (patch_bay.currentMode == PatchBay.Hold){
+                patch_bay.cancel_expand = false;
 				rect.was_hold = true;
+                patch_bay.multi_touch_connect = true;
 				two_finger_connect_clicked(false);
 			}
+
+            // if (patch_bay.currentMode == PatchBay.Connect){
+            //     connect_clicked(false);
+            // }
+            // else if (patch_bay.currentMode == PatchBay.Move){
+				// patch_bay.isMoving = true;
+				// patch_bay.externalRefresh();
+			// } 
         }
 
         onReleased: {
+            rect.is_pressed = false;
             // var in_x = rect.x;
             // var in_y = rect.y;
 			// console.log("on release called");
-			longPressTimer.stop();
+			// longPressTimer.stop();
 			patch_bay.isMoving = false;
 			// if we set hold, reset to select
 			if (rect.set_hold){
@@ -690,8 +712,8 @@ Rectangle {
 				patch_bay.externalRefresh();
 				knobs.move_effect(effect_id, rect.x, rect.y)
 			} 
-			else if (!rect.was_hold){
-				if (patch_bay.currentMode == PatchBay.Select){
+			else if (!patch_bay.multi_touch_connect){
+				if (patch_bay.currentMode == PatchBay.Select && !patch_bay.cancel_expand){
 					selected = true
 					patch_bay.selected_effect = rect
 					patch_bay.currentMode = PatchBay.Sliders;

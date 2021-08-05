@@ -683,12 +683,15 @@ def get_meta_from_files(initial=False):
         # command =  ['grep' , '-ir',  '"'+ element_name +'"',  '/mnt/presets']
         ret_obj = subprocess.run(command, capture_output=True, shell=True)
         for a in ret_obj.stdout.splitlines():
-            b = a.decode().split(":", 1)
-            v = b[1].split('"')[1]
-            preset_name = b[0].rsplit("/", 1)[0]
-            if preset_name not in r_dict:
-                r_dict[preset_name] = {}
-            r_dict[preset_name][element_name] = v
+            try:
+                b = a.decode().split(":", 1)
+                v = b[1].split('"')[1]
+                preset_name = b[0].rsplit("/", 1)[0]
+                if preset_name not in r_dict:
+                    r_dict[preset_name] = {}
+                r_dict[preset_name][element_name] = v
+            except:
+                pass
     get_rdf_element_from_files("rdfs:comment", "description")
     get_rdf_element_from_files("doap:maintainer", "author")
     get_rdf_element_from_files("doap:category", "tags")
@@ -770,7 +773,7 @@ class Knobs(QObject):
     @Slot(bool, str, bool)
     def select_effect(self, is_source, effect_id, restrict_port_types=True):
         effect_type = current_effects[effect_id]["effect_type"]
-        debug_print("selecting effect type", effect_type, is_source, current_pedal_model.name)
+        # debug_print("selecting effect type", effect_type, is_source, current_pedal_model.name)
         if is_source:
             ports = sorted([v[1]+'|'+v[0]+'|'+k for k,v in effect_prototypes[effect_type]["outputs"].items()])
             selected_source_effect_ports.setStringList(ports)
@@ -1041,6 +1044,18 @@ class Knobs(QObject):
         # flush to file
         write_favourites_data()
         preset_browser_model_s.items_changed()
+
+    @Slot(str)
+    def toggle_module_favourite(self, effect_type):
+        # print("toggling fav")
+        if effect_type in favourites["modules"]:
+            favourites["modules"].pop(effect_type)
+        else:
+            favourites["modules"][effect_type] = True
+        context.setContextProperty("favourites", favourites)
+        # flush to file
+        write_favourites_data()
+        module_browser_model_s.items_changed()
 
     @Slot()
     def ui_copy_irs(self):
@@ -1934,7 +1949,6 @@ if __name__ == "__main__":
     # Instantiate the Python object.
     knobs = Knobs()
     loopler = loopler_lib.Loopler()
-    module_browser_model_s = module_browser_model.ModuleBrowserModel()
 
 
     # read persistant state
@@ -1963,6 +1977,7 @@ if __name__ == "__main__":
     favourites = {}
     load_preset_meta_cache()
     load_favourites_data()
+    module_browser_model_s = module_browser_model.ModuleBrowserModel(favourites)
     preset_browser_model_s = preset_browser_model.PresetBrowserModel(preset_meta_data, favourites, pedal_state["author"])
 
     patch_bay_notify = PatchBayNotify()

@@ -39,6 +39,8 @@ import "polyconst.js" as Constants
         property bool source_selected: false
         property bool from_hold: false
         property bool more_hold: false
+        property bool multi_touch_connect: false
+        property bool cancel_expand: false
         property var effect_map: {"invalid":"b"}
         property PatchBayEffect selected_effect
 
@@ -431,13 +433,14 @@ import "polyconst.js" as Constants
                         clip: true
                         delegate: Item {
                             property var split_port: edit.split("|")
+                            property bool is_pressed: false
                             width: 1218
                             height: 88
 
                             Rectangle {
                                 width: parent.width
                                 height: parent.height
-                                color: Constants.background_color  
+                                color: is_pressed ? Constants.poly_pink : Constants.background_color  
                                 border.width: 2
                                 border.color: Constants.poly_dark_grey  
                                 radius: 12
@@ -492,6 +495,8 @@ import "polyconst.js" as Constants
 
                             MouseArea {
                                 anchors.fill: parent
+                                onPressed: { parent.is_pressed = true; }
+                                onReleased: { parent.is_pressed = false; }
                                 onClicked: {
                                     // set this as the current port
                                     // and update valid targets
@@ -658,11 +663,12 @@ import "polyconst.js" as Constants
                             property var split_port: edit.split("|")
                             width: 1218
                             height: 88
+                            property bool is_pressed: false
 
                             Rectangle {
                                 width: parent.width
                                 height: parent.height
-                                color: Constants.background_color  
+                                color: is_pressed ? Constants.poly_pink : Constants.background_color  
                                 border.width: 2
                                 border.color: Constants.poly_dark_grey  
                                 radius: 12
@@ -717,6 +723,8 @@ import "polyconst.js" as Constants
 
                             MouseArea {
                                 anchors.fill: parent
+                                onPressed: { parent.is_pressed = true; }
+                                onReleased: { parent.is_pressed = false; }
                                 onClicked: {
                                     // set this as the current port
                                     // and update valid targets

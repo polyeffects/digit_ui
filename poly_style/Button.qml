@@ -63,7 +63,7 @@ T.Button {
 	flat: true
     icon.color: !enabled ? Material.hintTextColor :
         flat && highlighted ? Material.accentColor :
-        highlighted ? Material.primaryHighlightedTextColor : Material.foreground
+        highlighted ? Material.primaryHighlightedTextColor : control.down ? Constants.background_color : control.Material.foreground
 
     Material.elevation: flat ? control.down || control.hovered ? 2 : 0
                              : control.down ? 8 : 2
@@ -79,7 +79,7 @@ T.Button {
         font: control.font
         color: !control.enabled ? control.Material.hintTextColor :
             control.flat && control.highlighted ? control.Material.accentColor :
-            control.highlighted ? control.Material.primaryHighlightedTextColor : control.Material.foreground
+            control.highlighted ? control.Material.primaryHighlightedTextColor : control.down ? Constants.background_color : control.Material.foreground
     }
 
     // TODO: Add a proper ripple/ink effect for mouse/touch input and focus state
@@ -93,8 +93,8 @@ T.Button {
         height: parent.height - 12
         radius: 2
         color: !control.enabled ? control.Material.buttonDisabledColor :
-                control.highlighted ? control.Material.highlightedButtonColor : control.Material.buttonColor
-		border { width:1; color: control.Material.foreground}
+                control.highlighted ? control.Material.highlightedButtonColor : control.down ? control.Material.foreground : control.Material.buttonColor
+		border { width:1; color: control.down ? control.Material.background : control.Material.foreground}
 
         PaddedRectangle {
             y: parent.height - 4

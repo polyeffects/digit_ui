@@ -342,6 +342,7 @@ Item {
             icon.source: "../icons/digit/bottom_menu/Delete.png"
             Material.background: Constants.background_color
             onClicked: {
+                patch_single.cancel_expand = true;
                 patch_single.selected_effect.delete_clicked();
             }
             HelpLabel {
@@ -420,6 +421,7 @@ Item {
             Material.background: Constants.background_color
             Material.foreground: accent_color.name
             onClicked: {
+                patch_single.cancel_expand = true;
                 knobs.add_new_effect(patch_single.selected_effect.effect_type)
             }
             HelpLabel {
@@ -440,6 +442,8 @@ Item {
             Material.background: Constants.background_color
             Material.foreground: accent_color.name
             onClicked: {
+                patch_single.cancel_expand = true;
+                patch_single.selected_effect.is_pressed = false
                 patch_single.selected_effect.disconnect_clicked()
             }
             HelpLabel {
