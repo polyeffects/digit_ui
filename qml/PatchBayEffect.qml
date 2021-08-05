@@ -303,7 +303,7 @@ Rectangle {
             patch_bay.current_help_text = "" // Constants.help[""];
         }
         else if (effect_type == "delay"){
-            atchStack.push(editDelay);
+            patchStack.push(editDelay);
             patch_bay.current_help_text = Constants.help["delay_detail"];
         }
         else if (effect_type == "lfo"){

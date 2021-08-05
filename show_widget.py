@@ -34,6 +34,7 @@ import module_info
 from static_globals import IS_REMOTE_TEST
 import loopler as loopler_lib
 import module_browser_model
+import preset_browser_model
 
 worker_pool = QThreadPool()
 EXIT_PROCESS = [False]
@@ -391,16 +392,23 @@ def write_pedal_state():
         json.dump(pedal_state, f)
     os.sync()
 
-def write_preset_meta_cache():
+def write_preset_meta_cache(initial=False):
     with open("/mnt/pedal_state/preset_meta.json", "w") as f:
         json.dump(preset_meta_data, f)
     os.sync()
+    if not initial:
+        preset_browser_model_s.update_preset_meta(preset_meta_data)
 
 def load_preset_meta_cache():
     global preset_meta_data
     try:
         with open("/mnt/pedal_state/preset_meta.json") as f:
             preset_meta_data = json.load(f)
+            if len(preset_meta_data) < 3: # at least some elements
+                try:
+                    get_meta_from_files(True)
+                except:
+                    preset_meta_data = {}
     except:
         try:
             get_meta_from_files(True)
@@ -686,10 +694,8 @@ def get_meta_from_files(initial=False):
     get_rdf_element_from_files("doap:category", "tags")
     global preset_meta_data
     preset_meta_data = r_dict
-    if not initial:
-        context.setContextProperty("presetMeta", preset_meta_data)
     # flush to file
-    write_preset_meta_cache()
+    write_preset_meta_cache(initial)
 
 class Knobs(QObject):
     @Slot(bool, str, str)
@@ -1011,7 +1017,6 @@ class Knobs(QObject):
             else:
                 preset_meta_data[filename] = {"author": pedal_state["author"], "description": preset_description.name}
 
-            context.setContextProperty("presetMeta", preset_meta_data)
             # check if loopler in use
             if loopler_in_use():
                 loopler_file = filename + "/loopler.slsess"
@@ -1024,9 +1029,10 @@ class Knobs(QObject):
 
     @Slot(str)
     def toggle_favourite(self, preset_file):
+        # print("toggling fav")
         p_f = preset_file[7:]
         if p_f in favourites["presets"]:
-            favourites["presets"][p_f] = not favourites["presets"][p_f]
+            favourites["presets"].pop(p_f)
         elif p_f in preset_meta_data:
             favourites["presets"][p_f] = True
         else:
@@ -1034,6 +1040,7 @@ class Knobs(QObject):
         context.setContextProperty("favourites", favourites)
         # flush to file
         write_favourites_data()
+        preset_browser_model_s.items_changed()
 
     @Slot()
     def ui_copy_irs(self):
@@ -1320,7 +1327,10 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
         if ".ingen" not in preset_file or preset_file in ["/mnt/presets/digit/Default_Preset.ingen", "/mnt/presets/beebo/Empty.ingen", "/mnt/presets/digit/Empty.ingen"]:
             return
         # delete
-        shutil.rmtree(preset_file)
+        try: # if it doesn't exist, we still want to remove it from the preset list and meta cache
+            shutil.rmtree(preset_file)
+        except:
+            pass
         # remove from set list.
         preset_list = preset_list_model.stringList()
         debug_print("preset list is", preset_list)
@@ -1328,6 +1338,8 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
             preset_list = [v for v in preset_list if v != in_preset_file]
             preset_list_model.setStringList(preset_list)
             self.save_preset_list()
+        preset_meta_data.pop(preset_file, False)
+        write_preset_meta_cache()
         os.sync()
 
     @Slot()
@@ -1951,6 +1963,7 @@ if __name__ == "__main__":
     favourites = {}
     load_preset_meta_cache()
     load_favourites_data()
+    preset_browser_model_s = preset_browser_model.PresetBrowserModel(preset_meta_data, favourites, pedal_state["author"])
 
     patch_bay_notify = PatchBayNotify()
 
@@ -1969,6 +1982,7 @@ if __name__ == "__main__":
     context.setContextProperty("knobs", knobs)
     context.setContextProperty("loopler", loopler)
     context.setContextProperty("module_browser_model", module_browser_model_s)
+    context.setContextProperty("preset_browser_model", preset_browser_model_s)
     change_pedal_model(pedal_state["model"], True)
     context.setContextProperty("available_effects", available_effects)
     context.setContextProperty("selectedSourceEffectPorts", selected_source_effect_ports)
@@ -1995,7 +2009,6 @@ if __name__ == "__main__":
     context.setContextProperty("footSwitchWarning", foot_switch_warning)
     context.setContextProperty("pedalboardDescription", preset_description)
     context.setContextProperty("patchBayNotify", patch_bay_notify)
-    context.setContextProperty("presetMeta", preset_meta_data)
     context.setContextProperty("favourites", favourites)
     context.setContextProperty("pedalState", pedal_state)
     context.setContextProperty("currentIP", current_ip)

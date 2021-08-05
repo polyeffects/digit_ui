@@ -337,35 +337,17 @@ import QtQuick.Controls.Material 2.3
                 // spacing: 20
                 // height:parent.height
                 Item {
-					height:700
+					height:720
 					width:1280
 
-                    Label {
-						y: 40
-                        color: accent_color.name
-                        text: "Select Preset"
-                        font {
-                            pixelSize: fontSizeLarge * 1.2
-                            capitalization: Font.AllUppercase
-                        }
-                        // anchors.top: parent.top
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-
                     PresetBrowser {
-                        y: 100
+                        y: 0
 						x: 0
-                        swipeable: true
-                        // Layout.fillHeight: true
-                        height: 546
-                        width: 1280
-						top_folder: "file:///mnt/presets/beebo/"
-                        current_selected: ""
 						after_file_selected: (function(name) { 
 							console.log("loading preset file");
 							console.log("file  is", name.toString());
 							knobs.ui_load_preset_by_name(name.toString());
-							mainStack.pop()
+                            mainStack.pop(null)
 							// some way to handle errors also needed
 						})
 						
@@ -379,23 +361,23 @@ import QtQuick.Controls.Material 2.3
                     //     text: "LOAD"
                     //     onClicked: presetStack.push(setPresetName) // load preset and close
                     // }
-                    IconButton {
-                        x: 34 
-                        y: 646
-                        icon.width: 15
-                        icon.height: 25
-                        width: 119
-                        height: 62
-                        text: "BACK"
-                        font {
-                            pixelSize: 24
-                        }
-                        flat: false
-                        icon.name: "back"
-                        Material.background: "white"
-                        Material.foreground: Constants.outline_color
-                        onClicked: presetStack.pop()
-                    }
+                    // IconButton {
+                    //     x: 34 
+                    //     y: 646
+                    //     icon.width: 15
+                    //     icon.height: 25
+                    //     width: 119
+                    //     height: 62
+                    //     text: "BACK"
+                    //     font {
+                    //         pixelSize: 24
+                    //     }
+                    //     flat: false
+                    //     icon.name: "back"
+                    //     Material.background: "white"
+                    //     Material.foreground: Constants.outline_color
+                    //     onClicked: presetStack.pop()
+                    // }
                 }
             // }
         }
@@ -697,58 +679,20 @@ import QtQuick.Controls.Material 2.3
                 // spacing: 20
                 // height:parent.height
                 Item {
-					height:700
+					height:720
 					width:1280
 
-					// anchors.centerIn: parent
-                    GlowingLabel {
-                        // color: "#ffffff"
-						y: 20
-						x: 400
-                        text: qsTr("Select Preset")
-                    }
-
-                    FolderBrowser {
-                        y: 60
-						x: 400
-                        // Layout.fillHeight: true
-                        height: 650
-                        width: 500
-						top_folder: "file:///mnt/presets/beebo/"
-                        current_selected: ""
+                    PresetBrowser {
+                        y: 0
+						x: 0
 						after_file_selected: (function(name) { 
 							console.log("mapping preset file");
 							knobs.map_preset(preset_widget.map_index, name.toString());
                             presetStack.pop()
 						})
 						
-                    } // preset loaded on click on preset
+                    } 
 
-                    // Button {
-                    //     y: 460
-						// x: 400
-                    //     width: 500
-                    //     height: 60
-                    //     text: "LOAD"
-                    //     onClicked: presetStack.push(setPresetName) // load preset and close
-                    // }
-                    IconButton {
-                        x: 34 
-                        y: 646
-                        icon.width: 15
-                        icon.height: 25
-                        width: 119
-                        height: 62
-                        text: "BACK"
-                        font {
-                            pixelSize: 24
-                        }
-                        flat: false
-                        icon.name: "back"
-                        Material.background: "white"
-                        Material.foreground: Constants.outline_color
-                        onClicked: presetStack.pop()
-                    }
                 }
             // }
         }

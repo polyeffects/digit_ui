@@ -369,37 +369,6 @@ Item {
                                     Material.foreground: Constants.short_rainbow[2]
 
 
-                                    function logslider(position) {
-                                        // linear in to log out
-                                        // input position will be between 0 and 1
-                                        var minp = 0;
-                                        var maxp = 1;
-
-                                        // The output result should be between 20 an 20000
-                                        var minv = Math.log(20);
-                                        var maxv = Math.log(20000);
-
-                                        // calculate adjustment factor
-                                        var scale = (maxv-minv) / (maxp-minp);
-
-                                        return Math.exp(minv + scale*(position-minp));
-                                    }
-
-                                    function logposition(value) {
-                                        // log in to linear out
-                                        // input position will be between 0 and 1
-                                        var minp = 0;
-                                        var maxp = 1;
-
-                                        // The output result should be between 20 an 200000
-                                        var minv = Math.log(20);
-                                        var maxv = Math.log(20000);
-
-                                        // calculate adjustment factor
-                                        var scale = (maxv-minv) / (maxp-minp);
-
-                                        return (Math.log(value)-minv) / scale + minp;
-                                    }
 
                                     Slider {
                                         x: 0
@@ -411,18 +380,11 @@ Item {
                                         title: LoopMap.parameter_map[loop_slider.selected_parameter]
                                         width: parent.width - 50
                                         height:parent.height
-                                        // value: is_log ? logslider(currentEffects[current_effect]["controls"][row_param].value) : currentEffects[current_effect]["controls"][row_param].value
                                         value: loopler.loops[current_loop][loop_slider.selected_parameter] 
                                         from: loop_slider.is_log ? 20 : 0
                                         to: loop_slider.is_log ? 20000 : 1
                                         onMoved: {
-                                            if (loop_slider.is_log){
-                                                // knobs.ui_knob_change(current_effect, selected_parameter, logposition(value));
-                                                //
-                                            } else {
-                                                // knobs.ui_knob_change(current_effect, selected_parameter, value);
-                                                loopler.ui_set(current_loop, loop_slider.selected_parameter, value)
-                                            }
+                                            loopler.ui_set(current_loop, loop_slider.selected_parameter, value)
                                         }
                                         onPressedChanged: {
                                             if (pressed){
@@ -553,51 +515,15 @@ Item {
                                     property real multiplier: 1  
                                     property bool is_log: false
                                     property string selected_parameter: "rate"
-                                    property string v_type: selected_parameter == "rate" ? "int" : "float"
                                     property bool force_update: false
-                                    visible: v_type != "hide"
                                     Material.foreground: Constants.short_rainbow[0]
-
-
-                                    function logslider(position) {
-                                        // linear in to log out
-                                        // input position will be between 0 and 1
-                                        var minp = 0;
-                                        var maxp = 1;
-
-                                        // The output result should be between 20 an 20000
-                                        var minv = Math.log(20);
-                                        var maxv = Math.log(20000);
-
-                                        // calculate adjustment factor
-                                        var scale = (maxv-minv) / (maxp-minp);
-
-                                        return Math.exp(minv + scale*(position-minp));
-                                    }
-
-                                    function logposition(value) {
-                                        // log in to linear out
-                                        // input position will be between 0 and 1
-                                        var minp = 0;
-                                        var maxp = 1;
-
-                                        // The output result should be between 20 an 200000
-                                        var minv = Math.log(20);
-                                        var maxv = Math.log(20000);
-
-                                        // calculate adjustment factor
-                                        var scale = (maxv-minv) / (maxp-minp);
-
-                                        return (Math.log(value)-minv) / scale + minp;
-                                    }
 
                                     Slider {
                                         x: 0
                                         y: 0
                                         Material.foreground: parent.Material.foreground
-                                        visible: loop_slider_rate.v_type != "bool"
                                         snapMode: Slider.SnapAlways
-                                        stepSize: loop_slider_rate.v_type == "int" ? 1.0 : 0.01
+                                        stepSize: loop_slider_rate.selected_parameter == "rate" ? 0.25 : 0.01
                                         title: LoopMap.parameter_map[loop_slider_rate.selected_parameter]
                                         width: parent.width - 50
                                         height:parent.height
@@ -605,13 +531,7 @@ Item {
                                         from: loop_slider_rate.selected_parameter  in LoopMap.param_bounds ? LoopMap.param_bounds[loop_slider_rate.selected_parameter][0] : 0
                                         to: loop_slider_rate.selected_parameter in LoopMap.param_bounds ? LoopMap.param_bounds[loop_slider_rate.selected_parameter][1] : 1
                                         onMoved: {
-                                            if (loop_slider_rate.is_log){
-                                                // knobs.ui_knob_change(current_effect, selected_parameter, logposition(value));
-                                                //
-                                            } else {
-                                                // knobs.ui_knob_change(current_effect, selected_parameter, value);
-                                                loopler.ui_set(current_loop, loop_slider_rate.selected_parameter, value)
-                                            }
+                                            loopler.ui_set(current_loop, loop_slider_rate.selected_parameter, value)
                                         }
                                         onPressedChanged: {
                                             if (pressed){
@@ -890,38 +810,6 @@ Item {
                                         property string selected_parameter: "input_gain"
                                         property string v_type: selected_parameter == "fade_samples" ? "int" : "float"
                                         property bool force_update: false
-
-                                        function logslider(position) {
-                                            // linear in to log out
-                                            // input position will be between 0 and 1
-                                            var minp = 0;
-                                            var maxp = 1;
-
-                                            // The output result should be between 20 an 20000
-                                            var minv = Math.log(20);
-                                            var maxv = Math.log(20000);
-
-                                            // calculate adjustment factor
-                                            var scale = (maxv-minv) / (maxp-minp);
-
-                                            return Math.exp(minv + scale*(position-minp));
-                                        }
-
-                                        function logposition(value) {
-                                            // log in to linear out
-                                            // input position will be between 0 and 1
-                                            var minp = 0;
-                                            var maxp = 1;
-
-                                            // The output result should be between 20 an 200000
-                                            var minv = Math.log(20);
-                                            var maxv = Math.log(20000);
-
-                                            // calculate adjustment factor
-                                            var scale = (maxv-minv) / (maxp-minp);
-
-                                            return (Math.log(value)-minv) / scale + minp;
-                                        }
 
                                         Slider {
                                             x: 0
