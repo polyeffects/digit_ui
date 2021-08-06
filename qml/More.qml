@@ -11,11 +11,11 @@ Item {
     property string current_effect 
     property double actualValue : currentEffects[current_effect]["controls"][row_param].value
     property double midiCC : currentEffects[current_effect]["controls"][row_param].cc
-    property string current_value: actualValue.toFixed(3)
+    property string current_value: parseFloat(actualValue.toFixed(3)).toString()
     property bool learning: false
 
     onActualValueChanged: {
-        current_value = actualValue.toFixed(3).replace(/[.,]000$/, "").replace(/[.,]00$/, "");
+        current_value = parseFloat(actualValue.toFixed(3)).toString()
     }
 
     onMidiCCChanged: {
@@ -180,18 +180,18 @@ Item {
             
             }
             Column {
-                spacing: 40
+                spacing: 120
                 Grid {
-                    width: 404
-                    height: 303
+                    width: 650
+                    height: 320
                     columns: 3
                     rows: 4
-                    spacing : 20
+                    spacing : 40
                     Repeater {
                         model: [1, 2, 3, 4, 5, 6, 7, 8, 9, "⌫", 0, '.']
                         PolyButton {
-                            height: 64
-                            width: 86
+                            height: 70
+                            width: 100
                             text: modelData
                             onClicked: {
                                 if (modelData == "⌫"){
@@ -221,7 +221,7 @@ Item {
                 }
                 PolyButton {
                     height: 64
-                    width: 298
+                    width: 380
                     text: "submit"
                     onClicked: {
                         knobs.ui_knob_change(current_effect, row_param, control.current_value);

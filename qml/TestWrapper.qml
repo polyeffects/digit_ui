@@ -131,7 +131,7 @@ ApplicationWindow {
         // EuclideanSequencer {
         
         // }
-        Rings {
+        More {
         
         }
     }

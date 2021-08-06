@@ -94,7 +94,7 @@ Item {
     }
 
     Rectangle {
-        color: accent_color.name
+        color:  currentPedalModel.name == "beebo" || patch_single.currentMode == PatchBay.Details ? accent_color.name : Constants.background_color
         x: 0
         y: 0
         width: 1280
@@ -103,7 +103,8 @@ Item {
         Image {
             x: 10
             y: 9
-            source: currentPedalModel.name == "beebo" ? "../icons/digit/Beebo.png" : "../icons/digit/Hector.png" 
+            source: currentPedalModel.name == "beebo" ? "../icons/digit/Beebo.png" : "../icons/digit/Hector.png"
+            visible: currentPedalModel.name == "beebo" || patch_single.currentMode == PatchBay.Details
         }
 
         Label {
@@ -116,7 +117,7 @@ Item {
             width: 1000
             height: 60
             z: 1
-            color: Constants.background_color
+            color:  currentPedalModel.name != "beebo" || patch_single.currentMode == PatchBay.Details ? accent_color.name : Constants.background_color
             font {
                 pixelSize: fontSizeLarge
                 capitalization: Font.AllUppercase
@@ -134,7 +135,7 @@ Item {
 
 
         Rectangle {
-            x: 995
+            x: 945
             y: 15
             width: 115
             height: 60
@@ -332,7 +333,7 @@ Item {
 
         IconButton {
             visible: patch_single.currentMode == PatchBay.Hold && !(patch_single.selected_effect.is_io)
-            x: 32 
+            x: 120 
             y: 8
             width: 70
             height: 70
@@ -351,9 +352,9 @@ Item {
         }
 
         Label {
-            x: patch_single.currentMode != PatchBay.Select ? 170 : 34
+            x: patch_single.currentMode != PatchBay.Select ? 860 : 860
             y: 12
-            width: 400
+            width: 350
             height: 62
             visible: !show_footer_value
             // anchors.centerIn: parent
@@ -454,13 +455,12 @@ Item {
 
         IconButton {
             visible: patch_single.currentMode == PatchBay.Select
-            x: 961 
+            x: 765 
             y: 12
             width: 62
             height: 62
-            flat: false
             icon.source: "../icons/digit/bottom_menu/Add.png"
-            Material.background: accent_color.name
+            Material.background: Constants.background_color
             onClicked: {
                 module_browser_model.clear_filter();
                 mainStack.push("ModuleBrowser.qml");
@@ -472,13 +472,12 @@ Item {
 
         IconButton {
             visible: patch_single.currentMode == PatchBay.Select
-            x: 1041 
+            x: 465 
             y: 12
             width: 62
             height: 62
-            flat: false
             icon.source: "../icons/digit/bottom_menu/patch.png"
-            Material.background: accent_color.name
+            Material.background: Constants.background_color
             onClicked: {
                 mainStack.push("PresetSave.qml")
             }
@@ -487,287 +486,20 @@ Item {
             }
         }
 
-
-
-        // IconButton {
-        //     visible: patch_single.currentMode != PatchBay.Hold
-        //     x: 1121 
-        //     y: 12
-        //     width: 62
-        //     height: 62
-        //     flat: false
-        //     icon.source: "../icons/digit/bottom_menu/Help.png"
-        //     Material.background: accent_color.name
-        //     onClicked: {
-        //         title_footer.show_help = !title_footer.show_help
-        //     }
-        //     highlighted: show_help
-        //     HelpLabel {
-        //         text: "help"
-        //     }
-        // }
-
         IconButton {
             visible: patch_single.currentMode == PatchBay.Select
-            x: 1201 
+            x: 615 
             y: 12
             width: 62
+            icon.width: 60
             height: 62
-            flat: false
             icon.source: "../icons/digit/bottom_menu/Settings.png"
-            Material.background: accent_color.name
+            Material.background: Constants.background_color
             onClicked: {
                 mainStack.push("Settings.qml")
             }
             HelpLabel {
                 text: "settings"
-            }
-        }
-    }
-
-    // categories effect 0, IO 1, control 2, synth 3, 
-    //
-    Component {
-        id: sectionHeading
-        Rectangle {
-            width: 1280
-            height: 90
-            color: accent_color.name
-
-            Text {
-                x: 20
-                y: 15
-                // anchors.horizontalCenter: parent.horizontalCenter
-                // anchors.top: parent.top
-                // anchors.bottom: parent.bottom
-                text: {"0": "Effects", "1": "Input/Output", "2":"Controls", "3": "Synthesis/Weirder" }[section]
-                font.bold: true
-                font.capitalization: Font.AllUppercase
-                font.pixelSize: fontSizeLarge * 0.95
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
-        }
-    }
-
-    Component {
-        id: addEffectCat
-        Item {
-            height:700
-            width:1280
-            Label {
-                y: 28
-                color: accent_color.name
-                text: "Add Module"
-                font {
-                    pixelSize: 36
-                    capitalization: Font.AllUppercase
-                }
-                // anchors.top: parent.top
-                anchors.horizontalCenter: parent.horizontalCenter
-            }
-            Column {
-                anchors.centerIn: parent
-                spacing: 57
-
-                Row {
-                    spacing: 100
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    Button {
-                        text: "EFFECTS"
-                        Material.foreground: Constants.poly_pink
-                        // anchors.horizontalCenter:  parent.horizontalCenter
-                        width: 320
-                        height: 59
-                        // height: 500
-                        onClicked: {
-                            category_index = 0;
-                            mainStack.push(addEffect);
-                        }
-                        font {
-                            pixelSize: 36
-                            capitalization: Font.AllUppercase
-                        }
-                    }
-
-                    Button {
-                        text: "INPUT/OUTPUT"
-                        Material.foreground: Constants.poly_green
-                        // anchors.horizontalCenter:  parent.horizontalCenter
-                        width: 320
-                        height: 59
-                        // height: 500
-                        onClicked: {
-                            category_index = 1;
-                            mainStack.push(addEffect);
-                        }
-                        font {
-                            pixelSize: 36
-                            capitalization: Font.AllUppercase
-                        }
-                    }
-                }
-                Row {
-                    spacing: 100
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    Button {
-                        text: "CONTROLS"
-                        Material.foreground: Constants.poly_blue
-                        // anchors.horizontalCenter:  parent.horizontalCenter
-                        width: 320
-                        height: 59
-                        // height: 500
-                        onClicked: {
-                            category_index = 2;
-                            mainStack.push(addEffect);
-                        }
-                        font {
-                            pixelSize: 36
-                            capitalization: Font.AllUppercase
-                        }
-                    }
-
-                    Button {
-                        text: "synthesis/weird"
-                        Material.foreground: Constants.poly_yellow
-                        // anchors.horizontalCenter:  parent.horizontalCenter
-                        width: 320
-                        height: 59
-                        // height: 500
-                        onClicked: {
-                            category_index = 3;
-                            mainStack.push(addEffect);
-                        }
-                        font {
-                            pixelSize: 36
-                            capitalization: Font.AllUppercase
-                        }
-                    }
-                }
-
-            }
-            IconButton {
-                x: 34 
-                y: 646
-                icon.width: 15
-                icon.height: 25
-                width: 119
-                height: 62
-                text: "BACK"
-                font {
-                    pixelSize: 24
-                }
-                flat: false
-                icon.name: "back"
-                Material.background: "white"
-                Material.foreground: Constants.outline_color
-                onClicked: mainStack.pop()
-            }
-        }
-    }
-
-    Component {
-        id: addEffect
-        
-        Item {
-            id: addEffectCon
-            height:700
-            width:1280
-
-            Label {
-                y: 28
-                color: accent_color.name
-                text: "Add Module"
-                font {
-                    pixelSize: 36
-                    capitalization: Font.AllUppercase
-                }
-                // anchors.top: parent.top
-                anchors.horizontalCenter: parent.horizontalCenter
-            }
-
-            ListView {
-                width: 1280
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: parent.top
-                anchors.topMargin: 120
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 80
-                clip: true
-                delegate: Item {
-                    property string l_effect: edit //.split(":")[1]
-                    width: parent.width
-                    height: 110
-                    Label {
-                        x: 34
-                        height: 90
-                        width: 200
-                        text: l_effect.replace(/_/g, " ")
-                        anchors.top: parent.top
-                        font {
-                            pixelSize: fontSizeLarge * 0.85
-                            family: mainFont.name
-                            weight: Font.DemiBold
-                            capitalization: Font.AllUppercase
-                        }
-                    }
-                    Label {
-                        x: 334
-                        width: 945
-                        height: 90
-                        text: effectPrototypes[l_effect]["description"]
-                        wrapMode: Text.Wrap
-                        anchors.top: parent.top
-                        font {
-                            pixelSize: fontSizeLarge  * 0.8
-                            family: docFont.name
-                            weight: Font.Normal
-                            // capitalization: Font.AllUppercase
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            knobs.add_new_effect(l_effect)
-                            // knobs.ui_add_effect(l_effect)
-                            mainStack.pop(null)
-                            // patch_single.currentMode = PatchBay.Move;
-                            patch_single.current_help_text = Constants.help["move"];
-
-                        }
-                    }
-                }
-                ScrollIndicator.vertical: ScrollIndicator {
-                    anchors.top: parent.top
-                    parent: addEffectCon
-                    anchors.right: parent.right
-                    anchors.rightMargin: 1
-                    anchors.bottom: parent.bottom
-                }
-                model: available_effects[category_index]
-
-                // section.property: "edit"
-                // section.criteria: ViewSection.FirstCharacter
-                // section.delegate: sectionHeading
-            }
-
-            IconButton {
-                x: 34 
-                y: 646
-                icon.width: 15
-                icon.height: 25
-                width: 119
-                height: 62
-                text: "BACK"
-                font {
-                    pixelSize: 24
-                }
-                flat: false
-                icon.name: "back"
-                Material.background: "white"
-                Material.foreground: Constants.outline_color
-                onClicked: mainStack.pop()
             }
         }
     }

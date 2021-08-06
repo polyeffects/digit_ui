@@ -71,15 +71,15 @@ import "polyconst.js" as Constants
 
         function calc_io_y(l_effect_id){
             var effect_type = currentEffects[l_effect_id]["effect_type"];
-            var offset = 40;
+            var offset = -50;
             if (effect_type == "input"){
-                return offset + (74 *  (Number(l_effect_id.slice(-1) - 1)))
+                return offset + (95 *  (Number(l_effect_id.slice(-1) - 1)))
             } else if (effect_type == "output"){
-                return offset + (58 *  (Number(l_effect_id.slice(-1) - 1)))
+                return offset + (75 *  (Number(l_effect_id.slice(-1) - 1)))
             } else if (effect_type == "midi_input"){
-                return offset + (74 *  6)
+                return offset + (95 *  6)
             } else if (effect_type == "midi_output"){
-                return offset + (58 *  8)
+                return offset + (75 *  8)
             }
         }
 
@@ -301,42 +301,42 @@ import "polyconst.js" as Constants
 
         Rectangle {
             x: 0
-            y: 0
+            y: currentPedalModel.name == "beebo" ? 0 : -100
             width: 95
-            height: parent.height
+            height: 720
             color: Constants.poly_very_dark_grey
-        }
-
-        Label {
-            x: 15
-            y: 15
-            color: accent_color.name
-            text: "OUT"
-            font {
-                pixelSize: 18
-                capitalization: Font.AllUppercase
+            Label {
+                x: 15
+                y: 15
+                color: accent_color.name
+                text: "OUT"
+                font {
+                    pixelSize: 18
+                    capitalization: Font.AllUppercase
+                }
             }
         }
+
 
 
         Rectangle {
             x: 1195
-            y: 0
+            y: currentPedalModel.name == "beebo" ? 0 : -100
             width: 90
-            height: parent.height
+            height: 720
             color: Constants.poly_very_dark_grey
-        }
-
-        Label {
-            x: 1250
-            y: 15
-            color: accent_color.name
-            text: "IN"
-            font {
-                pixelSize: 18
-                capitalization: Font.AllUppercase
+            Label {
+                x: 55
+                y: 15
+                color: accent_color.name
+                text: "IN"
+                font {
+                    pixelSize: 18
+                    capitalization: Font.AllUppercase
+                }
             }
         }
+
 
         Rectangle {
             z: 3
@@ -352,7 +352,7 @@ import "polyconst.js" as Constants
 
         Label {
             id: pedalboard_description
-            y: 10
+            y: currentPedalModel.name == "beebo" ? 15 : -30
             anchors.horizontalCenter: parent.horizontalCenter
             horizontalAlignment: Text.AlignHCenter
             // x: 120

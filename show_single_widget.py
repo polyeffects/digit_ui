@@ -136,7 +136,7 @@ if __name__ == "__main__":
     app.setFont(font)
     # Instantiate the Python object.
     # knobs = Knobs()
-    module_browser_model_s = module_browser_model.ModuleBrowserModel()
+    module_browser_model_s = module_browser_model.ModuleBrowserModel({"modules": [], "presetes": []})
     #loopler = loopler_lib.Loopler()
     #loopler.start_loopler()
 
