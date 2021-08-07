@@ -385,6 +385,7 @@ Item {
 
     }
 	MoreButton {
+		l_effect_type: "looping_envelope"
 	}
 }
 

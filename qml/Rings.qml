@@ -160,6 +160,7 @@ Item {
         }
     }
     MoreButton {
+        l_effect_type: effect_type
     }
 }
 

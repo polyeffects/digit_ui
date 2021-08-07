@@ -19,6 +19,7 @@ import QtQuick.Controls.Material 2.3
 Item {
     id: mainRect
     property string effect
+    property string effect_type
     property url current_selected: currentEffects[effect]["controls"]["ir"].name
     property string display_name: remove_suffix(mainRect.basename(mainRect.current_selected))
     property url top_folder: "file:///audio/reverbs/"
@@ -210,6 +211,7 @@ Item {
         Material.foreground: Constants.poly_blue
     }
 	MoreButton {
+        l_effect_type: effect_type
 	}
 }
 // }

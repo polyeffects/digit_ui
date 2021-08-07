@@ -607,6 +607,7 @@ Item {
         }
     }
 	MoreButton {
+		l_effect_type: "chaos_controller"
 	}
 }
 

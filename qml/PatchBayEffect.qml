@@ -346,7 +346,7 @@ Rectangle {
         else if (effect_type == "mono_reverb" || effect_type == "stereo_reverb" || effect_type == "quad_ir_reverb")
         {
             patch_bay.current_help_text = Constants.help["reverb_detail"];
-            patchStack.push("ReverbBrowser.qml", {"effect": effect_id, 
+            patchStack.push("ReverbBrowser.qml", {"effect": effect_id,  "effect_type": effect_type,
             "top_folder": "file:///audio/reverbs",
             "after_file_selected": (function(name) { 
                 // console.log("got new reveb file");
@@ -357,7 +357,7 @@ Rectangle {
         }
         else if (effect_type == "mono_cab" || effect_type == "stereo_cab" || effect_type == "quad_ir_cab"){
             patch_bay.current_help_text = Constants.help["reverb_detail"];
-            patchStack.push("ReverbBrowser.qml", {"effect": effect_id, 
+            patchStack.push("ReverbBrowser.qml", {"effect": effect_id, "effect_type": effect_type,
             "top_folder": "file:///audio/cabs",
             "after_file_selected": (function(name) { 
                 // console.log("got new reveb file");
@@ -915,6 +915,7 @@ Rectangle {
 					visible: Qt.inputMethod.visible
 				}
                 MoreButton {
+                    l_effect_type: effect_type
                 }
             }
         }
@@ -1002,6 +1003,7 @@ Rectangle {
 
 				}
                 MoreButton {
+                    l_effect_type: effect_type
                 }
             }
         }
@@ -1158,6 +1160,7 @@ Rectangle {
                 }
 
                 MoreButton {
+                    l_effect_type: effect_type
                 }
             }
         }
@@ -1407,6 +1410,7 @@ Rectangle {
 					}
 				}
                 MoreButton {
+                    l_effect_type: effect_type
                 }
 			}
 		}
@@ -1821,6 +1825,7 @@ Rectangle {
 
 				}
                 MoreButton {
+                    l_effect_type: effect_type
                 }
 			}
 		}
@@ -1956,6 +1961,7 @@ Rectangle {
 					}
 				}
                 MoreButton {
+                    l_effect_type: effect_type
                 }
 			}
         }
@@ -2059,6 +2065,7 @@ Rectangle {
 					}
 				}
                 MoreButton {
+                    l_effect_type: effect_type
                 }
 			}
         }
@@ -2090,6 +2097,7 @@ Rectangle {
 					}
 				}
                 MoreButton {
+                    l_effect_type: effect_type
                 }
 			}
         }
@@ -2113,6 +2121,7 @@ Rectangle {
 					current_effect: effect_id
 				}
                 MoreButton {
+                    l_effect_type: effect_type
                 }
 			}
         }
@@ -2175,6 +2184,7 @@ Rectangle {
 				}
 
                 MoreButton {
+                    l_effect_type: effect_type
                 }
                 
             }

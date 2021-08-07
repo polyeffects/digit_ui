@@ -4,6 +4,7 @@ import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
 
 IconButton {
+    property string l_effect_type
     x: 584 
     y: 550
     width: 76
@@ -18,5 +19,6 @@ IconButton {
     }
     onReleased: {
         patch_single.more_hold = false;
+        patchStack.push("ModuleMore.qml", {"effect_type": l_effect_type});
     }
 }
