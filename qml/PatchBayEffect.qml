@@ -385,7 +385,8 @@ Rectangle {
             patch_bay.current_help_text = "" // Constants.help[""];
         }
 		else if (['input', 'output', 'midi_input', 'midi_output'].indexOf(effect_type) >= 0){
-            patchStack.push(editIO);
+            // patchStack.push(editIO);
+            disconnect_clicked();
             // patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
         } else {
 			patch_bay.current_help_text = Constants.help["sliders"];

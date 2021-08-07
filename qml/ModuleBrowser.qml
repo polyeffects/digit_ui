@@ -83,7 +83,7 @@ Item {
             spacing: 12
             width: 420
             Repeater {
-                model: ['vital', 'effect', 'MIDI', 'modulation', 'delay', 'chorus', 'synth', 'reverb', 'dynamics',  'filters', 'controls', 'utilities', 'flanger', 'IR', 'loops', 'weird', 'pitch', 'phaser', "mono", "stereo", "favourites"]
+                model: ['vital', 'effect', 'MIDI', 'modulation', 'delay', 'chorus', 'synth', 'reverb', 'dynamics',  'filters', 'controls', 'utilities', 'flanger', 'IR', 'loops', 'weird', 'pitch', 'phaser', "mono", "stereo", "ported", "favourites"]
 
                 PolyButton {
                     height: 75

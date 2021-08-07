@@ -15,7 +15,7 @@ import "polyconst.js" as Constants
         y: 0
         id: patch_bay
         width: 1280
-        height: 548
+        height: currentPedalModel.name == "beebo" || patch_single.currentMode == PatchBay.Details ?  548: 700
 
         enum PatchMode {
             Select,
@@ -62,6 +62,9 @@ import "polyconst.js" as Constants
             patchBayNotify.add_module.connect(reAddModule);
             patchBayNotify.remove_module.connect(reRemoveModule);
             patchBayNotify.loading_preset.connect(reLoadingPreset);
+            if (currentPedalModel.name != "beebo"){
+                mycanvas.loadImage("../icons/digit/hector_background.png")
+            }
         }
 
         function rsplit(str, sep, maxsplit) {
@@ -71,7 +74,7 @@ import "polyconst.js" as Constants
 
         function calc_io_y(l_effect_id){
             var effect_type = currentEffects[l_effect_id]["effect_type"];
-            var offset = -50;
+            var offset = 60;
             if (effect_type == "input"){
                 return offset + (95 *  (Number(l_effect_id.slice(-1) - 1)))
             } else if (effect_type == "output"){
@@ -289,6 +292,9 @@ import "polyconst.js" as Constants
                 var ctx = getContext("2d");
                 ctx.fillStyle = Material.background; //Qt.rgba(1, 1, 0, 1);
                 ctx.fillRect(0, 0, width, height);
+                if (currentPedalModel.name != "beebo"){
+                    ctx.drawImage("../icons/digit/hector_background.png", 212, 32, 855, 655);
+                }
                 findConnections(ctx);
             }
             DropArea {
@@ -301,7 +307,8 @@ import "polyconst.js" as Constants
 
         Rectangle {
             x: 0
-            y: currentPedalModel.name == "beebo" ? 0 : -100
+            // y: currentPedalModel.name == "beebo" ? 0 : -100
+            y: 0
             width: 95
             height: 720
             color: Constants.poly_very_dark_grey
@@ -321,7 +328,8 @@ import "polyconst.js" as Constants
 
         Rectangle {
             x: 1195
-            y: currentPedalModel.name == "beebo" ? 0 : -100
+            // y: currentPedalModel.name == "beebo" ? 0 : -100
+            y: 0
             width: 90
             height: 720
             color: Constants.poly_very_dark_grey
@@ -352,7 +360,7 @@ import "polyconst.js" as Constants
 
         Label {
             id: pedalboard_description
-            y: currentPedalModel.name == "beebo" ? 15 : -30
+            y: currentPedalModel.name == "beebo" ? 15 : 90
             anchors.horizontalCenter: parent.horizontalCenter
             horizontalAlignment: Text.AlignHCenter
             // x: 120
@@ -425,6 +433,8 @@ import "polyconst.js" as Constants
                     y: 100
 
                     ListView {
+                        id: from_list
+                        property bool move_finished: false
                         width: 1218
                         x: 29
                         y: 27
@@ -434,6 +444,10 @@ import "polyconst.js" as Constants
                         delegate: Item {
                             property var split_port: edit.split("|")
                             property bool is_pressed: false
+                            property bool clearPressed: from_list.move_finished
+                            onClearPressedChanged: {
+                                is_pressed = false;
+                            }
                             width: 1218
                             height: 88
 
@@ -476,21 +490,6 @@ import "polyconst.js" as Constants
                                     capitalization: Font.AllUppercase
                                 }
                             }
-                            // Label {
-                            //     x: 31
-                            //     y: 55
-                            //     width: 598
-                            //     height: 30
-                            //     text: description // effectPrototypes[l_effect]["description"]
-                            //     wrapMode: Text.Wrap
-                            //     // anchors.top: parent.top
-                            //     font {
-                            //         pixelSize: 24
-                            //         family: docFont.name
-                            //         weight: Font.Normal
-                            //         // capitalization: Font.AllUppercase
-                            //     }
-                            // }
 
 
                             MouseArea {
@@ -576,6 +575,9 @@ import "polyconst.js" as Constants
                             }
                         }
                         model: selectedSourceEffectPorts
+                        onMovementEnded: {
+                            from_list.move_finished = !from_list.move_finished;
+                        }
 
                         // section.property: "edit"
                         // section.criteria: ViewSection.FirstCharacter
@@ -653,6 +655,8 @@ import "polyconst.js" as Constants
                     y: 100
 
                     ListView {
+                        id: to_list
+                        property bool move_finished: false
                         width: 1218
                         x: 29
                         y: 27
@@ -664,6 +668,10 @@ import "polyconst.js" as Constants
                             width: 1218
                             height: 88
                             property bool is_pressed: false
+                            property bool clearPressed: to_list.move_finished
+                            onClearPressedChanged: {
+                                is_pressed = false;
+                            }
 
                             Rectangle {
                                 width: parent.width
@@ -748,9 +756,9 @@ import "polyconst.js" as Constants
                         }
                         model: selectedDestEffectPorts
 
-                        // section.property: "edit"
-                        // section.criteria: ViewSection.FirstCharacter
-                        // section.delegate: sectionHeading
+                        onMovementEnded: {
+                            to_list.move_finished = !to_list.move_finished;
+                        }
                     }
 
                     IconButton {
@@ -782,82 +790,170 @@ import "polyconst.js" as Constants
 
         Component {
             id: disconnectPortSelection
+
             Item {
-                id: disPortSelectionCon
-                y: 50
-                height:700
+                id: disconnectPortSub
+                height: 720
                 width:1280
 
-                GlowingLabel {
-                    color: "#ffffff"
-                    text: "Disconnect Port"
-                    font {
-                        pixelSize: fontSizeLarge * 1.2
-                    }
-                    anchors.top: parent.top
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
+                Rectangle {
+                    color: accent_color.name
+                    x: 0
+                    y: 0
+                    width: 1280
+                    height: 100
 
-                ListView {
-                    width: 1000
-                    spacing: 5
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.top: parent.top
-                    anchors.topMargin: 90
-                    anchors.bottom: parent.bottom
-                    clip: true
-                    delegate: ItemDelegate {
-                        width: parent.width
-                        height: 90
-                        text: edit.split("===")[1].replace(/_/g, " ")
-                        bottomPadding: 2
-                        font.pixelSize: fontSizeLarge
-                        font.capitalization: Font.AllUppercase
-                        topPadding: 2
-                        onClicked: {
-                            // set this as the current port
-                            // and update valid targets
-                            // console.log("disconnect", edit);
-                            knobs.disconnect_port(edit.split("===")[2]);
-                            mycanvas.requestPaint();
-                            mainStack.pop();
+                    Image {
+                        x: 10
+                        y: 9
+                        source: currentPedalModel.name == "beebo" ? "../icons/digit/Beebo.png" : "../icons/digit/Hector.png" 
+                    }
+
+                    Label {
+                        // color: "#ffffff"
+                        text: "Disconnect port"
+                        elide: Text.ElideRight
+                        anchors.centerIn: parent
+                        anchors.bottomMargin: 25 
+                        horizontalAlignment: Text.AlignHCenter
+                        width: 1000
+                        height: 60
+                        z: 1
+                        color: Constants.background_color
+                        font {
+                            pixelSize: 36
+                            capitalization: Font.AllUppercase
                         }
                     }
-                    ScrollIndicator.vertical: ScrollIndicator {
-                        anchors.top: parent.top
-                        parent: disPortSelectionCon
-                        anchors.right: parent.right
-                        anchors.rightMargin: 1
-                        anchors.bottom: parent.bottom
-                    }
-                    model: selectedSourceEffectPorts
                 }
-            
-                
-                IconButton {
-                    x: 34 
-                    y: 596
-                    icon.width: 15
-                    icon.height: 25
-                    width: 119
-                    height: 62
-                    text: "BACK"
-                    font {
-                        pixelSize: 24
+                Item {
+                    y: 100
+
+                    ListView {
+                        id: disconnect_list
+                        property bool move_finished: false
+                        width: 1218
+                        x: 29
+                        y: 27
+                        height: 520
+                        spacing: 12
+                        clip: true
+                        delegate: Item {
+                            property var split_port: edit.split("===")
+                        //text: edit.split("===")[1].replace(/_/g, " ")
+                            width: 1218
+                            height: 88
+                            property bool is_pressed: false
+                            property bool clearPressed: disconnect_list.move_finished
+                            onClearPressedChanged: {
+                                is_pressed = false;
+                            }
+
+                            Rectangle {
+                                width: parent.width
+                                height: parent.height
+                                color: is_pressed ? Constants.poly_pink : Constants.background_color  
+                                border.width: 2
+                                border.color: Constants.poly_dark_grey  
+                                radius: 12
+                            }
+
+                            PolyButton {
+                                height: 35
+                                width: 100  
+                                x: 44
+                                y: 24
+                                topPadding: 5
+                                leftPadding: 15
+                                rightPadding: 15
+                                radius: 25
+                                Material.foreground: Constants.background_color
+                                // border_color: split_port[0] == "input" ?  Constants.poly_pink : Constants.poly_purple
+                                background_color: split_port[0] == "input" ?  Constants.poly_pink : Constants.poly_purple
+                                text: split_port[0]
+                                font_size: 24
+                            }
+
+                            Label {
+                                x: 190
+                                y: 17
+                                height: 60
+                                width: 598
+                                text: split_port[1].replace(/_/g, " ")
+                                // anchors.top: parent.top
+                                font {
+                                    pixelSize: 30
+                                    family: mainFont.name
+                                    weight: Font.DemiBold
+                                    capitalization: Font.AllUppercase
+                                }
+                            }
+                            // Label {
+                            //     x: 31
+                            //     y: 55
+                            //     width: 598
+                            //     height: 30
+                            //     text: description // effectPrototypes[l_effect]["description"]
+                            //     wrapMode: Text.Wrap
+                            //     // anchors.top: parent.top
+                            //     font {
+                            //         pixelSize: 24
+                            //         family: docFont.name
+                            //         weight: Font.Normal
+                            //         // capitalization: Font.AllUppercase
+                            //     }
+                            // }
+
+
+                            MouseArea {
+                                anchors.fill: parent
+                                onPressed: { parent.is_pressed = true; }
+                                onReleased: { parent.is_pressed = false; }
+                                onClicked: {
+                                    knobs.disconnect_port(split_port[2], edit);
+                                    // patch_single.mycanvas.requestPaint();
+                                    // mainStack.pop();
+                                }
+                            }
+                        }
+                        ScrollIndicator.vertical: ScrollIndicator {
+                            anchors.top: parent.top
+                            parent: disconnectPortSub
+                            anchors.right: parent.right
+                            anchors.rightMargin: 1
+                            anchors.bottom: parent.bottom
+                        }
+                        model: selectedSourceEffectPorts
+
+                        onMovementEnded: {
+                            disconnect_list.move_finished = !disconnect_list.move_finished;
+                        }
                     }
-                    flat: false
-                    icon.name: "back"
-                    Material.background: "white"
-                    Material.foreground: Constants.outline_color
 
-					onClicked: {
-						mainStack.pop()
-						if (patch_bay.currentMode == PatchBay.Hold){
-							patch_bay.currentMode = PatchBay.Select;
-						}
-					}
+                    IconButton {
+                        x: 34 
+                        y: 560
+                        icon.width: 15
+                        icon.height: 25
+                        width: 119
+                        height: 62
+                        text: "BACK"
+                        font {
+                            pixelSize: 24
+                        }
+                        flat: false
+                        icon.name: "back"
+                        Material.background: Constants.background_color
+                        Material.foreground: "white" // Constants.outline_color
+                        onClicked: { 
+                            current_help_text = ""
+                            mainStack.pop()
+                            if (patch_bay.currentMode == PatchBay.Hold){
+                                patch_bay.currentMode = PatchBay.Select;
+                            }
+                        }
+                    }
                 }
-
             }
         }
 

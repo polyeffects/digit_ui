@@ -94,9 +94,10 @@ Item {
     }
 
     Rectangle {
-        color:  currentPedalModel.name == "beebo" || patch_single.currentMode == PatchBay.Details ? accent_color.name : Constants.background_color
+        color:  currentPedalModel.name == "beebo" || patch_single.currentMode == PatchBay.Details ? accent_color.name : "transparent"
         x: 0
         y: 0
+        z: 3
         width: 1280
         height: 86
     
@@ -116,8 +117,8 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             width: 1000
             height: 60
-            z: 1
-            color:  currentPedalModel.name != "beebo" || patch_single.currentMode == PatchBay.Details ? accent_color.name : Constants.background_color
+            z: 5
+            color:  currentPedalModel.name == "beebo" || patch_single.currentMode == PatchBay.Details ?  Constants.background_color : accent_color.name
             font {
                 pixelSize: fontSizeLarge
                 capitalization: Font.AllUppercase
@@ -266,7 +267,7 @@ Item {
     StackView {
         id: patchStack
         x: 0
-        y: 86
+        y: currentPedalModel.name == "beebo" || patch_single.currentMode == PatchBay.Details ?  86 : 0
         initialItem: PatchBay {
         }
     }

@@ -805,7 +805,7 @@ class Knobs(QObject):
             for c_effect, c_port in connected:
                 display_c_port = effect_prototypes[current_effects[c_effect]["effect_type"]]["outputs"][c_port][0]
                 if c_effect == effect_id:
-                    ports.append("output==="+display_c_port+" connect to "+s_effect.rsplit("/", 1)[1]+" "+ display_s_port +"==="+s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
+                    ports.append("output==="+display_c_port+" connected to "+s_effect.rsplit("/", 1)[1]+" "+ display_s_port +"==="+s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
                 elif s_effect == effect_id:
                     ports.append("input==="+c_effect.rsplit("/", 1)[1]+ " "+display_c_port+" connected to "+display_s_port+"==="+s_effect+"/"+s_port+"---"+c_effect+"/"+c_port)
         # debug_print("connected ports:", ports, effect_id)
@@ -813,8 +813,11 @@ class Knobs(QObject):
         ports.sort()
         selected_source_effect_ports.setStringList(ports)
 
-    @Slot(str)
-    def disconnect_port(self, port_pair):
+    @Slot(str, str)
+    def disconnect_port(self, port_pair, original_item):
+        ports_list = [v for v in selected_source_effect_ports.stringList() if v != original_item]
+        selected_source_effect_ports.setStringList(ports_list)
+
         target_pair, source_pair = port_pair.split("---")
         t_effect, t_port = target_pair.rsplit("/", 1)
         # debug_print("### disconnect, port pair", port_pair)
