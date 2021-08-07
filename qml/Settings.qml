@@ -291,6 +291,14 @@ Item {
                         onClicked: settingsStack.push(setAuthor)
                     }
 
+                    Button {
+                        flat: false
+						width: 300
+                        text: "FLIP SCREEN"
+                        font.pixelSize: baseFontSize
+                        onClicked: knobs.flip_screen()
+                    }
+
                 }
             }
 

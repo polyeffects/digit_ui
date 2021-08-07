@@ -83,20 +83,20 @@ Item {
         //     elide: Text.ElideMiddle
         // }
 
-        Button {
+        PolyButton {
             anchors.right: folderRect.right
             anchors.rightMargin: -100
-            font {
-                pixelSize: fontSizeMedium
-            }
-            flat: true
+            font_size: 30
             text: "UP"
             visible: folderListModel.folder != top_folder
+            Material.foreground: Constants.background_color
+            background_color: accent_color.name
             onClicked: {
                 folderListModel.folder = folderListModel.parentFolder
                 // console.log(folderListModel.folder, top_folder);
             } 
-            height: 60
+            height: 90
+            width: 120
             z: 2
         }
         Rectangle {
@@ -200,9 +200,9 @@ Item {
 
 
     VerticalSlider {
-        x: 1100
+        x: 1125
         y: 50
-        width: 60 
+        width: 100 
         height: 400
         title: "Gain (dB)"
         current_effect: effect

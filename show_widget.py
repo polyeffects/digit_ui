@@ -444,8 +444,10 @@ def load_pedal_state():
                 pedal_state["thru"] = True
             if "invert_enc" not in pedal_state:
                 pedal_state["invert_enc"] = False
+            if "screen_flipped" not in pedal_state:
+                pedal_state["screen_flipped"] = False
     except:
-        pedal_state = {"input_level": 0, "midi_channel": 1, "author": "poly player", "model": "beebo", "thru": True, "invert_enc": False}
+        pedal_state = {"input_level": 0, "midi_channel": 1, "author": "poly player", "model": "beebo", "thru": True, "invert_enc": False, "screen_flipped": False}
 
 
 selected_source_effect_ports = QStringListModel()
@@ -1209,6 +1211,15 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
         except:
             pass
 
+    @Slot()
+    def flip_screen(self):
+        if "screen_flipped" in pedal_state:
+            pedal_state["screen_flipped"] = not pedal_state["screen_flipped"]
+        else:
+            pedal_state["screen_flipped"] = True
+        context.setContextProperty("pedalState", pedal_state)
+        write_pedal_state()
+
     @Slot(int)
     def set_preset_list_length(self, v):
         if v > len(preset_list_model.stringList()):
@@ -1723,7 +1734,7 @@ def process_ui_messages():
                 effect_name, effect_type, x, y, is_enabled = m[1:6]
                 # debug_print("got add", m)
                 if (effect_name not in current_effects and (effect_type in inv_effect_type_map or effect_type in bare_ports)):
-                    debug_print("adding ", m)
+                    # debug_print("adding ", m)
                     if effect_type == "http://polyeffects.com/lv2/polyfoot":
                         mapped_type = effect_name.rsplit("/", 1)[1].rstrip("123456789")
                         if mapped_type in effect_type_map:

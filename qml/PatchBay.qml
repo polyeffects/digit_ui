@@ -414,7 +414,8 @@ import "polyconst.js" as Constants
 
                     Label {
                         // color: "#ffffff"
-                        text: "Select Port to Connect From"
+                        property string effect_title: rsplit(list_source_effect_id, "/", 1)[1].replace(/_/g, " ").replace(/1$/, '');
+                        text: "Select Port of "+ effect_title + " to Connect From"
                         elide: Text.ElideRight
                         anchors.centerIn: parent
                         anchors.bottomMargin: 25 
@@ -636,7 +637,8 @@ import "polyconst.js" as Constants
 
                     Label {
                         // color: "#ffffff"
-                        text: "Select Port to Connect to"
+                        property string effect_title: rsplit(list_dest_effect_id, "/", 1)[1].replace(/_/g, " ").replace(/1$/, '');
+                        text: "Select Port of "+ effect_title + " to Connect to"
                         elide: Text.ElideRight
                         anchors.centerIn: parent
                         anchors.bottomMargin: 25 

@@ -13,8 +13,7 @@ ApplicationWindow {
     Material.accent: accent_color.name
     Material.background: "black"
     // Material.buttonColor: "grey"
-    // contentOrientation: Qt.LandscapeOrientation
-    contentOrientation: Qt.InvertedLandscapeOrientation
+    // contentOrientation: 
     
     property bool onDevice: Qt.platform.os == "linux" 
     readonly property int baseFontSize: 20 
@@ -24,132 +23,27 @@ ApplicationWindow {
     readonly property int fontSizeLarge: baseFontSize * 2
     readonly property int fontSizeExtraLarge: baseFontSize * 5
     property int presetBrowserIndex: 0
+    property bool flip_screen: Boolean(pedalState["screen_flipped"])
+    contentOrientation: flip_screen ? Qt.InvertedLandscapeOrientation : Qt.LandscapeOrientation
     width: onDevice ? 720 : 1280 
     height: onDevice ? 1280 : 720
     title: "Digit 2"
     visible: true
-    // FontLoad0er { source: "ionicons.ttf" }
-    //00
-    // FontLoader { id: mainFont; source: "fonts/Dosis-VF.ttf" }
-    // FontLoader { id: mainFont; source: "fonts/SourceSerifPro-Semibold.ttf" }
     FontLoader { id: docFont; source: "fonts/BarlowSemiCondensed-Medium.ttf" }
     FontLoader { id: mainFont; source: "fonts/BarlowSemiCondensed-SemiBold.ttf" }
-    // FontLoader { id: docFont; name: "Open Sans" }
     font.family: mainFont.name
     font.weight: Font.DemiBold
     Component {
         id: mainView
-        // PatchBay {
-        // }
         TitleFooter {
         }
 
-        // Item {
-        //     width: 1280
-        //     height: 720
-        
-        // Slider {
-        //     x: 50
-        //     y: 50
-        //     width: 625
-        //     height: 48
-        //     value: 0.5
-        //     from: 0
-        //     to: 1
-        //     title: "Fragment Length"
-        // }
-
-        // Slider {
-        //     x: 100
-        //     y: 300
-        //     value: 0.5
-        //     from: 0
-        //     to: 1
-        //     title: "Fragment"
-        //     orientation: Qt.Vertical
-        //     width: 50 
-        //     height: 300
-        // }
-
-        // Slider {
-        //     x: 200
-        //     y: 300
-        //     value: 0.5
-        //     from: 0
-        //     to: 1
-        //     title: "Gain"
-        //     orientation: Qt.Vertical
-        //     width: 75 
-        //     height: 300
-        // }
-
-        // Slider {
-        //     x: 300
-        //     y: 300
-        //     value: 0.5
-        //     from: 0
-        //     to: 1
-        //     title: "Gain"
-        //     orientation: Qt.Vertical
-        //     width: 75 
-        //     height: 200
-        // }
-        // // Switch {
-        // //     x: 50
-        // //     y: 50
-        // //     text: qsTr("BAND 5")
-        // //     font.pixelSize: baseFontSize
-        // //     bottomPadding: 0
-        // //     // height: 20
-        // //     // implicitWidth: 100
-        // //     width: 175
-        // //     height: 30
-        // //     leftPadding: 0
-        // //     topPadding: 0
-        // //     rightPadding: 0
-        // // }
-
-        // SpinBox {
-        //     x: 100
-        //     y: 100
-        //     height: 50
-        //     value: 10
-        //     from: 1
-        //     to:  100
-        //     stepSize: 10
-        // }
-    // }
     }
-    // // EQWidget {
-    
-    // }
-    // PresetSave {
-    // }
-    // Settings {
-    
-    // }
-    // EnvelopeFollower {
-
-    // }
-    
-    // FolderBrowser {
-   		// height: 400
-    //     width: 300 
-    //     top_folder: "file:///c:/git_repos/PolyDigit/UI" 
-    //     after_file_selected: (function(name) { 
-    //         console.log("in test wrapper call");
-    //         console.log("file  is", name.toString());
-            
-    //     })
-
-    // }
-    //
     Item {
         transform: Rotation {
-            angle: onDevice ? -90 : 0
-            // origin.y: 720 / 2
-            origin.x: 1280 / 2
-            origin.y: 1280 / 2
+			angle: !onDevice ? 0 : flip_screen ? 90 : -90
+            origin.x: (flip_screen ? 720 : 1280) / 2 
+            origin.y: (flip_screen ? 720 : 1280) / 2 
         } 
         width: 1280//Screen.height
         height: 720//Screen.wid

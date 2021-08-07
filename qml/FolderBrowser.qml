@@ -59,18 +59,19 @@ import Qt.labs.folderlistmodel 2.2
 
         Button {
             anchors.right: mainRect.right
-            anchors.rightMargin: 0
+            anchors.rightMargin: 10
             font {
                 pixelSize: fontSizeMedium
             }
             flat: true
-            text: "UP"
+            text: "PREVIOUS FOLDER"
             visible: folderListModel.folder != top_folder
             onClicked: {
                 folderListModel.folder = folderListModel.parentFolder
                 // console.log(folderListModel.folder, top_folder);
             } 
             height: 60
+			width: 100
             z: 2
         }
         Rectangle {
