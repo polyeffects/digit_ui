@@ -378,7 +378,8 @@ Item {
 
         Label {
             visible: show_footer_value
-            anchors.centerIn: parent
+            y: 10
+            x: 300
             text: current_footer_value.toFixed(3)
             // height: 15
             color: "white"

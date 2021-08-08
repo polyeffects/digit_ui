@@ -19,9 +19,9 @@ Item {
 		orientation: Qt.Vertical
         title: control.title
 		value: currentEffects[current_effect]["controls"][row_param].value
-		from: 0.0
-		to: 1
-		stepSize: 0.01
+        from: currentEffects[current_effect]["controls"][row_param].rmin
+        to: currentEffects[current_effect]["controls"][row_param].rmax
+		stepSize: 0.0
 		onMoved: {
 			knobs.ui_knob_change(current_effect, row_param, value);
 		}
