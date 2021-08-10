@@ -66,8 +66,9 @@ class PresetBrowserModel(QAbstractListModel):
         self.endRemoveRows()
 
     def update_preset_meta(self, l_preset_meta):
+        global preset_meta
         preset_meta = {k:l_preset_meta[k] for k in sorted(l_preset_meta)}
-        self.items_changed()
+        self.add_filter("")
 
     @Slot()
     def clear_filter(self):
@@ -82,24 +83,26 @@ class PresetBrowserModel(QAbstractListModel):
         self.__order = dict(enumerate(filtered_presets.keys()))
         self.endResetModel()
 
+    # pass in "" to just rerun with no changes
     @Slot(str)
-    def add_filter(self, tag):
+    def add_filter(self, tag=""):
         global current_letter
-        if len(tag) == 1:
-            if tag == current_letter:
-                current_letter = ""
+        if tag != "":
+            if len(tag) == 1:
+                if tag == current_letter:
+                    current_letter = ""
+                else:
+                    current_letter = tag
             else:
-                current_letter = tag
-        else:
-            if tag in current_filters:
-                current_filters.remove(tag)
-            else:
-                current_filters.add(tag)
+                if tag in current_filters:
+                    current_filters.remove(tag)
+                else:
+                    current_filters.add(tag)
 
         self.beginResetModel()
         global filtered_presets
 
-        print("in before len filtered preset", len(filtered_presets), "current filters", current_filters)
+        # print("in before len filtered preset", len(filtered_presets), "current filters", current_filters)
         if len(current_filters) == 0:
             filtered_presets = preset_meta
         else:
@@ -114,7 +117,7 @@ class PresetBrowserModel(QAbstractListModel):
         if current_letter != "":
             filtered_presets = {k:v for (k,v) in filtered_presets.items() if k.strip("/").split("/")[-1][:-6].lower().startswith(current_letter)}
 
-        print("len filtered preset is", len(filtered_presets))
+        # print("len filtered preset is", len(filtered_presets))
         self.__order = dict(enumerate(filtered_presets.keys()))
         self.endResetModel()
 

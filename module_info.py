@@ -102,6 +102,7 @@ effect_type_maps = {"beebo" : {'ad_env_level': 'http://drobilla.net/plugins/omin
      'cv_to_trigger': 'http://polyeffects.com/lv2/basic_modular#schmitt',
      'euclidean': 'http://polyeffects.com/lv2/euclidean',
      'looping_envelope': 'http://polyeffects.com/lv2/polytides',
+     'cv_meter': 'http://moddevices.com/plugins/mod-devel/mod-cv-meter',
      }}
 
 # categories effect, IO, control, synth, 
@@ -2151,8 +2152,25 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                                   'out3': ['out3', 'CVPort'],
                                   'out4': ['out4', 'CVPort']},
                       'tags': {'controls', "ported"}},
+'cv_meter': {'category': 0,
+        'broadcast_ports': {'level': ['level', 0, -2.0, 2.0],
+                                        'max_level': ['Max Level',
+                                                             0,
+                                                             -2.0,
+                                                             2.0],
+                                        'min_level': ['Min Level',
+                                                             0,
+                                                             -2.0,
+                                                             2.0],
+                                        },
+              'controls': {'PluginEnabled': ['Enabled', 1.0, 0.0, 1.0],
+                           'Reset': ['Reset', 0.0, 0.0, 1.0]},
+              'description': 'Simple CV meter for show instant values.',
+              'inputs': {'CvInput': ['CV input', 'CVPort']},
+              'long_description': '',
+              'outputs': {'CvOutput': ['CV Output', 'CVPort']},
+              'tags': {'controls'}},
                     }
-             
 
 #unused
 

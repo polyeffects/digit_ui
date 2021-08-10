@@ -481,6 +481,7 @@ Item {
             icon.source: "../icons/digit/bottom_menu/patch.png"
             Material.background: Constants.background_color
             onClicked: {
+                preset_browser_model.clear_filter();
                 mainStack.push("PresetSave.qml")
             }
             HelpLabel {

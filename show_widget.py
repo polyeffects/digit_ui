@@ -792,7 +792,7 @@ class Knobs(QObject):
             if restrict_port_types or source_port_type == "AtomPort":
                 ports = sorted([v[1]+'|'+v[0]+'|'+k for k,v in effect_prototypes[effect_type]["inputs"].items() if v[1] == source_port_type])
             else:
-                ports = sorted([v[1]+'|'+v[0]+'|'+k for k,v in effect_prototypes[effect_type]["inputs"].items() if v[1] != "AtomPort"])
+                ports = sorted([v[1]+'|'+v[0]+'|'+k for k,v in effect_prototypes[effect_type]["inputs"].items() if (v[1] not in ["AtomPort", "ControlPort"])])
 
             debug_print("ports is ", ports)
             selected_dest_effect_ports.setStringList(ports)
@@ -1048,7 +1048,7 @@ class Knobs(QObject):
         context.setContextProperty("favourites", favourites)
         # flush to file
         write_favourites_data()
-        preset_browser_model_s.items_changed()
+        preset_browser_model_s.add_filter()
 
     @Slot(str)
     def toggle_module_favourite(self, effect_type):
@@ -1060,7 +1060,7 @@ class Knobs(QObject):
         context.setContextProperty("favourites", favourites)
         # flush to file
         write_favourites_data()
-        module_browser_model_s.items_changed()
+        module_browser_model_s.add_filter()
 
     @Slot()
     def ui_copy_irs(self):
@@ -1177,7 +1177,9 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
         if hardware_info["revision"] <= 10 and pedal_state["model"] != "hector":
             command = "amixer -- sset 'ADC1 Invert' off,on; amixer -- sset 'ADC2 Invert' on,on"
         elif pedal_state["model"] == "hector":
-            command = "amixer -- sset 'ADC1 Invert' on,on; amixer -- sset 'ADC2 Invert' on,on; amixer -- sset 'ADC3 Invert' on,on"
+            command = ("amixer -- sset 'ADC1 Invert' on,on; amixer -- sset 'ADC2 Invert' on,on; amixer -- sset 'ADC3 Invert' on,on; "
+                    "amixer -- sset 'DAC1 Invert' on,on; amixer -- sset 'DAC2 Invert' on,on; amixer -- sset 'DAC3 Invert' on,on; amixer -- sset 'DAC4 Invert' on,on;")
+
         command_status[0].value = subprocess.call(command, shell=True)
         input_level.value = level
         if write:
@@ -1740,8 +1742,15 @@ def process_ui_messages():
                         if mapped_type in effect_type_map:
                             from_backend_new_effect(effect_name, mapped_type, x, y, is_enabled)
                     elif effect_type in bare_ports:
-                        # debug_print("### adding in bare ports", m)
-                        from_backend_new_effect(effect_name, effect_type, x, y, is_enabled)
+                        if current_pedal_model.name == "hector":
+                            from_backend_new_effect(effect_name, effect_type, x, y, is_enabled)
+                        else:
+                            try:
+                                l_effect_num = int(effect_name.rsplit("/", 1)[1][-1])
+                            except:
+                                l_effect_num = 0
+                            if l_effect_num < 5: # filter out Hector ports
+                                from_backend_new_effect(effect_name, effect_type, x, y, is_enabled)
                     else:
                         from_backend_new_effect(effect_name, inv_effect_type_map[effect_type], x, y, is_enabled)
                         ingen_wrapper.get_state("/engine")

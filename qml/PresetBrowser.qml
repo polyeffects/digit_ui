@@ -198,7 +198,7 @@ Item {
                             p_item.is_pressed = true; 
                             if (control.hold_delete){
                                 knobs.delete_preset("file://"+filename);
-                                mainStack.pop(null)
+                                // mainStack.pop(null)
                             }
                             else {
                                 control.after_file_selected("file://"+filename)

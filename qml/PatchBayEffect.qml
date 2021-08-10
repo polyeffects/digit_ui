@@ -315,6 +315,10 @@ Rectangle {
             patchStack.push(editLfo);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
         }
+        else if (effect_type == "cv_meter"){
+            patchStack.push(editCVMeter);
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+        }
 		else if (effect_type == "rotary_advanced"){
             patchStack.push(editAdvancedRotary, {"objectName":"editAdvancedRotary"});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
@@ -2275,5 +2279,92 @@ Rectangle {
 					}	
 				}
 			}
+        }
+        Component {
+            id: editCVMeter
+            Item {
+                property real min_level: currentEffects[effect_id]["broadcast_ports"]["min_level"].value
+                property real max_level: currentEffects[effect_id]["broadcast_ports"]["max_level"].value
+                property real cur_level: currentEffects[effect_id]["broadcast_ports"]["level"].value
+				Component.onDestruction: {
+					// if we're not visable, turn off broadcast
+					// console.log("setting broadcast false in step");
+					knobs.set_broadcast(effect_id, false);
+				}
+				Component.onCompleted: {
+					// console.log("setting broadcast true in step");
+					knobs.set_broadcast(effect_id, true);
+				}
+
+                function clamp(number, min, max) {
+                    return Math.max(min, Math.min(number, max));
+                }
+
+                height:546
+				width: 1280
+                // z: 3
+				Column {
+					x: 100
+                    y: 150
+					width: 1080
+					height: 546
+                    spacing: 60
+
+                    Rectangle {
+                        x: 0
+                        height: 100
+                        width: parent.width
+                        color: Constants.poly_dark_grey
+                        border { width:2; color: accent_color.name}
+                        radius: 5
+
+                        Rectangle {
+                            x: (parent.width / 2) 
+                            height: 100
+                            width: parent.width * Math.abs(clamp(cur_level, -1.0, 1.0)) / 2
+                            transform: Scale { origin.x: 0; origin.y: 0; xScale: cur_level > 0 ? 1 : -1}
+                            // color: Constants.rainbow[Math.floor(Math.abs(cur_level) * 10) % 5]
+                            color: accent_color.name
+                            radius: 5
+                        }
+                    }
+
+                    DelayRow {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        row_param: "Reset"
+                        current_effect: effect_id
+                        Material.foreground: Constants.rainbow[0]
+                        v_type: "bool"
+                    }
+
+					Row {
+                        anchors.horizontalCenter: parent.horizontalCenter
+						spacing: 50
+
+                        Text {
+                            text: "LEVEL: " + (cur_level * 5).toFixed(3)
+                            color: "white"
+                            font.pixelSize: 34
+                        }
+                        Text {
+                            text: "MIN LEVEL: " + (min_level * 5).toFixed(3)
+                            color: "white"
+                            font.pixelSize: 34
+                        }
+                        Text {
+                            text: "MAX LEVEL: " + (max_level * 5).toFixed(3)
+                            color: "white"
+                            font.pixelSize: 34
+                        }
+					}
+
+				
+				}
+
+                MoreButton {
+                    l_effect_type: effect_type
+                }
+                
+            }
         }
 }

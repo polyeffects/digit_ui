@@ -72,23 +72,24 @@ class ModuleBrowserModel(QAbstractListModel):
         self.endResetModel()
 
     @Slot(str)
-    def add_filter(self, tag):
+    def add_filter(self, tag=""):
         global current_letter
-        if len(tag) == 1:
-            if tag == current_letter:
-                current_letter = ""
+        if tag != "":
+            if len(tag) == 1:
+                if tag == current_letter:
+                    current_letter = ""
+                else:
+                    current_letter = tag
             else:
-                current_letter = tag
-        else:
-            if tag in current_filters:
-                current_filters.remove(tag)
-            else:
-                current_filters.add(tag)
+                if tag in current_filters:
+                    current_filters.remove(tag)
+                else:
+                    current_filters.add(tag)
 
         self.beginResetModel()
         global filtered_modules
 
-        print("before len filtered modules", len(filtered_modules))
+        # print("before len filtered modules", len(filtered_modules))
         if len(current_filters) == 0:
             filtered_modules = effect_prototypes
         else:
@@ -101,7 +102,7 @@ class ModuleBrowserModel(QAbstractListModel):
         if current_letter != "":
             filtered_modules = {k:v for (k,v) in filtered_modules.items() if k.startswith(current_letter)}
 
-            print("len filtered modules", len(filtered_modules))
+            # print("len filtered modules", len(filtered_modules))
         self.__order = dict(enumerate(filtered_modules.keys()))
         self.endResetModel()
 
