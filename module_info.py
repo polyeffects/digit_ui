@@ -103,6 +103,8 @@ effect_type_maps = {"beebo" : {'ad_env_level': 'http://drobilla.net/plugins/omin
      'euclidean': 'http://polyeffects.com/lv2/euclidean',
      'looping_envelope': 'http://polyeffects.com/lv2/polytides',
      'cv_meter': 'http://moddevices.com/plugins/mod-devel/mod-cv-meter',
+     'pitch_cal_in': 'http://polyeffects.com/lv2/pitch_cal#in',
+     'pitch_cal_out': 'http://polyeffects.com/lv2/pitch_cal#out'
      }}
 
 # categories effect, IO, control, synth, 
@@ -2170,6 +2172,32 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
               'long_description': '',
               'outputs': {'CvOutput': ['CV Output', 'CVPort']},
               'tags': {'controls'}},
+'pitch_cal_in': {'category': 0,
+        'broadcast_ports': { 'max_level': ['Max Level',
+                                                             0,
+                                                             -2.0,
+                                                             2.0],
+                                        'min_level': ['Min Level',
+                                                             0,
+                                                             -2.0,
+                                                             2.0],
+                                        },
+                  'controls': {'measure': ['measure', 0, 0, 1],
+                               'offset': ['offset', 0, -1, 1],
+                               'scale': ['scale', 1, 0, 2]},
+                  'description': 'Pitch Calibration for a v per oct input',
+                  'inputs': {'input': ['input', 'CVPort']},
+                  'long_description': '',
+                  'outputs': {'output': ['output', 'CVPort']},
+                  'tags': {'controls'}},
+ 'pitch_cal_out': {'category': 0,
+                   'controls': {'offset': ['offset', 0, -5, 5],
+                                'scale': ['scale', 1, 0, 2]},
+                   'description': 'Pitch Calibration for a v per oct output',
+                   'inputs': {'input': ['input', 'CVPort']},
+                   'long_description': '',
+                   'outputs': {'output': ['output', 'CVPort']},
+                   'tags': {'controls'}}
                     }
 
 #unused

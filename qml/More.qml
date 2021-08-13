@@ -237,6 +237,22 @@ Item {
                 }
             }
         }
+        PolyButton {
+            height: 64
+            width: 350
+            text: "EXPOSE\nIN SPOTLIGHT"
+            onClicked: {
+                knobs.expose_spotlight(current_effect, row_param);
+            }
+
+            Material.foreground: Constants.poly_pink
+            border_color: Constants.poly_pink
+            Material.background: Constants.background_color
+            font {
+                pixelSize: 20
+                capitalization: Font.AllUppercase
+            }
+        }
 
     }
 }

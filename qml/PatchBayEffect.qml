@@ -319,6 +319,14 @@ Rectangle {
             patchStack.push(editCVMeter);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
         }
+        else if (effect_type == "pitch_cal_in"){
+            patchStack.push(editPitchCalIn);
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+        }
+        else if (effect_type == "pitch_cal_out"){
+            patchStack.push(editPitchCalOut);
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+        }
 		else if (effect_type == "rotary_advanced"){
             patchStack.push(editAdvancedRotary, {"objectName":"editAdvancedRotary"});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
@@ -2279,6 +2287,150 @@ Rectangle {
 					}	
 				}
 			}
+        }
+
+        Component {
+            id: editPitchCalOut
+            Item {
+                function clamp(number, min, max) {
+                    return Math.max(min, Math.min(number, max));
+                }
+
+                height:546
+				width: 1280
+                // z: 3
+				Column {
+					x: 100
+                    y: 150
+					width: 1180
+					height: 546
+                    spacing: 60
+
+                    DelayRow {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        row_param: "offset"
+                        current_effect: effect_id
+                        Material.foreground: Constants.rainbow[0]
+                    }
+                    DelayRow {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        row_param: "scale"
+                        current_effect: effect_id
+                        Material.foreground: Constants.rainbow[0]
+                    }
+
+				}
+
+                MoreButton {
+                    l_effect_type: effect_type
+                }
+                
+            }
+        }
+
+        Component {
+            id: editPitchCalIn
+            Item {
+                property real min_level: currentEffects[effect_id]["broadcast_ports"]["min_level"].value
+                property real max_level: currentEffects[effect_id]["broadcast_ports"]["max_level"].value
+				Component.onDestruction: {
+					// if we're not visable, turn off broadcast
+					// console.log("setting broadcast false in step");
+					knobs.set_broadcast(effect_id, false);
+				}
+				Component.onCompleted: {
+					// console.log("setting broadcast true in step");
+					knobs.set_broadcast(effect_id, true);
+				}
+
+                function clamp(number, min, max) {
+                    return Math.max(min, Math.min(number, max));
+                }
+
+                height:546
+				width: 1280
+                // z: 3
+				Column {
+					x: 100
+                    y: 50
+					width: 1080
+					height: 546
+                    spacing: 60
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        height: 90
+                        width: 800
+                        text: "Press measure then play your note that should be zero volts, then the note 2 octaves up from that. Then press measure again." 
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        wrapMode: Text.Wrap
+                        color: "white"
+                        font {
+                            pixelSize: 24
+                            capitalization: Font.AllUppercase
+                            family: mainFont.name
+                        }
+                    }
+
+                    Switch {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        Material.foreground: Constants.rainbow[0]
+                        text: "MEASURE"
+                        width: 420
+                        height: 90
+                        checked: Boolean(currentEffects[effect_id]["controls"]["measure"].value)
+                        onToggled: {
+                            knobs.ui_knob_change(effect_id, "measure", 1.0 - currentEffects[effect_id]["controls"]["measure"].value);
+                            if (!checked){
+                                // offset is max - min - 2
+                                knobs.ui_knob_change(effect_id, "offset", min_level * -1);
+                                knobs.ui_knob_change(effect_id, "scale", (2.0 / (max_level * 5.0 - min_level * 5.0)));
+                            }
+                        }
+                        font {
+                            pixelSize: 24
+                            capitalization: Font.AllUppercase
+                            family: mainFont.name
+                        }
+
+                    }
+
+
+					Row {
+                        anchors.horizontalCenter: parent.horizontalCenter
+						spacing: 50
+
+                        Text {
+                            text: "SCALE: " + (currentEffects[effect_id]["controls"]["scale"].value).toFixed(3)
+                            color: "white"
+                            font.pixelSize: 34
+                        }
+                        Text {
+                            text: "OFFSET: " + (currentEffects[effect_id]["controls"]["offset"].value * 5).toFixed(3)
+                            color: "white"
+                            font.pixelSize: 34
+                        }
+                        Text {
+                            text: "MIN LEVEL: " + (min_level * 5).toFixed(3)
+                            color: "white"
+                            font.pixelSize: 34
+                        }
+                        Text {
+                            text: "MAX LEVEL: " + (max_level * 5).toFixed(3)
+                            color: "white"
+                            font.pixelSize: 34
+                        }
+					}
+
+				
+				}
+
+                MoreButton {
+                    l_effect_type: effect_type
+                }
+                
+            }
         }
         Component {
             id: editCVMeter
