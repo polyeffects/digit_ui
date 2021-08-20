@@ -303,7 +303,17 @@ Item {
             Material.foreground: "white"
             visible: patch_single.currentMode != PatchBay.Select && patch_single.currentMode != PatchBay.Hold  
             onClicked: {
-                patch_single.selected_effect.back_action();
+                if(patch_single.in_spotlight){
+                    patchStack.pop()
+                    if (patchStack.currentItem instanceof PatchBay){
+                        patch_single.in_spotlight = false;
+                        patch_single.currentMode = PatchBay.Select;
+                        patch_single.selected_effect = null;
+                        patch_single.current_help_text = Constants.help["select"];
+                    }
+                } else {
+                    patch_single.selected_effect.back_action();
+                }
             }
             // HelpLabel {
             //     text: "Global"
@@ -469,6 +479,26 @@ Item {
             }
             HelpLabel {
                 text: "add"
+            }
+        }
+
+        IconButton {
+            visible: patch_single.currentMode == PatchBay.Select
+            x: 315 
+            y: 12
+            width: 62
+            height: 62
+            icon.source: "../icons/digit/bottom_menu/spotlight.png"
+            Material.background: Constants.background_color
+            onClicked: {
+                patch_single.in_spotlight = true;
+                patch_single.currentMode = PatchBay.Details;
+                title_text = currentPreset.name.replace(/_/g, " ") + " : SPOTLIGHT"
+                patch_single.current_help_text = ""
+                patchStack.push("Spotlight.qml")
+            }
+            HelpLabel {
+                text: "spotlight"
             }
         }
 

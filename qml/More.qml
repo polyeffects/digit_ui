@@ -238,9 +238,19 @@ Item {
             }
         }
         PolyButton {
-            height: 64
+            function isItemInArray(array, item) {
+                for (var i = 0; i < array.length; i++) {
+                    // This if statement depends on the format of your array
+                    if (array[i][0] == item[0] && array[i][1] == item[1]) {
+                        return true;   // Found it
+                    }
+                }
+                return false;   // Not found
+            }
+
+            height: 80
             width: 350
-            text: "EXPOSE\nIN SPOTLIGHT"
+            text: isItemInArray(knobs.spotlight_entries, [current_effect, row_param]) ? "REMOVE\nFROM SPOTLIGHT" : "EXPOSE\nIN SPOTLIGHT"
             onClicked: {
                 knobs.expose_spotlight(current_effect, row_param);
             }

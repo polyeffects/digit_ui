@@ -485,7 +485,8 @@ Rectangle {
         id: output_rec
         width:10
         y:14
-        anchors.left: parent.left
+        anchors.right: lToR.value ? parent.right : undefined
+        anchors.left: lToR.value ? undefined : parent.left
         spacing: 6
         Repeater {
             id: outputRep
@@ -512,7 +513,8 @@ Rectangle {
     Column {
         id: input_rec
         width:10
-        anchors.right: parent.right
+        anchors.right: lToR.value ? undefined : parent.right
+        anchors.left: lToR.value ? parent.left : undefined
         spacing: 6
         y:14
         Repeater {
@@ -723,7 +725,7 @@ Rectangle {
 
 			if (!rect.beginDrag.fuzzyEquals(Qt.vector2d(rect.x, rect.y), 6)){
 				patch_bay.externalRefresh();
-				knobs.move_effect(effect_id, rect.x, rect.y)
+				knobs.move_effect(effect_id, lToR.value ? 1170 - rect.x : rect.x, rect.y)
 			} 
 			else if (!patch_bay.multi_touch_connect){
 				if (patch_bay.currentMode == PatchBay.Select && !patch_bay.cancel_expand){

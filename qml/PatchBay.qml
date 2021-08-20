@@ -23,7 +23,8 @@ import "polyconst.js" as Constants
             Connect,
             Sliders,
 			Details,
-			Hold
+			Hold,
+            Spotlight
         }
 
         property int active_width: 900
@@ -40,6 +41,7 @@ import "polyconst.js" as Constants
         property bool from_hold: false
         property bool more_hold: false
         property bool multi_touch_connect: false
+        property bool in_spotlight: false
         property bool cancel_expand: false
         property var effect_map: {"invalid":"b"}
         property PatchBayEffect selected_effect
@@ -102,7 +104,7 @@ import "polyconst.js" as Constants
                 {
                     effect_map[l_effect_id] = patchWrap.createObject(patch_bay, { effect_id: l_effect_id,
                         effect_type: currentEffects[l_effect_id]["effect_type"],
-                        x: currentEffects[l_effect_id]["x"],
+                        x: lToR.value ? 1170 - currentEffects[l_effect_id]["x"] : currentEffects[l_effect_id]["x"],
                         y: currentEffects[l_effect_id]["y"],
                         // highlight: currentEffects[l_effect_id]["highlight"]
                     });
@@ -113,7 +115,7 @@ import "polyconst.js" as Constants
                     var is_io = ["input", "output", "midi_input", "midi_output"].indexOf(currentEffects[l_effect_id]["effect_type"]) >= 0
                     effect_map[l_effect_id] = patchWrap.createObject(patch_bay, { effect_id: l_effect_id,
                         effect_type: currentEffects[l_effect_id]["effect_type"],
-                        x: currentEffects[l_effect_id]["x"],
+                        x: lToR.value ? 1170 - currentEffects[l_effect_id]["x"] : currentEffects[l_effect_id]["x"],
                         y: !is_io ? currentEffects[l_effect_id]["y"] :  calc_io_y(l_effect_id),
                         // highlight: currentEffects[l_effect_id]["highlight"]
                     });
@@ -247,7 +249,11 @@ import "polyconst.js" as Constants
                 if (target_port_type == "AudioPort" || target_port_type == "AtomPort"){
                     drawContext.bezierCurveTo( start.x + sizeX / 2.0 , start.y, end.x - sizeX / 2.0, end.y, end.x, end.y );
                 } else {
-                    drawContext.bezierCurveTo( start.x, start.y + 50, end.x - sizeX / 2, end.y, end.x, end.y );
+                    if (lToR.value){
+                        drawContext.bezierCurveTo( start.x + sizeX / 2.0, start.y, end.x, end.y + 50, end.x, end.y );
+                    } else {
+                        drawContext.bezierCurveTo( start.x, start.y + 50, end.x - sizeX / 2, end.y, end.x, end.y );
+                    }
                 }
                 drawContext.stroke();
                 return true;
@@ -306,7 +312,7 @@ import "polyconst.js" as Constants
 
 
         Rectangle {
-            x: 0
+            x: lToR.value ? 1195 : 0
             // y: currentPedalModel.name == "beebo" ? 0 : -100
             y: 0
             width: 95
@@ -327,7 +333,7 @@ import "polyconst.js" as Constants
 
 
         Rectangle {
-            x: 1195
+            x: lToR.value ? 0 : 1195
             // y: currentPedalModel.name == "beebo" ? 0 : -100
             y: 0
             width: 90

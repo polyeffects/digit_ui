@@ -54,5 +54,5 @@ for k in sorted(effects_k):
         w_l("\\subsubsection{Controls}")
         w_l("\\begin{itemize}")
         for b in sorted([c[0].replace("_", " ").title() for c in e['controls'].values()]):
-            w_l("\\item "+b)
+            w_l("\\item "+b.replace("#", "\\sharp"))
         w_l("\\end{itemize}\n")

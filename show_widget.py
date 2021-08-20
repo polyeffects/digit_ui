@@ -28,6 +28,8 @@ import icons.icons
 # #, imagine_assets
 import resource_rc
 
+import properties
+
 import ingen_wrapper
 import pedal_hardware
 import module_info
@@ -52,6 +54,7 @@ current_patchbay_mode = 0
 current_selected_effect = ""
 footswitch_assignments = {}
 looper_footswitch_assignments = {}
+# spotlight_entries = set()
 preset_started_loading_time = 0
 
 def reset_footswitch_assignments():
@@ -446,8 +449,10 @@ def load_pedal_state():
                 pedal_state["invert_enc"] = False
             if "screen_flipped" not in pedal_state:
                 pedal_state["screen_flipped"] = False
+            if "l_to_r" not in pedal_state:
+                pedal_state["l_to_r"] = False
     except:
-        pedal_state = {"input_level": 0, "midi_channel": 1, "author": "poly player", "model": "beebo", "thru": True, "invert_enc": False, "screen_flipped": False}
+        pedal_state = {"input_level": 0, "midi_channel": 1, "author": "poly player", "model": "beebo", "thru": True, "invert_enc": False, "screen_flipped": False, "l_to_r": False}
 
 
 selected_source_effect_ports = QStringListModel()
@@ -499,6 +504,7 @@ def load_preset(name, initial=False, force=False):
     # delete existing blocks
     port_connections.clear()
     reset_footswitch_assignments()
+    knobs.spotlight_entries = []
     preset_description.name = "Tap here to enter preset description"
     to_delete = list(current_effects.keys())
     for effect_id in to_delete:
@@ -564,6 +570,10 @@ def from_backend_remove_effect(effect_name):
         return
     effect_type = current_effects[effect_name]["effect_type"]
     debug_print("### from backend removing effect")
+
+    # if we're in spotlight, remove from spotlight
+    if len([[k, v] for k,v in knobs.spotlight_entries if k == effect_name]) > 0:
+        knobs.spotlight_entries = [[k, v] for k,v in knobs.spotlight_entries if k != effect_name]
     # emit remove signal
     for source_port, targets in list(port_connections.items()):
         s_effect, s_port = source_port.rsplit("/", 1)
@@ -702,7 +712,14 @@ def get_meta_from_files(initial=False):
     # flush to file
     write_preset_meta_cache(initial)
 
-class Knobs(QObject):
+class Knobs(QObject, metaclass=properties.PropertyMeta):
+    spotlight_entries = properties.Property(list)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.spotlight_entries = []
+        # type(self).__dict__["spotlight_entries"].setter(self, [])
+
     @Slot(bool, str, str)
     def set_current_port(self, is_source, effect_id, port_name):
         # debug_print("port name is", port_name, "effect id", effect_id)
@@ -1199,6 +1216,13 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
         write_pedal_state()
 
     @Slot(bool)
+    def set_l_to_r(self, l_to_r):
+        pedal_state["l_to_r"] = l_to_r
+        context.setContextProperty("pedalState", pedal_state)
+        is_l_to_r.value = l_to_r
+        write_pedal_state()
+
+    @Slot(bool)
     def set_thru_enabled(self, thru_on):
         pedal_state["thru"] = thru_on
         context.setContextProperty("pedalState", pedal_state)
@@ -1429,6 +1453,20 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
         except:
             pass
         context.setContextProperty("currentEffects", current_effects) # might be slow
+
+    @Slot(str, str)
+    def expose_spotlight(self, effect_name, parameter):
+        # this toggles, if we're already learned, forget. No way to currently cancel waiting for midi
+        if [effect_name, parameter] in self.spotlight_entries:
+            # remove it
+            ingen_wrapper.spotlight_remove(effect_name+"/"+parameter)
+            self.spotlight_entries.remove([effect_name, parameter])
+        else:
+            self.spotlight_entries.append([effect_name, parameter])
+            if len(self.spotlight_entries) > 10:
+                e_r, p_r = self.spotlight_entries.pop(0)
+                ingen_wrapper.spotlight_remove(e_r+"/"+p_r)
+            ingen_wrapper.spotlight_add(effect_name+"/"+parameter)
 
 def io_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
@@ -1861,6 +1899,23 @@ def process_ui_messages():
                         # print("updated ", effect_name, parameter, value)
                 except ValueError:
                     pass
+            elif m[0] == "spotlight":
+                effect_name_parameter, value = m[1:]
+                # debug_print("got spotlight in process_ui", value)
+                effect_name, parameter = effect_name_parameter.rsplit("/", 1)
+                try:
+                    if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
+                        if int(value) > 0:
+                            # we're spotlighted
+                            if [effect_name, parameter] not in knobs.spotlight_entries:
+                                knobs.spotlight_entries.append([effect_name, parameter])
+                        else:
+                            # remove spotlight if found
+                            if [effect_name, parameter] in knobs.spotlight_entries:
+                                knobs.spotlight_entries.remove([effect_name, parameter])
+                        # print("updated ", effect_name, parameter, value)
+                except ValueError:
+                    pass
     except queue.Empty:
         pass
 
@@ -1996,6 +2051,7 @@ if __name__ == "__main__":
     pedal_bypassed = PolyBool(False)
     is_loading = PolyBool(False)
     foot_switch_warning = PolyBool(False)
+    is_l_to_r = PolyBool(pedal_state["l_to_r"])
     preset_meta_data = {}
     favourites = {}
     load_preset_meta_cache()
@@ -2045,6 +2101,7 @@ if __name__ == "__main__":
     context.setContextProperty("footSwitchQA", foot_switch_qa)
     context.setContextProperty("encoderQA", encoder_qa)
     context.setContextProperty("footSwitchWarning", foot_switch_warning)
+    context.setContextProperty("lToR", is_l_to_r)
     context.setContextProperty("pedalboardDescription", preset_description)
     context.setContextProperty("patchBayNotify", patch_bay_notify)
     context.setContextProperty("favourites", favourites)

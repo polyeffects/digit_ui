@@ -73,6 +73,7 @@ patch_subject = serd.curie("patch:subject")
 patch_value = serd.curie("patch:value")
 poly_assigned_footswitch = serd.uri("http://polyeffects.com/ns/core#assigned_footswitch")
 poly_looper_footswitch = serd.uri("http://polyeffects.com/ns/core#looper_footswitch")
+poly_spotlight = serd.uri("http://polyeffects.com/ns/core#spotlight")
 poly_physical_port = serd.uri("http://polyeffects.com/ns/core#physical_port")
 rdf_type = serd.curie("rdf:type")
 rdfs_comment = serd.curie("rdfs:comment")
@@ -194,8 +195,15 @@ def add_sub_graph(effect_id):
 def midi_learn(port):
     q.put((ingen.set, port, "http://lv2plug.in/ns/ext/midi#binding", "<http://lv2plug.in/ns/ext/patch#wildcard>"))
 
+
 def midi_forget(port):
     q.put((ingen.patch, port, "midi:binding patch:wildcard", ""))
+
+def spotlight_add(port):
+    q.put((ingen.set, port, "http://polyeffects.com/ns/core#spotlight", "1"))
+
+def spotlight_remove(port):
+    q.put((ingen.set, port, "http://polyeffects.com/ns/core#spotlight", "0"))
 
 def add_input(port_id, x, y):
     # put /main/left_in 'a lv2:InputPort ; a lv2:AudioPort'
@@ -517,8 +525,12 @@ def parse_ingen(to_parse):
             elif has_predicate(body, ingen_value):
                 # setting value
                 value = get_body_value(body, ingen_value)
-                # print("value", value, "subject", subject)
+                # print("has predicate value", value, "subject", subject)
                 ui_queue.put(("value_change", subject, value))
+                if has_predicate(body, poly_spotlight):
+                    value = get_body_value(body, poly_spotlight)
+                    # print("has poly_spoltlight", subject, "value", value)
+                    ui_queue.put(("spotlight", subject, int(str(value))))
             elif has_object(body, ingen_Arc):
                 head = ""
                 tail = ""
@@ -584,6 +596,10 @@ def parse_ingen(to_parse):
             value = get_value(m, patch_value)
             # print("in set enabled", subject, "value", value, "b value", bool(value))
             ui_queue.put(("pedalboard_loaded", subject, str(value)))
+        if m.ask(None, patch_property, poly_spotlight):
+            value = get_value(m, patch_value)
+            # print("broadcast_update parsed", subject, "value", value)
+            ui_queue.put(("spotlight", subject, int(str(value))))
         elif m.ask(None, patch_property, ingen_value):
             value = get_value(m, patch_value)
             # print("broadcast_update parsed", subject, "value", value)

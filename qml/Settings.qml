@@ -39,7 +39,7 @@ Item {
                     GlowingLabel {
 						width: 400
                         // color: "#ffffff"
-                        text: currentPedalModel.name+" FIRMWARE 3.13"
+                        text: currentPedalModel.name+" FIRMWARE 3.14.1"
                         color: accent_color.name
 						font {
 							pixelSize: 35
@@ -83,16 +83,33 @@ Item {
                         from: 1
                         to: 16
                         value: midiChannel.value
+                        up.onPressedChanged: {
+                            if (!(up.pressed)){
+                                knobs.set_channel(Number(value));
+                            }
+                        }
+                        down.onPressedChanged: {
+                            if (!(down.pressed)){
+                                knobs.set_channel(Number(value));
+                            }
+                        }
                     }
 
-                    Button {
-                        flat: false
-                        text: "SET CHANNEL"
+					Switch {
+						text: "left to right"
 						width: 300
-                        font.pixelSize: baseFontSize
-                        // show screen explaining to put USB flash drive in
-                        onClicked: knobs.set_channel(midi_channel_spin.value)
-                    }
+						checked: Boolean(pedalState["l_to_r"])
+						onToggled: {
+							knobs.set_l_to_r(!pedalState["l_to_r"]);
+						}
+						font {
+							pixelSize: 24
+							capitalization: Font.AllUppercase
+							family: mainFont.name
+						}
+						Material.foreground: Constants.rainbow[6]
+
+					}
                     // GlowingLabel {
                     //     // color: "#ffffff"
                     //     text: qsTr("BYPASS TYPE")
@@ -231,7 +248,6 @@ Item {
                         // color: "#ffffff"
                         text: qsTr("INPUT LEVEL")
                     }
-                    // FIXME
                     SpinBox {
 						width: 300
                         id: input_level_spin
@@ -239,15 +255,17 @@ Item {
                         from: -80
                         to: 10
                         value: inputLevel.value
-                    }
 
-                    Button {
-                        flat: false
-                        text: "SET INPUT LEVEL"
-						width: 300
-                        font.pixelSize: baseFontSize
-                        // show screen explaining to put USB flash drive in
-                        onClicked: knobs.set_input_level(input_level_spin.value)
+                        up.onPressedChanged: {
+                            if (!(up.pressed)){
+                                knobs.set_input_level(Number(value));
+                            }
+                        }
+                        down.onPressedChanged: {
+                            if (!(down.pressed)){
+                                knobs.set_input_level(Number(value));
+                            }
+                        }
                     }
 
                     // Button {

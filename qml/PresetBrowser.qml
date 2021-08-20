@@ -88,10 +88,10 @@ Item {
                 model: ['mine', 'favourites']
 
                 PolyButton {
-                    height: 75
+                    height: 90
                     topPadding: 5
-                    leftPadding: 15
-                    rightPadding: 15
+                    leftPadding: 30
+                    rightPadding: 30
                     checked: b_status
                     // checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)
                     onClicked: {
@@ -103,7 +103,7 @@ Item {
                     background_color: Constants.poly_grey
                     text: modelData
                     radius: 10
-                    font_size: 22
+                    font_size: 24
                 }
             }
         }
