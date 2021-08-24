@@ -15,8 +15,8 @@ from PySide2.QtGui import QIcon, QFontDatabase, QFont
 # # compiled QML files, compile with pyside2-rcc
 # import qml.qml
 # profiler
-from PySide2.QtQml import QQmlDebuggingEnabler
-debug = QQmlDebuggingEnabler()
+# from PySide2.QtQml import QQmlDebuggingEnabler
+# debug = QQmlDebuggingEnabler()
 
 sys._excepthook = sys.excepthook
 def exception_hook(exctype, value, tb):
@@ -552,7 +552,7 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=Tru
                 "controls": {k : PolyValue(*v) for k,v in effect_prototypes[effect_type]["controls"].items()},
                 "assigned_footswitch": PolyStr(""),
                 "broadcast_ports" : broadcast_ports,
-                "highlight": PolyBool(False), "enabled": PolyBool(is_enabled)}
+                "enabled": PolyBool(is_enabled)}
         # insert in context or model? 
         # emit add signal
         context.setContextProperty("currentEffects", current_effects) # might be slow
@@ -734,31 +734,7 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
             global current_source_port
             current_source_port = "/".join((effect_id, port_name))
             connect_source_port.name = current_source_port
-            try:
-                out_port_type = effect_prototypes[current_effects[effect_id]["effect_type"]]["outputs"][port_name][1]
-            except KeyError:
-                return
-            for id, effect in current_effects.items():
-                effect["highlight"].value = False
-                if id != effect_id:
-                    # if out_port_type in ["CVPort", "ControlPort"]: # looking for controls
-                    #     if len(current_effects[id]["controls"]) > 0:
-                    #         effect["highlight"] = True
-                    # else:
-                    if current_pedal_model.name == "hector":
-                        if effect["effect_type"] == "output":
-                            effect["highlight"].value = True
-
-                    for input_port, style in effect_prototypes[effect["effect_type"]]["inputs"].items():
-                        if style[1] == out_port_type:
-                            # highlight and break
-                            # qWarning("port highlighted")
-                            effect["highlight"].value = True
-                            break
         else:
-            # if target disable highlight
-            for id, effect in current_effects.items():
-                effect["highlight"].value = False
             # add connection between source and target
             # or just wait until it's automatically created from engine? 
             # if current_source_port not in port_connections:
@@ -1477,7 +1453,7 @@ def io_new_effect(effect_name, effect_type, x=20, y=30):
     if effect_type in effect_prototypes:
         current_effects[effect_name] = {"x": x, "y": y, "effect_type": effect_type,
                 "controls": {},
-                "highlight": PolyBool(False)}
+                }
 
 def add_io():
     ingen_wrapper.add_midi_input("/main/midi_in", x=1192, y=(80 * 5))

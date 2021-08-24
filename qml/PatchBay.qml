@@ -182,25 +182,15 @@ import "polyconst.js" as Constants
                 // source and targets are the wrong way round XXX 
                 // console.log("finding connection", Object.keys(portConnections));
                 for (var source_effect_port_str in portConnections){ 
-                    // console.log("key ", source_effect_port_str);
-                    // console.log(Object.keys(effect_map)); //[item.effect_id]);
                     var source_effect_port = rsplit(source_effect_port_str, "/", 1);
                     var targets = portConnections[source_effect_port_str];
                     var source_index = effect_map[source_effect_port[0]].input_keys.indexOf(source_effect_port[1])
-                    // console.log("drawing connection 1", source_effect_port[0], portConnections[source_effect_port_str]);
-					// var source_port_type = "AudioPort" // 
 					var source_port_type = effectPrototypes[currentEffects[source_effect_port[0]]["effect_type"]]["inputs"][source_effect_port[1]][1]
-					// console.log("source_port_type", source_port_type);
                     
                     for (var target in targets){
-                        // console.log("drawing connection 2 targets", targets[0][0]);
-                        // console.log("drawing connection 2 obj", effect_map[source_effect_port[0]], effect_map[targets[target][0]]);
-                        // console.log("drawing connection 2 keys", source_effect_port[0], targets[target][0]);
                         var target_port_type = effectPrototypes[currentEffects[targets[target][0]]["effect_type"]]["outputs"][targets[target][1]][1]
 
                         var target_index = effect_map[targets[target][0]].output_keys.indexOf(targets[target][1])
-                        // console.log("target_port_type", target_port_type);
-                        //effect_map[source_effect_port[0]], effect_map[targets[target][0]]
 						drawConnection(drawContext, effect_map[source_effect_port[0]], effect_map[targets[target][0]], target_port_type, 
 							target_index, source_index, source_port_type);
                     } 

@@ -132,8 +132,15 @@ Rectangle {
 
             selected = false
             patch_bay.selected_effect = rect
-            knobs.select_effect(true, effect_id, true)
-            patch_bay.list_source_effect_id = effect_id;
+        } else {
+            // patch_bay.selected_effect.selected = false;
+            var k = patch_bay.selected_effect.output_keys;
+            if (k.length == 0){
+                return;
+            }
+
+            knobs.select_effect(true, patch_bay.selected_effect.effect_id, true)
+            patch_bay.list_source_effect_id = patch_bay.selected_effect.effect_id;
 			patch_bay.source_selected = false;
 
             if (k.length > 1 )
@@ -141,14 +148,12 @@ Rectangle {
 				patch_bay.source_selected = false;
             } 
             else if (k.length == 1) {
-                knobs.set_current_port(true, effect_id, k[0]);
+                knobs.set_current_port(true, patch_bay.selected_effect.effect_id, k[0]);
                 // rep1.model.items_changed();
                 patch_bay.externalRefresh();
 				patch_bay.source_selected = true;
             }
-        } else {
-            // patch_bay.selected_effect.selected = false;
-
+            // 
 
             patch_bay.list_dest_effect_id = effect_id;
             patch_bay.list_dest_effect_type = effect_type;
@@ -637,32 +642,6 @@ Rectangle {
 			}
 		}
 
-		Timer {
-			id: longPressTimer
-
-			interval: 500 
-			repeat: false
-			running: false
-
-			onTriggered: {
-				//pressAndHold
-				if (rect.beginDrag.fuzzyEquals(Qt.vector2d(rect.x, rect.y), 6)){
-					// console.log("press and hold");
-					if (patch_bay.currentMode == PatchBay.Select){
-						// if there isn't a current pressed point, we are the first one,
-						// record us and display the hold action
-						// if there's an existing point then we're the destination, connect
-                        patch_bay.selected_effect = rect
-						patch_bay.currentMode = PatchBay.Hold;
-						rect.set_hold = true;
-						rect.was_hold = true;
-						two_finger_connect_clicked(true);
-						patch_single.current_help_text = Constants.help["hold"];
-					}
-				}
-			}
-		}
-
 		onTouchUpdated: {
 			var point = touchPoints[0];
 			dragMove(patch_bay, point);
@@ -676,7 +655,6 @@ Rectangle {
 			offset = Qt.point(point.x, point.y);
 			dragMove(patch_bay, point);
             rect.set_hold = false;
-			// longPressTimer.restart();
 			rect.was_hold = false;
 			// console.log("effect proto", Object.keys(effectPrototypes[effect_type]["inputs"]))
             if (patch_bay.currentMode == PatchBay.Select){
@@ -713,7 +691,6 @@ Rectangle {
             // var in_x = rect.x;
             // var in_y = rect.y;
 			// console.log("on release called");
-			// longPressTimer.stop();
 			patch_bay.isMoving = false;
 			// if we set hold, reset to select
 			if (rect.set_hold){
