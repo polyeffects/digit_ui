@@ -25,7 +25,6 @@ Rectangle {
     property string effect_id
     property string effect_type
     property color effect_color: effect_id in currentEffects && currentEffects[effect_id]["enabled"].value > 0 ? "white" : Constants.outline_color
-    property bool highlight: effect_id in currentEffects && currentEffects[effect_id]["highlight"].value
     property bool selected: false
     property Rectangle cv_area: cv_rec
     property Column inputs: input_rec
@@ -532,7 +531,7 @@ Rectangle {
                     radius: 5
                     width: 10
                     height: 10
-                    color: highlight ? accent_color.name : Constants.port_color_map[effectPrototypes[effect_type]["inputs"][modelData][1]]
+                    color: Constants.port_color_map[effectPrototypes[effect_type]["inputs"][modelData][1]]
                 }
             }
         }

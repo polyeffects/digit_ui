@@ -14,6 +14,9 @@ from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 from PySide2.QtGui import QIcon, QFontDatabase, QFont
 # # compiled QML files, compile with pyside2-rcc
 # import qml.qml
+# profiler
+from PySide2.QtQml import QQmlDebuggingEnabler
+debug = QQmlDebuggingEnabler()
 
 sys._excepthook = sys.excepthook
 def exception_hook(exctype, value, tb):
