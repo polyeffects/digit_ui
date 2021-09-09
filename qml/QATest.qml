@@ -102,6 +102,7 @@ Item {
 			font.pixelSize: fontSizeLarge
 			onClicked: {
 				if(currentPedalModel.name == "beebo"){
+					knobs.set_l_to_r(true);
 					knobs.set_pedal_model("hector");
 				} else {
 					knobs.set_pedal_model("beebo");

@@ -39,7 +39,7 @@ Item {
                     GlowingLabel {
 						width: 400
                         // color: "#ffffff"
-                        text: currentPedalModel.name+" FIRMWARE 3.15"
+                        text: currentPedalModel.name+" FIRMWARE 3.16"
                         color: accent_color.name
 						font {
 							pixelSize: 35
@@ -101,13 +101,14 @@ Item {
 						checked: Boolean(pedalState["l_to_r"])
 						onToggled: {
 							knobs.set_l_to_r(!pedalState["l_to_r"]);
+                            knobs.ui_load_empty_preset();
 						}
 						font {
 							pixelSize: 24
 							capitalization: Font.AllUppercase
 							family: mainFont.name
 						}
-						Material.foreground: Constants.rainbow[6]
+						Material.foreground: Constants.rainbow[8]
 
 					}
                     // GlowingLabel {

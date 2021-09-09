@@ -83,8 +83,8 @@ class PatchMode(IntEnum):
 context = None
 
 def debug_print(*args, **kwargs):
-    # pass
-    print( "From py: "+" ".join(map(str,args)), **kwargs)
+    pass
+    # print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 
 effect_type_maps = module_info.effect_type_maps

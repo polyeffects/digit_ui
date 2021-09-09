@@ -347,7 +347,7 @@ Rectangle {
             patchStack.push(editGranular);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}
-		else if (['algo_reverb', 'granular', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch', 'beat_repeat'].indexOf(effect_type) >= 0){
+		else if (['pitch_verb', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch', 'beat_repeat'].indexOf(effect_type) >= 0){
             patchStack.push(editClouds);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}
@@ -1890,10 +1890,28 @@ Rectangle {
 					height: 522
 					color: Constants.poly_dark_grey
 				}
+
+                VerticalSlider {
+					y: 31
+					x: 475
+                    width: 100
+                    height: 462
+					current_effect: effect_id
+                    row_param: "size_param"
+                    Material.foreground: Constants.poly_green
+                }
+
+				Rectangle {
+					y: 0
+					x: 575
+					width:2
+					height: 522
+					color: Constants.poly_dark_grey
+				}
 				IconSlider {
-					x: 500
+					x: 600
 					y: -20
-					width: 720
+					width: 650
 					row_param: "texture_param"
 					icons: ['Square.png', 'ramp.png',  'sawtooth.png',  'Triangle.png', 'diffused triangle.png']
 					current_effect: effect_id
@@ -1902,9 +1920,9 @@ Rectangle {
 				}
 
 				IconSlider {
-					x: 500
+					x: 600
 					y: 215
-					width: 720
+					width: 650
 					row_param: "density_param"
 					icons: ['d1.png', 'd2.png', 'd3.png', 'd4.png', 'd5.png', 'd6.png', 'd7.png']
 					current_effect: effect_id
@@ -1914,13 +1932,13 @@ Rectangle {
 				}
 
 				Row {
-					width: 720
-					x: 500
+					width: 600
+					x: 600
 					y: 420
 					spacing: 23
 				
 					EffectSwitch {
-						width: 350
+						width: 300
 						height: 110
 						row_param: "freeze_param"
 						current_effect: effect_id
@@ -1935,7 +1953,7 @@ Rectangle {
 						}
 					}
 					EffectSwitch {
-						width: 350
+						width: 300
 						height: 110
 						row_param: "reverse_param"
 						current_effect: effect_id

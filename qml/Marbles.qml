@@ -30,6 +30,16 @@ Item {
     height:546
     width:1280
 
+	Component.onDestruction: {
+		// if we're not visable, turn off broadcast
+		// console.log("setting broadcast false in step");
+		knobs.set_broadcast(effect_id, false);
+	}
+	Component.onCompleted: {
+		// console.log("setting broadcast true in step");
+		knobs.set_broadcast(effect_id, true);
+	}
+
     // 2 columns,
     Column {
         x: 12

@@ -9,7 +9,7 @@ Item {
 	height: 462
 	property string current_effect 
 	property var params: ['blend_param', 'feedback_param', 'position_param', 
-				'pitch_param', 'size_param', 'spread_param']
+				'pitch_param', 'reverb_param', 'spread_param']
 	property string selected_parameter: "blend_param"
 
 	Row {

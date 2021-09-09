@@ -3,7 +3,7 @@ categories = ["Effects", "Input / Output", "Controls", "Synthesis / Weird"]
 effect_type_maps = {"beebo" : {'ad_env_level': 'http://drobilla.net/plugins/omins/adenv_lvl',
      'ad_envelope': 'http://drobilla.net/plugins/omins/adenv',
      'adsr': 'http://drobilla.net/plugins/blop/adsr',
-     'algo_reverb': 'http://polyeffects.com/lv2/polyclouds#oliverb',
+     'pitch_verb': 'http://polyeffects.com/lv2/polyclouds#oliverb',
      'amp_bass': 'http://guitarix.sourceforge.net/plugins/gx_ampegsvt_#_ampegsvt_',
      'attenuverter': 'http://drobilla.net/plugins/blop/product',
      'auto_swell': 'http://guitarix.sourceforge.net/plugins/gx_slowgear_#_slowgear_',
@@ -104,7 +104,8 @@ effect_type_maps = {"beebo" : {'ad_env_level': 'http://drobilla.net/plugins/omin
      'looping_envelope': 'http://polyeffects.com/lv2/polytides',
      'cv_meter': 'http://moddevices.com/plugins/mod-devel/mod-cv-meter',
      'pitch_cal_in': 'http://polyeffects.com/lv2/pitch_cal#in',
-     'pitch_cal_out': 'http://polyeffects.com/lv2/pitch_cal#out'
+     'pitch_cal_out': 'http://polyeffects.com/lv2/pitch_cal#out',
+     'basic_reverb': 'http://distrho.sf.net/plugins/MVerb'
      }}
 
 # categories effect, IO, control, synth, 
@@ -150,7 +151,7 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                   This is an important part of a synthesis but can also be used to create things like autoswells. Useful when connected to a VCA.''',
           'tags': {"envelope", "controls"},
           'outputs': {'out': ['Envelope Out', 'CVPort']}},
- 'algo_reverb': {'category': 0,
+ 'pitch_verb': {'category': 0,
                  'controls': {'blend_param': ['blend', 0.5, 0.0, 1.0],
                               'density_param': ['decay', 0.7, 0.0, 1.0],
                               'feedback_param': ['Modulation Speed',
@@ -2197,7 +2198,26 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                    'inputs': {'input': ['input', 'CVPort']},
                    'long_description': '',
                    'outputs': {'output': ['output', 'CVPort']},
-                   'tags': {'controls'}}
+                   'tags': {'controls'}},
+'basic_reverb': {'category': 0,
+                  'controls': {'bandwidth': ['Bandwidth', 50, 0, 100],
+                               'damping': ['Damping', 50, 0, 100],
+                               'decay': ['Decay', 50, 0, 100],
+                               'density': ['Density', 50, 0, 100],
+                               'earlymix': ['Early vs Late', 50, 0, 100],
+                               'gain': ['Gain', 100, 0, 100],
+                               'mix': ['Mix', 50, 0, 100],
+                               'predelay': ['Predelay', 50, 0, 100],
+                               'size': ['Size', 75, 5, 100]},
+                  'description': 'A basic true stereo algorthmic reverb.',
+                  'inputs': {'lv2_audio_in_1': ['L Input', 'AudioPort'],
+                             'lv2_audio_in_2': ['R Input', 'AudioPort']},
+                  'long_description': '',
+                  'outputs': {'lv2_audio_out_1': ['L Output',
+                                                  'AudioPort'],
+                              'lv2_audio_out_2': ['R Output',
+                                                  'AudioPort']},
+                  'tags': {'reverb', 'effect', 'stereo'}}
                     }
 
 #unused
