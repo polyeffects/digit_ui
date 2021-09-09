@@ -2,6 +2,7 @@ import QtQuick 2.11
 import QtQuick.Controls 2.4
 import QtQuick.Controls.Material 2.4
 import "../qml/polyconst.js" as Constants
+import "module_info.js" as ModuleInfo
 
 Item { 
 	id: control
@@ -59,7 +60,7 @@ Item {
 			width: 70 
 			leftPadding: 30
 			show_labels: false
-			property string v_type: effectPrototypes[effect_type]["controls"][selected_parameter].length > 4 ? effectPrototypes[effect_type]["controls"][selected_parameter][4] : "float"
+			property string v_type: ModuleInfo.effectPrototypes[effect_type]["controls"][selected_parameter].length > 4 ? ModuleInfo.effectPrototypes[effect_type]["controls"][selected_parameter][4] : "float"
 			property bool is_log: false
 			property bool force_update: false
 			snapMode: Slider.SnapAlways

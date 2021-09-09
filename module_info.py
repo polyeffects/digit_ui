@@ -1,5 +1,3 @@
-categories = ["Effects", "Input / Output", "Controls", "Synthesis / Weird"]
-
 effect_type_maps = {"beebo" : {'ad_env_level': 'http://drobilla.net/plugins/omins/adenv_lvl',
      'ad_envelope': 'http://drobilla.net/plugins/omins/adenv',
      'adsr': 'http://drobilla.net/plugins/blop/adsr',

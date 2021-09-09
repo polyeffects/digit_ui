@@ -5,6 +5,7 @@ import QtQuick.Controls.Material 2.3
 import QtQuick.VirtualKeyboard 2.1
 
 import "polyconst.js" as Constants
+import "module_info.js" as ModuleInfo
 /*
  * connection pairs of id / port, id / port
  *
@@ -185,10 +186,10 @@ import "polyconst.js" as Constants
                     var source_effect_port = rsplit(source_effect_port_str, "/", 1);
                     var targets = portConnections[source_effect_port_str];
                     var source_index = effect_map[source_effect_port[0]].input_keys.indexOf(source_effect_port[1])
-					var source_port_type = effectPrototypes[currentEffects[source_effect_port[0]]["effect_type"]]["inputs"][source_effect_port[1]][1]
+					var source_port_type = ModuleInfo.effectPrototypes[currentEffects[source_effect_port[0]]["effect_type"]]["inputs"][source_effect_port[1]][1]
                     
                     for (var target in targets){
-                        var target_port_type = effectPrototypes[currentEffects[targets[target][0]]["effect_type"]]["outputs"][targets[target][1]][1]
+                        var target_port_type = ModuleInfo.effectPrototypes[currentEffects[targets[target][0]]["effect_type"]]["outputs"][targets[target][1]][1]
 
                         var target_index = effect_map[targets[target][0]].output_keys.indexOf(targets[target][1])
 						drawConnection(drawContext, effect_map[source_effect_port[0]], effect_map[targets[target][0]], target_port_type, 
@@ -285,13 +286,17 @@ import "polyconst.js" as Constants
             }
             width: parent.width
             onPaint: {
-                var ctx = getContext("2d");
-                ctx.fillStyle = Material.background; //Qt.rgba(1, 1, 0, 1);
-                ctx.fillRect(0, 0, width, height);
-                if (currentPedalModel.name != "beebo"){
-                    ctx.drawImage("../icons/digit/hector_background.png", 212, 32, 855, 655);
+                // only draw if we're visable
+                if (patchStack.currentItem instanceof PatchBay) 
+                {
+                    var ctx = getContext("2d");
+                    ctx.fillStyle = Material.background; //Qt.rgba(1, 1, 0, 1);
+                    ctx.fillRect(0, 0, width, height);
+                    if (currentPedalModel.name != "beebo"){
+                        ctx.drawImage("../icons/digit/hector_background.png", 212, 32, 855, 655);
+                    }
+                    findConnections(ctx);
                 }
-                findConnections(ctx);
             }
             DropArea {
                 anchors.fill: parent
@@ -503,14 +508,14 @@ import "polyconst.js" as Constants
                                     if (patch_bay.from_hold){
                                         knobs.select_effect(false, list_dest_effect_id, true);
                                         var source_port_pair = [list_source_effect_id, split_port[2]];
-                                        var source_port_type = effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
+                                        var source_port_type = ModuleInfo.effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
 
                                         var k;
                                         var matched = 0;
                                         var matched_id = 0;
                                         // console.log("source port in from hold ", source_port_pair);
                                         // console.log("source port ", effect_id);
-                                        k = Object.keys(effectPrototypes[list_dest_effect_type]["inputs"])
+                                        k = Object.keys(ModuleInfo.effectPrototypes[list_dest_effect_type]["inputs"])
                                         if (currentPedalModel.name == "hector"){
                                             if (currentEffects[source_port_pair[0]]["effect_type"] == "input" || list_dest_effect_type == "output"){
                                                 matched = k.length;
@@ -520,7 +525,7 @@ import "polyconst.js" as Constants
                                             {
                                                 for (var i in k) {
                                                     // console.log("port name is ", i[k]);
-                                                    if (effectPrototypes[list_dest_effect_type]["inputs"][k[i]][1] == source_port_type){
+                                                    if (ModuleInfo.effectPrototypes[list_dest_effect_type]["inputs"][k[i]][1] == source_port_type){
                                                         matched++;
                                                         matched_id = i;
                                                     }
@@ -531,7 +536,7 @@ import "polyconst.js" as Constants
                                         } else{ 
                                             for (var i in k) {
                                                 // console.log("port name is ", i[k]);
-                                                if (effectPrototypes[list_dest_effect_type]["inputs"][k[i]][1] == source_port_type){
+                                                if (ModuleInfo.effectPrototypes[list_dest_effect_type]["inputs"][k[i]][1] == source_port_type){
                                                     matched++;
                                                     matched_id = i;
                                                 }

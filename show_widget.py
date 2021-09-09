@@ -1934,7 +1934,7 @@ def change_pedal_model(name, initial=False):
     effect_prototypes = effect_prototypes_models[_name]
 
     set_available_effects()
-    context.setContextProperty("effectPrototypes", effect_prototypes)
+    # context.setContextProperty("effectPrototypes", effect_prototypes)
     accent_color_models = {"beebo": "#FFA0E0", "digit": "#FFA0E0", "hector": "#32D2BE"}
     accent_color.name = accent_color_models[name]
 
@@ -2061,7 +2061,7 @@ if __name__ == "__main__":
     context.setContextProperty("selectedSourceEffectPorts", selected_source_effect_ports)
     context.setContextProperty("selectedDestEffectPorts", selected_dest_effect_ports)
     context.setContextProperty("portConnections", port_connections)
-    context.setContextProperty("effectPrototypes", effect_prototypes)
+    # context.setContextProperty("effectPrototypes", effect_prototypes)
     context.setContextProperty("updateCounter", update_counter)
     context.setContextProperty("presetCounter", preset_load_counter)
     context.setContextProperty("currentBPM", current_bpm)

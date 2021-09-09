@@ -12,6 +12,7 @@ import QtQuick.Layouts 1.3
 //
 import "polyconst.js" as Constants
 import "plaits_names.js" as PlaitsNames
+import "module_info.js" as ModuleInfo
 
 Rectangle {
     id: rect
@@ -39,19 +40,19 @@ Rectangle {
     color: is_pressed ? accent_color.name : is_io ? Constants.poly_very_dark_grey : !effect_type.startsWith("foot_switch_") ? Constants.background_color : currentEffects[effect_id]["controls"]["cur_out"].value > 0.9 ? Constants.cv_color : Constants.background_color
 
     function isAudio(item){
-        return effectPrototypes[effect_type]["inputs"][item][1] == "AudioPort"
+        return ModuleInfo.effectPrototypes[effect_type]["inputs"][item][1] == "AudioPort"
     }
 
     function isCV(item){
-        return effectPrototypes[effect_type]["inputs"][item][1] == "CVPort"
+        return ModuleInfo.effectPrototypes[effect_type]["inputs"][item][1] == "CVPort"
     }
 
     function isMIDI(item){
-        return effectPrototypes[effect_type]["inputs"][item][1] == "AtomPort"
+        return ModuleInfo.effectPrototypes[effect_type]["inputs"][item][1] == "AtomPort"
     }
 
     function isRightInput(item){
-        return ["AtomPort", "AudioPort"].indexOf(effectPrototypes[effect_type]["inputs"][item][1]) >= 0
+        return ["AtomPort", "AudioPort"].indexOf(ModuleInfo.effectPrototypes[effect_type]["inputs"][item][1]) >= 0
     }
 
 
@@ -59,8 +60,8 @@ Rectangle {
 		return ['int_osc', 'space_size', 'mode', 'algorithm', 'shape'].indexOf(item) < 0;
 	}
 
-    property var input_keys: Object.keys(effectPrototypes[effect_type]["inputs"]).filter(isRightInput) 
-    property var output_keys: Object.keys(effectPrototypes[effect_type]["outputs"])
+    property var input_keys: Object.keys(ModuleInfo.effectPrototypes[effect_type]["inputs"]).filter(isRightInput) 
+    property var output_keys: Object.keys(ModuleInfo.effectPrototypes[effect_type]["outputs"])
     property bool has_ui: ['bitmangle', 'comparator', 'chebyschev_waveshaper', 'meta_modulation', 'wavefolder', 'vocoder', 'doppler_panner', 'twist_delay', 'frequency_shifter', 'rotary_advanced'].indexOf(effect_type) >= 0
     property var sliders; 
     // border { width:2; color: Material.color(Material.Cyan, Material.Shade100)}
@@ -168,34 +169,34 @@ Rectangle {
             knobs.select_effect(false, effect_id, true)
 
             var source_port_pair = rsplit(connectSourcePort.name, "/", 1)
-            var source_port_type = effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
+            var source_port_type = ModuleInfo.effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
 
             var k;
             var matched = 0;
             var matched_id = 0;
             // console.log("source port ", source_port_pair);
-            console.log("two finger connect source port ", effect_id);
-            k = Object.keys(effectPrototypes[effect_type]["inputs"])
+            // console.log("two finger connect source port ", effect_id);
+            k = Object.keys(ModuleInfo.effectPrototypes[effect_type]["inputs"])
 
             if (currentPedalModel.name == "hector"){
                 if (currentEffects[source_port_pair[0]]["effect_type"] == "input" || effect_type == "output"){
                     matched = k.length;
-                    console.log("matched, hector", matched);
+                    // console.log("matched, hector", matched);
 
                 } else {
                     for (var i in k) {
                         // console.log("port name is ", i[k]);
-                        if (effectPrototypes[effect_type]["inputs"][k[i]][1] == source_port_type){
+                        if (ModuleInfo.effectPrototypes[effect_type]["inputs"][k[i]][1] == source_port_type){
                             matched++;
                             matched_id = i;
                         }
                     }
-                    console.log("not matched, hector", matched);
+                    // console.log("not matched, hector", matched);
                 }
             } else {
                 for (var i in k) {
                     // console.log("port name is ", i[k]);
-                    if (effectPrototypes[effect_type]["inputs"][k[i]][1] == source_port_type){
+                    if (ModuleInfo.effectPrototypes[effect_type]["inputs"][k[i]][1] == source_port_type){
                         matched++;
                         matched_id = i;
                     }
@@ -255,14 +256,14 @@ Rectangle {
             knobs.select_effect(false, effect_id, false)
             patch_bay.list_dest_effect_id = effect_id;
             var source_port_pair = rsplit(connectSourcePort.name, "/", 1)
-            var source_port_type = effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
+            var source_port_type = ModuleInfo.effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
 
             var k;
             var matched = 0;
             var matched_id = 0;
             // console.log("source port ", source_port_pair);
             // console.log("source port ", effect_id);
-            k = Object.keys(effectPrototypes[effect_type]["inputs"])
+            k = Object.keys(ModuleInfo.effectPrototypes[effect_type]["inputs"])
             if (k.length > 1 )
             {
                 mainStack.push(destPortSelection);
@@ -508,7 +509,7 @@ Rectangle {
                     radius: 5
                     width: 10
                     height: 10
-                    color: Constants.port_color_map[effectPrototypes[effect_type]["outputs"][modelData][1]]
+                    color: Constants.port_color_map[ModuleInfo.effectPrototypes[effect_type]["outputs"][modelData][1]]
                 }
             }
         }
@@ -536,7 +537,7 @@ Rectangle {
                     radius: 5
                     width: 10
                     height: 10
-                    color: Constants.port_color_map[effectPrototypes[effect_type]["inputs"][modelData][1]]
+                    color: Constants.port_color_map[ModuleInfo.effectPrototypes[effect_type]["inputs"][modelData][1]]
                 }
             }
         }
@@ -544,7 +545,7 @@ Rectangle {
 
     Rectangle {
         id: cv_rec
-        visible: effectPrototypes[effect_type]["num_cv_in"] > 0
+        visible: ModuleInfo.effectPrototypes[effect_type]["num_cv_in"] > 0
         anchors.verticalCenter: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         width: 22
@@ -556,7 +557,7 @@ Rectangle {
             width: 20
             height: 20
             anchors.centerIn: parent
-            text: effectPrototypes[effect_type]["num_cv_in"]
+            text: ModuleInfo.effectPrototypes[effect_type]["num_cv_in"]
             // height: 15
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
@@ -946,7 +947,7 @@ Rectangle {
 								row_param: modelData
 								current_effect: effect_id
 								Material.foreground: Constants.rainbow[index]
-                                v_type: effectPrototypes[effect_type]["controls"][modelData].length > 4 ? effectPrototypes[effect_type]["controls"][modelData][4] : "float"
+                                v_type: ModuleInfo.effectPrototypes[effect_type]["controls"][modelData].length > 4 ? ModuleInfo.effectPrototypes[effect_type]["controls"][modelData][4] : "float"
 							}
 						}
 					}
@@ -1996,7 +1997,7 @@ Rectangle {
 							row_param: modelData
 							current_effect: effect_id
 							Material.foreground: Constants.rainbow[index]
-                            v_type: effectPrototypes[effect_type]["controls"][modelData].length > 4 ? effectPrototypes[effect_type]["controls"][modelData][4] : "float"
+                            v_type: ModuleInfo.effectPrototypes[effect_type]["controls"][modelData].length > 4 ? ModuleInfo.effectPrototypes[effect_type]["controls"][modelData][4] : "float"
 						}
 					}
 				}
@@ -2184,7 +2185,7 @@ Rectangle {
 								current_effect: effect_id
 								Material.foreground: Constants.rainbow[index]
 								is_log: modelData == "cutoff"
-                                v_type: effectPrototypes[effect_type]["controls"][modelData].length > 4 ? effectPrototypes[effect_type]["controls"][modelData][4] : "float"
+                                v_type: ModuleInfo.effectPrototypes[effect_type]["controls"][modelData].length > 4 ? ModuleInfo.effectPrototypes[effect_type]["controls"][modelData][4] : "float"
 							}
 						}
 					}

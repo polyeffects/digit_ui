@@ -133,7 +133,7 @@ Item {
                         row_param: modelData
                         current_effect: effect_id
                         Material.foreground: Constants.rainbow[index+5]
-                        v_type: effectPrototypes[effect_type]["controls"][modelData].length > 4 ? effectPrototypes[effect_type]["controls"][modelData][4] : "float"
+                        v_type: modelData == "internal_exciter_param" ? "bool" : "float"
                     }
                 }
             }

@@ -154,7 +154,7 @@ Item {
                         y: 55
                         width: 598
                         height: 30
-                        text: description +"\nby "  + author // effectPrototypes[l_effect]["description"]
+                        text: description +"\nby "  + author 
                         wrapMode: Text.Wrap
                         // anchors.top: parent.top
                         font {

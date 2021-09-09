@@ -2,6 +2,7 @@ import QtQuick 2.11
 import QtQuick.Controls 2.4
 import QtQuick.Controls.Material 2.4
 import "../qml/polyconst.js" as Constants
+import "module_info.js" as ModuleInfo
 
 Item {
     height:540
@@ -23,7 +24,7 @@ Item {
                     capitalization: Font.AllUppercase
                     family: mainFont.name
                 }
-                text: effectPrototypes[effect_type]["description"] + "\n" + " Hold the three dots and press a slider to MIDI bind."
+                text: ModuleInfo.effectPrototypes[effect_type]["description"] + "\n" + " Hold the three dots and press a slider to MIDI bind."
 // effectPrototypes[effect_type]["long_description"] 
             }
 
@@ -33,7 +34,7 @@ Item {
                 Column {
                     width: 450
                     height: 480
-                    visible: "manual_url" in effectPrototypes[effect_type]
+                    visible: "manual_url" in ModuleInfo.effectPrototypes[effect_type]
                     Text {
                         width: parent.width
                         color: "white"
@@ -47,13 +48,13 @@ Item {
                     Image {
                         // width:27 
                         // height: 27
-                        source: "manual_url" in effectPrototypes[effect_type] ? "../icons/digit/qr_codes/manual_"+effect_type+".png" : "../icons/digit/loopler/mono-large.png"
+                        source: "manual_url" in ModuleInfo.effectPrototypes[effect_type] ? "../icons/digit/qr_codes/manual_"+effect_type+".png" : "../icons/digit/loopler/mono-large.png"
                     }
                 }
                 Column {
                     width: 450
                     height: 480
-                    visible: "video_url" in effectPrototypes[effect_type]
+                    visible: "video_url" in ModuleInfo.effectPrototypes[effect_type]
                     Text {
                         width: parent.width
                         color: "white"
@@ -67,7 +68,7 @@ Item {
                     Image {
                         // width:27 
                         // height: 27
-                        source: "video_url" in effectPrototypes[effect_type] ? "../icons/digit/qr_codes/video_"+effect_type+".png" : "../icons/digit/loopler/mono-large.png"
+                        source: "video_url" in ModuleInfo.effectPrototypes[effect_type] ? "../icons/digit/qr_codes/video_"+effect_type+".png" : "../icons/digit/loopler/mono-large.png"
                     }
                 }
             }
