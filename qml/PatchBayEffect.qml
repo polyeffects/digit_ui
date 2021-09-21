@@ -140,7 +140,7 @@ Rectangle {
                 return;
             }
 
-            knobs.select_effect(true, patch_bay.selected_effect.effect_id, true)
+            knobs.select_effect(true, patch_bay.selected_effect.effect_id, interconnect)
             patch_bay.list_source_effect_id = patch_bay.selected_effect.effect_id;
 			patch_bay.source_selected = false;
 
@@ -166,7 +166,7 @@ Rectangle {
 				mainStack.push(sourcePortSelection);
 				return;
 			}
-            knobs.select_effect(false, effect_id, true)
+            knobs.select_effect(false, effect_id, interconnect)
 
             var source_port_pair = rsplit(connectSourcePort.name, "/", 1)
             var source_port_type = ModuleInfo.effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
@@ -178,7 +178,10 @@ Rectangle {
             // console.log("two finger connect source port ", effect_id);
             k = Object.keys(ModuleInfo.effectPrototypes[effect_type]["inputs"])
 
-            if (currentPedalModel.name == "hector"){
+            if (interconnect && ["AtomPort", "ControlPort"].indexOf(source_port_type) < 0){
+                matched = k.length;
+            }
+            else if (currentPedalModel.name == "hector"){
                 if (currentEffects[source_port_pair[0]]["effect_type"] == "input" || effect_type == "output"){
                     matched = k.length;
                     // console.log("matched, hector", matched);
@@ -201,9 +204,9 @@ Rectangle {
                         matched_id = i;
                     }
                 }
-                console.log("not hector", matched);
+                // console.log("not hector", matched);
             } 
-            console.log("final matched", matched);
+            // console.log("final matched", matched);
             if (matched > 1 )
             {
                 rect.is_pressed = false;
@@ -221,63 +224,6 @@ Rectangle {
 
     }
 
-    function connect_clicked(first) {
-        /*
-         * on click, check if we are highlight, if not find source ports 
-         * if we are, then we're a current target
-         */
-		patch_bay.from_hold = false;
-        if ((first == true) || !(patch_bay.selected_effect.selected)){
-            var k = output_keys;
-            if (k.length == 0){
-                return;
-            }
-
-            selected = true
-            patch_bay.selected_effect = rect
-            hide_sliders(false);
-            knobs.select_effect(true, effect_id, false)
-            patch_bay.list_source_effect_id = effect_id;
-
-            if (k.length > 1 )
-            {
-                mainStack.push(sourcePortSelection);
-                patch_bay.current_help_text = Constants.help["connect_to"];
-            } 
-            else if (k.length == 1) {
-                knobs.set_current_port(true, effect_id, k[0]);
-                // rep1.model.items_changed();
-                patch_bay.externalRefresh();
-                patch_bay.current_help_text = Constants.help["connect_to"];
-            }
-        } else {
-            patch_bay.selected_effect.selected = false;
-
-            knobs.select_effect(false, effect_id, false)
-            patch_bay.list_dest_effect_id = effect_id;
-            var source_port_pair = rsplit(connectSourcePort.name, "/", 1)
-            var source_port_type = ModuleInfo.effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
-
-            var k;
-            var matched = 0;
-            var matched_id = 0;
-            // console.log("source port ", source_port_pair);
-            // console.log("source port ", effect_id);
-            k = Object.keys(ModuleInfo.effectPrototypes[effect_type]["inputs"])
-            if (k.length > 1 )
-            {
-                mainStack.push(destPortSelection);
-                patch_bay.current_help_text = Constants.help["connect_from"];
-            } 
-            else if (k.length == 1){
-                knobs.set_current_port(false, effect_id, k[0]);
-                // rep1.model.items_changed();
-                patch_bay.externalRefresh();
-                patch_bay.current_help_text = Constants.help["connect_from"];
-            }
-        }
-
-    }
 
     function delete_clicked() {
         // delete current effect

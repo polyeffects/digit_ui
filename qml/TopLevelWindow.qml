@@ -24,6 +24,7 @@ ApplicationWindow {
     readonly property int fontSizeExtraLarge: baseFontSize * 5
     property int presetBrowserIndex: 0
     property bool flip_screen: Boolean(pedalState["screen_flipped"])
+    property bool interconnect: false
     contentOrientation: flip_screen ? Qt.LandscapeOrientation : Qt.InvertedLandscapeOrientation
     width: onDevice ? 720 : 1280 
     height: onDevice ? 1280 : 720

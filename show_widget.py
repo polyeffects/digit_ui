@@ -15,8 +15,8 @@ from PySide2.QtGui import QIcon, QFontDatabase, QFont
 # # compiled QML files, compile with pyside2-rcc
 # import qml.qml
 # profiler
-from PySide2.QtQml import QQmlDebuggingEnabler
-debug = QQmlDebuggingEnabler()
+# from PySide2.QtQml import QQmlDebuggingEnabler
+# debug = QQmlDebuggingEnabler()
 
 sys._excepthook = sys.excepthook
 def exception_hook(exctype, value, tb):
@@ -83,8 +83,8 @@ class PatchMode(IntEnum):
 context = None
 
 def debug_print(*args, **kwargs):
-    pass
-    # print( "From py: "+" ".join(map(str,args)), **kwargs)
+    # pass
+    print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 
 effect_type_maps = module_info.effect_type_maps
@@ -769,9 +769,10 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
 
 
     @Slot(bool, str, bool)
-    def select_effect(self, is_source, effect_id, restrict_port_types=True):
+    def select_effect(self, is_source, effect_id, interconnect=False):
+        restrict_port_types = not interconnect
         effect_type = current_effects[effect_id]["effect_type"]
-        # debug_print("selecting effect type", effect_type, is_source, current_pedal_model.name)
+        debug_print("selecting effect type", effect_type, is_source, "interconnect is ", interconnect)
         if is_source:
             ports = sorted([v[1]+'|'+v[0]+'|'+k for k,v in effect_prototypes[effect_type]["outputs"].items()])
             selected_source_effect_ports.setStringList(ports)

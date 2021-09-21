@@ -506,7 +506,7 @@ import "module_info.js" as ModuleInfo
                                     // rep1.model.items_changed(); //  FIXME
                                     mycanvas.requestPaint();
                                     if (patch_bay.from_hold){
-                                        knobs.select_effect(false, list_dest_effect_id, true);
+                                        knobs.select_effect(false, list_dest_effect_id, interconnect);
                                         var source_port_pair = [list_source_effect_id, split_port[2]];
                                         var source_port_type = ModuleInfo.effectPrototypes[currentEffects[source_port_pair[0]]["effect_type"]]["outputs"][source_port_pair[1]][1]
 
@@ -516,7 +516,10 @@ import "module_info.js" as ModuleInfo
                                         // console.log("source port in from hold ", source_port_pair);
                                         // console.log("source port ", effect_id);
                                         k = Object.keys(ModuleInfo.effectPrototypes[list_dest_effect_type]["inputs"])
-                                        if (currentPedalModel.name == "hector"){
+                                        if (interconnect && ["AtomPort", "ControlPort"].indexOf(source_port_type) < 0){
+                                            matched = k.length;
+                                        }
+                                        else if (currentPedalModel.name == "hector"){
                                             if (currentEffects[source_port_pair[0]]["effect_type"] == "input" || list_dest_effect_type == "output"){
                                                 matched = k.length;
                                                 console.log("patchbay matched, hector", matched);

@@ -13,6 +13,7 @@ Item {
     property double midiCC : currentEffects[current_effect]["controls"][row_param].cc
     property string current_value: parseFloat(actualValue.toFixed(3)).toString()
     property bool learning: false
+    property bool v_type: "float"
 
     onActualValueChanged: {
         current_value = parseFloat(actualValue.toFixed(3)).toString()
@@ -180,6 +181,7 @@ Item {
             
             }
             Column {
+                visible: v_type != "bool"
                 spacing: 120
                 Grid {
                     width: 650

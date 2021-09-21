@@ -318,6 +318,22 @@ Item {
                         onClicked: knobs.flip_screen()
                     }
 
+
+					Switch {
+						text: "Interconnect"
+						width: 300
+						checked: interconnect
+						onToggled: {
+							interconnect = !(interconnect)
+						}
+						font {
+							pixelSize: 24
+							capitalization: Font.AllUppercase
+							family: mainFont.name
+						}
+						Material.foreground: Constants.rainbow[1]
+
+					}
                 }
             }
 
