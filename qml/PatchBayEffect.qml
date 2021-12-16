@@ -337,7 +337,7 @@ Rectangle {
             patchStack.push("Rings.qml", {"effect_id": effect_id});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
         }
-		else if (['loop_common_in', 'loop_common_out'].indexOf(effect_type) >= 0){
+		else if (['loop_common_in', 'loop_common_out', 'loop_extra_midi', 'loop_midi_out'].indexOf(effect_type) >= 0){
             title_text = "Loopler"
             patchStack.push("Loopler.qml");
             patch_bay.current_help_text = "" // Constants.help[""];

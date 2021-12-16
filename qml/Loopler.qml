@@ -460,17 +460,17 @@ Item {
                                 color: Constants.poly_grey
                             }
 
-                            Column {
+                            Flow {
                                 x: 799
                                 spacing: 14 
                                 height: 270
-                                width: parent.width
+                                width: 270
 
                                 Repeater {
-                                    model: ["sync", "playback_sync", "use_feedback_play"]
+                                    model: ["sync", "round", "playback_sync", "use_feedback_play"]
 
                                     PolyButton {
-                                        width: 252
+                                        width: index > 1 ? 252  : 126
                                         height: 64
                                         checked: loopler.loops[current_loop][modelData] == 1.0
                                         // checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)

@@ -223,6 +223,13 @@ def add_midi_input(port_id, x, y):
     lv2:name "MIDI In" ;
     a lv2:InputPort ; a atom:AtomPort""" % (x, y)))
 
+def add_midi_input2(port_id, x, y):
+    q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
+    ingen:canvasY "%s"^^xsd:float ;
+    atom:bufferType atom:Sequence ;
+    lv2:name "MIDI In" ;
+    a lv2:InputPort ; a atom:AtomPort""" % (x, y)))
+
 def add_midi_output(port_id, x, y):
     q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
     ingen:canvasY "%s"^^xsd:float ;
@@ -237,11 +244,11 @@ def add_midi_output2(port_id, x, y):
     lv2:name "MIDI Out" ;
     a lv2:OutputPort ; a atom:AtomPort""" % (x, y)))
 
-def add_top_loop_extra_midi(port_id, x, y):
-    # print("extra midi adding, port_id", port_id, x, y)
-    q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
-    ingen:canvasY "%s"^^xsd:float ;
-    a lv2:OutputPort ; a lv2:AtomPort""" % (x, y)))
+# def add_top_loop_extra_midi(port_id, x, y):
+#     # print("extra midi adding, port_id", port_id, x, y)
+#     q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
+#     ingen:canvasY "%s"^^xsd:float ;
+#     a lv2:OutputPort ; a lv2:AtomPort""" % (x, y)))
 
 def add_loop_extra_midi(port_id, x, y):
     # print("extra midi adding, port_id", port_id, x, y)
@@ -250,6 +257,14 @@ def add_loop_extra_midi(port_id, x, y):
     atom:bufferType atom:Sequence ;
     lv2:name "loop_extra_midi" ;
     a lv2:OutputPort ; a atom:AtomPort""" % (x, y)))
+
+def add_loop_midi_out(port_id, x, y):
+    # print("extra midi adding, port_id", port_id, x, y)
+    q.put((ingen.put, port_id, """ingen:canvasX "%s"^^xsd:float ;
+    ingen:canvasY "%s"^^xsd:float ;
+    atom:bufferType atom:Sequence ;
+    lv2:name "loop_midi_out" ;
+    a lv2:InputPort ; a atom:AtomPort""" % (x, y)))
 
 def set_file(effect_id, file_name, is_cab):
     effect_id = effect_id
@@ -372,6 +387,7 @@ def connect_jack_port(port, x, y, physical_port):
                     "/main/loop_common_in_2": "ingen:loop_common_in_2 sooperlooper:common_in_2",
                     "/main/loop_common_out_1": "sooperlooper:common_out_1 ingen:loop_common_out_1",
                     "/main/loop_common_out_2": "sooperlooper:common_out_2 ingen:loop_common_out_2",
+                    "/main/loop_midi_out": "ingen:extra_midi sooperlooper:midi_in",
                     "/main/loop_extra_midi": "ingen:extra_midi sooperlooper:midi_in",
                     }
             # if connected_ports == set(port_map.keys()):
@@ -389,7 +405,7 @@ def connect_jack_port(port, x, y, physical_port):
                 # print("got por not in port map", port, x, y, port_suffix)
                 io_ports = ['in_1', 'in_2', 'in_3', 'in_4', "in_5", "in_6", 'out_1', 'out_2', 'out_3', 'out_4', 'out_5', 'out_6', 'out_7', 'out_8', "midi_in", "midi_out"]
                 # XXX loop common in / out, loop 1 in loop 1 out etc
-                if port_suffix in io_ports or "loop_common_" in port_suffix or "loop_extra_midi" in port_suffix:
+                if port_suffix in io_ports or "loop_common_" in port_suffix or "loop_extra_midi" in port_suffix or "loop_midi_out" in port_suffix:
                     plugin = ""
                     if port_suffix == "midi_in":
                         #connect to in
@@ -407,6 +423,9 @@ def connect_jack_port(port, x, y, physical_port):
                     elif "loop_extra_midi" in port_suffix:
                         plugin = "loop_extra_midi"
                         connect_port(port, "/main/loop_extra_midi")
+                    elif "loop_midi_out" in port_suffix:
+                        plugin = "loop_midi_out"
+                        connect_port("/main/loop_midi_out", port)
                     elif "in" in port_suffix:
                         #connect to in
                         plugin = "input"

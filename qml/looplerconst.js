@@ -1,6 +1,6 @@
 .pragma library
 var parameter_map = {'input_gain': 'in gain', 'feedback': 'feedback', 'rec_thresh': 'threshold',
-    'wet': 'out', 'playback_sync': 'play sync', 'use_feedback_play': 'play feedback', 'sync': 'sync',
+    'wet': 'out', 'playback_sync': 'play sync', 'use_feedback_play': 'play feedback', 'sync': 'sync', 'round' : 'round',
     "pitch_shift": "pitch", "stretch_ratio": "stretch", "scratch_pos": "scratch", "rate":"rate",
     "mute_quantized":"mute quantized", "overdub_quantized":"overdub quantized", "relative_sync":"relative sync",
     "fade_samples": "cross fade", "input_gain":"input gain", "wet": "wet", "dry":"dry", "pan_1":"pan L", "pan_2": "pan R", "select_prev_loop": "prev loop", "select_next_loop": "next loop"

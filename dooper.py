@@ -105,7 +105,8 @@ looper_parameters = (
     'select_next_loop',  # any changes
     'select_prev_loop',  # any changes
     'select_all_loops',   # any changes
-    'selected_loop_num'  # -1 = all, 0->N selects loop instances (first loop is 0, etc)
+    'selected_loop_num',  # -1 = all, 0->N selects loop instances (first loop is 0, etc)
+    'output_midi_clock'  # 0 no 1 yes
     )
 
 # Map sl's integer codes to loop states
@@ -164,7 +165,7 @@ class LooperThread:
 
 
     def __setattr__(self, name, val):
-        if name in ['sync_source', 'quantize', 'selected_loop_num']:
+        if name in ['sync_source', 'quantize', 'selected_loop_num', 'output_midi_clock']:
             super().__setattr__(name, val)
 
         elif name in looper_parameters:
@@ -358,6 +359,9 @@ class LooperThread:
     def select_loop(self, n):
         self.selected_loop_num = n
 
+    def enable_midi_clock(self):
+        self.set('output_midi_clock', 1.0)
+
     @property
     def quantize(self):
         return ('off', 'cycle', '8th', 'loop')[int(self.__dict__['quantize'])]
@@ -404,6 +408,22 @@ class LooperThread:
         # else:
         s = val
         self.set('sync_source', s)
+
+    @property
+    def output_midi_clock(self):
+        s = self.__dict__['output_midi_clock']
+        # if s > 0:
+        return int(s)
+        # else:
+        #     return ('none', 'internal', 'midi', 'jack')[i]
+
+    @output_midi_clock.setter
+    def output_midi_clock(self, val):
+        # if isinstance(val, str):
+        #     s = - ('none', 'jack', 'midi', 'internal').index(val)
+        # else:
+        s = val
+        self.set('output_midi_clock', s)
 
     def cancel_midi_learn(self):
          # /cancel_midi_learn    s:returl  s:retpath
@@ -484,6 +504,11 @@ class LooperThread:
             info.control = "sync_source"
             info.lbound = -3.0
             info.ubound = 16.0
+
+        elif (val == "output_midi_clock"):
+            info.control = "output_midi_clock"
+            info.lbound = 0.0
+            info.ubound = 1.0
 
         elif (val == "quantize"):
             info.instance = -1

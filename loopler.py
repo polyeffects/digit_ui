@@ -116,6 +116,7 @@ class Loopler(QObject, metaclass=PropertyMeta):
     tempo = Property(float)
     eighth_per_cycle = Property(int)
     sync_source = Property(int)
+    output_midi_clock = Property(float)
     relative_sync = Property(float)   # per loop 0 -> ...
     midi_learn_waiting = Property(bool)   # per loop 0 -> ...
     # mute_quantized = Property(int) # per loop
@@ -127,6 +128,7 @@ class Loopler(QObject, metaclass=PropertyMeta):
     def __init__(self):
         super().__init__()
         self.selected_loop_num = 0
+        self.output_midi_clock = 0
         self.midi_learn_waiting = False
         self.loopAddedSignal.connect(self.add_loop)
         self.loopRemovedSignal.connect(self.remove_loop)
@@ -263,9 +265,13 @@ class Loopler(QObject, metaclass=PropertyMeta):
     def looper_responder(self, args):
         """ Listens for replies from SL about looper global state"""
         control, value = args[1:]
-        # print("looper responder",  control, value)
         if control in type(self).__dict__:
             type(self).__dict__[control].setter(self, value)
+
+        if self.output_midi_clock < 1:
+            print("setting output_midi_clock",  control, value)
+            self.output_midi_clock = 1
+            l_thread.enable_midi_clock()
 
     def loop_added_responder(self, loop_num):
         # QMetaObject.invokeMethod(self, b"add_loop", Qt.QueuedConnection, loop_num)

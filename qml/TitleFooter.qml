@@ -78,8 +78,8 @@ Item {
         color: "#60000000"
         visible: isLoading.value
         MouseArea {
-            height: parent.height
-            width: parent.width - 80
+            height: parent.height - 80
+            width: parent.width 
             x: 0
             onClicked: {}
         }

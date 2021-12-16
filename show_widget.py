@@ -83,8 +83,8 @@ class PatchMode(IntEnum):
 context = None
 
 def debug_print(*args, **kwargs):
-    # pass
-    print( "From py: "+" ".join(map(str,args)), **kwargs)
+    pass
+    # print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 
 effect_type_maps = module_info.effect_type_maps
@@ -119,9 +119,9 @@ for k in effect_prototypes_models.keys():
             "controls": {}}
 
 bare_output_ports =  ("output", "midi_output", "loop_common_in", "loop_extra_midi")
-bare_input_ports = ("input", "midi_input", "loop_common_out")
+bare_input_ports = ("input", "midi_input", "loop_common_out", "loop_midi_out")
 bare_ports = bare_output_ports + bare_input_ports
-loopler_modules = ["loop_common_in", "loop_common_out", "loop_extra_midi"]
+loopler_modules = ["loop_common_in", "loop_common_out", "loop_extra_midi", "loop_midi_out"]
 
 
 def clamp(v, min_value, max_value):
@@ -772,7 +772,7 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
     def select_effect(self, is_source, effect_id, interconnect=False):
         restrict_port_types = not interconnect
         effect_type = current_effects[effect_id]["effect_type"]
-        debug_print("selecting effect type", effect_type, is_source, "interconnect is ", interconnect)
+        # debug_print("selecting effect type", effect_type, is_source, "interconnect is ", interconnect)
         if is_source:
             ports = sorted([v[1]+'|'+v[0]+'|'+k for k,v in effect_prototypes[effect_type]["outputs"].items()])
             selected_source_effect_ports.setStringList(ports)
@@ -791,7 +791,7 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
             else:
                 ports = sorted([v[1]+'|'+v[0]+'|'+k for k,v in effect_prototypes[effect_type]["inputs"].items() if (v[1] not in ["AtomPort", "ControlPort"])])
 
-            debug_print("ports is ", ports)
+            # debug_print("ports is ", ports)
             selected_dest_effect_ports.setStringList(ports)
 
     @Slot(str)
@@ -858,13 +858,15 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
             bare_ports_map = {"input" : "in", "output" : "out", "midi_input" : "midi_in",
                     "midi_output" : "midi_out", "loop_common_in" : "out",
                     "loop_common_out" : "in",
-                    "loop_extra_midi": "midi_out"}
+                    "loop_extra_midi": "midi_out", "loop_midi_out": "midi_in"}
             if bare_ports_map[effect_type] == "in":
                 ingen_wrapper.add_input(effect_name, 900, 150)
             elif bare_ports_map[effect_type] == "out":
                 ingen_wrapper.add_output(effect_name, 900, 150)
             elif effect_type == "loop_extra_midi":
                 ingen_wrapper.add_loop_extra_midi(effect_name, 900, 150)
+            elif effect_type == "loop_midi_out":
+                ingen_wrapper.add_loop_midi_out(effect_name, 900, 150)
             # ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
         else:
             ingen_wrapper.add_plugin(effect_name, effect_type_map[effect_type])
@@ -1176,6 +1178,8 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
         elif pedal_state["model"] == "hector":
             command = ("amixer -- sset 'ADC1 Invert' on,on; amixer -- sset 'ADC2 Invert' on,on; amixer -- sset 'ADC3 Invert' on,on; "
                     "amixer -- sset 'DAC1 Invert' on,on; amixer -- sset 'DAC2 Invert' on,on; amixer -- sset 'DAC3 Invert' on,on; amixer -- sset 'DAC4 Invert' on,on;")
+        else:
+            command = "amixer -- sset 'ADC1 Invert' on,on; amixer -- sset 'ADC2 Invert' on,on"
 
         command_status[0].value = subprocess.call(command, shell=True)
         input_level.value = level
@@ -1458,6 +1462,7 @@ def io_new_effect(effect_name, effect_type, x=20, y=30):
 
 def add_io():
     ingen_wrapper.add_midi_input("/main/midi_in", x=1192, y=(80 * 5))
+    ingen_wrapper.add_midi_input2("/main/loop_midi_out", x=1192, y=(80 * 6))
     ingen_wrapper.add_midi_output("/main/loop_extra_midi", x=20, y=(80 * 3))
     ingen_wrapper.add_midi_output2("/main/midi_out", x=-20, y=(80 * 5))
     if current_pedal_model.name == "hector":

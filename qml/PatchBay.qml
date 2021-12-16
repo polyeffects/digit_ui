@@ -522,7 +522,7 @@ import "module_info.js" as ModuleInfo
                                         else if (currentPedalModel.name == "hector"){
                                             if (currentEffects[source_port_pair[0]]["effect_type"] == "input" || list_dest_effect_type == "output"){
                                                 matched = k.length;
-                                                console.log("patchbay matched, hector", matched);
+                                                // console.log("patchbay matched, hector", matched);
 
                                             } else
                                             {
