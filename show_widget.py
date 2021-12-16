@@ -83,8 +83,8 @@ class PatchMode(IntEnum):
 context = None
 
 def debug_print(*args, **kwargs):
-    pass
-    # print( "From py: "+" ".join(map(str,args)), **kwargs)
+    # pass
+    print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 
 effect_type_maps = module_info.effect_type_maps
@@ -1614,11 +1614,19 @@ def send_to_footswitch_blocks(timestamp, switch_name, value=0):
 
     #  
     if value == 0 and loopler.current_command_params:
-        looper_footswitch_assignments[foot_switch_name[-1]] = [loopler.current_command_params]
-        # show foot switch selection screen, choose if for current loop, all loops, momentary, latching, toggle?
-        # exclusive or adds on
-        ingen_wrapper.set_looper_footswitch(current_sub_graph.rstrip("/"), json.dumps(looper_footswitch_assignments))
-        loopler.current_command_params = None
+        # remove if currently assigned
+        if looper_footswitch_assignments[foot_switch_name[-1]] == [list(loopler.current_command_params)]:
+            debug_print("args are the same in loopler foot switch", looper_footswitch_assignments[foot_switch_name[-1]], loopler.current_command_params)
+            looper_footswitch_assignments[foot_switch_name[-1]] = []
+            ingen_wrapper.set_looper_footswitch(current_sub_graph.rstrip("/"), json.dumps(looper_footswitch_assignments))
+            loopler.current_command_params = None
+        else:
+            debug_print("args are differen in loopler foot switch", looper_footswitch_assignments[foot_switch_name[-1]], loopler.current_command_params)
+            looper_footswitch_assignments[foot_switch_name[-1]] = [loopler.current_command_params]
+            # show foot switch selection screen, choose if for current loop, all loops, momentary, latching, toggle?
+            # exclusive or adds on
+            ingen_wrapper.set_looper_footswitch(current_sub_graph.rstrip("/"), json.dumps(looper_footswitch_assignments))
+            loopler.current_command_params = None
         return
 
     if True: # qa_view
