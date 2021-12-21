@@ -9,6 +9,7 @@ import traceback
 import logging
 import urllib.parse
 import os.path
+import random
 
 connected = False
 from static_globals import IS_REMOTE_TEST
@@ -179,10 +180,10 @@ def set_plugin_position(effect_id, x, y):
 def add_plugin(effect_id, effect_url):
     # put /main/tone <http://drobilla.net/plugins/mda/Shepard>'
     # print("backend adding effect_id", effect_id)
-    q.put((ingen.put, effect_id, """ingen:canvasX "900.0"^^xsd:float ;
-    ingen:canvasY "150.0"^^xsd:float ;
+    q.put((ingen.put, effect_id, 'ingen:canvasX "' + "{:.1f}".format(random.randint(-20, 50) + 900) + '''"^^xsd:float ;
+    ingen:canvasY "''' + "{:.1f}".format(random.randint(-20, 50) + 150) + '''"^^xsd:float ;
     a ingen:Block ;
-    lv2:prototype """ + "<" + effect_url + ">"))
+    lv2:prototype ''' + "<" + effect_url + ">"))
 
 def add_sub_graph(effect_id):
     # put /main/tone <http://drobilla.net/plugins/mda/Shepard>'
