@@ -916,6 +916,14 @@ import "module_info.js" as ModuleInfo
                                 onPressed: { parent.is_pressed = true; }
                                 onReleased: { parent.is_pressed = false; }
                                 onClicked: {
+                                    // if this is the last connection, got back to main screen
+                                    if (disconnect_list.count <= 1){
+                                        patch_bay.current_help_text = ""
+                                        mainStack.pop()
+                                        if (patch_bay.currentMode == PatchBay.Hold){
+                                            patch_bay.currentMode = PatchBay.Select;
+                                        }
+                                    }
                                     knobs.disconnect_port(split_port[2], edit);
                                     // patch_single.mycanvas.requestPaint();
                                     // mainStack.pop();

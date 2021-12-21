@@ -417,6 +417,8 @@ Rectangle {
         // * show select target port if port count > 1
         patch_bay.list_source_effect_id = effect_id;
         hide_sliders(true);
+
+        // if (selectedSourceEffectPorts.rowCount() == 1)
         mainStack.push(disconnectPortSelection);
         // select target, show popup with target ports
         // } 
