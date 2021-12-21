@@ -1169,6 +1169,7 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
 
     @Slot(int)
     def set_input_level(self, level, write=True):
+        debug_print("setting input_level, ", level, input_level.value)
         if IS_REMOTE_TEST:
             return
         command = "amixer -- sset ADC1 "+str(level)+"db; amixer -- sset ADC2 "+str(level)+"db; amixer -- sset ADC3 "+str(level)+"db"
@@ -1189,8 +1190,9 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
 
     @Slot(int)
     def set_channel(self, channel):
+        # debug_print("setting channel, ", channel, midi_channel.value)
         midi_channel.value = channel
-        pedal_state["midi_channel"] = channel
+        pedal_state["midi_channel"] = midi_channel.value
         write_pedal_state()
 
     @Slot(bool)
@@ -1616,12 +1618,10 @@ def send_to_footswitch_blocks(timestamp, switch_name, value=0):
     if value == 0 and loopler.current_command_params:
         # remove if currently assigned
         if looper_footswitch_assignments[foot_switch_name[-1]] == [list(loopler.current_command_params)]:
-            debug_print("args are the same in loopler foot switch", looper_footswitch_assignments[foot_switch_name[-1]], loopler.current_command_params)
             looper_footswitch_assignments[foot_switch_name[-1]] = []
             ingen_wrapper.set_looper_footswitch(current_sub_graph.rstrip("/"), json.dumps(looper_footswitch_assignments))
             loopler.current_command_params = None
         else:
-            debug_print("args are differen in loopler foot switch", looper_footswitch_assignments[foot_switch_name[-1]], loopler.current_command_params)
             looper_footswitch_assignments[foot_switch_name[-1]] = [loopler.current_command_params]
             # show foot switch selection screen, choose if for current loop, all loops, momentary, latching, toggle?
             # exclusive or adds on

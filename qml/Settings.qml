@@ -85,15 +85,19 @@ Item {
                         value: midiChannel.value
                         up.onPressedChanged: {
                             if (!(up.pressed)){
-                                knobs.set_channel(Number(value));
+                                knobs.set_channel(value+1);
                             }
                         }
                         down.onPressedChanged: {
                             if (!(down.pressed)){
-                                knobs.set_channel(Number(value));
+                                knobs.set_channel(value-1);
                             }
                         }
+
+                        Component.onCompleted: value = midiChannel.value 
                     }
+
+
 
 					Switch {
 						text: "left to right"
@@ -255,18 +259,18 @@ Item {
                         font.pixelSize: baseFontSize
                         from: -80
                         to: 10
-                        value: inputLevel.value
 
                         up.onPressedChanged: {
                             if (!(up.pressed)){
-                                knobs.set_input_level(Number(value));
+                                knobs.set_input_level(Number(value)+1);
                             }
                         }
                         down.onPressedChanged: {
                             if (!(down.pressed)){
-                                knobs.set_input_level(Number(value));
+                                knobs.set_input_level(Number(value)-1);
                             }
                         }
+                        Component.onCompleted: value = inputLevel.value
                     }
 
                     // Button {
