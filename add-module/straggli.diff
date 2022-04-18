@@ -1,0 +1,37 @@
+commit 96302a204ca24bf25077bc8804d0ed25d3c53306
+Author: Ed Cashin <ed.cashin@acm.org>
+Date:   Sat Feb 19 22:38:38 2022 -0500
+
+    Add straggli LV2 info to module info
+
+diff --git a/module_info.py b/module_info.py
+index 6c7183a..030ac9e 100644
+--- a/module_info.py
++++ b/module_info.py
+@@ -79,6 +79,7 @@ effect_type_maps = {"beebo" : {'ad_env_level': 'http://drobilla.net/plugins/omin
+      'stereo_compress': 'http://gareus.org/oss/lv2/darc#stereo',
+      'stereo_phaser': 'http://jpcima.sdf1.org/lv2/stone-phaser-stereo',
+      'stereo_reverb': 'http://polyeffects.com/lv2/polyconvo#MonoToStereo',
++     'straggli': 'https://github.com/ecashin/straggli',
+      'sum': 'http://polyeffects.com/lv2/basic_modular#sum',
+      'tempo_ratio': 'http://polyeffects.com/lv2/basic_modular#tempo_ratio',
+      'thruzero_flange': 'http://drobilla.net/plugins/mda/ThruZero',
+@@ -1839,6 +1840,18 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
+                     'tags': {"effect", "dynamics", "stereo"},
+                     'outputs': {'out_l': ['Out L', 'AudioPort'],
+                                 'out_r': ['Out R', 'AudioPort']}},
++ 'straggli': {'category': 0,
++                    'controls': {'gain': ['Gain', 0.0, -90.0, 24.0],
++                                 'max_delay_ms': ['MaxDelayMs', 200.0, 1.0, 1999.0],
++                                 'max_abs_acc': ['MaxAbsAcc', 0.3, 0.0001, 1.0],
++                                 'max_abs_velo': ['MaxAbsVelo', 0.8, 0.0001, 50.0],
++                                 'wet_mix': ['WtMix', 90.0, 0.0, 100.0]},
++                    'description': 'stereo randomized delay lines',
++                    'inputs': {'input_left': ['InputLeft', 'AudioPort'],
++                               'input_right': ['InputRight', 'AudioPort']},
++                    'long_description': '',
++                    'outputs': {'output_left': ['OutputLeft', 'AudioPort'],
++                                'output_right': ['OutputRight', 'AudioPort']}},
+ 'quantizer': {'category': 2,
+                'controls': {'n1': ['A', 1, 0, 1, 'bool'],
+                             'n2': ['A#', 1, 0, 1, 'bool'],
