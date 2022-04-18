@@ -250,6 +250,14 @@ Rectangle {
             patchStack.push("StepSequencer.qml", {"effect": effect_id});
             patch_bay.current_help_text = "" // Constants.help[""];
         }
+        else if (effect_type == "note_sequencer"){
+            patchStack.push("NoteSequencer.qml", {"effect": effect_id, "effect_type":"note_sequencer"});
+            patch_bay.current_help_text = "" // Constants.help[""];
+        }
+        else if (effect_type == "note_sequencer_ext"){
+            patchStack.push("NoteSequencer.qml", {"effect": effect_id, "effect_type":"note_sequencer_ext"});
+            patch_bay.current_help_text = "" // Constants.help[""];
+        }
         else if (effect_type == "chaos_controller"){
             patchStack.push("Marbles.qml", {"effect_id": effect_id});
             patch_bay.current_help_text = "" // Constants.help[""];
@@ -261,6 +269,10 @@ Rectangle {
         else if (effect_type == "delay"){
             patchStack.push(editDelay);
             patch_bay.current_help_text = Constants.help["delay_detail"];
+        }
+        else if (effect_type == "bitcrushed_delay"){
+            patchStack.push(editBitcrushedDelay);
+            patch_bay.current_help_text = ""//Constants.help["delay_detail"];
         }
         else if (effect_type == "lfo"){
             patchStack.push(editLfo);
@@ -708,13 +720,16 @@ Rectangle {
 						spacing: 50
 						RadioButton {
 							id: timeRadio
-							checked: true
-							text: qsTr("Time (MS)")
+                            text: qsTr("Time (MS)")
                             font {
                                 // family: mainFont.name
                                 pixelSize: 24
                                 capitalization: Font.AllUppercase
                             }
+                            onCheckedChanged: {
+                                knobs.ui_knob_change(effect_id, "is_using_tempo", Number(!checked));
+                            }
+                            Component.onCompleted: checked = currentEffects[effect_id]["controls"]["is_using_tempo"].value < 0.5
 						}
 						RadioButton {
 							id: beatsRadio
@@ -724,6 +739,7 @@ Rectangle {
                                 pixelSize: 24
                                 capitalization: Font.AllUppercase
                             }
+                            Component.onCompleted: checked = currentEffects[effect_id]["controls"]["is_using_tempo"].value > 0.5
 						}
 					}
 
@@ -860,6 +876,208 @@ Rectangle {
         }
 
         Component {
+            id: editBitcrushedDelay
+            Item {
+				Component.onDestruction: {
+					// if we're not visable, turn off broadcast
+					// console.log("setting broadcast false in step");
+					knobs.set_broadcast(effect_id, false);
+				}
+				Component.onCompleted: {
+					// console.log("setting broadcast true in step");
+					knobs.set_broadcast(effect_id, true);
+				}
+                z: 3
+                height:540
+                width:1280
+				
+				ActionIcons {
+
+				}
+
+				Column {
+					visible: !Qt.inputMethod.visible
+					x: 150
+					y: 65
+					width: 565
+					spacing: 20
+
+					Repeater {
+						model: ['Amp_6', 'FeedbackSm_7',  'DelayT60_4']
+						DelayRow {
+							row_param: modelData
+							current_effect: effect_id
+							Material.foreground: Constants.rainbow[index]
+						}
+					}
+					Row { 
+						spacing: 50
+						RadioButton {
+							id: timeRadio
+							checked: true
+							text: qsTr("Time (MS)")
+                            font {
+                                // family: mainFont.name
+                                pixelSize: 24
+                                capitalization: Font.AllUppercase
+                            }
+                            onCheckedChanged: {
+                                knobs.ui_knob_change(effect_id, "is_using_tempo", Number(!checked));
+                            }
+                            Component.onCompleted: checked = currentEffects[effect_id]["controls"]["is_using_tempo"].value < 0.5
+						}
+						RadioButton {
+							id: beatsRadio
+							text: qsTr("Beats")
+                            font {
+                                // family: mainFont.name
+                                pixelSize: 24
+                                capitalization: Font.AllUppercase
+                            }
+                            Component.onCompleted: checked = currentEffects[effect_id]["controls"]["is_using_tempo"].value > 0.5
+						}
+					}
+
+					DelayRow {
+						visible: beatsRadio.checked
+						row_param: "BPM_1"
+						current_effect: effect_id
+						Material.foreground: Constants.rainbow[7]
+					}
+
+					DelayRow {
+						visible: timeRadio.checked
+						row_param: "Delay_2"
+						current_effect: effect_id
+						Material.foreground: Constants.rainbow[7]
+					}
+				}
+
+				Column {
+					x: 676
+					y: 65
+					width: 565
+					spacing: 20
+
+					Repeater {
+						model: ['Feedback_5', 'Warp_3']//, 'BPM_0', 'Delay_1',]
+						DelayRow {
+							visible: !Qt.inputMethod.visible
+							row_param: modelData
+							current_effect: effect_id
+							Material.foreground: Constants.rainbow[index+5]
+						}
+					}
+                    DelayRow {
+                        visible: !Qt.inputMethod.visible
+                        row_param: "NBITS_0"
+                        current_effect: effect_id
+                        Material.foreground: Constants.rainbow[8]
+                        v_type: "int"
+                    }
+
+                    ComboBox {
+						visible: beatsRadio.checked
+                        // visible: !Qt.inputMethod.visible
+						width: 500
+						height: 100
+                        id: note_subdivisions
+						textRole: "text"
+                        font {
+                            // family: mainFont.name
+                            pixelSize: 32
+                            capitalization: Font.AllUppercase
+                        }
+                        delegate: ItemDelegate {
+                            width: note_subdivisions.width
+                            contentItem: Text {
+                                text: modelData.text
+                                color: "white"
+                                font: note_subdivisions.font
+                                elide: Text.ElideRight
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                            highlighted: note_subdivisions.highlightedIndex === index
+                        }
+
+						model: [{text: "1/4", value: 1},
+						{text: "2/3", value: 8/3.0}, {text: "1/3", value: 4/3.0}, {text: "1/8 .", value: 0.75},
+						{text: "PHI", value: 0.618},
+					   	{text: "1/8", value: 0.5},  {text: "1/16", value: 0.25}]
+
+						Component.onCompleted: currentIndex = indexForValue(currentEffects[effect_id]["controls"]["Delay_2"].value % 1)
+                        onActivated: {
+							current_subdivision = model[currentIndex].value;
+                            knobs.ui_knob_change(effect_id, "Delay_2", current_subdivision);
+                        }
+
+						function indexForValue(value) {
+							for (var i = 0; i < model.length; ++i) {
+								if (model[i].value === value)
+								return i;
+							}
+							return -1;
+						}
+                    }
+
+                    Row {
+						visible: timeRadio.checked
+						spacing: 50
+                        Label {
+                            text: "MILLISECONDS"
+                            height: 60
+                            verticalAlignment: Text.AlignVCenter
+                            font {
+                                // pixelSize: fontSizeMedium
+                                family: mainFont.name
+                                pixelSize: 28
+                                capitalization: Font.AllUppercase
+                                letterSpacing: 0
+                            }
+                        }
+                        TextField {
+                            inputMethodHints: Qt.ImhDigitsOnly
+                            validator: IntValidator{bottom: 0; top: 32000;}
+                            width: 121
+                            height: 60
+                            text: (60.0 / currentEffects[effect_id]["controls"]["BPM_1"].value * currentEffects[effect_id]["controls"]["Delay_2"].value * 1000).toFixed(0) // + " ms"
+                            color: "white"
+                            font {
+                                // pixelSize: fontSizeMedium
+                                family: mainFont.name
+                                pixelSize: 28
+                                capitalization: Font.AllUppercase
+                                letterSpacing: 0
+                            }
+                            onTextEdited: {
+                                if (Number(text) > 0 && Number(text) < 32000){
+                                    knobs.ui_knob_change(effect_id, "Delay_2", text * currentEffects[effect_id]["controls"]["BPM_1"].value / ( 1000 * 60)) ;
+                                }
+                            }
+                        }
+                    }
+				}
+				InputPanel {
+					x: 150
+					y: 0
+					width: 1130
+					id: inputPanel
+					// parent:mainWindow.contentItem
+					// z: 1000002
+					// anchors.bottom:parent.bottom
+					// anchors.left: parent.left
+					// anchors.right: parent.right
+					height: 500
+
+					visible: Qt.inputMethod.visible
+				}
+                MoreButton {
+                    l_effect_type: effect_type
+                }
+            }
+        }
+
+        Component {
             id: editLfo
             Item {
 				Component.onDestruction: {
@@ -890,7 +1108,7 @@ Rectangle {
 						spacing: 20
 
 						Repeater {
-							model: ["tempo", "tempoMultiplier", "level", "phi0", "is_uni"]
+							model: ["tempo", "tempoMultiplier", "level", "is_uni"]
 							DelayRow {
 								row_param: modelData
 								current_effect: effect_id

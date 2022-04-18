@@ -16,6 +16,8 @@ os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
 import icons.icons
 # #, imagine_assets
 import resource_rc
+import module_info
+import properties
 
 #import loopler as loopler_lib
 
@@ -25,12 +27,12 @@ import module_browser_model
 
 current_source_port = None
 # current_effects = OrderedDict()
-current_effects = {}
-# current_effects["delay1"] = {"x": 20, "y": 30, "effect_type": "delay", "controls": {}, "highlight": False}
-# current_effects["delay2"] = {"x": 250, "y": 290, "effect_type": "delay", "controls": {}, "highlight": False}
 port_connections = {} # key is port, value is list of ports
 
 context = None
+
+def clamp(v, min_value, max_value):
+    return max(min(v, max_value), min_value)
 
 class PolyValue(QObject):
     # name, min, max, value
@@ -126,6 +128,73 @@ class PolyValue(QObject):
 
     rmax = Property(float, readRMax, setRMax, notify=rmax_changed)
 
+class PolyBool(QObject):
+    # name, min, max, value
+    def __init__(self, startval=False):
+        QObject.__init__(self)
+        self.valueval = startval
+
+    def readValue(self):
+        return self.valueval
+
+    def setValue(self,val):
+        self.valueval = val
+        self.value_changed.emit()
+
+    @Signal
+    def value_changed(self):
+        pass
+
+    value = Property(bool, readValue, setValue, notify=value_changed)
+
+class PolyStr(QObject):
+    # name, min, max, value
+    def __init__(self, startval=False):
+        QObject.__init__(self)
+        self.valueval = startval
+
+    def readValue(self):
+        return self.valueval
+
+    def setValue(self,val):
+        self.valueval = val
+        self.value_changed.emit()
+
+    @Signal
+    def value_changed(self):
+        pass
+
+    value = Property(str, readValue, setValue, notify=value_changed)
+
+class Knobs(QObject, metaclass=properties.PropertyMeta):
+    spotlight_entries = properties.Property(list)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.spotlight_entries = []
+
+    @Slot(str, str, 'double')
+    def ui_knob_change(self, effect_name, parameter, value):
+        # debug_print(x, y, z)
+        if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
+            current_effects[effect_name]["controls"][parameter].value = value
+            # clamping here to make it a bit more obvious
+            value = clamp(value, current_effects[effect_name]["controls"][parameter].rmin, current_effects[effect_name]["controls"][parameter].rmax)
+
+current_effects = {}
+# current_effects["delay1"] = {"x": 20, "y": 30, "effect_type": "delay", "controls": {}, "highlight": False}
+effect_prototypes = module_info.effect_prototypes_models_all
+effect_name = "note1"
+effect_type = "note_sequencer"
+broadcast_ports = {}
+if "broadcast_ports" in effect_prototypes[effect_type]:
+    broadcast_ports = {k : PolyValue(*v) for k,v in effect_prototypes[effect_type]["broadcast_ports"].items()}
+current_effects[effect_name] = {"x": 50, "y": 50, "effect_type": effect_type,
+        "controls": {k : PolyValue(*v) for k,v in effect_prototypes[effect_type]["controls"].items()},
+        "assigned_footswitch": PolyStr(""),
+        "broadcast_ports" : broadcast_ports,
+        "enabled": PolyBool(True)}
+
 if __name__ == "__main__":
 
     print("in Main")
@@ -135,7 +204,7 @@ if __name__ == "__main__":
     font = QFont("BarlowSemiCondensed", 20, QFont.DemiBold)
     app.setFont(font)
     # Instantiate the Python object.
-    # knobs = Knobs()
+    knobs = Knobs()
     module_browser_model_s = module_browser_model.ModuleBrowserModel({"modules": [], "presetes": []})
     #loopler = loopler_lib.Loopler()
     #loopler.start_loopler()
@@ -169,7 +238,8 @@ if __name__ == "__main__":
     context.setContextProperty("module_browser_model", module_browser_model_s)
     context.setContextProperty("accent_color", accent_color)
     context.setContextProperty("currentPedalModel", current_pedal_model)
-    # context.setContextProperty("knobs", knobs)
+    context.setContextProperty("currentEffects", current_effects) 
+    context.setContextProperty("knobs", knobs)
     # context.setContextProperty("available_effects", available_effects)
     # context.setContextProperty("selectedEffectPorts", selected_effect_ports)
     # context.setContextProperty("portConnections", port_connections)

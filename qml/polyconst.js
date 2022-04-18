@@ -15,6 +15,7 @@ var poly_dark_grey = "#282828";
 var poly_very_dark_grey = "#151515";
 var poly_grey = "#323232";
 var left_col = 130; 
+var note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C"]
 var port_color_map = {"AudioPort": audio_color, "CVPort": cv_color, 
     "ControlPort": control_color, "AtomPort": midi_color};
 var port_display_name = {"AudioPort": "AUDIO", "CVPort": "CV", 

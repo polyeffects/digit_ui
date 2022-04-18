@@ -119,9 +119,9 @@ ApplicationWindow {
         //     stepSize: 10
         // }
     // }
-        // EQWidget {
+        NoteSequencer {
         
-        // }
+        }
         // Loopler {
         
         // }
@@ -131,9 +131,9 @@ ApplicationWindow {
         // EuclideanSequencer {
         
         // }
-        More {
+        // More {
         
-        }
+        // }
     }
     // PresetSave {
     // }
