@@ -258,6 +258,13 @@ Item {
                     Material.foreground: Constants.poly_green
                 }
 
+                DelayRow {
+                    row_param: "external_param"
+                    current_effect: effect_id
+                    Material.foreground: Constants.poly_blue
+                    v_type: "bool"
+                }
+
             }
 
             Column {
