@@ -345,6 +345,10 @@ Rectangle {
             patchStack.push(editQuantizer);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
         }
+        else if (effect_type == "matrix_mixer"){
+            patchStack.push(editMixer);
+            patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
+        }
         else if (effect_type == "multi_resonator"){
             patchStack.push("Rings.qml", {"effect_id": effect_id});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
@@ -2134,6 +2138,22 @@ Rectangle {
 							capitalization: Font.AllUppercase
 						}
 					}
+				}
+                MoreButton {
+                    l_effect_type: effect_type
+                }
+			}
+        }
+
+        Component {
+            id: editMixer
+			Item {
+				z: 3
+				x: 0
+				height:540
+				width:1280
+				MultiValueButtonsSlider {
+					current_effect: effect_id
 				}
                 MoreButton {
                     l_effect_type: effect_type
