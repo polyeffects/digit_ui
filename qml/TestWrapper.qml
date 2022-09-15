@@ -119,9 +119,13 @@ ApplicationWindow {
         //     stepSize: 10
         // }
     // }
-        NoteSequencer {
+        // NoteSequencer {
         
+        // }
+        Tuner {
+
         }
+        
         // Loopler {
         
         // }

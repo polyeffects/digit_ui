@@ -266,6 +266,10 @@ Rectangle {
             patchStack.push("Tides.qml", {"effect_id": effect_id});
             patch_bay.current_help_text = "" // Constants.help[""];
         }
+        else if (effect_type == "tuner"){
+            patchStack.push("Tuner.qml", {"effect": effect_id});
+            patch_bay.current_help_text = "" // Constants.help[""];
+        }
         else if (effect_type == "delay"){
             patchStack.push(editDelay);
             patch_bay.current_help_text = Constants.help["delay_detail"];
