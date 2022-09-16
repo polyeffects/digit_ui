@@ -310,7 +310,7 @@ Rectangle {
             patchStack.push(editGranular);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}
-		else if (['pitch_verb', 'looping_delay', 'resonestor', 'spectral_twist', 'time_stretch', 'beat_repeat'].indexOf(effect_type) >= 0){
+		else if (['pitch_verb', 'granular_looping', 'resonestor', 'spectral_twist', 'time_stretch', 'beat_repeat'].indexOf(effect_type) >= 0){
             patchStack.push(editClouds);
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}

@@ -49,7 +49,7 @@ Item {
             spacing: 15
             width: 1258
             Repeater {
-                model: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w']
+                model: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'v', 'w']
                 PolyButton {
                     width: 42
                     height: 40
