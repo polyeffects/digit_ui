@@ -564,6 +564,8 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=Tru
         # if effect_type == "midi_clock_in":
         #     # set broadcast on port
         #     ingen_wrapper.set_broadcast(effect_name+"/bpm", True)
+        if effect_type == "tuner": # tuner starts bypassed
+            knobs.set_bypass(effect_name, False)
     else:
         debug_print("### backend tried to add an unknown effect!")
 
