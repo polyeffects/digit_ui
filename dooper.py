@@ -106,7 +106,8 @@ looper_parameters = (
     'select_prev_loop',  # any changes
     'select_all_loops',   # any changes
     'selected_loop_num',  # -1 = all, 0->N selects loop instances (first loop is 0, etc)
-    'output_midi_clock'  # 0 no 1 yes
+    'output_midi_clock' , # 0 no 1 yes
+    'smart_eighths'  # 0 no 1 yes
     )
 
 # Map sl's integer codes to loop states
@@ -165,7 +166,7 @@ class LooperThread:
 
 
     def __setattr__(self, name, val):
-        if name in ['sync_source', 'quantize', 'selected_loop_num', 'output_midi_clock']:
+        if name in ['sync_source', 'quantize', 'selected_loop_num', 'output_midi_clock', 'smart_eighths']:
             super().__setattr__(name, val)
 
         elif name in looper_parameters:
@@ -362,6 +363,9 @@ class LooperThread:
     def enable_midi_clock(self):
         self.set('output_midi_clock', 1.0)
 
+    def disable_smart_eighths(self):
+        self.set('smart_eighths', 0.0)
+
     @property
     def quantize(self):
         return ('off', 'cycle', '8th', 'loop')[int(self.__dict__['quantize'])]
@@ -412,10 +416,7 @@ class LooperThread:
     @property
     def output_midi_clock(self):
         s = self.__dict__['output_midi_clock']
-        # if s > 0:
         return int(s)
-        # else:
-        #     return ('none', 'internal', 'midi', 'jack')[i]
 
     @output_midi_clock.setter
     def output_midi_clock(self, val):
@@ -424,6 +425,19 @@ class LooperThread:
         # else:
         s = val
         self.set('output_midi_clock', s)
+
+    @property
+    def smart_eighths(self):
+        s = self.__dict__['smart_eighths']
+        return int(s)
+
+    @output_midi_clock.setter
+    def smart_eighths(self, val):
+        # if isinstance(val, str):
+        #     s = - ('none', 'jack', 'midi', 'internal').index(val)
+        # else:
+        s = val
+        self.set('smart_eighths', s)
 
     def cancel_midi_learn(self):
          # /cancel_midi_learn    s:returl  s:retpath

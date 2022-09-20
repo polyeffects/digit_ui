@@ -117,6 +117,7 @@ class Loopler(QObject, metaclass=PropertyMeta):
     eighth_per_cycle = Property(int)
     sync_source = Property(int)
     output_midi_clock = Property(float)
+    smart_eighths = Property(float)
     relative_sync = Property(float)   # per loop 0 -> ...
     midi_learn_waiting = Property(bool)   # per loop 0 -> ...
     # mute_quantized = Property(int) # per loop
@@ -129,6 +130,7 @@ class Loopler(QObject, metaclass=PropertyMeta):
         super().__init__()
         self.selected_loop_num = 0
         self.output_midi_clock = 0
+        self.smart_eighths = 0
         self.midi_learn_waiting = False
         self.loopAddedSignal.connect(self.add_loop)
         self.loopRemovedSignal.connect(self.remove_loop)
@@ -269,9 +271,14 @@ class Loopler(QObject, metaclass=PropertyMeta):
             type(self).__dict__[control].setter(self, value)
 
         if self.output_midi_clock < 1:
-            print("setting output_midi_clock",  control, value)
+            # print("setting output_midi_clock",  control, value)
             self.output_midi_clock = 1
             l_thread.enable_midi_clock()
+
+        if self.smart_eighths > 0:
+            # print("setting output_midi_clock",  control, value)
+            self.smart_eighths = 1
+            l_thread.disable_smart_eighths()
 
     def loop_added_responder(self, loop_num):
         # QMetaObject.invokeMethod(self, b"add_loop", Qt.QueuedConnection, loop_num)

@@ -7,7 +7,7 @@ var parameter_map = {'input_gain': 'in gain', 'feedback': 'feedback', 'rec_thres
 };
 var rate_list = [0.5, 1, 2];
 var rate_bind_list = ["rate_05", "rate_1", "rate_2"];
-var param_bounds = {"rate": [0.25, 4.0], "stretch_ratio": [0.5, 4.0], "pitch_shift": [-12.0, 12.0], "fade_samples": [0, 1024]}
+var param_bounds = {"rate": [0.25, 4.0], "stretch_ratio": [0.5, 4.0], "pitch_shift": [-12.0, 12.0], "fade_samples": [0, 2048]}
 
 var sync_to_map = [-3, -2, 0, 1];
 var sync_to_index = {"-3":0, "-2":1, "0": 2, "1": 3};

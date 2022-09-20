@@ -912,12 +912,13 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
                 s_effect, s_port = source_port.rsplit("/", 1)
                 if s_effect == effect_id:
                     for e, p in port_connections[source_port]:
-                        knobs.disconnect_port(source_port + "---" + "/".join([e, p]) )
+                        knobs.disconnect_port(source_port + "---" + "/".join([e, p]), False )
                 else:
                     for e, p in port_connections[source_port]:
                         if e == effect_id:
-                            knobs.disconnect_port("/".join([e, p]) + "---" + source_port )
+                            knobs.disconnect_port("/".join([e, p]) + "---" + source_port, False)
             from_backend_remove_effect(effect_id)
+            # ingen_wrapper.remove_plugin(effect_id)
         else:
             ingen_wrapper.remove_plugin(effect_id)
 
@@ -1028,10 +1029,24 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
 
             # check if loopler in use
             if loopler_in_use():
+                print("looper in use", looper_in_use())
                 loopler_file = filename + "/loopler.slsess"
+                while not (os.path.exists(filename)):
+                    time.sleep(0.1)
+
                 loopler.save_session(loopler_file)
                 loopler_midi_file = filename + "/loopler.slb"
                 loopler.save_midi_bindings(loopler_midi_file)
+            else:
+                print("looper not in use")
+                loopler_file = filename + "/loopler.slsess"
+                loopler_midi_file = filename + "/loopler.slb"
+                # we detect loopler presence by the file, so delete it if it is preset and not enabled
+                if os.path.exists(loopler_file):
+                    os.remove(loopler_file)
+                if os.path.exists(loopler_midi_file):
+                    os.remove(loopler_midi_file)
+
 
             # flush to file
             write_preset_meta_cache()
@@ -1176,7 +1191,7 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
             return
         command = "amixer -- sset ADC1 "+str(level)+"db; amixer -- sset ADC2 "+str(level)+"db; amixer -- sset ADC3 "+str(level)+"db"
         command_status[0].value = subprocess.call(command, shell=True)
-        if hardware_info["revision"] <= 10 and pedal_state["model"] != "hector":
+        if hardware_info["revision"] < 10 and pedal_state["model"] != "hector":
             command = "amixer -- sset 'ADC1 Invert' off,on; amixer -- sset 'ADC2 Invert' on,on"
         elif pedal_state["model"] == "hector":
             command = ("amixer -- sset 'ADC1 Invert' on,on; amixer -- sset 'ADC2 Invert' on,on; amixer -- sset 'ADC3 Invert' on,on; "

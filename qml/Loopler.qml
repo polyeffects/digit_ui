@@ -673,7 +673,7 @@ Item {
                                     width: 285
                                     height: 100
                                     font.pixelSize: 24
-                                    items: ["internal", "midi", "none", "loop 1"]
+                                    items: ["internal", "midi", "none", "loop 0"]
                                     Material.foreground: Constants.loopler_purple
                                     value: LoopMap.sync_to_index[loopler.sync_source.toString()]
                                     onValueModified: {
