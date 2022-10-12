@@ -24,8 +24,7 @@ Item {
                     capitalization: Font.AllUppercase
                     family: mainFont.name
                 }
-                text: ModuleInfo.effectPrototypes[effect_type]["description"] + "\n" + " Hold the three dots and press a slider to MIDI bind."
-// effectPrototypes[effect_type]["long_description"] 
+				text: ModuleInfo.effectPrototypes[effect_type]["description"] + "\n"  + "manual_url" in ModuleInfo.effectPrototypes[effect_type] ? "" : ModuleInfo.effectPrototypes[effect_type]["long_description"] + " Hold the three dots and press a slider to MIDI bind." 
             }
 
             Row {

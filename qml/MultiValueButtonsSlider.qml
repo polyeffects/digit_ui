@@ -61,7 +61,7 @@ Item {
                     background: Rectangle {
                         width: parent.width
                         height: parent.height
-                        color: checked ? Constants.rainbow[index] : Constants.poly_dark_grey  
+                        color: checked ? Constants.short_rainbow[index+1] : Constants.poly_dark_grey  
                         border.width: 0
                         radius: 20
                     }
@@ -86,7 +86,7 @@ Item {
                 to: is_log ? 20000 : currentEffects[current_effect]["controls"][slider_param].rmax
                 title: currentEffects[current_effect]["controls"][slider_param].name
                 orientation: Qt.Vertical
-                Material.foreground: Constants.rainbow[selected_parameter]
+                Material.foreground: Constants.short_rainbow[selected_parameter]
                 value: control.force_update, currentEffects[current_effect]["controls"][slider_param].value
 
                 function logslider(position) {

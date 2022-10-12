@@ -162,15 +162,15 @@ def process_input():
                 # send switch press
                 prev_t = None
                 was_multi = False
-                print("got button press")
-                if e_code == 30 and e_value == switch_down[e_code]: # tap down
-                    foot_callback("tap_down", tap_down_timestamp)
-                elif e_code == 48 and e_value == switch_down[e_code]: # tap down
-                    foot_callback("step_down", step_down_timestamp)
-                elif e_code == 46 and e_value == switch_down[e_code]: # tap down
-                    foot_callback("bypass_down", bypass_down_timestamp)
-            if prev_t:
-                print("prev_t", prev_t, time.perf_counter( )-prev_t)
+                # print("got button press")
+                # if e_code == 30 and e_value == switch_down[e_code]: # tap down
+                #     foot_callback("tap_down", tap_down_timestamp)
+                # elif e_code == 48 and e_value == switch_down[e_code]: # tap down
+                #     foot_callback("step_down", step_down_timestamp)
+                # elif e_code == 46 and e_value == switch_down[e_code]: # tap down
+                #     foot_callback("bypass_down", bypass_down_timestamp)
+            # if prev_t:
+                # print("prev_t", prev_t, time.perf_counter( )-prev_t)
 
             e = input_queue.get(block=False)
             if e.code in (30, 48, 46) and initial_press[e.code] == True :
@@ -178,7 +178,7 @@ def process_input():
                 switch_down[e.code] = e.value
                 switch_up[e.code] = 1 - e.value
                 initial_press[e.code] = False
-                print("setting initial button state")
+                # print("setting initial button state")
 
             if prev_t:
                 # if another press arrives before send, send it and cancel previous 
@@ -226,7 +226,7 @@ def process_input():
                 prev_t = None
                 if was_multi and multi_combo == "tap_step":
                     foot_callback("tap_step_up", step_down_timestamp)
-                if was_multi and multi_combo == "step_bypass":
+                elif was_multi and multi_combo == "step_bypass":
                     foot_callback("step_bypass_up", step_down_timestamp)
                 else:
                     if prev_t:

@@ -65,6 +65,7 @@ import "module_info.js" as ModuleInfo
             patchBayNotify.add_module.connect(reAddModule);
             patchBayNotify.remove_module.connect(reRemoveModule);
             patchBayNotify.loading_preset.connect(reLoadingPreset);
+            patchBayNotify.loading_preset_done.connect(reLoadingPresetDone);
             if (currentPedalModel.name != "beebo"){
                 mycanvas.loadImage("../icons/digit/hector_background.png")
             }
@@ -92,6 +93,16 @@ import "module_info.js" as ModuleInfo
         signal reAddModule(string l_effect_id)
         signal reRemoveModule(string l_effect_id)
         signal reLoadingPreset(bool is_loading_preset)
+        signal reLoadingPresetDone(string current_sub_graph)
+
+
+        Timer {
+            id: tuner_timer
+            interval: 20; running: false; repeat: false
+            onTriggered: {
+                selected_effect.expand_clicked();
+            } 
+        }
 
         Connections { 
             target: patch_bay
@@ -99,8 +110,6 @@ import "module_info.js" as ModuleInfo
             onReAddModule: { 
                 var component;
 
-                // console.log("add module signal ", l_effect_id);
-                
                 if (currentPedalModel.name == "beebo")
                 {
                     effect_map[l_effect_id] = patchWrap.createObject(patch_bay, { effect_id: l_effect_id,
@@ -129,6 +138,7 @@ import "module_info.js" as ModuleInfo
                 if (!selected_effect){
                     selected_effect = effect_map[l_effect_id] ;
                 }
+
             }
 
             onReRemoveModule: {
@@ -148,8 +158,20 @@ import "module_info.js" as ModuleInfo
                 // return to main screen 
                 mainStack.pop(null); 
                 // console.log("done loading preset signal", is_loading_preset);
-
             }
+
+            onReLoadingPresetDone: {
+                // console.log("loading preset done signal", current_sub_graph);
+                // if we loaded tuner preset, maximise the tuner screen
+                if (currentPreset.name =='Tuner'){ // && rsplit(l_effect_id, "/", 1)[1] == "tuner1"){
+
+                    // console.log("done loading tuner module in tuner", Object.keys(effect_map));
+                    selected_effect = effect_map[current_sub_graph+"tuner1"];
+                    patch_bay.currentMode = PatchBay.Sliders;
+                    tuner_timer.restart();
+                }
+            }
+
         }
 
 
@@ -533,7 +555,7 @@ import "module_info.js" as ModuleInfo
                                                         matched_id = i;
                                                     }
                                                 }
-                                                console.log("patchbay not matched, hector", matched);
+                                                // console.log("patchbay not matched, hector", matched);
 
                                             }
                                         } else{ 
@@ -544,7 +566,7 @@ import "module_info.js" as ModuleInfo
                                                     matched_id = i;
                                                 }
                                             }
-                                            console.log("patchbay not hector");
+                                            // console.log("patchbay not hector");
                                         }
                                         if (matched > 1 )
                                         {

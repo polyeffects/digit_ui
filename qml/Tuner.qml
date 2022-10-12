@@ -33,12 +33,12 @@ import "../qml/polyconst.js" as Constants
 		Component.onDestruction: {
 			// if we're not visable, turn off broadcast
 			// console.log("setting broadcast false in step");
-			knobs.set_bypass(effect, false);
+			knobs.ui_knob_change(effect, "enabled", 0);
 			knobs.set_broadcast(effect, false);
 		}
 		Component.onCompleted: {
 			// console.log("setting broadcast true in step");
-			knobs.set_bypass(effect, true);
+			knobs.ui_knob_change(effect, "enabled", 1);
 			knobs.set_broadcast(effect, true);
 		}
 

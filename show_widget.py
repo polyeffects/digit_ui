@@ -7,6 +7,7 @@ from sys import exit
 from collections import OrderedDict
 from enum import Enum, IntEnum
 import urllib.parse
+from pathlib import Path
 # import random
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Signal, QTimer, QThreadPool, QRunnable, qWarning, qCritical, qDebug
@@ -239,6 +240,7 @@ class PatchBayNotify(QObject):
     add_module = Signal(str)
     remove_module = Signal(str)
     loading_preset = Signal(bool)
+    loading_preset_done = Signal(str)
 
 
 # class PolyEncoder(QObject):
@@ -454,8 +456,12 @@ def load_pedal_state():
                 pedal_state["screen_flipped"] = False
             if "l_to_r" not in pedal_state:
                 pedal_state["l_to_r"] = False
+            if "d_is_tuner" not in pedal_state:
+                pedal_state["d_is_tuner"] = True
     except:
-        pedal_state = {"input_level": 0, "midi_channel": 1, "author": "poly player", "model": "beebo", "thru": True, "invert_enc": False, "screen_flipped": False, "l_to_r": False}
+        pedal_state = {"input_level": 0, "midi_channel": 1, "author": "poly player",
+                "model": "beebo", "thru": True, "invert_enc": False, "screen_flipped": False, "l_to_r": False,
+                "d_is_tuner": True}
 
 
 selected_source_effect_ports = QStringListModel()
@@ -564,8 +570,8 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=Tru
         # if effect_type == "midi_clock_in":
         #     # set broadcast on port
         #     ingen_wrapper.set_broadcast(effect_name+"/bpm", True)
-        if effect_type == "tuner": # tuner starts bypassed
-            knobs.set_bypass(effect_name, False)
+        # if effect_type == "tuner": # tuner starts bypassed
+        #     knobs.set_bypass(effect_name, False)
     else:
         debug_print("### backend tried to add an unknown effect!")
 
@@ -977,6 +983,7 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
         else:
             knobs.ui_load_preset_by_name("file:///mnt/presets/beebo/Empty.ingen")
 
+
     @Slot(str)
     def ui_load_preset_by_name(self, preset_file):
         if is_loading.value == True:
@@ -988,6 +995,8 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
         load_preset(preset_file+"/main.ttl")
         current_preset.name = preset_file.strip("/").split("/")[-1][:-6]
         global current_preset_filename
+        global previous_preset_filename
+        previous_preset_filename = current_preset_filename
         current_preset_filename = preset_file[7:]
         update_counter.value+=1
 
@@ -1001,6 +1010,8 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
         load_preset(preset_file+"/main.ttl")
         current_preset.name = preset_file.strip("/").split("/")[-1][:-6]
         global current_preset_filename
+        global previous_preset_filename
+        previous_preset_filename = current_preset_filename
         current_preset_filename = preset_file[7:]
         update_counter.value+=1
 
@@ -1020,6 +1031,8 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
         if len(clean_filename) > 0:
             filename = "/mnt/presets/beebo/"+clean_filename+".ingen"
             global current_preset_filename
+            global previous_preset_filename
+            previous_preset_filename = current_preset_filename
             current_preset_filename = filename
             if filename in preset_meta_data:
                 preset_meta_data[filename]["author"] = pedal_state["author"]
@@ -1029,16 +1042,14 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
 
             # check if loopler in use
             if loopler_in_use():
-                print("looper in use", looper_in_use())
+                # print("looper in use", looper_in_use())
                 loopler_file = filename + "/loopler.slsess"
-                while not (os.path.exists(filename)):
-                    time.sleep(0.1)
-
+                Path(filename).mkdir(parents=True, exist_ok=True)
                 loopler.save_session(loopler_file)
                 loopler_midi_file = filename + "/loopler.slb"
                 loopler.save_midi_bindings(loopler_midi_file)
             else:
-                print("looper not in use")
+                # print("looper not in use")
                 loopler_file = filename + "/loopler.slsess"
                 loopler_midi_file = filename + "/loopler.slb"
                 # we detect loopler presence by the file, so delete it if it is preset and not enabled
@@ -1223,6 +1234,12 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
         pedal_state["l_to_r"] = l_to_r
         context.setContextProperty("pedalState", pedal_state)
         is_l_to_r.value = l_to_r
+        write_pedal_state()
+
+    @Slot(bool)
+    def set_d_is_tuner(self, d_is_tuner):
+        pedal_state["d_is_tuner"] = d_is_tuner
+        context.setContextProperty("pedalState", pedal_state)
         write_pedal_state()
 
     @Slot(bool)
@@ -1608,7 +1625,7 @@ def looper_footswitch_action(foot_switch_name):
 
 def send_to_footswitch_blocks(timestamp, switch_name, value=0):
     # send to all foot switch blocks
-    # qDebug("sending to switch_name "+str(switch_name) + "value" + str(value))
+    # print("sending to switch_name "+str(switch_name) + "value" + str(value))
     if "tap_step" in switch_name:
         foot_switch_name = "foot_switch_d"
     elif "step_bypass" in switch_name:
@@ -1682,7 +1699,10 @@ def send_to_footswitch_blocks(timestamp, switch_name, value=0):
         if foot_switch_name == "foot_switch_c":
             handle_bypass()
         elif foot_switch_name == "foot_switch_d":
-            previous_preset()
+            if pedal_state["d_is_tuner"] == True:
+                toggle_tuner()
+            else:
+                previous_preset()
         elif foot_switch_name == "foot_switch_e":
             next_preset()
             # TODO add next / previous here
@@ -1697,6 +1717,19 @@ def next_preset():
 
 def previous_preset():
     jump_to_preset(True, -1)
+
+def toggle_tuner():
+
+    if is_loading.value == True:
+        return
+    preset_load_counter.value = preset_load_counter.value + 1
+
+    if current_preset_filename == "/mnt/presets/beebo/Tuner.ingen":
+        # if we've got a previous_preset, jump to it
+        if previous_preset_filename != "":
+            knobs.ui_load_preset_by_name("file://"+previous_preset_filename)
+    else:
+        knobs.ui_load_preset_by_name("file:///mnt/presets/beebo/Tuner.ingen")
 
 def handle_foot_change(switch_name, timestamp):
     # debug_print(switch_name, timestamp)
@@ -1833,6 +1866,7 @@ def process_ui_messages():
                             ingen_wrapper.add_input(current_sub_graph+"in_"+str(i), x=1192, y=(80*i))
                         for i in range(5,9):
                             ingen_wrapper.add_output(current_sub_graph+"out_"+str(i), x=-20, y=(80 * i))
+                    patch_bay_notify.loading_preset_done.emit(current_sub_graph)
 
             elif m[0] == "dsp_load":
                 max_load, mean_load, min_load = m[1:]
@@ -2046,6 +2080,7 @@ if __name__ == "__main__":
     current_preset = PolyValue("Default Preset", 0, 0, 127)
     preset_load_counter = PolyValue("", 0, 0, 500000)
     current_preset_filename = ""
+    previous_preset_filename = ""
     update_counter = PolyValue("", 0, 0, 500000)
     command_status = [PolyValue("", -1, -10, 100000), PolyValue("", -1, -10, 100000)]
     delay_num_bars = PolyValue("Num bars", 1, 1, 16)

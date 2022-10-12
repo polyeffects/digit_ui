@@ -39,7 +39,7 @@ Item {
                     GlowingLabel {
 						width: 400
                         // color: "#ffffff"
-                        text: currentPedalModel.name+" FIRMWARE 3.20"
+                        text: currentPedalModel.name+" FIRMWARE 325"
                         color: accent_color.name
 						font {
 							pixelSize: 35
@@ -148,6 +148,22 @@ Item {
                             onClicked: knobs.reset_preset_list()
                         }
                     }
+
+					Switch {
+						text: "D is tuner"
+						width: 300
+						checked: Boolean(pedalState["d_is_tuner"])
+						onToggled: {
+							knobs.set_d_is_tuner(!pedalState["d_is_tuner"]);
+						}
+						font {
+							pixelSize: 24
+							capitalization: Font.AllUppercase
+							family: mainFont.name
+						}
+						Material.foreground: Constants.rainbow[8]
+
+					}
 
 
                     // Switch {
