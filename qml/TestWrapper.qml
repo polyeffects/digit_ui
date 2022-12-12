@@ -122,9 +122,13 @@ ApplicationWindow {
         // NoteSequencer {
         
         // }
-        Tuner {
+        // Tuner {
 
-        }
+        // }
+
+		Strum {
+		
+		}
         
         // Loopler {
         

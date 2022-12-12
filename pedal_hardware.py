@@ -133,7 +133,7 @@ def set_master_time_sig():
 initial_press = {30: True, 48: True, 46: True}
 switch_down = {30: 1, 48: 1, 46: 1}
 switch_up = {30: 0, 48: 0, 46: 0}
-same_time_delay = 0.015 # 5 ms
+same_time_delay = 0.045 # 30 ms
 
 prev_t = None
 e_code = 0
@@ -163,12 +163,12 @@ def process_input():
                 prev_t = None
                 was_multi = False
                 # print("got button press")
-                # if e_code == 30 and e_value == switch_down[e_code]: # tap down
-                #     foot_callback("tap_down", tap_down_timestamp)
-                # elif e_code == 48 and e_value == switch_down[e_code]: # tap down
-                #     foot_callback("step_down", step_down_timestamp)
-                # elif e_code == 46 and e_value == switch_down[e_code]: # tap down
-                #     foot_callback("bypass_down", bypass_down_timestamp)
+                if e_code == 30 and e_value == switch_down[e_code]: # tap down
+                    foot_callback("tap_down", tap_down_timestamp)
+                elif e_code == 48 and e_value == switch_down[e_code]: # tap down
+                    foot_callback("step_down", step_down_timestamp)
+                elif e_code == 46 and e_value == switch_down[e_code]: # tap down
+                    foot_callback("bypass_down", bypass_down_timestamp)
             # if prev_t:
                 # print("prev_t", prev_t, time.perf_counter( )-prev_t)
 
