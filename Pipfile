@@ -10,6 +10,7 @@ pyside2 = "*"
 
 [dev-packages]
 meson = "*"
+ninja = "*"
 
 [requires]
 python_version = "3.7"
