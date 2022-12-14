@@ -9,6 +9,7 @@ rdfdict = "*"
 pyside2 = "*"
 
 [dev-packages]
+meson = "*"
 
 [requires]
 python_version = "3.7"
