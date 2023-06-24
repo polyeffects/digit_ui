@@ -23,6 +23,7 @@ import properties
 
 EXIT_PROCESS = [False]
 import module_browser_model
+import amp_browser_model
 
 
 current_source_port = None
@@ -184,8 +185,8 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
 current_effects = {}
 # current_effects["delay1"] = {"x": 20, "y": 30, "effect_type": "delay", "controls": {}, "highlight": False}
 effect_prototypes = module_info.effect_prototypes_models_all
-effect_name = "note1"
-effect_type = "note_sequencer"
+effect_name = "strum1"
+effect_type = "strum"
 broadcast_ports = {}
 if "broadcast_ports" in effect_prototypes[effect_type]:
     broadcast_ports = {k : PolyValue(*v) for k,v in effect_prototypes[effect_type]["broadcast_ports"].items()}
@@ -206,6 +207,7 @@ if __name__ == "__main__":
     # Instantiate the Python object.
     knobs = Knobs()
     module_browser_model_s = module_browser_model.ModuleBrowserModel({"modules": [], "presetes": []})
+    amp_browser_model_s = amp_browser_model.AmpBrowserModel({"nam": [], "amp": []})
     #loopler = loopler_lib.Loopler()
     #loopler.start_loopler()
 
@@ -236,6 +238,7 @@ if __name__ == "__main__":
     current_pedal_model = PolyValue("beebo", 0, -1, 1)
     # context.setContextProperty("loopler", loopler)
     context.setContextProperty("module_browser_model", module_browser_model_s)
+    context.setContextProperty("amp_browser_model", amp_browser_model_s)
     context.setContextProperty("accent_color", accent_color)
     context.setContextProperty("currentPedalModel", current_pedal_model)
     context.setContextProperty("currentEffects", current_effects) 

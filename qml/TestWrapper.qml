@@ -126,9 +126,17 @@ ApplicationWindow {
 
         // }
 
-		Strum {
+		// Strum {
 		
-		}
+		// }
+        //
+        StackView {
+            id: patchStack
+            initialItem: 
+            AmpBrowser {
+
+            }
+        }
         
         // Loopler {
         

@@ -267,6 +267,29 @@ def add_loop_midi_out(port_id, x, y):
     lv2:name "loop_midi_out" ;
     a lv2:InputPort ; a atom:AtomPort""" % (x, y)))
 
+def set_json(effect_id, file_name):
+    effect_id = effect_id
+    file_name = urllib.parse.quote(file_name[len("file://"):])
+    print("setting json file", effect_id, file_name)
+    body = """[
+         a patch:Set ;
+         patch:property <http://aidadsp.cc/plugins/aidadsp-bundle/rt-neural-generic#json>;
+         patch:value <file://"""+ file_name + "> ]"
+    q.put((ingen.set, effect_id+"/CONTROL", "http://drobilla.net/ns/ingen#activity", body))
+    q.put((ingen.set, effect_id, "http://polyeffects.com/lv2/polyconvo#ir", "<"+file_name+">")) # for UI persist
+
+def set_json_nam(effect_id, file_name):
+    effect_id = effect_id
+    file_name = urllib.parse.quote(file_name[len("file://"):])
+    print("setting json file", effect_id, file_name)
+    body = """[
+         a patch:Set ;
+         patch:property <http://github.com/mikeoliphant/neural-amp-modeler-lv2#model>;
+         patch:value <file://"""+ file_name + "> ]"
+    q.put((ingen.set, effect_id+"/control", "http://drobilla.net/ns/ingen#activity", body))
+    q.put((ingen.set, effect_id, "http://polyeffects.com/lv2/polyconvo#ir", "<"+file_name+">")) # for UI persist
+
+
 def set_file(effect_id, file_name, is_cab):
     effect_id = effect_id
     file_name = urllib.parse.quote(file_name[len("file://"):])

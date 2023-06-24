@@ -975,6 +975,15 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
         current_effects[effect_id]["controls"]["ir"].name = ir_file
         ingen_wrapper.set_file(effect_id, ir_file, is_cab)
 
+    @Slot(str, str)
+    def update_json(self, effect_id, ir_file):
+        effect_type = current_effects[effect_id]["effect_type"]
+        # current_effects[effect_id]["controls"]["ir"].name = ir_file
+        if effect_type == "amp_rtneural":
+            ingen_wrapper.set_json(effect_id, ir_file)
+        else:
+            ingen_wrapper.set_json_nam(effect_id, ir_file)
+
     @Slot()
     def ui_load_empty_preset(self, force=False):
         if force:
@@ -1906,6 +1915,8 @@ def process_ui_messages():
                                 knobs.update_ir(effect_name, urllib.parse.unquote(ir_file))
                             elif effect_type in ["mono_cab", "stereo_cab", "quad_ir_cab"]:
                                 knobs.update_ir(effect_name, urllib.parse.unquote(ir_file))
+                            elif effect_type in ["amp_rtneural", "amp_nam"]:
+                                knobs.update_json(effect_name, urllib.parse.unquote(ir_file))
                                 # debug_print("setting cab file", urllib.parse.unquote(ir_file))
                         # qDebug("setting knob file " + ir_file)
                 except ValueError:

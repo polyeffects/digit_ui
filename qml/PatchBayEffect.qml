@@ -334,6 +334,30 @@ Rectangle {
                 })
             });
         }
+        else if (effect_type == "amp_rtneural")
+        {
+            patch_bay.current_help_text = Constants.help["reverb_detail"];
+            patchStack.push("ReverbBrowser.qml", {"effect": effect_id,  "effect_type": effect_type,
+            "top_folder": "file:///audio/amp_json",
+            "after_file_selected": (function(name) { 
+                // console.log("got new reveb file");
+                // console.log("file is", name.toString());
+                knobs.update_json(effect_id, name.toString());
+                })
+            });
+        }
+        else if (effect_type == "amp_nam")
+        {
+            patch_bay.current_help_text = Constants.help["reverb_detail"];
+            patchStack.push("ReverbBrowser.qml", {"effect": effect_id,  "effect_type": effect_type,
+            "top_folder": "file:///audio/amp_nam",
+            "after_file_selected": (function(name) { 
+                // console.log("got new reveb file");
+                // console.log("file is", name.toString());
+                knobs.update_json(effect_id, name.toString());
+                })
+            });
+        }
         else if (effect_type == "mono_cab" || effect_type == "stereo_cab" || effect_type == "quad_ir_cab"){
             patch_bay.current_help_text = Constants.help["reverb_detail"];
             patchStack.push("ReverbBrowser.qml", {"effect": effect_id, "effect_type": effect_type,
@@ -360,6 +384,10 @@ Rectangle {
 		else if (['loop_common_in', 'loop_common_out', 'loop_extra_midi', 'loop_midi_out'].indexOf(effect_type) >= 0){
             title_text = "Loopler"
             patchStack.push("Loopler.qml");
+            patch_bay.current_help_text = "" // Constants.help[""];
+        }
+        else if (effect_type == "strum"){
+            patchStack.push("Strum.qml", {"effect": effect_id, "effect_type":"strum"});
             patch_bay.current_help_text = "" // Constants.help[""];
         }
         else if (effect_type == "euclidean"){
@@ -2436,11 +2464,11 @@ Rectangle {
 					height: 420
 
 					Repeater {
-						model: ['n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'n10', 'n11', 'n12', 'n1', 'n2', 'n3']
+						model: ['n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'n10', 'n11', 'n12']
 						Button {
 							x : index < 5 ? index * 83 : (index + 1) * 83
-							y : ['n2', 'n5', 'n7', 'n10', 'n12'].indexOf(modelData) < 0 ? 93 : 0
-							z : ['n2', 'n5', 'n7', 'n10', 'n12'].indexOf(modelData) < 0 ? 0 : 1
+							y : ['n2', 'n4', 'n7', 'n9', 'n11'].indexOf(modelData) < 0 ? 93 : 0
+							z : ['n2', 'n4', 'n7', 'n9', 'n11'].indexOf(modelData) < 0 ? 0 : 1
 							Material.foreground: Constants.rainbow[index]
 							Material.background: Constants.background_color
 							width: 139
