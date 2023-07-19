@@ -6,15 +6,15 @@ import QtQuick.Controls.Material 2.3
 IconButton {
     property string l_effect_type
     property bool module_more: true
-    x: 584 
-    y: 550
-    width: 76
-    height: 76
-    icon.width: 70
-    icon.height: 70
+    x: 1154 
+    y: 635
+    width: 120
+    height: 70
+    icon.width: 55
+    icon.height: 55
     icon.source: "../icons/digit/bottom_menu/more.png"
-    Material.background: patch_single.more_hold ? Constants.poly_dark_grey: Constants.background_color
-    Material.foreground: accent_color.name
+    Material.background: patch_single.more_hold ? Constants.poly_dark_grey: "white" //
+    Material.foreground: Constants.background_color //accent_color.name
     onPressed: {
         patch_single.more_hold = true;
     }

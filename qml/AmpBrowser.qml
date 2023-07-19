@@ -22,7 +22,7 @@ Item {
     property string effect_type
     property url current_selected: currentEffects[effect]["controls"]["ir"].name
     property string display_name: remove_suffix(mainRect.basename(mainRect.current_selected))
-    property url top_folder: "file:///audio/reverbs/"
+    property url top_folder: "file:///audio/amp_nam/"
     property var after_file_selected: (function(name) { return null; })
     property bool is_loading: false
     property bool showing_fav: false
@@ -68,7 +68,7 @@ Item {
         x: 21
         y: 21
         width: 905
-        height: 83
+        height: 70
         color: Constants.background_color  
         radius: 4
         border.width: 2
@@ -79,7 +79,7 @@ Item {
             // validator: RegExpValidator { regExp: /^[0-9a-zA-Z ]+$/}
             id: amp_search
             width: 860
-            height: 83
+            height: 70
             font {
                 pixelSize: 24
             }
@@ -94,7 +94,7 @@ Item {
     PolyButton {
         x:935
         y: 21
-        height: 83
+        height: 69
         width: 295
         // text: modelData
         onClicked: {
@@ -150,7 +150,7 @@ Item {
     Item {
         id: folderRect
         x: 21
-        y: 121
+        y: 100
         height: 525
         width: 1280
 
@@ -197,8 +197,8 @@ Item {
             width: parent.width
             height: 533
             clip: true
-            cellWidth: 312
-            cellHeight: 385
+            cellWidth: 310
+            cellHeight: 410
             visible: !(is_loading)
 
             model: amp_browser_model 
@@ -209,15 +209,17 @@ Item {
 // //                nameFilters: ["*.mp3", "*.flac"]
             // }
             delegate: Item {
-                width: 304
-                height: 376
+                width: 300
+                height: 400
 
             
                 Rectangle {
                     width: parent.width
                     height: parent.height
-                    color: "white" // Constants.background_color  
-                    radius: 4
+                    color: Constants.background_color  
+                    radius: 12
+                    border.width: 2
+                    border.color: Constants.outline_color
                 }
 
                 Item {
@@ -225,35 +227,92 @@ Item {
                     height: 376
 
                     Image {
-                        x: 2
-                        y: 2
+                        x: 10
+                        y: 10
                         source: amp_image
+						width: 280
+						height: 280
+
+                        PolyButton {
+                            x: 8
+                            y: 252 
+                            height: 22
+                            width: 54
+                            topPadding: 5
+                            // leftPadding: -5
+                            // rightPadding: -5
+                            radius: 25
+                            Material.foreground: Constants.background_color
+                            border_color: Constants.poly_yellow
+                            background_color: Constants.poly_yellow
+                            text: amp_year
+                            font_size: 14
+                        }
+
+						Item {
+							x: 228
+							y: 7
+							width: 45
+							height: 45
+
+							Image {
+								x: 7
+								y: 7
+								source: is_favourite ? "../icons/digit/fav.png" : "../icons/digit/not_fav.png" 
+							}
+							MouseArea {
+								// fill everything apart from favourite button
+								anchors.fill: parent
+								onClicked: {
+									knobs.toggle_module_favourite(l_effect);
+								}
+							}
+						}
                     }
 
-                    Rectangle {
-                        x: 0
-                        y: 289
-                        width: parent.width
-                        height: 87
-                        color: Constants.outline_color  
-                        radius: 4
-                        border.width: 2
-                        border.color: "white"
-                    }
+                    // Rectangle {
+                    //     x: 0
+                    //     y: 289
+                    //     width: parent.width
+                    //     height: 87
+                    //     color: Constants.outline_color  
+                    //     radius: 4
+                    //     border.width: 2
+                    //     border.color: "white"
+                    // }
 
                     Label {
-                        x: 0
+                        x: 10
                         y: 295
                         height: 30
                         width: 300
-                        text: amp_name.replace(/_/g, " ")
+                        text: amp_brand.replace(/_/g, " ")
                         wrapMode: Text.Wrap
                         // anchors.centerIn: parent
                         // anchors.bottomMargin: 25 
-                        horizontalAlignment: Text.AlignHCenter
+                        horizontalAlignment: Text.AlignLeft
                         verticalAlignment: Text.AlignVCenter
                         font {
                             pixelSize: 22
+                            family: mainFont.name
+                            weight: Font.DemiBold
+                            capitalization: Font.AllUppercase
+                        }
+                    }
+
+                    Label {
+                        x: 10
+                        y: 315
+                        height: 30
+                        width: 300
+                        text: amp_model.replace(/_/g, " ")
+                        wrapMode: Text.Wrap
+                        // anchors.centerIn: parent
+                        // anchors.bottomMargin: 25 
+                        horizontalAlignment: Text.AlignLeft
+                        verticalAlignment: Text.AlignVCenter
+                        font {
+                            pixelSize: 18
                             family: mainFont.name
                             weight: Font.DemiBold
                             capitalization: Font.AllUppercase
@@ -277,7 +336,7 @@ Item {
                     // }
 
                     Row {
-                        x: 31
+                        x: 10
                         y: 345
                         spacing: 6
                         width: 300
@@ -291,8 +350,8 @@ Item {
                                 rightPadding: 15
                                 radius: 25
                                 Material.foreground: Constants.background_color
-                                border_color: Constants.poly_yellow
-                                background_color: Constants.poly_yellow
+                                // border_color: Constants.poly_yellow
+                                background_color: Constants.loopler_rainbow[index % 15]
                                 text: modelData
                                 font_size: 14
                             }
@@ -303,30 +362,12 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            patchStack.push(ampCaptureSelection, {"objectName":"ampCaptureSelection", "amp_name":amp_name, "tags": tags, "long_description": long_description, "amp_image": amp_image, "amp_control_names": amp_control_names, "amp_controls": amp_controls, "amp_selected_controls":amp_selected_controls});
+                            patchStack.push(ampCaptureSelection, {"objectName":"ampCaptureSelection", "amp_name":amp_name, 
+                            "amp_brand": amp_brand, "amp_model": amp_model, "amp_year": amp_year, "tags": tags, "long_description": long_description, "amp_image": amp_image, "amp_control_names": amp_control_names, "amp_controls": amp_controls, "amp_selected_controls":amp_selected_controls});
                         }
                     }
                 }
 
-                Item {
-                    x: 248
-                    y: 0
-                    width: 109
-                    height: 198
-
-                    Image {
-                        x: 7
-                        y: 7
-                        source: is_favourite ? "../icons/digit/fav.png" : "../icons/digit/not_fav.png" 
-                    }
-                    MouseArea {
-                        // fill everything apart from favourite button
-                        anchors.fill: parent
-                        onClicked: {
-                            knobs.toggle_module_favourite(l_effect);
-                        }
-                    }
-                }
             }
 
         }
@@ -371,7 +412,10 @@ Item {
             id: ampCaptureSelectionScrollParent
 
             property string amp_name
+            property string amp_brand
+            property string amp_model
             property string amp_image
+            property string amp_year
             property string description
             property string long_description
             property var tags
@@ -385,67 +429,81 @@ Item {
             width:1280
             
             Rectangle {
-                x: 0
-                y: 0
+				x: 16
+				y: 17
                 width: 300
                 height: 540
                 color: "white"
+                radius: 12
 
-                Rectangle {
-                    x: 0
-                    y: 0
-                    width: 300
-                    height: 300
-                    color: "pink"
-                    Image {
-                        x: 0
-                        y: 0
-                        source: amp_image
+                Image {
+                    x: 14
+                    y: 91
+                    source: amp_image
+					width: 280
+					height: 280
+
+                    PolyButton {
+                        x: 8
+                        y: 252 
+                        height: 22
+                        width: 54
+                        topPadding: 5
+                        // leftPadding: -5
+                        // rightPadding: -5
+                        radius: 25
+                        Material.foreground: Constants.background_color
+                        border_color: Constants.poly_yellow
+                        background_color: Constants.poly_yellow
+                        text: amp_year
+                        font_size: 14
                     }
                 }
+
                 Label {
-                    x: 25
-                    y: 316
-                    width: 270
-                    height: 25
-                    text: amp_name.replace(/_/g, " ")
+                    x: 30
+                    y: 17
+                    height: 30
+                    width: 300
+                    text: amp_brand.replace(/_/g, " ")
                     wrapMode: Text.Wrap
                     color: Constants.background_color
+                    // anchors.centerIn: parent
+                    // anchors.bottomMargin: 25 
+                    horizontalAlignment: Text.AlignLeft
+                    verticalAlignment: Text.AlignVCenter
                     font {
-                        pixelSize: 24
-                        // family: docFont.name
-                        // weight: Font.Normal
+                        pixelSize: 22
+                        family: mainFont.name
+                        weight: Font.DemiBold
                         capitalization: Font.AllUppercase
                     }
                 }
 
-                Row {
-                    x: 25
-                    y: 370
-                    spacing: 6
-                    height: 25
-                    width: 270
-                    Repeater {
-                        model: tags
-
-                        PolyButton {
-                            height: 20
-                            topPadding: 5
-                            leftPadding: 15
-                            rightPadding: 15
-                            radius: 25
-                            Material.foreground: Constants.background_color
-                            border_color: Constants.poly_yellow
-                            background_color: Constants.poly_yellow
-                            text: modelData
-                            font_size: 14
-                        }
+                Label {
+                    x: 30
+                    y: 47
+                    height: 30
+                    width: 300
+                    text: amp_model.replace(/_/g, " ")
+                    wrapMode: Text.Wrap
+                    color: Constants.background_color
+                    // anchors.centerIn: parent
+                    // anchors.bottomMargin: 25 
+                    horizontalAlignment: Text.AlignLeft
+                    verticalAlignment: Text.AlignVCenter
+                    font {
+                        pixelSize: 18
+                        family: mainFont.name
+                        weight: Font.DemiBold
+                        capitalization: Font.AllUppercase
                     }
                 }
 
+
                 Label {
-                    x: 25
-                    y: 395
+                    x: 14
+                    y: 385
                     width: 270
                     height: 145
                     text: long_description 
@@ -455,14 +513,39 @@ Item {
                     font {
                         pixelSize: 16
                         // family: docFont.name
-                        // weight: Font.Normal
+                        weight: Font.Normal
                         // capitalization: Font.AllUppercase
                     }
                 }
+
+				Row {
+					x: 14
+					y: 476
+					spacing: 6
+					height: 25
+					width: 270
+					Repeater {
+						model: tags
+
+						PolyButton {
+							height: 20
+							topPadding: 5
+							leftPadding: 15
+							rightPadding: 15
+							radius: 25
+							Material.foreground: Constants.background_color
+							border_color: Constants.loopler_rainbow[index % 15]
+							background_color: Constants.loopler_rainbow[index % 15]
+							text: modelData
+							font_size: 14
+						}
+					}
+				}
             }
+
             Rectangle {
-                x: 300
-                y: 0
+                x: 354
+                y: 10
                 width: 980
                 height: 540
                 color: Constants.background_color
@@ -473,7 +556,7 @@ Item {
                     x: 10
                     y: 10
                     height: 540
-                    spacing: 12
+                    spacing: 22
                     clip: true
                     delegate: Item {
                         property string control_name: modelData //.split(":")[1]
@@ -493,7 +576,7 @@ Item {
                             Rectangle {
                                 x:0
                                 y:0
-                                height: 42
+                                height: control_flow.height + 55
                                 width: 800
                                 color: Constants.background_color  
                                 border.width: 2
@@ -510,7 +593,7 @@ Item {
                                     horizontalAlignment: Text.AlignHCenter
                                     verticalAlignment: Text.AlignVCenter
                                     font {
-                                        pixelSize: 36
+                                        pixelSize: 32
                                         family: mainFont.name
                                         weight: Font.DemiBold
                                         capitalization: Font.AllUppercase
@@ -519,14 +602,16 @@ Item {
                             }
                             Flow {
                                 id: control_flow
+                                property int num_this_control: amp_controls[index].length //.split(":")[1]
                                 x: 20
-                                y: 50
+                                y: 40
                                 spacing: 12
                                 width: 800
                                 Repeater {
                                     model: amp_controls[index]
                                     PolyButton {
-                                        height: 75
+                                        height: 60
+                                        width: (parent.width / control_flow.num_this_control) - (control_flow.num_this_control * control_flow.spacing)
                                         topPadding: 5
                                         leftPadding: 15
                                         rightPadding: 15
@@ -534,7 +619,7 @@ Item {
                                         // checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)
                                         onClicked: {
                                             amp_selected_controls[control_name] = modelData;
-                                            amp_browser_model.set_amp_control(amp_name, control_name, modelData);
+                                            amp_browser_model.set_amp_control(effect, amp_name, control_name, modelData);
                                             update_counter++;
                                         }
                                         Material.foreground: Constants.loopler_rainbow[index % 15]

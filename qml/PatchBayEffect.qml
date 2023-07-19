@@ -334,28 +334,28 @@ Rectangle {
                 })
             });
         }
-        else if (effect_type == "amp_rtneural")
-        {
-            patch_bay.current_help_text = Constants.help["reverb_detail"];
-            patchStack.push("ReverbBrowser.qml", {"effect": effect_id,  "effect_type": effect_type,
-            "top_folder": "file:///audio/amp_json",
-            "after_file_selected": (function(name) { 
-                // console.log("got new reveb file");
-                // console.log("file is", name.toString());
-                knobs.update_json(effect_id, name.toString());
-                })
-            });
-        }
+        // else if (effect_type == "amp_rtneural")
+        // {
+        //     patch_bay.current_help_text = Constants.help["reverb_detail"];
+        //     patchStack.push("ReverbBrowser.qml", {"effect": effect_id,  "effect_type": effect_type,
+        //     "top_folder": "file:///audio/amp_json",
+        //     "after_file_selected": (function(name) { 
+        //         // console.log("got new reveb file");
+        //         // console.log("file is", name.toString());
+        //         knobs.update_json(effect_id, name.toString());
+        //         })
+        //     });
+        // }
         else if (effect_type == "amp_nam")
         {
-            patch_bay.current_help_text = Constants.help["reverb_detail"];
-            patchStack.push("ReverbBrowser.qml", {"effect": effect_id,  "effect_type": effect_type,
+            patch_bay.current_help_text = ""
+            patchStack.push("AmpBrowser.qml", {"effect": effect_id,  "effect_type": effect_type,
             "top_folder": "file:///audio/amp_nam",
-            "after_file_selected": (function(name) { 
-                // console.log("got new reveb file");
-                // console.log("file is", name.toString());
-                knobs.update_json(effect_id, name.toString());
-                })
+            // "after_file_selected": (function(name) { 
+            //     // console.log("got new reveb file");
+            //     // console.log("file is", name.toString());
+            //     knobs.update_json(effect_id, name.toString());
+            //     })
             });
         }
         else if (effect_type == "mono_cab" || effect_type == "stereo_cab" || effect_type == "quad_ir_cab"){

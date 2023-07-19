@@ -100,6 +100,7 @@ Item {
         z: 3
         width: 1280
         height: 86
+        visible: patch_single.currentMode != PatchBay.Details
     
         Image {
             x: 10
@@ -267,7 +268,7 @@ Item {
     StackView {
         id: patchStack
         x: 0
-        y: currentPedalModel.name == "beebo" || patch_single.currentMode == PatchBay.Details ?  86 : 0
+        y: currentPedalModel.name == "beebo" && patch_single.currentMode != PatchBay.Details ?  86 : 0
         initialItem: PatchBay {
         }
     }
@@ -284,23 +285,23 @@ Item {
     Item {
         // color: Constants.background_color
         x: 0
-        y: 634
+        y: 645
         width: 1280
-        height: 86
+        height: 80
         // border { width:2; color: "white"}
         IconButton {
 
             x: 31 
-            y: -20
-            width: 100
-            height: 86
-            icon.width: 100
-            icon.height: 86
+            y: -10
+            width: 120
+            height: 70
+            icon.width: 120
+            icon.height: 70
             // flat: false
-            icon.source: "../icons/digit/bottom_menu/Home.png"
+            icon.source: "../icons/digit/bottom_menu/back.png"
             // Material.background: Constants.background_color
-            Material.background: Constants.background_color
-            Material.foreground: "white"
+            Material.foreground: Constants.background_color
+            Material.background: "white"
             visible: patch_single.currentMode != PatchBay.Select && patch_single.currentMode != PatchBay.Hold  
             onClicked: {
                 if(patch_single.in_spotlight){
@@ -317,6 +318,40 @@ Item {
             }
             // HelpLabel {
             //     text: "Global"
+            // }
+        }
+
+        Label {
+            // color: "#ffffff"
+            text: patch_single.currentMode != PatchBay.Details ? currentPreset.name.replace(/_/g, " ") : title_text
+            elide: Text.ElideRight
+            visible:patch_single.currentMode == PatchBay.Details  
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: -10
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            // width: 1000
+            height: 70
+            leftPadding: 10
+            rightPadding: 10
+
+            color:  Constants.background_color
+            font {
+                pixelSize: 36
+                capitalization: Font.AllUppercase
+            }
+            background: Rectangle {
+                color: "white"
+                radius: 4
+            }
+            // MouseArea {
+            //     anchors.fill: parent
+            //     onClicked: {
+
+            //         if (patch_single.currentMode == PatchBay.Select){
+            //             mainStack.push("PresetSave.qml")
+            //         }
+            //     }
             // }
         }
 
