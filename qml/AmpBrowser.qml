@@ -27,7 +27,7 @@ Item {
     property bool is_loading: false
     property bool showing_fav: false
     height: 720
-    width: 1000
+    width: 1280
 
     function basename(ustr)
     {
@@ -146,6 +146,17 @@ Item {
 
         visible: Qt.inputMethod.visible
     }
+
+	Connections {
+		target: Qt.inputMethod
+		onVisibleChanged: {
+			if (Qt.inputMethod.visible != true){
+				// console.log("keyboard show / hide" + Qt.inputMethod.visible)
+				amp_browser_model.add_filter(amp_search.text)
+			}
+		}
+	
+	}
 
     Item {
         id: folderRect
@@ -364,6 +375,7 @@ Item {
                         onClicked: {
                             patchStack.push(ampCaptureSelection, {"objectName":"ampCaptureSelection", "amp_name":amp_name, 
                             "amp_brand": amp_brand, "amp_model": amp_model, "amp_year": amp_year, "tags": tags, "long_description": long_description, "amp_image": amp_image, "amp_control_names": amp_control_names, "amp_controls": amp_controls, "amp_selected_controls":amp_selected_controls});
+							amp_browser_model.set_amp_control(effect, amp_name, "", "");
                         }
                     }
                 }
@@ -473,7 +485,7 @@ Item {
                     horizontalAlignment: Text.AlignLeft
                     verticalAlignment: Text.AlignVCenter
                     font {
-                        pixelSize: 22
+                        pixelSize: 24
                         family: mainFont.name
                         weight: Font.DemiBold
                         capitalization: Font.AllUppercase
@@ -493,7 +505,7 @@ Item {
                     horizontalAlignment: Text.AlignLeft
                     verticalAlignment: Text.AlignVCenter
                     font {
-                        pixelSize: 18
+                        pixelSize: 20
                         family: mainFont.name
                         weight: Font.DemiBold
                         capitalization: Font.AllUppercase
@@ -511,7 +523,7 @@ Item {
                     elide: Text.ElideRight
                     color: Constants.background_color
                     font {
-                        pixelSize: 16
+                        pixelSize: 18
                         // family: docFont.name
                         weight: Font.Normal
                         // capitalization: Font.AllUppercase
