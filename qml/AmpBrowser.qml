@@ -17,11 +17,17 @@ import QtQuick.VirtualKeyboard 2.1
 
 
 Item {
+
+    function rsplit(str, sep, maxsplit) {
+        var split = str.split(sep);
+        return maxsplit ? [ split.slice(0, -maxsplit).join(sep) ].concat(split.slice(-maxsplit)) : split;
+    }
+
     id: mainRect
     property string effect
     property string effect_type
     property url current_selected: currentEffects[effect]["controls"]["ir"].name
-    property string display_name: remove_suffix(mainRect.basename(mainRect.current_selected))
+	property string selected_amp_name: rsplit(current_selected.toString(), "/", 2)[1] 
     property url top_folder: "file:///audio/amp_nam/"
     property var after_file_selected: (function(name) { return null; })
     property bool is_loading: false
@@ -29,48 +35,33 @@ Item {
     height: 720
     width: 1280
 
-    function basename(ustr)
-    {
-        // return (String(str).slice(String(str).lastIndexOf("/")+1))
-        if (ustr != null)
-        {
-            var str = ustr.toString()
-            return (str.slice(str.lastIndexOf("/")+1))
-        }
-        return "None Selected"
-    }
-
-    function remove_suffix(x)
-    {
-       return x.replace(/\.[^/.]+$/, "") 
-    }
 
     // ActionIcons {
 
     // }
 
-    Label {
-        x: Constants.left_col + 15
-        y: 15
-        text: display_name
-        height: 45
-        // height: 15
-        color: accent_color.name
-        font {
-            pixelSize: fontSizeMedium*1.1
-            // pixelSize: 11
-            capitalization: Font.AllUppercase
-        }
-    }
+    // Label {
+    //     x: Constants.left_col + 15
+    //     y: 15
+    //     text: display_name
+    //     height: 45
+    //     // height: 15
+    //     color: accent_color.name
+    //     font {
+    //         pixelSize: fontSizeMedium*1.1
+    //         // pixelSize: 11
+    //         capitalization: Font.AllUppercase
+    //     }
+    // }
 
 
     Rectangle {
         x: 21
         y: 21
-        width: 905
+        width: 1230
         height: 70
         color: Constants.background_color  
-        radius: 4
+        radius: 12
         border.width: 2
         border.color: "white"
         TextField {
@@ -78,7 +69,7 @@ Item {
             y:0
             // validator: RegExpValidator { regExp: /^[0-9a-zA-Z ]+$/}
             id: amp_search
-            width: 860
+            width: 1180
             height: 70
             font {
                 pixelSize: 24
@@ -91,53 +82,52 @@ Item {
         }
     }
 
-    PolyButton {
-        x:935
-        y: 21
-        height: 69
-        width: 295
-        // text: modelData
-        onClicked: {
-            // current_loop = index;
-            // add new loop
-            // loopler.ui_add_loop(1)
-        }
+    // PolyButton {
+    //     x:935
+    //     y: 21
+    //     height: 69
+    //     width: 295
+    //     // text: modelData
+    //     onClicked: {
+    //         // current_loop = index;
+    //         // add new loop
+    //         // loopler.ui_add_loop(1)
+    //     }
 
-        contentItem: Item { 
-            Image {
-                x: 20
-                y: 16
-                source: showing_fav ? "../icons/digit/fav.png" : "../icons/digit/not_fav.png" 
-            }
+    //     contentItem: Item { 
+    //         Image {
+    //             x: 20
+    //             y: 16
+    //             source: showing_fav ? "../icons/digit/fav.png" : "../icons/digit/not_fav.png" 
+    //         }
 
-            Text {
-                x: 108
-                y: 16
-                text: "favourites"
-                color: Constants.poly_pink
-                height: 22
-                font {
-                    pixelSize: 22
-                    capitalization: Font.AllUppercase
-                }
-            }
-        } 
+    //         Text {
+    //             x: 108
+    //             y: 16
+    //             text: "favourites"
+    //             color: Constants.poly_pink
+    //             height: 22
+    //             font {
+    //                 pixelSize: 22
+    //                 capitalization: Font.AllUppercase
+    //             }
+    //         }
+    //     } 
 
 
 
-        background: Rectangle {
-            width: parent.width
-            height: parent.height
-            color: Constants.background_color
-            border.width: 2
-            border.color: Constants.poly_pink  
-            radius: 4
-        }
-    }
+    //     background: Rectangle {
+    //         width: parent.width
+    //         height: parent.height
+    //         color: Constants.background_color
+    //         border.width: 2
+    //         border.color: Constants.poly_pink  
+    //         radius: 4
+    //     }
+    // }
 
     InputPanel {
         id: inputPanel
-        // parent:mainWindow.contentItem
         z: 1000002
         anchors.bottom:parent.bottom
         anchors.left: parent.left
@@ -222,12 +212,13 @@ Item {
             delegate: Item {
                 width: 300
                 height: 400
+				property bool is_selected: amp_name == selected_amp_name
 
             
                 Rectangle {
                     width: parent.width
                     height: parent.height
-                    color: Constants.background_color  
+                    color: is_selected ? "white" : Constants.background_color  
                     radius: 12
                     border.width: 2
                     border.color: Constants.outline_color
@@ -257,28 +248,28 @@ Item {
                             border_color: Constants.poly_yellow
                             background_color: Constants.poly_yellow
                             text: amp_year
-                            font_size: 14
+                            font_size: 16
                         }
 
-						Item {
-							x: 228
-							y: 7
-							width: 45
-							height: 45
+						// Item {
+						// 	x: 228
+						// 	y: 7
+						// 	width: 45
+						// 	height: 45
 
-							Image {
-								x: 7
-								y: 7
-								source: is_favourite ? "../icons/digit/fav.png" : "../icons/digit/not_fav.png" 
-							}
-							MouseArea {
-								// fill everything apart from favourite button
-								anchors.fill: parent
-								onClicked: {
-									knobs.toggle_module_favourite(l_effect);
-								}
-							}
-						}
+						// 	Image {
+						// 		x: 7
+						// 		y: 7
+						// 		source: is_favourite ? "../icons/digit/fav.png" : "../icons/digit/not_fav.png" 
+						// 	}
+						// 	MouseArea {
+						// 		// fill everything apart from favourite button
+						// 		anchors.fill: parent
+						// 		onClicked: {
+						// 			knobs.toggle_module_favourite(l_effect);
+						// 		}
+						// 	}
+						// }
                     }
 
                     // Rectangle {
@@ -294,17 +285,18 @@ Item {
 
                     Label {
                         x: 10
-                        y: 295
+                        y: 299
                         height: 30
                         width: 300
                         text: amp_brand.replace(/_/g, " ")
                         wrapMode: Text.Wrap
+						color: is_selected ? Constants.background_color : "white"  
                         // anchors.centerIn: parent
                         // anchors.bottomMargin: 25 
                         horizontalAlignment: Text.AlignLeft
                         verticalAlignment: Text.AlignVCenter
                         font {
-                            pixelSize: 22
+                            pixelSize: 24
                             family: mainFont.name
                             weight: Font.DemiBold
                             capitalization: Font.AllUppercase
@@ -313,19 +305,20 @@ Item {
 
                     Label {
                         x: 10
-                        y: 315
+                        y: 323
                         height: 30
                         width: 300
                         text: amp_model.replace(/_/g, " ")
                         wrapMode: Text.Wrap
+						color: is_selected ? Constants.background_color : "white"  
                         // anchors.centerIn: parent
                         // anchors.bottomMargin: 25 
                         horizontalAlignment: Text.AlignLeft
                         verticalAlignment: Text.AlignVCenter
                         font {
-                            pixelSize: 18
-                            family: mainFont.name
-                            weight: Font.DemiBold
+                            pixelSize: 20
+                            family: docFont.name
+                            weight: Font.Medium
                             capitalization: Font.AllUppercase
                         }
                     }
@@ -348,23 +341,23 @@ Item {
 
                     Row {
                         x: 10
-                        y: 345
+                        y: 370
                         spacing: 6
                         width: 300
                         Repeater {
                             model: tags
 
                             PolyButton {
-                                height: 20
+                                height: 22
                                 topPadding: 5
                                 leftPadding: 15
                                 rightPadding: 15
                                 radius: 25
                                 Material.foreground: Constants.background_color
-                                // border_color: Constants.poly_yellow
-                                background_color: Constants.loopler_rainbow[index % 15]
+								border_color: Constants.short_rainbow[index % 4]
+								background_color: Constants.short_rainbow[index % 4]
                                 text: modelData
-                                font_size: 14
+                                font_size: 16
                             }
                         }
                     }
@@ -437,40 +430,17 @@ Item {
             property var amp_selected_controls
             property int update_counter
 
-            height:540
+            height:630
             width:1280
             
             Rectangle {
 				x: 16
 				y: 17
                 width: 300
-                height: 540
+                height: 613
                 color: "white"
                 radius: 12
 
-                Image {
-                    x: 14
-                    y: 91
-                    source: amp_image
-					width: 280
-					height: 280
-
-                    PolyButton {
-                        x: 8
-                        y: 252 
-                        height: 22
-                        width: 54
-                        topPadding: 5
-                        // leftPadding: -5
-                        // rightPadding: -5
-                        radius: 25
-                        Material.foreground: Constants.background_color
-                        border_color: Constants.poly_yellow
-                        background_color: Constants.poly_yellow
-                        text: amp_year
-                        font_size: 14
-                    }
-                }
 
                 Label {
                     x: 30
@@ -512,27 +482,56 @@ Item {
                     }
                 }
 
+				ScrollView {
+					x: 14
+					y: 91
+					clip: true
+					contentWidth: 280
+					contentHeight: 790
 
-                Label {
-                    x: 14
-                    y: 385
-                    width: 270
-                    height: 145
-                    text: long_description 
-                    wrapMode: Text.Wrap
-                    elide: Text.ElideRight
-                    color: Constants.background_color
-                    font {
-                        pixelSize: 18
-                        // family: docFont.name
-                        weight: Font.Normal
-                        // capitalization: Font.AllUppercase
-                    }
-                }
+					Image {
+						x: 0
+						y: 0
+						source: amp_image
+						width: 280
+						height: 280
+
+						PolyButton {
+							x: 8
+							y: 252 
+							height: 22
+							width: 54
+							topPadding: 5
+							// leftPadding: -5
+							// rightPadding: -5
+							radius: 25
+							Material.foreground: Constants.background_color
+							border_color: Constants.poly_yellow
+							background_color: Constants.poly_yellow
+							text: amp_year
+							font_size: 16
+						}
+					}
+					Label {
+						x: 0
+						y: 290
+						width: 270
+						height: 500
+						text: long_description 
+						wrapMode: Text.Wrap
+						elide: Text.ElideRight
+						color: Constants.background_color
+						font {
+							pixelSize: 18
+							family: docFont.name
+							weight: Font.Normal
+						}
+					}
+				}
 
 				Row {
 					x: 14
-					y: 476
+					y: 570
 					spacing: 6
 					height: 25
 					width: 270
@@ -540,16 +539,16 @@ Item {
 						model: tags
 
 						PolyButton {
-							height: 20
+							height: 22
 							topPadding: 5
 							leftPadding: 15
 							rightPadding: 15
 							radius: 25
 							Material.foreground: Constants.background_color
-							border_color: Constants.loopler_rainbow[index % 15]
-							background_color: Constants.loopler_rainbow[index % 15]
+							border_color: Constants.short_rainbow[index % 4]
+                            background_color: Constants.short_rainbow[index % 4]
 							text: modelData
-							font_size: 14
+							font_size: 16
 						}
 					}
 				}
@@ -592,7 +591,7 @@ Item {
                                 width: 800
                                 color: Constants.background_color  
                                 border.width: 2
-                                border.color: Constants.loopler_rainbow[index % 15]
+                                border.color: Constants.longer_rainbow[index % 9]
                                 radius: 10
                                 Label {
                                     x: 0
@@ -615,6 +614,7 @@ Item {
                             Flow {
                                 id: control_flow
                                 property int num_this_control: amp_controls[index].length //.split(":")[1]
+                                property int parent_index: index //.split(":")[1]
                                 x: 20
                                 y: 40
                                 spacing: 12
@@ -634,7 +634,7 @@ Item {
                                             amp_browser_model.set_amp_control(effect, amp_name, control_name, modelData);
                                             update_counter++;
                                         }
-                                        Material.foreground: Constants.loopler_rainbow[index % 15]
+                                        Material.foreground: Constants.longer_rainbow[control_flow.parent_index % 9]
                                         border_color: Constants.background_color
                                         background_color: Constants.poly_grey
                                         text: modelData

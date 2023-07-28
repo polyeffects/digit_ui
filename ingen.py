@@ -90,33 +90,36 @@ class Remote(Interface):
     def __init__(self, uri='unix:///tmp/ingen.sock'):
         self.msg_id      = 1
         self.server_base = uri + '/'
+        self.server_uri = uri
         # self.model       = rdflib.Graph()
         # self.ns_manager  = rdflib.namespace.NamespaceManager(self.model)
         # self.ns_manager.bind('server', self.server_base)
+
+
+    def __del__(self):
+        self.sock.close()
+
+    def socket_connect(self):
         connected = False
         # for (k, v) in NS.__dict__.items():
         #     if not k.startswith("__"):
         #         self.ns_manager.bind(k, v)
         while not connected:
             try:
-                if uri.startswith('unix://'):
+                if self.server_uri.startswith('unix://'):
                     self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                    self.sock.connect(uri[len('unix://'):])
+                    self.sock.connect(self.server_uri[len('unix://'):])
                     connected = True
-                elif uri.startswith('tcp://'):
+                elif self.server_uri.startswith('tcp://'):
                     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    parsed = re.split('[:/]', uri[len('tcp://'):])
+                    parsed = re.split('[:/]', self.server_uri[len('tcp://'):])
                     addr = (parsed[0], int(parsed[1]))
                     self.sock.connect(addr)
                     connected = True
                 else:
-                    raise Exception('Unsupported server URI `%s' % uri)
+                    raise Exception('Unsupported server URI `%s' % self.server_uri)
             except ConnectionError as e:
                 pass
-
-
-    def __del__(self):
-        self.sock.close()
 
 
     def msgencode(self, msg):

@@ -19,8 +19,8 @@ needs: title, description, long_description, tags
 amp_browser_singleton = None
 current_filters = set()
 current_search = ""
-start_path = "/git_repos/capture_to_pedal"
-# start_path = "/audio/amp_nam"
+# start_path = "/git_repos/capture_to_pedal"
+start_path = "/audio/amp_nam"
 amp_folders  = glob.glob(start_path+"/**/*.jpg", recursive=True)
 filtered_amps = amp_folders.copy()
 favourites = {}
@@ -46,7 +46,7 @@ def combine_metadata():
 combine_metadata()
 
 # amp_folders  = glob.glob(start_path+"/**/*.jpg", recursive=True)
-amp_folders  = list(master_amp_metadata.keys())
+amp_folders  = sorted(list(master_amp_metadata.keys()))
 filtered_amps = amp_folders.copy()
 knobs = None
 
@@ -153,7 +153,7 @@ class AmpBrowserModel(QAbstractListModel):
         # now set set file
         nam_path = ""
         for k, v in master_amp_metadata[amp_name]["selected_controls"].items():
-            nam_path = nam_path + "-" + k + "_" + v
+            nam_path = nam_path + "-" + k.replace(" ", "_") + "_" + v.replace(" ", "_")
         nam_path = start_path+"/"+amp_name+"/"+ master_amp_metadata[amp_name]["amp_brand"].replace(" ", "_") + \
                 "-" + master_amp_metadata[amp_name]["amp_model"].replace(" ", "_") + nam_path + ".nam"
         print("nam path is ", nam_path)

@@ -6,7 +6,7 @@ import QtQuick.Controls.Material 2.3
 IconButton {
     property string l_effect_type
     property bool module_more: true
-    x: 1154 
+    x: 1145 
     y: 635
     width: 120
     height: 70

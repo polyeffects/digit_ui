@@ -979,7 +979,7 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
     @Slot(str, str)
     def update_json(self, effect_id, ir_file):
         effect_type = current_effects[effect_id]["effect_type"]
-        # current_effects[effect_id]["controls"]["ir"].name = ir_file
+        current_effects[effect_id]["controls"]["ir"].name = ir_file
         if effect_type == "amp_rtneural":
             ingen_wrapper.set_json(effect_id, ir_file)
         else:

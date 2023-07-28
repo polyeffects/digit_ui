@@ -288,6 +288,7 @@ Item {
         y: 645
         width: 1280
         height: 80
+        visible: !Qt.inputMethod.visible
         // border { width:2; color: "white"}
         IconButton {
 
@@ -402,7 +403,7 @@ Item {
             y: 12
             width: 350
             height: 62
-            visible: !show_footer_value
+            visible: !show_footer_value && patch_single.currentMode != PatchBay.Details
             // anchors.centerIn: parent
             text: patch_single.current_help_text
             // height: 15

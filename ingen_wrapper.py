@@ -14,6 +14,9 @@ import random
 connected = False
 from static_globals import IS_REMOTE_TEST
 
+ingen_started_lock = threading.Lock()
+ingen_started = False
+
 # atom_AtomPort = serd.uri("http://lv2plug.in/ns/ext/atom#AtomPort")
 # ingen_max_run_load = serd.uri("http://drobilla.net/ns/ingen#maxRunLoad")
 # ingen_mean_run_load = serd.uri("http://drobilla.net/ns/ingen#meanRunLoad")
@@ -123,7 +126,19 @@ def get_timed_interruptable(q, timeout):
     return q.get(timeout=max(0, stoploop + 1 - time.monotonic()))
 
 def DestinationThread( ) :
+    global ingen_started
     while True :
+        if ingen_started == False:
+            with ingen_started_lock:
+                if ingen_started == False:
+                    while not os.path.exists("/tmp/ingen.sock"):
+                        time.sleep(0.1)
+                    time.sleep(0.2)
+
+                    print("setting ingen remote server dest")
+                    ingen.socket_connect()
+                    ingen_started = True
+
         if _FINISH:
             break
         try:
@@ -368,7 +383,19 @@ def get_parameter_value():
 ### ------------------------- recv from server
 
 def ingen_recv_thread( ) :
+    global ingen_started
     while True :
+        if ingen_started == False:
+            with ingen_started_lock:
+                if ingen_started == False:
+                    while not os.path.exists("/tmp/ingen.sock"):
+                        time.sleep(0.1)
+                    time.sleep(0.2)
+                    ingen.socket_connect()
+                    print("setting ingen remote server recv")
+                    ingen_started = True
+
+
         if _FINISH:
             ingen._FINISH = True
             break
@@ -712,9 +739,6 @@ def start_send_thread():
 if not IS_REMOTE_TEST:
     # server = "tcp://127.0.0.1:16180"
     server = "unix:///tmp/ingen.sock"
-    while not os.path.exists("/tmp/ingen.sock"):
-        time.sleep(0.1)
-    time.sleep(0.2)
 else:
     # server = "tcp://192.168.1.139:16180"
     server = "tcp://10.1.1.246:16180"
