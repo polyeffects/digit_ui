@@ -494,7 +494,7 @@ Rectangle {
             model: output_keys
             Rectangle {
                 anchors.left: parent.left
-                anchors.leftMargin: -8
+                anchors.leftMargin: lToR.value ? 0 : -8
                 width: 18
                 height: 18
                 radius: 9
@@ -523,7 +523,7 @@ Rectangle {
             model: input_keys
             Rectangle {
                 anchors.right: parent.right
-                anchors.rightMargin: -8
+                anchors.rightMargin: lToR.value ? 0 : -8
                 width: 18
                 height: 18
                 radius: 9

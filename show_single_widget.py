@@ -167,6 +167,10 @@ class PolyStr(QObject):
 
     value = Property(str, readValue, setValue, notify=value_changed)
 
+def du(path):
+    """disk usage in human readable format (e.g. '2,1GB')"""
+    return subprocess.check_output(['du','-sh', path]).split()[0].decode('utf-8')
+
 class Knobs(QObject, metaclass=properties.PropertyMeta):
     spotlight_entries = properties.Property(list)
 
@@ -181,6 +185,16 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
             current_effects[effect_name]["controls"][parameter].value = value
             # clamping here to make it a bit more obvious
             value = clamp(value, current_effects[effect_name]["controls"][parameter].rmin, current_effects[effect_name]["controls"][parameter].rmax)
+
+    @Slot(str, result=str)
+    def ui_usb_folder_size(self, folder):
+        # return how large a USB folder is in mb, just du the folder, will give us an approx idea of what will be copied
+        return du(folder)
+
+    @Slot(result=str)
+    def remaining_user_storage(self):
+        # return how much space in mb is available
+        return subprocess.check_output(['df','-h', '--output=avail', '/dev/mmcblk0p2']).split()[1].decode('utf-8')
 
 current_effects = {}
 # current_effects["delay1"] = {"x": 20, "y": 30, "effect_type": "delay", "controls": {}, "highlight": False}

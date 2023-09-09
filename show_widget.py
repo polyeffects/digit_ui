@@ -83,6 +83,7 @@ class PatchMode(IntEnum):
     HOLD = 5
 
 context = None
+amp_browser_model_s = None
 
 def debug_print(*args, **kwargs):
     pass
@@ -724,6 +725,10 @@ def get_meta_from_files(initial=False):
     # flush to file
     write_preset_meta_cache(initial)
 
+def du(path):
+    """disk usage in human readable format (e.g. '2,1GB')"""
+    return subprocess.check_output(['du','-sh', path]).split()[0].decode('utf-8')
+
 class Knobs(QObject, metaclass=properties.PropertyMeta):
     spotlight_entries = properties.Property(list)
 
@@ -1105,12 +1110,47 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
         # could convert any that aren't 48khz.
         # instead we just only copy ones that are
         # remount RW 
+        # copy all wavs in /usb/reverbs and /usr/cabs to /audio/reverbs and /audio/cabs
+        # remount RO 
         command = """ sudo mount -o remount,rw /dev/mmcblk0p2 /mnt; if [ -d /usb_flash/reverbs ]; then cd /usb_flash/reverbs; rename 's/[^a-zA-Z0-9. _-]/_/g' **; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/reverbs --parents; fi;
         if [ -d /usb_flash/cabs ]; then cd /usb_flash/cabs; rename 's/[^a-zA-Z0-9. _-]/_/g' **; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/cabs --parents; fi; sudo mount -o remount,ro /dev/mmcblk0p2 /mnt;"""
-        # copy all wavs in /usb/reverbs and /usr/cabs to /audio/reverbs and /audio/cabs
         command_status[0].value = -1
         self.launch_subprocess(command)
+
+    @Slot()
+    def ui_copy_amps(self):
+        # remount RW 
+        # copy all zips in /usb_flash/amps to /mnt/audio/amp_nam
         # remount RO 
+        command = """ sudo mount -o remount,rw /dev/mmcblk0p2 /mnt; if [ -d /usb_flash/amps ]; then cd /usb_flash/amps; rename 's/[^a-zA-Z0-9. _-]/_/g' **; find . -iname "*.zip" -type f -print0 | xargs -0 cp --target-directory=/mnt/audio/amp_nam --parents; fi;
+        sudo mount -o remount,ro /dev/mmcblk0p2 /mnt;"""
+        command_status[0].value = -1
+
+        self.launch_subprocess(command, after=amp_browser_model_s.combine_metadata)
+
+    @Slot(str, result=str)
+    def ui_usb_folder_size(self, folder):
+        # return how large a USB folder is in mb, just du the folder, will give us an approx idea of what will be copied
+        try:
+            return du(folder)
+        except:
+            return "Folder not found"
+
+    @Slot(result=str)
+    def remaining_user_storage(self):
+        # return how much space in mb is available
+        return subprocess.check_output(['df','-h', '--output=avail', '/dev/mmcblk0p2']).split()[1].decode('utf-8')
+
+    @Slot(result=str)
+    def usb_information_text(self):
+        # return how much space in mb is available
+        return f"""<h3>USB info</h3>
+        <p>Cabs: {self.ui_usb_folder_size("/usb_flash/cabs")} </p>
+        <p>Reverbs: {self.ui_usb_folder_size("/usb_flash/reverbs")} </p>
+        <p>Amps: {self.ui_usb_folder_size("/usb_flash/amps")} </p>
+        <h3>Remaining user storage</h3>
+        <p>{self.remaining_user_storage()}</p>
+        """
 
     @Slot()
     def import_presets(self):
@@ -2115,6 +2155,7 @@ if __name__ == "__main__":
     load_favourites_data()
     module_browser_model_s = module_browser_model.ModuleBrowserModel(favourites)
     preset_browser_model_s = preset_browser_model.PresetBrowserModel(preset_meta_data, favourites, pedal_state["author"])
+    global amp_browser_model_s
     amp_browser_model_s = amp_browser_model.AmpBrowserModel({"nam": [], "amp": []}, knobs)
 
     patch_bay_notify = PatchBayNotify()
