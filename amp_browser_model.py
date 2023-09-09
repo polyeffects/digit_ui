@@ -1,6 +1,6 @@
 # import sys
 # import psutil
-import glob, json, math
+import glob, json, math, itertools
 import os
 import os.path
 
@@ -21,8 +21,8 @@ current_filters = set()
 current_search = ""
 start_path = "/git_repos/capture_to_pedal"
 # start_path = "/audio/amp_nam"
-amp_folders  = glob.glob(start_path+"/**/*.jpg", recursive=True)
-filtered_amps = amp_folders.copy()
+amp_folders  = None #glob.glob(start_path+"/*/metadata.json", recursive=True)
+filtered_amps = None #amp_folders.copy()
 favourites = {}
 master_amp_metadata = {}
 
@@ -153,13 +153,16 @@ class AmpBrowserModel(QAbstractListModel):
         if control_name != "":
             master_amp_metadata[amp_name]["selected_controls"][control_name] = v
 
+        # get list of all controls, so we can work out what number in the file list it is
+        control_cap_names = [itertools.product(*[[v, ], master_amp_metadata[amp_name]["controls"][i]]) for i,v in enumerate(master_amp_metadata[amp_name]["control_names"])]
+        controls = list(itertools.product(*control_cap_names))
+        selected = tuple((v, master_amp_metadata[amp_name]["selected_controls"][v]) for v in master_amp_metadata[amp_name]["control_names"])
+        selected_i = controls.index(selected) # index of the current params in the file list
         # now set set file
         nam_path = ""
-        for k, v in master_amp_metadata[amp_name]["selected_controls"].items():
-            nam_path = nam_path + "-" + k.replace(" ", "_") + "_" + v.replace(" ", "_")
-        nam_path = start_path+"/"+amp_name+"/"+ master_amp_metadata[amp_name]["amp_brand"].replace(" ", "_") + \
-                "-" + master_amp_metadata[amp_name]["amp_model"].replace(" ", "_") + nam_path + ".nam"
-        print("nam path is ", nam_path)
+        # print("select controls", master_amp_metadata[amp_name]["selected_controls"], controls, selected, selected_i)
+        nam_path = os.path.join(start_path, amp_name, master_amp_metadata[amp_name]["file_names"][selected_i])
+        # print("nam path is ", nam_path)
         knobs.update_json(effect_id, nam_path)
 
     @Slot()
@@ -241,4 +244,3 @@ class AmpBrowserModel(QAbstractListModel):
             AmpBrowserModel.AmpModel: b"amp_model",
             AmpBrowserModel.AmpYear: b"amp_year",
         }
-
