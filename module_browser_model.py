@@ -16,7 +16,8 @@ needs: title, description, long_description, tags
 """
 module_browser_singleton = None
 current_filters = set()
-current_letter = ""
+current_search = ""
+showing_favourite = False
 effect_prototypes  = {k:module_info.effect_prototypes_models_all[k] for k in sorted(module_info.effect_prototypes_models_all) if k in module_info.effect_type_maps["beebo"]}
 filtered_modules = effect_prototypes
 favourites = {}
@@ -60,8 +61,8 @@ class ModuleBrowserModel(QAbstractListModel):
 
     @Slot()
     def clear_filter(self):
-        global current_letter
-        current_letter = ""
+        global current_search
+        current_search = ""
         current_filters.clear()
 
         self.beginResetModel()
@@ -71,36 +72,27 @@ class ModuleBrowserModel(QAbstractListModel):
         self.__order = dict(enumerate(filtered_modules.keys()))
         self.endResetModel()
 
+    @Slot(bool)
+    def show_favourites(self, v):
+        global showing_favourite
+        showing_favourite = v
+        self.add_filter(current_search)
+
     @Slot(str)
     def add_filter(self, tag=""):
-        global current_letter
-        if tag != "":
-            if len(tag) == 1:
-                if tag == current_letter:
-                    current_letter = ""
-                else:
-                    current_letter = tag
-            else:
-                if tag in current_filters:
-                    current_filters.remove(tag)
-                else:
-                    current_filters.add(tag)
+        global current_search
+        current_search = tag
 
         self.beginResetModel()
         global filtered_modules
 
         # print("before len filtered modules", len(filtered_modules))
-        if len(current_filters) == 0:
-            filtered_modules = effect_prototypes
+        if showing_favourite:
+            filtered_modules = {k:v for (k,v) in effect_prototypes.items() if k in favourites["modules"]}
         else:
-            for e in effect_prototypes.items():
-                if "tags" not in e[1]:
-                    print("no tags", e)
-            filtered_modules = {k:v for (k,v) in effect_prototypes.items() if (current_filters - set(["favourites"])).issubset(v["tags"])}
-            if "favourites" in current_filters:
-                filtered_modules = {k:v for (k,v) in filtered_modules.items() if k in favourites["modules"]}
-        if current_letter != "":
-            filtered_modules = {k:v for (k,v) in filtered_modules.items() if k.startswith(current_letter)}
+            filtered_modules = effect_prototypes
+        if current_search != "":
+            filtered_modules = {k:v for (k,v) in filtered_modules.items() if (current_search.lower() in k.lower()) or (current_search.lower() in v["description"].lower())}
 
             # print("len filtered modules", len(filtered_modules))
         self.__order = dict(enumerate(filtered_modules.keys()))

@@ -130,20 +130,20 @@ ApplicationWindow {
 		
 		// }
         //
-        StackView {
-            id: patchStack
-            initialItem: 
-            AmpBrowser {
+        // StackView {
+        //     id: patchStack
+        //     initialItem: 
+        //     AmpBrowser {
 
-            }
-        }
+        //     }
+        // }
         
         // Loopler {
         
         // }
-        // ModuleBrowser {
+        ModuleBrowser {
         
-        // }
+        }
         // EuclideanSequencer {
         
         // }

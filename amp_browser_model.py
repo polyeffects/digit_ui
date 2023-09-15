@@ -19,8 +19,8 @@ needs: title, description, long_description, tags
 amp_browser_singleton = None
 current_filters = set()
 current_search = ""
-start_path = "/git_repos/capture_to_pedal"
-# start_path = "/audio/amp_nam"
+# start_path = "/git_repos/capture_to_pedal"
+start_path = "/mnt/audio/amp_nam"
 amp_folders  = None #glob.glob(start_path+"/*/metadata.json", recursive=True)
 filtered_amps = None #amp_folders.copy()
 favourites = {}
@@ -72,7 +72,7 @@ class AmpBrowserModel(QAbstractListModel):
         QAbstractListModel.__init__(self)
 
         # self.__effects_count = 3
-        self.__effect_types = filtered_amps
+        # self.__effect_types = filtered_amps
         self.__order = dict(enumerate(filtered_amps))
         global amp_browser_singleton
         global favourites
@@ -97,6 +97,10 @@ class AmpBrowserModel(QAbstractListModel):
 
     def endRemove(self):
         self.endRemoveRows()
+
+    def external_update_reset(self):
+        combine_metadata()
+        self.clear_filter()
 
     @Slot()
     def clear_filter(self):
@@ -191,7 +195,7 @@ class AmpBrowserModel(QAbstractListModel):
                 print("getting AmpName", self.__order[index.row()])
                 return k
             if role == AmpBrowserModel.AmpImage:
-                image_path  = glob.glob(start_path+"/"+k+"/*.jpg")[0]
+                image_path  = glob.glob(start_path+"/"+k+"/*.jp*g")[0]
                 return image_path
                 # print("getting effectID", filtered_amps[self.__order[index.row()]])
             elif role == AmpBrowserModel.Description:

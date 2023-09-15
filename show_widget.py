@@ -1122,11 +1122,18 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
         # remount RW 
         # copy all zips in /usb_flash/amps to /mnt/audio/amp_nam
         # remount RO 
-        command = """ sudo mount -o remount,rw /dev/mmcblk0p2 /mnt; if [ -d /usb_flash/amps ]; then cd /usb_flash/amps; rename 's/[^a-zA-Z0-9. _-]/_/g' **; find . -iname "*.zip" -type f -print0 | xargs -0 cp --target-directory=/mnt/audio/amp_nam --parents; fi;
+        command = """ sudo mount -o remount,rw /dev/mmcblk0p2 /mnt;
+        if [ -d /usb_flash/amps ]; then
+        cd /usb_flash/amps; rename 's/[^a-zA-Z0-9. _-]/_/g' **;
+        find . -iname "*.zip" -type f -print0 | xargs -0 cp --target-directory=/mnt/audio/amp_nam --parents;
+        cd /mnt/audio/amp_nam/;
+        find . -iname "*.zip" -type f -print0 | xargs -0 -n1 unzip;
+        find . -iname "*.zip" -type f -print0 | xargs -0 rm;
+        fi;
         sudo mount -o remount,ro /dev/mmcblk0p2 /mnt;"""
         command_status[0].value = -1
 
-        self.launch_subprocess(command, after=amp_browser_model_s.combine_metadata)
+        self.launch_subprocess(command, after=amp_browser_model_s.external_update_reset)
 
     @Slot(str, result=str)
     def ui_usb_folder_size(self, folder):
@@ -2155,7 +2162,6 @@ if __name__ == "__main__":
     load_favourites_data()
     module_browser_model_s = module_browser_model.ModuleBrowserModel(favourites)
     preset_browser_model_s = preset_browser_model.PresetBrowserModel(preset_meta_data, favourites, pedal_state["author"])
-    global amp_browser_model_s
     amp_browser_model_s = amp_browser_model.AmpBrowserModel({"nam": [], "amp": []}, knobs)
 
     patch_bay_notify = PatchBayNotify()

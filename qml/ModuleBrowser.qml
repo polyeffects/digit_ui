@@ -2,122 +2,136 @@ import QtQuick 2.9
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
 import "../qml/polyconst.js" as Constants
+import QtQuick.VirtualKeyboard 2.1
 
 Item {
     id: addEffectCon
     height: 720
     width:1280
+    property bool showing_fav: false
 
-    Rectangle {
-        color: accent_color.name
-        x: 0
-        y: 0
-        width: 1280
-        height: 100
+    // Rectangle {
+    //     color: accent_color.name
+    //     x: 0
+    //     y: 0
+    //     width: 1280
+    //     height: 100
     
-        Image {
-            x: 10
-            y: 9
-            source: currentPedalModel.name == "beebo" ? "../icons/digit/Beebo.png" : "../icons/digit/Hector.png" 
-        }
+    //     Image {
+    //         x: 10
+    //         y: 9
+    //         source: currentPedalModel.name == "beebo" ? "../icons/digit/Beebo.png" : "../icons/digit/Hector.png" 
+    //     }
 
-        Label {
-            // color: "#ffffff"
-            text: "Add Module"
-            elide: Text.ElideRight
-            anchors.centerIn: parent
-            anchors.bottomMargin: 25 
-            horizontalAlignment: Text.AlignHCenter
-            width: 1000
-            height: 60
-            z: 1
-            color: Constants.background_color
+    //     Label {
+    //         // color: "#ffffff"
+    //         text: "Add Module"
+    //         elide: Text.ElideRight
+    //         anchors.centerIn: parent
+    //         anchors.bottomMargin: 25 
+    //         horizontalAlignment: Text.AlignHCenter
+    //         width: 1000
+    //         height: 60
+    //         z: 1
+    //         color: Constants.background_color
+    //         font {
+    //             pixelSize: 36
+    //             capitalization: Font.AllUppercase
+    //         }
+    //     }
+    // }
+    Rectangle {
+        x: 21
+        y: 21
+        width: 900
+        height: 70
+        color: Constants.background_color  
+        radius: 12
+        border.width: 2
+        border.color: "white"
+        TextField {
+            x:20
+            y:0
+            // validator: RegExpValidator { regExp: /^[0-9a-zA-Z ]+$/}
+            id: amp_search
+            width: 870
+            height: 70
             font {
-                pixelSize: 36
-                capitalization: Font.AllUppercase
+                pixelSize: 24
+            }
+            placeholderText: qsTr("SEARCH")    
+            onEditingFinished: {
+                module_browser_model.add_filter(amp_search.text)
+            
             }
         }
     }
+
+    InputPanel {
+        id: inputPanel
+        z: 1000002
+        anchors.bottom:parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        width: 1000
+
+        visible: Qt.inputMethod.visible
+    }
+
+	Connections {
+		target: Qt.inputMethod
+		onVisibleChanged: {
+			if (Qt.inputMethod.visible != true){
+				// console.log("keyboard show / hide" + Qt.inputMethod.visible)
+				module_browser_model.add_filter(amp_search.text)
+			}
+		}
+	
+	}
+
+    PolyButton {
+        x:935
+        y: 21
+        height: 69
+        width: 295
+        // text: modelData
+        onClicked: {
+            showing_fav = !showing_fav;
+            module_browser_model.show_favourites(showing_fav);
+        }
+
+        contentItem: Item { 
+            Image {
+                x: 20
+                y: 16
+                source: showing_fav ? "../icons/digit/fav.png" : "../icons/digit/not_fav.png" 
+            }
+
+            Text {
+                x: 108
+                y: 16
+                text: "favourites"
+                color: Constants.poly_pink
+                height: 22
+                font {
+                    pixelSize: 22
+                    capitalization: Font.AllUppercase
+                }
+            }
+        } 
+    }
     Item {
-        y: 100
-
-        Row {
-            id: alphabet_filter
-            x: 22
-            y: 12
-            property string selected_letter: "none"
-            spacing: 15
-            width: 1258
-            Repeater {
-                model: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'v', 'w']
-                PolyButton {
-                    width: 42
-                    height: 40
-                    topPadding: 5
-                    checked: alphabet_filter.selected_letter == modelData 
-                    // checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)
-                    onClicked: {
-                        module_browser_model.add_filter(modelData)
-                        if (alphabet_filter.selected_letter == modelData){
-                            alphabet_filter.selected_letter = "";
-                        } else {
-                            alphabet_filter.selected_letter = modelData;
-                        }
-                    }
-                    Material.foreground: Constants.poly_pink
-                    border_color: Constants.poly_pink
-                    Material.background: Constants.background_color
-                    text: modelData
-                    font {
-                        pixelSize: 20
-                        capitalization: Font.AllUppercase
-                    }
-                }
-            }
-        }
-
-        Flow {
-            x: 851
-            y: 76
-            property string selected_letter: "none"
-            spacing: 12
-            width: 420
-            Repeater {
-                model: ['vital', 'effect', 'MIDI', 'modulation', 'delay', 'chorus', 'synth', 'reverb', 'dynamics',  'filters', 'controls', 'utilities', 'flanger', 'IR', 'loops', 'weird', 'pitch', 'phaser', "mono", "stereo", "ported", "favourites"]
-
-                PolyButton {
-                    height: 75
-                    topPadding: 5
-                    leftPadding: 15
-                    rightPadding: 15
-                    checked: b_status
-                    // checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)
-                    onClicked: {
-                        module_browser_model.add_filter(modelData);
-                        b_status = !b_status;
-                    }
-                    Material.foreground: Constants.rainbow[index % 17]
-                    border_color: Constants.background_color
-                    background_color: Constants.poly_grey
-                    text: modelData
-                    radius: 10
-                    font_size: 22
-                }
-            }
-
-        }
-
-
+        y: 50
         ListView {
-            width: 809
+            width: 1200
             x: 22
             y: 76
-            height: 460
+            height: 490
             spacing: 12
             clip: true
             delegate: Item {
                 property string l_effect: l_effect_type //.split(":")[1]
-                width: 809
+                width: 1200
                 height: 198
 
                 Rectangle {
@@ -130,7 +144,7 @@ Item {
                 }
 
                 Item {
-                    width: 709
+                    width: 1000
                     height: 198
 
                     Label {
@@ -150,7 +164,7 @@ Item {
                     Label {
                         x: 31
                         y: 55
-                        width: 598
+                        width: 798
                         height: 30
                         text: description 
                         wrapMode: Text.Wrap
@@ -201,7 +215,7 @@ Item {
                 }
 
                 Item {
-                    x: 709
+                    x: 1110
                     y: 0
                     width: 109
                     height: 198
@@ -234,24 +248,66 @@ Item {
             // section.delegate: sectionHeading
         }
 
-        IconButton {
-            x: 34 
-            y: 560
-            icon.width: 15
-            icon.height: 25
-            width: 119
-            height: 62
-            text: "BACK"
-            font {
-                pixelSize: 24
-            }
-            flat: false
-            icon.name: "back"
-            Material.background: Constants.background_color
-            Material.foreground: "white" // Constants.outline_color
-            onClicked: mainStack.pop()
-        }
     }
 
+    Item {
+        // color: Constants.background_color
+        x: 0
+        y: 645
+        width: 1280
+        height: 80
+        visible: !Qt.inputMethod.visible
+        // border { width:2; color: "white"}
+        IconButton {
+
+            x: 31 
+            y: -10
+            width: 120
+            height: 70
+            icon.width: 120
+            icon.height: 70
+            // flat: false
+            icon.source: "../icons/digit/bottom_menu/back.png"
+            // Material.background: Constants.background_color
+            Material.foreground: Constants.background_color
+            Material.background: "white"
+            visible: patch_single.currentMode != PatchBay.Select && patch_single.currentMode != PatchBay.Hold  
+            onClicked: mainStack.pop()
+        }
+
+        Label {
+            // color: "#ffffff"
+            text: "ADD MODULE"
+            elide: Text.ElideRight
+            visible:patch_single.currentMode == PatchBay.Details  
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: -10
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            // width: 1000
+            height: 70
+            leftPadding: 10
+            rightPadding: 10
+
+            color:  Constants.background_color
+            font {
+                pixelSize: 36
+                capitalization: Font.AllUppercase
+            }
+            background: Rectangle {
+                color: "white"
+                radius: 4
+            }
+            // MouseArea {
+            //     anchors.fill: parent
+            //     onClicked: {
+
+            //         if (patch_single.currentMode == PatchBay.Select){
+            //             mainStack.push("PresetSave.qml")
+            //         }
+            //     }
+            // }
+        }
+    }
 
 }
