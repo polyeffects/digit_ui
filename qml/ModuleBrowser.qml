@@ -10,36 +10,6 @@ Item {
     width:1280
     property bool showing_fav: false
 
-    // Rectangle {
-    //     color: accent_color.name
-    //     x: 0
-    //     y: 0
-    //     width: 1280
-    //     height: 100
-    
-    //     Image {
-    //         x: 10
-    //         y: 9
-    //         source: currentPedalModel.name == "beebo" ? "../icons/digit/Beebo.png" : "../icons/digit/Hector.png" 
-    //     }
-
-    //     Label {
-    //         // color: "#ffffff"
-    //         text: "Add Module"
-    //         elide: Text.ElideRight
-    //         anchors.centerIn: parent
-    //         anchors.bottomMargin: 25 
-    //         horizontalAlignment: Text.AlignHCenter
-    //         width: 1000
-    //         height: 60
-    //         z: 1
-    //         color: Constants.background_color
-    //         font {
-    //             pixelSize: 36
-    //             capitalization: Font.AllUppercase
-    //         }
-    //     }
-    // }
     Rectangle {
         x: 21
         y: 21

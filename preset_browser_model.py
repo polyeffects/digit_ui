@@ -1,6 +1,3 @@
-# import sys
-# import psutil
-
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 from PySide2.QtCore import QUrl, QTimer, QAbstractListModel, QModelIndex
@@ -13,8 +10,8 @@ preset info for browsing
 needs: title, description, long_description, tags
 """
 preset_browser_singleton = None
-current_filters = set()
-current_letter = ""
+current_search = ""
+showing_favourite = False
 preset_meta  = {}
 filtered_presets = {}
 author = ""
@@ -72,9 +69,8 @@ class PresetBrowserModel(QAbstractListModel):
 
     @Slot()
     def clear_filter(self):
-        global current_letter
-        current_letter = ""
-        current_filters.clear()
+        global current_search
+        current_search = ""
 
         self.beginResetModel()
         global filtered_presets
@@ -83,39 +79,29 @@ class PresetBrowserModel(QAbstractListModel):
         self.__order = dict(enumerate(filtered_presets.keys()))
         self.endResetModel()
 
+    @Slot(bool)
+    def show_favourites(self, v):
+        global showing_favourite
+        showing_favourite = v
+        self.add_filter(current_search)
+
     # pass in "" to just rerun with no changes
     @Slot(str)
     def add_filter(self, tag=""):
-        global current_letter
-        if tag != "":
-            if len(tag) == 1:
-                if tag == current_letter:
-                    current_letter = ""
-                else:
-                    current_letter = tag
-            else:
-                if tag in current_filters:
-                    current_filters.remove(tag)
-                else:
-                    current_filters.add(tag)
+        global current_search
+        current_search = tag
 
         self.beginResetModel()
         global filtered_presets
 
-        # print("in before len filtered preset", len(filtered_presets), "current filters", current_filters)
-        if len(current_filters) == 0:
+        if showing_favourite:
             filtered_presets = preset_meta
+            filtered_presets = {k:v for (k,v) in filtered_presets.items() if k in favourites["presets"]}
         else:
             filtered_presets = preset_meta
-            # for e in preset_meta.items():
-                # if "tags" not in e[1]:
-                #     print("no tags", e)
-            if "favourites" in current_filters:
-                filtered_presets = {k:v for (k,v) in filtered_presets.items() if k in favourites["presets"]}
-            if "mine" in current_filters:
-                filtered_presets = {k:v for (k,v) in filtered_presets.items() if v["author"] == author}
-        if current_letter != "":
-            filtered_presets = {k:v for (k,v) in filtered_presets.items() if k.strip("/").split("/")[-1][:-6].lower().startswith(current_letter)}
+
+        if current_search != "":
+            filtered_presets = {k:v for (k,v) in filtered_presets.items() if current_search.lower() in k.strip("/").split("/")[-1][:-6].lower()}
 
         # print("len filtered preset is", len(filtered_presets))
         self.__order = dict(enumerate(filtered_presets.keys()))
