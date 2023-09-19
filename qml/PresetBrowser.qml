@@ -145,7 +145,7 @@ Item {
                         wrapMode: Text.Wrap
                         // anchors.top: parent.top
                         font {
-                            pixelSize: 24
+                            pixelSize: 26
                             family: docFont.name
                             weight: Font.Normal
                             // capitalization: Font.AllUppercase

@@ -15,7 +15,6 @@ module info for browsing
 needs: title, description, long_description, tags
 """
 module_browser_singleton = None
-current_filters = set()
 current_search = ""
 showing_favourite = False
 effect_prototypes  = {k:module_info.effect_prototypes_models_all[k] for k in sorted(module_info.effect_prototypes_models_all) if k in module_info.effect_type_maps["beebo"]}
@@ -63,7 +62,6 @@ class ModuleBrowserModel(QAbstractListModel):
     def clear_filter(self):
         global current_search
         current_search = ""
-        current_filters.clear()
 
         self.beginResetModel()
         global filtered_modules

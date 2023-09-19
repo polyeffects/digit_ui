@@ -41,7 +41,8 @@ from static_globals import IS_REMOTE_TEST
 import loopler as loopler_lib
 import module_browser_model
 import preset_browser_model
-import amp_browser_model
+import ir_browser_model
+import reverb_browser_model
 
 worker_pool = QThreadPool()
 EXIT_PROCESS = [False]
@@ -2163,6 +2164,7 @@ if __name__ == "__main__":
     module_browser_model_s = module_browser_model.ModuleBrowserModel(favourites)
     preset_browser_model_s = preset_browser_model.PresetBrowserModel(preset_meta_data, favourites, pedal_state["author"])
     amp_browser_model_s = amp_browser_model.AmpBrowserModel({"nam": [], "amp": []}, knobs)
+    ir_browser_model_s = ir_browser_model.irBrowserModel({"reverbs": [], "cabs": []}, knobs)
 
     patch_bay_notify = PatchBayNotify()
 
@@ -2183,6 +2185,7 @@ if __name__ == "__main__":
     context.setContextProperty("module_browser_model", module_browser_model_s)
     context.setContextProperty("preset_browser_model", preset_browser_model_s)
     context.setContextProperty("amp_browser_model", amp_browser_model_s)
+    context.setContextProperty("ir_browser_model", ir_browser_model_s)
     change_pedal_model(pedal_state["model"], True)
     context.setContextProperty("available_effects", available_effects)
     context.setContextProperty("selectedSourceEffectPorts", selected_source_effect_ports)
