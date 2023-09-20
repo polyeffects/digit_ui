@@ -326,7 +326,7 @@ Rectangle {
         {
             patch_bay.current_help_text = Constants.help["reverb_detail"];
             patchStack.push("ReverbBrowser.qml", {"effect": effect_id,  "effect_type": effect_type,
-            "top_folder": "file:///audio/reverbs",
+            "top_folder": "file:///audio/reverbs/",
             "after_file_selected": (function(name) { 
                 // console.log("got new reveb file");
                 // console.log("file is", name.toString());

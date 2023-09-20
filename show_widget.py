@@ -41,8 +41,8 @@ from static_globals import IS_REMOTE_TEST
 import loopler as loopler_lib
 import module_browser_model
 import preset_browser_model
+import amp_browser_model
 import ir_browser_model
-import reverb_browser_model
 
 worker_pool = QThreadPool()
 EXIT_PROCESS = [False]
@@ -976,11 +976,18 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
     @Slot(str, str)
     def update_ir(self, effect_id, ir_file):
         is_cab = True
+        prefix="file://"
         effect_type = current_effects[effect_id]["effect_type"]
         if effect_type in ["mono_reverb", "stereo_reverb", "quad_ir_reverb"]:
             is_cab = False
+
+        if "file://" in ir_file:
+            prefix=''
+
         current_effects[effect_id]["controls"]["ir"].name = ir_file
-        ingen_wrapper.set_file(effect_id, ir_file, is_cab)
+        ir_browser_model_s.external_ir_set(ir_file)
+        # print("#### file", ir_file, "prefix", prefix)
+        ingen_wrapper.set_file(effect_id, prefix+ir_file, is_cab)
 
     @Slot(str, str)
     def update_json(self, effect_id, ir_file):

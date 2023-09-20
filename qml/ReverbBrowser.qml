@@ -23,8 +23,8 @@ Item {
     property string effect_type
     property url current_selected: currentEffects[effect]["controls"]["ir"].name
     // property string display_name: remove_suffix(mainRect.basename(mainRect.current_selected))
-    // property url top_folder: "file:///audio/reverbs/"
     property url top_folder: "file:///home/loki/shared/cabs_and_reverbs/reverbs/"
+    // property url top_folder: 'file:///audio/reverbs/'
     property var after_file_selected: (function(name) { return null; })
     property bool is_loading: false
     height: 720
@@ -537,7 +537,7 @@ Item {
                                 topPadding: 5
                                 leftPadding: 15
                                 rightPadding: 15
-                                checked: update_counter, current_selected == modelData
+                                checked: update_counter, current_selected == top_folder+modelData
                                 onClicked: {
                                     // ir_selected_controls[control_name] = modelData;
                                     ir_browser_model.set_ir_file(effect, modelData);
