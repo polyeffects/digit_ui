@@ -223,7 +223,7 @@ if __name__ == "__main__":
     knobs = Knobs()
     module_browser_model_s = module_browser_model.ModuleBrowserModel({"modules": [], "presets": []})
     amp_browser_model_s = amp_browser_model.AmpBrowserModel({"nam": [], "amp": []}, knobs)
-    ir_browser_model_s = ir_browser_model.irBrowserModel({"reverbs": [], "cabs": []}, knobs)
+    # ir_browser_model_s = ir_browser_model.irBrowserModel({"reverbs": [], "cabs": []}, knobs)
     #loopler = loopler_lib.Loopler()
     #loopler.start_loopler()
 
@@ -248,6 +248,8 @@ if __name__ == "__main__":
     # qmlRegisterType(patch_bay_model.PatchBayModel, 'Poly', 1, 0, 'PatchBayModel')
     # Expose the object to QML.
     # global context
+
+    qmlRegisterType(ir_browser_model.irBrowserModel, "ir_browser_module", 1, 0, "IrBrowserModel")
     context = engine.rootContext()
 
     accent_color = PolyValue("#FFA0E0", 0, -1, 1)
@@ -255,7 +257,7 @@ if __name__ == "__main__":
     # context.setContextProperty("loopler", loopler)
     context.setContextProperty("module_browser_model", module_browser_model_s)
     context.setContextProperty("amp_browser_model", amp_browser_model_s)
-    context.setContextProperty("ir_browser_model", ir_browser_model_s)
+    # context.setContextProperty("ir_browser_model", ir_browser_model_s)
     context.setContextProperty("accent_color", accent_color)
     context.setContextProperty("currentPedalModel", current_pedal_model)
     context.setContextProperty("currentEffects", current_effects) 

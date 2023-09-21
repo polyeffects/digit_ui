@@ -5,6 +5,7 @@ import Qt.labs.folderlistmodel 2.2
 import "polyconst.js" as Constants
 import QtQuick.Controls.Material 2.3
 import QtQuick.VirtualKeyboard 2.1
+import ir_browser_module 1.0
 
 // ApplicationWindow {
 //     visible: true
@@ -22,11 +23,14 @@ Item {
     property string effect
     property string effect_type
     property url current_selected: currentEffects[effect]["controls"]["ir"].name
+    property string current_reverse: ir_browser_model.external_ir_set(current_selected)
     // property string display_name: remove_suffix(mainRect.basename(mainRect.current_selected))
-    property url top_folder: "file:///home/loki/shared/cabs_and_reverbs/reverbs/"
+    // property url top_folder: "file:///home/loki/shared/cabs_and_reverbs/reverbs/"
+    property url top_folder: "file:///home/loki/shared/cabs_and_reverbs/cabs/"
     // property url top_folder: 'file:///audio/reverbs/'
     property var after_file_selected: (function(name) { return null; })
     property bool is_loading: false
+    property bool is_cab: true
     height: 720
     width: 1280
 
@@ -46,14 +50,20 @@ Item {
        return x.replace(/\.[^/.]+$/, "") 
     }
 
-    function format_name(prefix, name){
+    function format_name(category, prefix, name){
+        console.log("prefix is", prefix, "name is", name);
+        
+        if (prefix.startsWith(category+"-")){
+            // prefix = prefix.slice((category+"_").length, );
+        }
         const regex = new RegExp('.+'+prefix); 
         return name.replace(regex, '').replace(".wav", "").replace(/_/g, " ").replace('/', '');
     }
 
     function category_colour(category)
     {
-        return {"Real Spaces":Constants.poly_pink, "Analog Reverb Devices": Constants.poly_yellow, "Digital Reverb Devices": Constants.poly_blue, "imported": Constants.poly_purple}[category]
+        return {"Real Spaces":Constants.poly_pink, "Analog Reverb Devices": Constants.poly_yellow, "Digital Reverb Devices": Constants.poly_blue, "imported": Constants.poly_purple, 
+        "bass":Constants.poly_pink, "guitar": Constants.poly_yellow, "other": Constants.poly_blue, "imported": Constants.poly_purple}[category]
     }
 
     Rectangle {
@@ -111,7 +121,7 @@ Item {
             //     text: "UP"
             //     visible: folderListModel.folder != top_folder
             //     Material.foreground: Constants.background_color
-            //     background_color: accent_color.name
+            //     background_color: accent_color.name"
             //     onClicked: {
             //         folderListModel.folder = folderListModel.parentFolder
             //         // console.log(folderListModel.folder, top_folder);
@@ -136,13 +146,10 @@ Item {
                 cellHeight: 410
                 visible: !(is_loading)
 
-                model: ir_browser_model 
-                // model: FolderListModel {
-                //     id: folderListModel
-                //     showDirsFirst: true
-                //     folder: top_folder
-    // //                nameFilters: ["*.mp3", "*.flac"]
-                // }
+                model: IrBrowserModel {
+                     id: ir_browser_model
+                     Component.onCompleted: set_knobs(knobs, top_folder.toString().slice(7), is_cab)
+                }
                 delegate: Item {
                     width: 300
                     height: 400
@@ -152,7 +159,7 @@ Item {
                     Rectangle {
                         width: parent.width
                         height: parent.height
-                        color: is_selected ? "white" : Constants.background_color  
+                        color: is_selected ? Constants.poly_green : Constants.background_color  
                         radius: 12
                         border.width: 2
                         border.color: Constants.outline_color
@@ -165,7 +172,7 @@ Item {
                         Image {
                             x: 10
                             y: 10
-                            source: top_folder+ir_image
+                            source: ir_image.length > 0 ? top_folder+ir_image : top_folder+"placeholder.jpg"
                             width: 280
                             height: 280
 
@@ -442,7 +449,7 @@ Item {
 					Image {
 						x: 0
 						y: 0
-                        source: top_folder+ir_image
+                        source: ir_image.length > 0 ? top_folder+ir_image : top_folder+"placeholder.jpg"
 						width: 280
 						height: 280
 
@@ -546,7 +553,7 @@ Item {
                                 Material.foreground: checked ? Constants.poly_green : "white"
                                 border_color: Constants.poly_dark_grey
                                 background_color: Constants.background_color
-                                text:ir_num_captures > 1 ? format_name(ir_name, control_name) : ir_display_name
+                                text:ir_num_captures > 1 ? format_name(ir_category, ir_name, control_name) : ir_display_name
                                 radius: 10
                                 font_size: 22
                             }
