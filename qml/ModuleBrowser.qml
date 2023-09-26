@@ -35,6 +35,9 @@ Item {
             
             }
         }
+        Component.onCompleted: {
+            module_browser_model.show_favourites(showing_fav);
+        }
     }
 
     InputPanel {
