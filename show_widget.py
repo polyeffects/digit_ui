@@ -1590,6 +1590,7 @@ class Encoder():
         self.rmin = 0
         self.rmax = 1
         self.is_loopler = False
+        self.is_locked = False
         self.loop_index = -1
 
 knob_map = {"left": Encoder(s_speed=0.04), "right": Encoder(s_speed=0.8)}

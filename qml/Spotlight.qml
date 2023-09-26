@@ -10,6 +10,7 @@ Item {
     id: control
 	property string selected_effect: knobs.spotlight_entries.length == 0 ? ""  : knobs.spotlight_entries[0][0]
 	property string selected_param: knobs.spotlight_entries.length == 0 ? ""  : knobs.spotlight_entries[0][1]
+	property string num_param: knobs.spotlight_entries.length
 
     function rsplit(str, sep, maxsplit) {
         var split = str.split(sep);
@@ -50,31 +51,22 @@ Item {
 		x: 50
 		y: 70
 		spacing: 30
-        visible: knobs.spotlight_entries.length > 0
+        visible: num_param > 0
 
-        DelayRow {
-            id: slider
-            visible: selected_param != ""
-            row_param: selected_param
-            current_effect: selected_effect
-            Material.foreground: Constants.rainbow[0]
-            v_type: ModuleInfo.effectPrototypes[selected_effect]["controls"][selected_param].length > 4 ? ModuleInfo.effectPrototypes[selected_effect]["controls"][selected_param][4] : "float"
-            width: 1180
-        }
+       
 
-
-		Grid {
+		Row {
 			spacing: 32 
-			height: 462
+			height: 180
 			width: 1180
-			rows: 2
 
 			Repeater {
-				model: knobs.spotlight_entries 
+                id: top_rep
+                model: knobs.spotlight_entries.length > 1 ? knobs.spotlight_entries.slice(0, num_param / 2) : knobs.spotlight_entries
 
 				ValueButton {
-					width: 210
-					height: 160
+					width: (1180 / top_rep.count) - ((top_rep.count-1) * 16)
+					height: 180
 					// checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
 					checked: control.selected_param == modelData[1] && control.selected_effect == modelData[0]
 					onClicked: {
@@ -97,7 +89,52 @@ Item {
 					value: currentEffects[modelData[0]]["controls"][modelData[1]].value.toFixed(2)
 				}
 			}
-		}
+        }
+        DelayRow {
+            id: slider
+            visible: selected_param != ""
+            row_param: selected_param
+            current_effect: selected_effect
+            Material.foreground: Constants.rainbow[0]
+            v_type: ModuleInfo.effectPrototypes[selected_effect]["controls"][selected_param].length > 4 ? ModuleInfo.effectPrototypes[selected_effect]["controls"][selected_param][4] : "float"
+            width: 1180
+        }
+
+		Row {
+			spacing: 32 
+			height: 180
+			width: 1180
+
+			Repeater {
+                id: bottom_rep
+                model: num_param > 1 ? knobs.spotlight_entries.slice(num_param / 2) : []
+
+				ValueButton {
+					width: (1180 / bottom_rep.count) - ((bottom_rep.count-1) * 16)
+					height: 180
+					// checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
+					checked: control.selected_param == modelData[1] && control.selected_effect == modelData[0]
+					onClicked: {
+						 control.selected_effect = modelData[0]
+						 control.selected_param = modelData[1]
+						 slider.Material.foreground = Constants.rainbow[top_rep.count+index]
+						 // slider.force_update = !(slider.force_update)
+					}
+                    onPressedChanged: {
+                        if (pressed){
+                            knobs.set_knob_current_effect(modelData[0], modelData[1]);
+                            if (patch_single.more_hold){
+                                patch_single.more_hold = false;
+                                patchStack.push("More.qml", {"current_effect": modelData[0], "row_param": modelData[1]});
+                            }
+                        }
+                    }
+					Material.foreground: Constants.rainbow[top_rep.count+index]
+					text: rsplit(modelData[0], "/", 1)[1].replace(/_/g, " ").replace(/1$/, '') + "\n" + currentEffects[modelData[0]]["controls"][modelData[1]].name
+					value: currentEffects[modelData[0]]["controls"][modelData[1]].value.toFixed(2)
+				}
+			}
+        }
 	}
 
     Text {
