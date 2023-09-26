@@ -1123,7 +1123,7 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
         command = """ sudo mount -o remount,rw /dev/mmcblk0p2 /mnt; if [ -d /usb_flash/reverbs ]; then cd /usb_flash/reverbs; rename 's/[^a-zA-Z0-9. _-]/_/g' **; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/reverbs --parents; fi;
         if [ -d /usb_flash/cabs ]; then cd /usb_flash/cabs; rename 's/[^a-zA-Z0-9. _-]/_/g' **; find . -iname "*.wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/mnt/audio/cabs --parents; fi; sudo mount -o remount,ro /dev/mmcblk0p2 /mnt;"""
         command_status[0].value = -1
-        self.launch_subprocess(command)
+        self.launch_subprocess(command, after=ir_browser_model.combine_metadata)
 
     @Slot()
     def ui_copy_amps(self):

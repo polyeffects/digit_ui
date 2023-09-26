@@ -90,7 +90,7 @@ class ModuleBrowserModel(QAbstractListModel):
         else:
             filtered_modules = effect_prototypes
         if current_search != "":
-            filtered_modules = {k:v for (k,v) in filtered_modules.items() if (current_search.lower() in k.lower()) or (current_search.lower() in v["description"].lower())}
+            filtered_modules = {k:v for (k,v) in filtered_modules.items() if (current_search.lower() in k.replace("_", " ").lower()) or (current_search.lower() in v["description"].lower())}
 
             # print("len filtered modules", len(filtered_modules))
         self.__order = dict(enumerate(filtered_modules.keys()))

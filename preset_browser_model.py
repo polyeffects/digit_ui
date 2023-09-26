@@ -101,7 +101,7 @@ class PresetBrowserModel(QAbstractListModel):
             filtered_presets = preset_meta
 
         if current_search != "":
-            filtered_presets = {k:v for (k,v) in filtered_presets.items() if current_search.lower() in k.strip("/").split("/")[-1][:-6].lower()}
+            filtered_presets = {k:v for (k,v) in filtered_presets.items() if current_search.lower() in k.strip("/").split("/")[-1][:-6].lower().replace("_", " ")}
 
         # print("len filtered preset is", len(filtered_presets))
         self.__order = dict(enumerate(filtered_presets.keys()))
