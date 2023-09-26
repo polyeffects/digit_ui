@@ -539,7 +539,7 @@ Item {
             Rectangle {
                 x: 354
                 y: 10
-                width: 980
+                width: 720
                 height: 540
                 color: Constants.background_color
                 
@@ -555,7 +555,7 @@ Item {
                     clip: true
                     delegate: Item {
                         property string control_name: modelData //.split(":")[1]
-                        width: 857
+                        width: 702
                         height: 60
                         // Rectangle {
                         //     width: parent.width
@@ -570,7 +570,7 @@ Item {
                             // width: 362
                             PolyButton {
                                 height: 64
-                                width: 800
+                                width: 702
                                 topPadding: 5
                                 leftPadding: 15
                                 rightPadding: 15
@@ -600,6 +600,18 @@ Item {
                     }
                 }
             }
+
+            VerticalSlider {
+                x: 1125
+                y: 50
+                width: 120 
+                height: 500
+                title: "Gain (dB)"
+                current_effect: effect
+                row_param: "gain"
+                Material.foreground: Constants.poly_green
+            }
+
         }
     }
 }

@@ -70,7 +70,7 @@ T.Slider {
         // anchors.centerIn: parent
         x: control.leftPadding + (control.horizontal ? handle.width + padding : (control.availableWidth - width) / 2)
         y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : control.availableHeight + 20 )
-        text: title + (control.horizontal ? "  "+control.value.toFixed(2) : "")
+        text: title + (control.horizontal ? "  "+control.value.toFixed(control.stepSize == 1.0 && title != "pitch" ? 0 : 2) : "")
         // height: 15
         color: "white"
         horizontalAlignment: Text.AlignHCenter
@@ -89,7 +89,7 @@ T.Slider {
         // anchors.centerIn: parent
         x: control.leftPadding + (control.horizontal ? handle.width + padding : (control.availableWidth - width) / 2)
         y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : control.availableHeight + 45 ) 
-        text: control.value.toFixed(2)
+        text: control.value.toFixed(control.stepSize == 1.0 ? 0 : 2)
         // height: 15
         color: accent
         horizontalAlignment: Text.AlignHCenter
