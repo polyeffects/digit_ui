@@ -47,9 +47,65 @@ Item {
     //         }
     //     }
     // }
+    Row {
+        x: 29
+        y: 11
+        spacing: 32 
+
+        PolyButton {
+            width: 220
+            height: 80
+            Material.foreground: Constants.poly_orange
+            border_color: Constants.poly_orange
+            background_color: Constants.background_color
+            text: "left knob"
+            font_size: 30
+            onClicked: knobs.toggle_spotlight_binding(control.selected_effect, control.selected_param, "l")
+        }
+        PolyButton {
+            width: 160
+            height: 80
+            Material.foreground: Constants.poly_yellow
+            border_color: Constants.poly_yellow
+            background_color: Constants.background_color
+            text: "x assign"
+            font_size: 30
+            onClicked: knobs.toggle_spotlight_binding(control.selected_effect, control.selected_param, "x")
+        }
+        PolyButton {
+            width: 335
+            height: 80
+            Material.foreground: "white"
+            border_color: "white"
+            background_color: Constants.background_color
+            text: "xy view"
+            font_size: 30
+        }
+        PolyButton {
+            width: 160
+            height: 80
+            Material.foreground: Constants.poly_green
+            border_color: Constants.poly_green
+            background_color: Constants.background_color
+            text: "y assign"
+            font_size: 30
+            onClicked: knobs.toggle_spotlight_binding(control.selected_effect, control.selected_param, "y")
+        }
+        PolyButton {
+            width: 220
+            height: 80
+            Material.foreground: Constants.poly_purple
+            border_color: Constants.poly_purple
+            background_color: Constants.background_color
+            text: "right knob"
+            font_size: 30
+            onClicked: knobs.toggle_spotlight_binding(control.selected_effect, control.selected_param, "r")
+        }
+
+    }
 	Column {
-		x: 50
-		y: 70
+		x: 29
+		y: 124
 		spacing: 30
         visible: num_param > 0
 
@@ -87,6 +143,74 @@ Item {
 					Material.foreground: Constants.rainbow[index]
 					text: rsplit(modelData[0], "/", 1)[1].replace(/_/g, " ").replace(/1$/, '') + "\n" + currentEffects[modelData[0]]["controls"][modelData[1]].name
 					value: currentEffects[modelData[0]]["controls"][modelData[1]].value.toFixed(2)
+
+                    PolyButton {
+                        visible: modelData[2].indexOf("l") >= 0
+                        x: -10
+                        y: -10 
+                        height: 32
+                        width: 32
+                        // topPadding: 5
+                        // leftPadding: 10
+                        // rightPadding: 10
+                        // radius: 25
+                        Material.foreground: Constants.background_color
+                        border_color: Constants.poly_orange
+                        background_color: Constants.poly_orange
+                        text: "L"
+                        font_size: 28
+                    }
+
+                    PolyButton {
+                        visible: modelData[2].indexOf("x") >= 0
+                        x: 42
+                        y: -10 
+                        height: 32
+                        width: 32
+                        // topPadding: 5
+                        // leftPadding: 10
+                        // rightPadding: 10
+                        // radius: 25
+                        Material.foreground: Constants.background_color
+                        border_color: Constants.poly_yellow
+                        background_color: Constants.poly_yellow
+                        text: "X"
+                        font_size: 28
+                    }
+
+                    PolyButton {
+                        visible: modelData[2].indexOf("y") >= 0
+                        x: parent.width - 72
+                        y: -10 
+                        height: 32
+                        width: 32
+                        // topPadding: 5
+                        // leftPadding: 10
+                        // rightPadding: 10
+                        // radius: 25
+                        Material.foreground: Constants.background_color
+                        border_color: Constants.poly_green
+                        background_color: Constants.poly_green
+                        text: "Y"
+                        font_size: 28
+                    }
+
+                    PolyButton {
+                        visible: modelData[2].indexOf("r") >= 0
+                        x: parent.width - 22
+                        y: -10 
+                        height: 32
+                        width: 32
+                        // topPadding: 5
+                        // leftPadding: 10
+                        // rightPadding: 10
+                        // radius: 25
+                        Material.foreground: Constants.background_color
+                        border_color: Constants.poly_purple
+                        background_color: Constants.poly_purple
+                        text: "R"
+                        font_size: 28
+                    }
 				}
 			}
         }

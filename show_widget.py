@@ -60,7 +60,6 @@ current_patchbay_mode = 0
 current_selected_effect = ""
 footswitch_assignments = {}
 looper_footswitch_assignments = {}
-# spotlight_entries = set()
 preset_started_loading_time = 0
 
 def reset_footswitch_assignments():
@@ -586,8 +585,12 @@ def from_backend_remove_effect(effect_name):
     debug_print("### from backend removing effect")
 
     # if we're in spotlight, remove from spotlight
-    if len([[k, v] for k,v in knobs.spotlight_entries if k == effect_name]) > 0:
-        knobs.spotlight_entries = [[k, v] for k,v in knobs.spotlight_entries if k != effect_name]
+    if len([[k, v, v2] for k,v,v2 in knobs.spotlight_entries if k == effect_name]) > 0:
+
+        for spotlight_entry in knobs.spotlight_entries:
+            if spotlight_entry[0] == effect_name:
+                spotlight_entries_changed(spotlight_entry[0], spotlight_entry[1], '', spotlight_entry[2])
+        knobs.spotlight_entries = [[k, v, v2] for k,v, v2 in knobs.spotlight_entries if k != effect_name]
     # emit remove signal
     for source_port, targets in list(port_connections.items()):
         s_effect, s_port = source_port.rsplit("/", 1)
@@ -1542,16 +1545,52 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
     @Slot(str, str)
     def expose_spotlight(self, effect_name, parameter):
         # this toggles, if we're already learned, forget. No way to currently cancel waiting for midi
-        if [effect_name, parameter] in self.spotlight_entries:
+        spotlight_entry = [b for b in self.spotlight_entries if b[0:2] == [effect_name, parameter]]
+        if spotlight_entry == []:
             # remove it
             ingen_wrapper.spotlight_remove(effect_name+"/"+parameter)
-            self.spotlight_entries.remove([effect_name, parameter])
+            spotlight_entries_changed(spotlight_entry[0], spotlight_entry[1], '', spotlight_entry[2])
+            self.spotlight_entries.remove(spotlight_entry[0])
         else:
-            self.spotlight_entries.append([effect_name, parameter])
+            self.spotlight_entries.append([effect_name, parameter, "1"])
             if len(self.spotlight_entries) > 10:
-                e_r, p_r = self.spotlight_entries.pop(0)
+                e_r, p_r, p_v = self.spotlight_entries.pop(0)
                 ingen_wrapper.spotlight_remove(e_r+"/"+p_r)
-            ingen_wrapper.spotlight_add(effect_name+"/"+parameter)
+            ingen_wrapper.spotlight_set(effect_name+"/"+parameter, "1")
+
+    @Slot(str, str, str)
+    def toggle_spotlight_binding(self, effect_name, parameter, control):
+        # this toggles, control is l, r, x, y
+        spotlight_entry = [b for b in self.spotlight_entries if b[0:2] == [effect_name, parameter]]
+        if spotlight_entry == []:
+            # shouldn't ever happen, spotlight should be bound already
+            return
+        i = self.spotlight_entries.index(spotlight_entry[0])
+
+        current_v = spotlight_entry[0][2]
+        prev_v = current_v
+
+
+        if control in current_v:
+            current_v = current_v.replace(control, "")
+        else:
+            current_v = current_v+control
+        print("#### current v ", current_v, effect_name, parameter)
+        ingen_wrapper.spotlight_set(effect_name+"/"+parameter, current_v)
+        self.spotlight_entries[i] = [effect_name, parameter, current_v]
+        spotlight_entries_changed(effect_name, parameter, current_v, prev_v)
+
+def spotlight_entries_changed(effect_name, parameter, cur_v, prev_v):
+    # online 
+    # l, r, x, y are stored in a list for easy iteration
+    cur_v  = cur_v.replace("1", "").replace("0", "")
+    prev_v  = prev_v.replace("1", "").replace("0", "")
+    added = set(cur_v) - set(prev_v)
+    removed = set(prev_v) - set(cur_v)
+    for control in added:
+        spotlight_map[control].add((effect_name, parameter))
+    for control in removed:
+        spotlight_map[control].discard((effect_name, parameter))
 
 def io_new_effect(effect_name, effect_type, x=20, y=30):
     # called by engine code when new effect is created
@@ -1594,6 +1633,7 @@ class Encoder():
         self.loop_index = -1
 
 knob_map = {"left": Encoder(s_speed=0.04), "right": Encoder(s_speed=0.8)}
+spotlight_map = {"l": set(), "r": set(), "x": set(), "y": set()}
 
 def handle_encoder_change(is_left, change):
     # debug_print(is_left, change)
@@ -1620,25 +1660,37 @@ def handle_encoder_change(is_left, change):
         knob_speed = 5
         value = value + (change * knob_speed * base_speed)
         encoder_qa[qa_k].value = value
+    # iterate over this knob in spotlight mapping if it exists
+    spotlighted = {}
+    if is_left:
+        spotlighted = spotlight_map["l"]
+    else:
+        spotlighted = spotlight_map["r"]
 
-    if not knob_effect or knob_effect not in current_effects and not knob_map[knob].is_loopler:
-        return
     if is_left:
         knob_speed = knob_map["left"].speed
     else:
         knob_speed = knob_map["right"].speed
     # base speed * speed multiplier
     base_speed = (abs(knob_map[knob].rmin) + abs(knob_map[knob].rmax)) / normal_speed
+    if len(spotlighted) > 0:
+        for knob_effect, knob_parameter in spotlighted:
+            value = current_effects[knob_effect]["controls"][knob_parameter].value
+            value = value + (change * knob_speed * base_speed)
+            knobs.ui_knob_change(knob_effect, knob_parameter, value)
+    elif current_patchbay_mode == PatchMode.DETAILS:
+        if not knob_effect or knob_effect not in current_effects and not knob_map[knob].is_loopler:
+            return
 
-    if knob_map[knob].is_loopler:
-        loopler.change_from_knob(knob_effect, knob_parameter, knob_map[knob].loop_index, change, knob_speed * base_speed, knob_map[knob].rmin, knob_map[knob].rmax)
-    else:
-        value = current_effects[knob_effect]["controls"][knob_parameter].value
-        value = value + (change * knob_speed * base_speed)
+        if knob_map[knob].is_loopler:
+            loopler.change_from_knob(knob_effect, knob_parameter, knob_map[knob].loop_index, change, knob_speed * base_speed, knob_map[knob].rmin, knob_map[knob].rmax)
+        else:
+            value = current_effects[knob_effect]["controls"][knob_parameter].value
+            value = value + (change * knob_speed * base_speed)
 
-        # debug_print("knob value is", value)
-        # knob change handles clamping
-        knobs.ui_knob_change(knob_effect, knob_parameter, value)
+            # debug_print("knob value is", value)
+            # knob change handles clamping
+            knobs.ui_knob_change(knob_effect, knob_parameter, value)
 
 def set_bpm(bpm):
     current_bpm.value = bpm
@@ -2017,14 +2069,17 @@ def process_ui_messages():
                 effect_name, parameter = effect_name_parameter.rsplit("/", 1)
                 try:
                     if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
-                        if int(value) > 0:
+                        if value != "0":
                             # we're spotlighted
-                            if [effect_name, parameter] not in knobs.spotlight_entries:
-                                knobs.spotlight_entries.append([effect_name, parameter])
+                            if [effect_name, parameter, value] not in knobs.spotlight_entries:
+                                knobs.spotlight_entries.append([effect_name, parameter, value])
+                                spotlight_entries_changed(effect_name, parameter, value, '')
                         else:
                             # remove spotlight if found
-                            if [effect_name, parameter] in knobs.spotlight_entries:
-                                knobs.spotlight_entries.remove([effect_name, parameter])
+                            spotlight_entry = [b for b in knobs.spotlight_entries if b[0:2] == [effect_name, parameter]]
+                            if spotlight_entry != []:
+                                spotlight_entries_changed(spotlight_entry[0], spotlight_entry[1], '', spotlight_entry[2])
+                                knobs.spotlight_entries.remove(spotlight_entry)
                         # print("updated ", effect_name, parameter, value)
                 except ValueError:
                     pass

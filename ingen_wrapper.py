@@ -215,11 +215,11 @@ def midi_learn(port):
 def midi_forget(port):
     q.put((ingen.patch, port, "midi:binding patch:wildcard", ""))
 
-def spotlight_add(port):
-    q.put((ingen.set, port, "http://polyeffects.com/ns/core#spotlight", "1"))
+def spotlight_set(port, value):
+    q.put((ingen.set, port, "http://polyeffects.com/ns/core#spotlight", f'"""{value}"""'))
 
 def spotlight_remove(port):
-    q.put((ingen.set, port, "http://polyeffects.com/ns/core#spotlight", "0"))
+    q.put((ingen.set, port, "http://polyeffects.com/ns/core#spotlight", f'"""0"""'))
 
 def add_input(port_id, x, y):
     # put /main/left_in 'a lv2:InputPort ; a lv2:AudioPort'
@@ -600,7 +600,7 @@ def parse_ingen(to_parse):
                 if has_predicate(body, poly_spotlight):
                     value = get_body_value(body, poly_spotlight)
                     # print("has poly_spoltlight", subject, "value", value)
-                    ui_queue.put(("spotlight", subject, int(str(value))))
+                    ui_queue.put(("spotlight", subject, str(value)))
             elif has_object(body, ingen_Arc):
                 head = ""
                 tail = ""
@@ -669,7 +669,7 @@ def parse_ingen(to_parse):
         if m.ask(None, patch_property, poly_spotlight):
             value = get_value(m, patch_value)
             # print("broadcast_update parsed", subject, "value", value)
-            ui_queue.put(("spotlight", subject, int(str(value))))
+            ui_queue.put(("spotlight", subject, str(value)))
         elif m.ask(None, patch_property, ingen_value):
             value = get_value(m, patch_value)
             # print("broadcast_update parsed", subject, "value", value)
