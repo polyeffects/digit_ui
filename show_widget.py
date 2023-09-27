@@ -1400,6 +1400,17 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
             knob_map[knob].rmax = current_effects[effect_id]["controls"][parameter].rmax
             knob_map[knob].is_loopler = False
 
+    @Slot()
+    def clear_knob_effect(self):
+        # get current value and update encoder / cache.
+        # qDebug("setting knob current effect" + parameter)
+        knob = "left"
+        knob_map[knob].effect = ""
+        knob_map[knob].parameter = ""
+        knob_map[knob].rmin = 0
+        knob_map[knob].rmax = 1
+        knob_map[knob].is_loopler = False
+
     @Slot(str, int, str, float, float)
     def set_loopler_knob(self, effect_id, loop_index, parameter, rmin, rmax):
         # get current value and update encoder / cache.

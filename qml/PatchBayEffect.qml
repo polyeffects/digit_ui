@@ -235,6 +235,7 @@ Rectangle {
     }
 
     function expand_clicked () {
+        knobs.clear_knob_effect();
         patch_bay.currentMode = PatchBay.Details;
 		title_text = effect_type.replace(/_/g, " ")
 

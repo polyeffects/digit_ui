@@ -17,6 +17,17 @@ Item {
         return maxsplit ? [ split.slice(0, -maxsplit).join(sep) ].concat(split.slice(-maxsplit)) : split;
     }
 
+    Component.onCompleted: {
+
+        if (knobs.spotlight_entries.length > 0){
+            control.selected_effect = knobs.spotlight_entries[0][0]
+            control.selected_param = knobs.spotlight_entries[0][1]
+            slider.Material.foreground = Constants.rainbow[0]
+            knobs.set_knob_current_effect(knobs.spotlight_entries[0][0], knobs.spotlight_entries[0][1]);
+        }
+
+    }
+
     // Rectangle {
     //     color: accent_color.name
     //     x: 0
@@ -103,6 +114,7 @@ Item {
         }
 
     }
+
 	Column {
 		x: 29
 		y: 124
@@ -256,6 +268,74 @@ Item {
 					Material.foreground: Constants.rainbow[top_rep.count+index]
 					text: rsplit(modelData[0], "/", 1)[1].replace(/_/g, " ").replace(/1$/, '') + "\n" + currentEffects[modelData[0]]["controls"][modelData[1]].name
 					value: currentEffects[modelData[0]]["controls"][modelData[1]].value.toFixed(2)
+
+                    PolyButton {
+                        visible: modelData[2].indexOf("l") >= 0
+                        x: -10
+                        y: -10 
+                        height: 32
+                        width: 32
+                        // topPadding: 5
+                        // leftPadding: 10
+                        // rightPadding: 10
+                        // radius: 25
+                        Material.foreground: Constants.background_color
+                        border_color: Constants.poly_orange
+                        background_color: Constants.poly_orange
+                        text: "L"
+                        font_size: 28
+                    }
+
+                    PolyButton {
+                        visible: modelData[2].indexOf("x") >= 0
+                        x: 42
+                        y: -10 
+                        height: 32
+                        width: 32
+                        // topPadding: 5
+                        // leftPadding: 10
+                        // rightPadding: 10
+                        // radius: 25
+                        Material.foreground: Constants.background_color
+                        border_color: Constants.poly_yellow
+                        background_color: Constants.poly_yellow
+                        text: "X"
+                        font_size: 28
+                    }
+
+                    PolyButton {
+                        visible: modelData[2].indexOf("y") >= 0
+                        x: parent.width - 72
+                        y: -10 
+                        height: 32
+                        width: 32
+                        // topPadding: 5
+                        // leftPadding: 10
+                        // rightPadding: 10
+                        // radius: 25
+                        Material.foreground: Constants.background_color
+                        border_color: Constants.poly_green
+                        background_color: Constants.poly_green
+                        text: "Y"
+                        font_size: 28
+                    }
+
+                    PolyButton {
+                        visible: modelData[2].indexOf("r") >= 0
+                        x: parent.width - 22
+                        y: -10 
+                        height: 32
+                        width: 32
+                        // topPadding: 5
+                        // leftPadding: 10
+                        // rightPadding: 10
+                        // radius: 25
+                        Material.foreground: Constants.background_color
+                        border_color: Constants.poly_purple
+                        background_color: Constants.poly_purple
+                        text: "R"
+                        font_size: 28
+                    }
 				}
 			}
         }
