@@ -1545,6 +1545,19 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
         else:
             debug_print("effect not found", effect_name, parameter, value, effect_name in current_effects)
 
+    @Slot(result=str)
+    def get_midi_assignments(self):
+        r = "MIDI Assignments \n"
+        for effect_name in current_effects:
+
+            effect_display_name = effect_name.rsplit("/", 1)[1].rstrip("1").replace("_", " ")
+            for parameter in current_effects[effect_name]["controls"]:
+                cc = current_effects[effect_name]["controls"][parameter].cc
+                parameter_name = current_effects[effect_name]["controls"][parameter].name
+                if cc > -1:
+                    r = r + f"Effect: {effect_display_name} Parameter: {parameter_name} Channel: {(cc >> 8)+1} CC: {cc & 0xFF}\n"
+        return r
+
     @Slot(str)
     def finish_remove_effect(self, effect_name):
         try:
@@ -2289,7 +2302,7 @@ if __name__ == "__main__":
     context.setContextProperty("encoderQA", encoder_qa)
     context.setContextProperty("footSwitchWarning", foot_switch_warning)
     context.setContextProperty("lToR", is_l_to_r)
-    context.setContextProperty("pedalboardDescription", preset_description)
+    context.setContextProperty("preset_description", preset_description)
     context.setContextProperty("patchBayNotify", patch_bay_notify)
     context.setContextProperty("favourites", favourites)
     context.setContextProperty("pedalState", pedal_state)

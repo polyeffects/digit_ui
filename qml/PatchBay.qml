@@ -390,7 +390,7 @@ import "module_info.js" as ModuleInfo
             width: 500
             height: 100
             color: "grey" // Constants.outline_color
-            text: pedalboardDescription.name
+            text: preset_description.name
             // onEditingFinished: {
             //     knobs.set_description(text)
             // }
@@ -1024,7 +1024,7 @@ import "module_info.js" as ModuleInfo
                         horizontalAlignment: TextEdit.AlignHCenter
                         width: 800
                         height: 400
-                        text: pedalboardDescription.name
+                        text: preset_description.name
                         anchors.horizontalCenter: parent.horizontalCenter
                         inputMethodHints: Qt.ImhUppercaseOnly
                         onEditingFinished: {

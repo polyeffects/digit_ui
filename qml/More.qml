@@ -61,10 +61,10 @@ Item {
                 Label {
                     x: 0
                     y: 90 
-                    text: midiCC > -1 ? "MIDI\nCC:"+midiCC : "MIDI"
+                    text: midiCC > -1 ? "MIDI\nChannel: "+ ((midiCC >> 8)+1) +"\nCC: "+(midiCC & 0xFF)  : "MIDI"
                     horizontalAlignment: Text.AlignHCenter
                     width: 195
-                    height: 22
+                    height: 32
                     z: 1
                     color: midiButton.checked || learning ? "black" : "white"
                     font {
