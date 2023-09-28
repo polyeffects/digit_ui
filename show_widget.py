@@ -1556,16 +1556,18 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
     @Slot(str, str)
     def expose_spotlight(self, effect_name, parameter):
         # this toggles, if we're already learned, forget. No way to currently cancel waiting for midi
-        spotlight_entry = [b for b in self.spotlight_entries if b[0:2] == [effect_name, parameter]]
-        if spotlight_entry == []:
+        l_spotlight_entries = [b for b in self.spotlight_entries if b[0:2] == [effect_name, parameter]]
+        if l_spotlight_entries != []:
+            spotlight_entry = l_spotlight_entries[0]
             # remove it
-            ingen_wrapper.spotlight_remove(effect_name+"/"+parameter)
             spotlight_entries_changed(spotlight_entry[0], spotlight_entry[1], '', spotlight_entry[2])
-            self.spotlight_entries.remove(spotlight_entry[0])
+            ingen_wrapper.spotlight_remove(effect_name+"/"+parameter)
+            self.spotlight_entries.remove(spotlight_entry)
         else:
             self.spotlight_entries.append([effect_name, parameter, "1"])
             if len(self.spotlight_entries) > 10:
                 e_r, p_r, p_v = self.spotlight_entries.pop(0)
+                spotlight_entries_changed(e_r, p_r, '', p_v)
                 ingen_wrapper.spotlight_remove(e_r+"/"+p_r)
             ingen_wrapper.spotlight_set(effect_name+"/"+parameter, "1")
 
@@ -2087,8 +2089,9 @@ def process_ui_messages():
                                 spotlight_entries_changed(effect_name, parameter, value, '')
                         else:
                             # remove spotlight if found
-                            spotlight_entry = [b for b in knobs.spotlight_entries if b[0:2] == [effect_name, parameter]]
-                            if spotlight_entry != []:
+                            l_spotlight_entries = [b for b in knobs.spotlight_entries if b[0:2] == [effect_name, parameter]]
+                            if l_spotlight_entries != []:
+                                spotlight_entry = l_spotlight_entries[0]
                                 spotlight_entries_changed(spotlight_entry[0], spotlight_entry[1], '', spotlight_entry[2])
                                 knobs.spotlight_entries.remove(spotlight_entry)
                         # print("updated ", effect_name, parameter, value)
