@@ -8,7 +8,6 @@ Item {
     height:720
     width:1280
     id: control
-    property string effect_type
 
 
     // Rectangle {
@@ -93,7 +92,7 @@ Item {
             MouseArea {
                 anchors.fill: parent
                 onClicked: { 
-                    mainStack.push(enterDescription);
+                    patchStack.push(enterDescription);
                 }
             }
         }
@@ -273,7 +272,7 @@ Item {
                 Material.background: "white"
                 Material.foreground: Constants.outline_color
 
-                onClicked: mainStack.pop()
+                onClicked: patchStack.pop()
             }
         }
     }

@@ -381,34 +381,6 @@ import "module_info.js" as ModuleInfo
             }
         }
 
-        Label {
-            id: pedalboard_description
-            y: currentPedalModel.name == "beebo" ? 15 : 90
-            anchors.horizontalCenter: parent.horizontalCenter
-            horizontalAlignment: Text.AlignHCenter
-            // x: 120
-            width: 500
-            height: 100
-            color: "grey" // Constants.outline_color
-            text: preset_description.name
-            // onEditingFinished: {
-            //     knobs.set_description(text)
-            // }
-            font {
-                pixelSize: fontSizeMedium
-                family: docFont.name
-                weight: Font.Normal
-                capitalization: Font.AllUppercase
-            }
-            z: 0
-            MouseArea {
-                anchors.fill: parent
-                onClicked: { 
-                    mainStack.push(enterDescription);
-                }
-            }
-        }
-
         Component {
             id: patchWrap
             PatchBayEffect {}
@@ -993,75 +965,4 @@ import "module_info.js" as ModuleInfo
             }
         }
 
-        Component {
-            id: enterDescription
-            Item {
-                y: 100
-                height:700
-                width:1280
-                Column {
-                    x: 0
-                    height:600
-                    width:1280
-                    Label {
-                        color: accent_color.name
-                        text: "Preset Description"
-                        font {
-                            pixelSize: fontSizeLarge * 1.2
-                            capitalization: Font.AllUppercase
-                        }
-                        // anchors.top: parent.top
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-
-                    TextArea {
-                        font {
-                            pixelSize: fontSizeMedium
-                            family: docFont.name
-                            weight: Font.Normal
-                            capitalization: Font.AllUppercase
-                        }
-                        horizontalAlignment: TextEdit.AlignHCenter
-                        width: 800
-                        height: 400
-                        text: preset_description.name
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        inputMethodHints: Qt.ImhUppercaseOnly
-                        onEditingFinished: {
-                            knobs.set_description(text)
-                        }
-                    }
-
-                    InputPanel {
-                        // parent:mainWindow.contentItem
-                        z: 1000002
-                        // anchors.bottom:parent.bottom
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        height: 200
-                        width: 1000
-                        visible: Qt.inputMethod.visible
-                    }
-                }
-
-                IconButton {
-                    x: 34 
-                    y: 596
-                    icon.width: 15
-                    icon.height: 25
-                    width: 119
-                    height: 62
-                    text: "DONE"
-                    font {
-                        pixelSize: 24
-                    }
-                    flat: false
-                    icon.name: "back"
-                    Material.background: "white"
-                    Material.foreground: Constants.outline_color
-
-                    onClicked: mainStack.pop()
-                }
-            }
-        }
     }

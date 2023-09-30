@@ -364,7 +364,7 @@ Item {
         l_effect_type: "no_effect"
         module_more: false
         alt_module_more: (function(l_effect_type) { 
-            patchStack.push("SpotlightDetail.qml", {"effect_type": l_effect_type});
+            patchStack.push("SpotlightDetail.qml");
         })
     }
 

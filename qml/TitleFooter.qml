@@ -342,18 +342,21 @@ Item {
                 capitalization: Font.AllUppercase
             }
             background: Rectangle {
-                color: "white"
+                color: patch_single.selected_effect && (currentEffects[patch_single.selected_effect.effect_id]["enabled"].value > 0) || patch_single.in_spotlight ? "white" : Constants.outline_color
                 radius: 4
             }
-            // MouseArea {
-            //     anchors.fill: parent
-            //     onClicked: {
-
-            //         if (patch_single.currentMode == PatchBay.Select){
-            //             mainStack.push("PresetSave.qml")
-            //         }
-            //     }
-            // }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    if(patch_single.in_spotlight){
+                        // show preset description popup
+                        patchStack.push("SpotlightDetail.qml");
+                    } else {
+                        knobs.set_bypass(patch_single.selected_effect.effect_id, !currentEffects[patch_single.selected_effect.effect_id]["enabled"].value);
+                    
+                    }
+                }
+            }
         }
 
         // IconButton {
