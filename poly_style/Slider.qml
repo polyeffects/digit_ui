@@ -45,6 +45,7 @@ T.Slider {
     property string title
     property color accent: Material.foreground
     property bool show_labels: true
+    property bool is_log: false
 
     implicitWidth: Math.max(background ? background.implicitWidth : 0,
                            (handle ? handle.implicitWidth : 0) + leftPadding + rightPadding)
@@ -52,6 +53,50 @@ T.Slider {
                             (handle ? handle.implicitHeight : 0) + topPadding + bottomPadding)
 
     padding: 6
+
+	function logslider(position) {
+		// linear in to log out
+		// input position will be between 0 and 1
+		var minp = 0;
+		var maxp = 1;
+
+		// The output result should be between 20 an 20000
+		var minv = Math.log(20);
+		var maxv = Math.log(20000);
+
+		// calculate adjustment factor
+		var scale = (maxv-minv) / (maxp-minp);
+
+		return Math.exp(minv + scale*(position-minp));
+	}
+
+	function logposition(value) {
+		// log in to linear out
+		// input position will be between 0 and 1
+		var minp = 0;
+		var maxp = 1;
+
+		// The output result should be between 20 an 200000
+		var minv = Math.log(20);
+		var maxv = Math.log(20000);
+
+		// calculate adjustment factor
+		var scale = (maxv-minv) / (maxp-minp);
+
+		return (Math.log(value)-minv) / scale + minp;
+	}
+
+    function format_value(value){
+        // console.log("value is", value, "is log", control.is_log);
+        var v;
+        if (control.is_log){
+            v = logslider(value);
+        } else {
+            v = value;
+        }
+        return v.toFixed(control.stepSize == 1.0 && control.title != "pitch" ? 0 : 2)
+    
+    }
 
     onPressedChanged: {
         if (pressed){
@@ -70,7 +115,7 @@ T.Slider {
         // anchors.centerIn: parent
         x: control.leftPadding + (control.horizontal ? handle.width + padding : (control.availableWidth - width) / 2)
         y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : control.availableHeight + 20 )
-        text: title + (control.horizontal ? "  "+control.value.toFixed(control.stepSize == 1.0 && title != "pitch" ? 0 : 2) : "")
+        text: title + (control.horizontal ? "  "+format_value(control.value) : "")
         // height: 15
         color: "white"
         horizontalAlignment: Text.AlignHCenter
@@ -89,7 +134,7 @@ T.Slider {
         // anchors.centerIn: parent
         x: control.leftPadding + (control.horizontal ? handle.width + padding : (control.availableWidth - width) / 2)
         y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : control.availableHeight + 45 ) 
-        text: control.value.toFixed(control.stepSize == 1.0 ? 0 : 2)
+        text: format_value(control.value)
         // height: 15
         color: accent
         horizontalAlignment: Text.AlignHCenter

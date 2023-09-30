@@ -45,7 +45,7 @@ def combine_metadata():
 
     global amp_folders
     global filtered_amps
-    amp_folders  = sorted(list(master_amp_metadata.keys()))
+    amp_folders  = sorted(list(master_amp_metadata.keys()), key=lambda v: v.upper())
     filtered_amps = amp_folders.copy()
 
 combine_metadata()

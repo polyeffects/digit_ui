@@ -108,7 +108,8 @@ Item {
             Text {
                 x: 22 
                 y: 15
-                text: "Hold the left or right buttons and then slider will change to knob speed to modify knob speed. You can assign either knob to have it always mapped to that control, otherwise knobs will be mapped to the slider you touch in a module. Touch the preset description to edit it."
+                // text: "Hold the left or right buttons and then slider will change to knob speed to modify knob speed. You can assign either knob to have it always mapped to that control, otherwise knobs will be mapped to the slider you touch in a module. Touch the preset description to edit it."
+                text: "You can assign either knob to have it always mapped to that control, otherwise knobs will be mapped to the slider you touch in a module. Touch the preset description to edit it."
                 color: "white"  
                 horizontalAlignment: Text.AlignLeft
                 verticalAlignment: Text.AlignTop
