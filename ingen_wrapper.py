@@ -595,12 +595,26 @@ def parse_ingen(to_parse):
             elif has_predicate(body, ingen_value):
                 # setting value
                 value = get_body_value(body, ingen_value)
-                # print("has predicate value", value, "subject", subject)
+                # print("has predicate value", value, "subject", subject, "body", body)
                 ui_queue.put(("value_change", subject, value))
                 if has_predicate(body, poly_spotlight):
                     value = get_body_value(body, poly_spotlight)
                     # print("has poly_spoltlight", subject, "value", value)
                     ui_queue.put(("spotlight", subject, str(value)))
+                if has_predicate(body, midi_binding):
+                    # print("midi binding predicate")
+                    m_n = get_node(m, midi_binding)
+                    midi_s = tuple(m.range((m_n, None, None)))
+                    if has_predicate(midi_s, midi_controllerNumber):
+                        try:
+                            value = get_body_value(midi_s, midi_controllerNumber)
+                            # print("midi learn parsed: value, ", int(str(value)))
+                            ui_queue.put(("midi_learn", subject, int(str(value))))
+                        except IndexError:
+                            # bender etc are just an out of range CC number... 
+                            # print("midi learn parsed: index error ")
+                            ui_queue.put(("midi_learn", subject, int(256)))
+
             elif has_object(body, ingen_Arc):
                 head = ""
                 tail = ""
@@ -675,9 +689,10 @@ def parse_ingen(to_parse):
             # print("broadcast_update parsed", subject, "value", value)
             ui_queue.put(("broadcast_update", subject, float(str(value))))
         elif m.ask(None, patch_property, midi_binding):
-            # print("midi learn parsed", subject, "to_parse:", to_parse)
+            print("midi learn parsed subject:", subject)
             try:
                 value = get_value(m, midi_controllerNumber)
+                # print("midi learn parsed: value, ", int(str(value)))
                 ui_queue.put(("midi_learn", subject, int(str(value))))
             except IndexError:
                 # bender etc are just an out of range CC number... 

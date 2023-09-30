@@ -1547,7 +1547,7 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
 
     @Slot(result=str)
     def get_midi_assignments(self):
-        r = "MIDI Assignments \n"
+        r = ""
         for effect_name in current_effects:
 
             effect_display_name = effect_name.rsplit("/", 1)[1].rstrip("1").replace("_", " ")
