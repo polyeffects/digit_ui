@@ -91,6 +91,9 @@ Item {
             background_color: Constants.background_color
             text: "xy view"
             font_size: 30
+            onClicked: {
+                patchStack.push("XYPad.qml" );
+            }
         }
         PolyButton {
             width: 160

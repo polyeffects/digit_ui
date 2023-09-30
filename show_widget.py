@@ -1606,6 +1606,24 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
         self.spotlight_entries[i] = [effect_name, parameter, current_v]
         spotlight_entries_changed(effect_name, parameter, current_v, prev_v)
 
+    @Slot(float, float)
+    def xy_pad_change(self, x, y):
+        spotlighted_x = spotlight_map["x"]
+        spotlighted_y = spotlight_map["y"]
+        y = 1.0 - y # flip from UI direction
+
+        for effect_name, parameter in spotlighted_x:
+            value = lerp(current_effects[effect_name]["controls"][parameter].rmin, current_effects[effect_name]["controls"][parameter].rmax, x)
+            knobs.ui_knob_change(effect_name, parameter, value)
+
+        for effect_name, parameter in spotlighted_y:
+            value = lerp(current_effects[effect_name]["controls"][parameter].rmin, current_effects[effect_name]["controls"][parameter].rmax, y)
+            knobs.ui_knob_change(effect_name, parameter, value)
+
+def lerp(a, b, f):
+    # start, stop, 0-1 fraction 
+    return (a * (1.0 - f)) + (b * f)
+
 def spotlight_entries_changed(effect_name, parameter, cur_v, prev_v):
     # online 
     # l, r, x, y are stored in a list for easy iteration
