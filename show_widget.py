@@ -1601,7 +1601,26 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
             current_v = current_v.replace(control, "")
         else:
             current_v = current_v+control
-        print("#### current v ", current_v, effect_name, parameter)
+        # print("#### current v ", current_v, effect_name, parameter)
+        ingen_wrapper.spotlight_set(effect_name+"/"+parameter, current_v)
+        self.spotlight_entries[i] = [effect_name, parameter, current_v]
+        spotlight_entries_changed(effect_name, parameter, current_v, prev_v)
+
+    @Slot(str, str)
+    def spotlight_set_y_remove_x(self, effect_name, parameter):
+        # this toggles, control is l, r, x, y
+        spotlight_entry = [b for b in self.spotlight_entries if b[0:2] == [effect_name, parameter]]
+        if spotlight_entry == []:
+            # shouldn't ever happen, spotlight should be bound already
+            return
+        i = self.spotlight_entries.index(spotlight_entry[0])
+
+        current_v = spotlight_entry[0][2]
+        prev_v = current_v
+
+        current_v = current_v.replace('x', "")
+        current_v = current_v+"y"
+        # print("#### current v ", current_v, effect_name, parameter)
         ingen_wrapper.spotlight_set(effect_name+"/"+parameter, current_v)
         self.spotlight_entries[i] = [effect_name, parameter, current_v]
         spotlight_entries_changed(effect_name, parameter, current_v, prev_v)

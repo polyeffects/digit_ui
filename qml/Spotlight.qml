@@ -136,7 +136,7 @@ Item {
                 model: knobs.spotlight_entries.length > 1 ? knobs.spotlight_entries.slice(0, num_param / 2) : knobs.spotlight_entries
 
 				ValueButton {
-					width: (1180 / top_rep.count) - ((top_rep.count-1) * 16)
+					width: (1180 - ((top_rep.count-1) * 32)) / top_rep.count 
 					height: 180
 					// checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
 					checked: control.selected_param == modelData[1] && control.selected_effect == modelData[0]
@@ -249,7 +249,7 @@ Item {
                 model: num_param > 1 ? knobs.spotlight_entries.slice(num_param / 2) : []
 
 				ValueButton {
-					width: (1180 / bottom_rep.count) - ((bottom_rep.count-1) * 16)
+					width: (1180 - ((bottom_rep.count-1) * 32)) / bottom_rep.count 
 					height: 180
 					// checked: currentEffects[effect_id]["controls"]["t_deja_vu_param"].value == 1.0
 					checked: control.selected_param == modelData[1] && control.selected_effect == modelData[0]
