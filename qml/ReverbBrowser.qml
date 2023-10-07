@@ -612,6 +612,10 @@ Item {
                 Material.foreground: Constants.poly_green
             }
 
+            MoreButton {
+                l_effect_type: effect_type
+            }
         }
     }
+
 }

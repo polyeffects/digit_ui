@@ -36,17 +36,20 @@ T.Button {
     // Material.background: flat ? "transparent" : undefined
 
     contentItem: Column {
-        Label {
-            text: control.text
+        Text {
+			text: control.text
             anchors.horizontalCenter: parent.horizontalCenter
             color: !control.enabled ? control.Material.hintTextColor :
                 control.checked ? Constants.background_color: "white"
+			horizontalAlignment: Text.AlignHCenter
+			verticalAlignment: Text.AlignVCenter
             font {
                 pixelSize: 24
                 capitalization: Font.AllUppercase
             }
+			// width: math.max(62, control.width)
         }
-        Label {
+        Text {
             text: control.value + control.value_suffix
             anchors.horizontalCenter: parent.horizontalCenter
             color: !control.enabled ? control.Material.hintTextColor :
@@ -55,6 +58,9 @@ T.Button {
                 pixelSize: 36
                 capitalization: Font.AllUppercase
             }
+			verticalAlignment: Text.AlignVCenter
+			horizontalAlignment: Text.AlignHCenter
+			// width: math.max(62, control.width)
         }
     }
 

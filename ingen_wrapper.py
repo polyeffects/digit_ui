@@ -285,7 +285,7 @@ def add_loop_midi_out(port_id, x, y):
 def set_json(effect_id, file_name):
     effect_id = effect_id
     file_name = urllib.parse.quote(file_name)
-    print("setting json file", effect_id, file_name)
+    # print("setting json file", effect_id, file_name)
     body = """[
          a patch:Set ;
          patch:property <http://aidadsp.cc/plugins/aidadsp-bundle/rt-neural-generic#json>;
@@ -296,7 +296,7 @@ def set_json(effect_id, file_name):
 def set_json_nam(effect_id, file_name):
     effect_id = effect_id
     file_name = urllib.parse.quote(file_name)
-    print("setting json file", effect_id, file_name)
+    # print("setting json file", effect_id, file_name)
     body = """[
          a patch:Set ;
          patch:property <http://github.com/mikeoliphant/neural-amp-modeler-lv2#model>;

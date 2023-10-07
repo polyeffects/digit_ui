@@ -14,7 +14,7 @@ for effect_type, v in module_info.effect_prototypes_models_all.items():
         qr.make(fit=False)
         img = qr.make_image(fill_color="black", back_color="white")
         img.save("icons/digit/qr_codes/manual_"+effect_type+".png")
-    if "video_url" in v:
+    if "video_url" in v and len(v["video_url"]) > 0:
         qr = qrcode.QRCode(
             version=5,
             error_correction=qrcode.constants.ERROR_CORRECT_Q,
