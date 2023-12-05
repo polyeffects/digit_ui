@@ -39,7 +39,7 @@ Item {
                     GlowingLabel {
 						width: 400
                         // color: "#ffffff"
-                        text: currentPedalModel.name+" FIRMWARE 337"
+                        text: currentPedalModel.name+" FIRMWARE 338"
                         color: accent_color.name
 						font {
 							pixelSize: 35

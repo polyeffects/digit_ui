@@ -37,6 +37,7 @@ Item {
         }
         Component.onCompleted: {
             module_browser_model.show_favourites(showing_fav);
+            module_browser_model.clear_tags();
         }
     }
 
@@ -62,41 +63,116 @@ Item {
 	
 	}
 
-    PolyButton {
-        x:935
-        y: 21
-        height: 69
-        width: 295
-        // text: modelData
-        onClicked: {
-            showing_fav = !showing_fav;
-            module_browser_model.show_favourites(showing_fav);
-        }
 
-        contentItem: Item { 
-            Image {
-                x: 20
-                y: 16
-                source: showing_fav ? "../icons/digit/fav.png" : "../icons/digit/not_fav.png" 
+
+    Flow {
+        x: 935
+        y: 21
+        spacing: 6
+        width: 300
+
+        PolyButton {
+            height: 56
+            width: 295
+            // text: modelData
+            checked: b_status
+            onClicked: {
+                showing_fav = !showing_fav;
+                module_browser_model.show_favourites(showing_fav);
+                b_status = !b_status;
             }
 
-            Text {
-                x: 108
-                y: 16
-                text: "favourites"
-                color: Constants.poly_pink
-                height: 22
-                font {
-                    pixelSize: 22
-                    capitalization: Font.AllUppercase
+            Material.foreground: Constants.poly_pink
+            border_color: Constants.poly_pink
+            radius: 10
+            topPadding: 0
+            leftPadding: 0
+            rightPadding: 0
+
+            contentItem: Item { 
+                width: 295
+                height:56
+                Image {
+                    x: 20
+                    y: 16
+                    source: showing_fav ? "../icons/digit/fav.png" : "../icons/digit/not_fav.png" 
+                }
+
+                Text {
+                    x: 79
+                    y: 8
+                    text: "favourites"
+                    color: showing_fav ? Constants.background_color : Constants.poly_pink
+                    height: 32
+                    font {
+                        pixelSize: 32
+                        capitalization: Font.AllUppercase
+                    }
+                }
+            } 
+        }
+        Repeater {
+            model: [['mod effects', "phaser, flanger, chorus..."], ['time effects', 'reverb, delay, looping, freeze...'], ['pitch + synth', 'filters, pitch shift, strum, oscillators...'], ['utilites', 'foot switch, maths, tempo...'], ['level + dynamics', 'vca, compressor, eq, mixer, wet/dry...'],  ['cv generators', 'lfo, envelopes, sequencers, clocks...'], ['amps, cabs + gain', 'nam amps, cabs, wavefolder, bitcrusher...'], ['midi', 'midi io, utilities'], ['ported', 'ports of eurorack modules']]
+
+            PolyButton {
+                height: 56
+                topPadding: 0
+                leftPadding: 0
+                rightPadding: 0
+                checked: b_status
+                // checked: index == Math.floor(currentEffects[effect_id]["controls"]["x_scale"].value)
+                onClicked: {
+                    b_status = !b_status;
+                    module_browser_model.show_hide_tag(modelData[0], b_status);
+                }
+                Material.foreground: Constants.longer_rainbow[index % 10]
+                border_color: Constants.longer_rainbow[index % 10]
+                // background_color: Constants.poly_grey
+                text: modelData[0]
+                width: 300
+                radius: 10
+                font_size: 32
+
+                contentItem: Item { 
+                    width: 295
+                    height:56
+
+                    Text {
+                        x: 0
+                        y: 2
+                        width: 295
+                        text: modelData[0]
+                        color: checked ? Constants.background_color : Constants.longer_rainbow[index % 10]
+                        height: 35
+                        horizontalAlignment: Text.AlignHCenter
+                        font {
+                            pixelSize: 32
+                            capitalization: Font.AllUppercase
+                        }
+                    }
+
+                    Text {
+                        x: 0
+                        y: 35
+                        width: 295
+                        text: modelData[1]
+                        color: checked ? Constants.background_color : Constants.longer_rainbow[index % 10]
+                        height: 20
+                        horizontalAlignment: Text.AlignHCenter
+                        font {
+                            pixelSize: 14
+                            capitalization: Font.AllUppercase
+                        }
+                    }
                 }
             }
-        } 
+        }
+
     }
     Item {
         y: 50
         ListView {
-            width: 1200
+            width: 900
             x: 22
             y: 76
             height: 490
@@ -104,7 +180,7 @@ Item {
             clip: true
             delegate: Item {
                 property string l_effect: l_effect_type //.split(":")[1]
-                width: 1200
+                width: 900
                 height: 198
 
                 Rectangle {
@@ -117,7 +193,7 @@ Item {
                 }
 
                 Item {
-                    width: 1000
+                    width: 830
                     height: 198
 
                     Label {
@@ -137,7 +213,7 @@ Item {
                     Label {
                         x: 31
                         y: 55
-                        width: 798
+                        width: 750
                         height: 30
                         text: description 
                         wrapMode: Text.Wrap
@@ -154,7 +230,7 @@ Item {
                         x: 31
                         y: 153
                         spacing: 12
-                        width: 1258
+                        width: 750
                         Repeater {
                             model: tags
 
@@ -188,7 +264,7 @@ Item {
                 }
 
                 Item {
-                    x: 1110
+                    x: 840
                     y: 0
                     width: 109
                     height: 198

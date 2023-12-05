@@ -130,23 +130,23 @@ ApplicationWindow {
 		
 		// }
         //
-        StackView {
-            id: patchStack
-            initialItem: 
-            // AmpBrowser {
+        // StackView {
+        //     id: patchStack
+        //     initialItem: 
+        //     // AmpBrowser {
 
-            // }
-            ReverbBrowser {
+        //     // }
+        //     ReverbBrowser {
             
-            }
-        }
+        //     }
+        // }
         
         // Loopler {
         
         // }
-        // ModuleBrowser {
+        ModuleBrowser {
         
-        // }
+        }
         // EuclideanSequencer {
         
         // }

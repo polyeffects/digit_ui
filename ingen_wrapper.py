@@ -211,6 +211,15 @@ def add_sub_graph(effect_id):
 def midi_learn(port):
     q.put((ingen.set, port, "http://lv2plug.in/ns/ext/midi#binding", "<http://lv2plug.in/ns/ext/patch#wildcard>"))
 
+def midi_set_cc(port, channel, in_cc):
+    midi_forget(port)
+    cc = channel << 8 | in_cc
+    q.put((ingen.set, port, "http://lv2plug.in/ns/ext/midi#binding", f"""
+        [
+        a midi:Controller ;
+        midi:controllerNumber "{cc}"^^xsd:int
+        ]"""))
+
 
 def midi_forget(port):
     q.put((ingen.patch, port, "midi:binding patch:wildcard", ""))
@@ -519,7 +528,7 @@ def parse_ingen(to_parse):
         # print("parsing", to_parse)
         m = world.loads(to_parse)
     except:
-        print("parsing", to_parse)
+        # print("parsing", to_parse)
         print("###\n###\n###\nfailed to parse")
         return
     if m.ask(None, None, patch_Put):

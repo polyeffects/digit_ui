@@ -20,6 +20,7 @@ showing_favourite = False
 effect_prototypes  = {k:module_info.effect_prototypes_models_all[k] for k in sorted(module_info.effect_prototypes_models_all) if k in module_info.effect_type_maps["beebo"]}
 filtered_modules = effect_prototypes
 favourites = {}
+current_tags = set()
 
 class ModuleBrowserModel(QAbstractListModel):
 
@@ -76,10 +77,24 @@ class ModuleBrowserModel(QAbstractListModel):
         showing_favourite = v
         self.add_filter(current_search)
 
+    @Slot(str, bool)
+    def show_hide_tag(self, tag, v):
+        if v:
+            current_tags.add(tag)
+        else:
+            current_tags.discard(tag)
+
+        self.add_filter(current_search)
+
+    @Slot()
+    def clear_tags(self):
+        current_tags.clear()
+        self.add_filter(current_search)
+
     @Slot(str)
-    def add_filter(self, tag=""):
+    def add_filter(self, search=""):
         global current_search
-        current_search = tag
+        current_search = search
 
         self.beginResetModel()
         global filtered_modules
@@ -89,8 +104,16 @@ class ModuleBrowserModel(QAbstractListModel):
             filtered_modules = {k:v for (k,v) in effect_prototypes.items() if k in favourites["modules"]}
         else:
             filtered_modules = effect_prototypes
+
+        if current_tags:
+            filtered_modules = {k:v for (k,v) in filtered_modules.items() if current_tags.issubset(v["tags"]) }
+
         if current_search != "":
-            filtered_modules = {k:v for (k,v) in filtered_modules.items() if (current_search.lower() in k.replace("_", " ").lower()) or (current_search.lower() in v["description"].lower())}
+            if len(current_search) == 1:
+                filtered_modules = {k:v for (k,v) in filtered_modules.items() if k.replace("_", " ").lower().startswith(current_search.lower())}
+            else:
+                filtered_modules = {k:v for (k,v) in filtered_modules.items() if (current_search.lower() in k.replace("_", " ").lower()) or (current_search.lower() in v["description"].lower())}
+
 
             # print("len filtered modules", len(filtered_modules))
         self.__order = dict(enumerate(filtered_modules.keys()))
