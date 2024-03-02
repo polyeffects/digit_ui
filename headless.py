@@ -40,7 +40,6 @@ preset_started_loading_time = 0
 is_loading = False
 
 verbs_controllable_modules = {'/main/wet_dry_stereo1', '/main/filter_uberheim1', '/main/sum1', '/main/delay1', '/main/wet_dry_stereo2', '/main/vca1', '/main/quad_ir_reverb1'}
-verbs_initial_preset_loaded = False
 
 def reset_footswitch_assignments():
     global footswitch_assignments
@@ -72,6 +71,7 @@ def debug_print(*args, **kwargs):
 effect_type_maps = module_info.effect_type_maps
 
 effect_prototypes_models_all = module_info.effect_prototypes_models_all
+# effect_prototypes_models_all = 
 
 for k, v in effect_prototypes_models_all.items():
     n = 0
@@ -337,7 +337,6 @@ def load_preset(name, initial=False, force=False):
 def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=True):
     # called by engine code when new effect is created
     debug_print("from backend new effect", effect_name, effect_type)
-    global verbs_initial_preset_loaded
     if effect_type in effect_prototypes:
         broadcast_ports = {}
         if "broadcast_ports" in effect_prototypes[effect_type]:
@@ -350,12 +349,12 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=Tru
         # if were the last verbs needed effect, load verbs preset
         if effect_name in verbs_controllable_modules and len(verbs_controllable_modules - set(current_effects.keys())) == 0:
             # load verbs preset
-            if not verbs_initial_preset_loaded:
+            if not mcu_comms.verbs_initial_preset_loaded:
                 print("loading vebs initial preset")
                 mcu_comms.load_verbs_preset(0)
                 debug_print("loading verbs initial preset!")
                 mcu_comms.update_midi_ccs(midi_channel.value)
-                verbs_initial_preset_loaded = True
+                mcu_comms.verbs_initial_preset_loaded = True
 
     else:
         debug_print("### backend tried to add an unknown effect!")
@@ -790,7 +789,11 @@ class Knobs():
         # remount RW 
         # copy all wavs in /usb/reverbs and /usr/cabs to /audio/reverbs and /audio/cabs
         # remount RO 
-        command = """if [ -b /dev/sda1 ]; then sudo mount /dev/sda1 /usb_flash; elif [ -b /dev/sda ]; then sudo mount /dev/sda /usb_flash; fi; if [ -d /usb_flash/reverbs ]; then cd /usb_flash/reverbs; find . -maxdepth 1 -name "[0-7].wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/pedal_state/reverbs ; fi;
+        command = """if [ -b /dev/sda1 ]; then sudo mount /dev/sda1 /usb_flash; elif [ -b /dev/sda ];
+        then sudo mount /dev/sda /usb_flash; fi;
+        if [ -d /usb_flash/reverbs ];
+        then cd /usb_flash/reverbs; find . -maxdepth 1 -name "[0-7].wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/pedal_state/reverbs ; fi;
+        umount /usb_flash
         """
         debug_print("ui_copy_irs")
         command_status[0].value = -1
@@ -1340,7 +1343,7 @@ def process_ui_messages():
                             current_effects[effect_name]["enabled"] = bool(float(value))
                         current_effects[effect_name]["controls"][parameter].value = float(value)
                         debug_print("send value to mcu", effect_name, parameter, value )
-                        if not verbs_initial_preset_loaded:
+                        if not mcu_comms.verbs_initial_preset_loaded:
                             mcu_comms.send_value_to_mcu(effect_name, parameter, float(value))
                 except ValueError:
                     pass
@@ -1599,7 +1602,7 @@ def midi_pc_thread():
             channel = int("0x"+b1, 16) - 0xC0
             program = int("0x"+b2, 16)
             # debug_print("GOT midi change", channel, program, midi_channel.value)
-            if channel == midi_channel.value - 1: # our channel
+            if channel == midi_channel.value# - 1: # our channel
                 # put this in the queue
                 mcu_comms.load_verbs_preset(program % 56)
     # When the subprocess terminates there might be unconsumed output 

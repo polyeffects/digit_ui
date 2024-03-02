@@ -18,6 +18,7 @@ import os
 import re
 import socket
 import sys
+import time
 
 try:
     import StringIO.StringIO as StringIO
@@ -118,8 +119,8 @@ class Remote(Interface):
                     connected = True
                 else:
                     raise Exception('Unsupported server URI `%s' % self.server_uri)
-            except ConnectionError as e:
-                pass
+            except (ConnectionError, FileNotFoundError) as e:
+                time.sleep(0.2)
 
 
     def msgencode(self, msg):

@@ -61,7 +61,8 @@ effect_type_maps = {"beebo" : {'ad_env_level': 'http://drobilla.net/plugins/omin
      'power_amp_super': 'http://guitarix.sourceforge.net/plugins/gx_supersonic_#_supersonic_',
      'product': 'http://polyeffects.com/lv2/basic_modular#product',
      'quad_ir_cab': 'http://polyeffects.com/lv2/polyconvo#CabStereo',
-     'quad_ir_reverb': 'http://polyeffects.com/lv2/polyconvo#Stereo',
+     'quad_ir_reverb': 'http://gareus.org/oss/lv2/zeroconvolv#CfgStereo',# VERBS
+     # 'quad_ir_reverb': 'http://polyeffects.com/lv2/polyconvo#Stereo', 
      'quantizer': 'http://polyeffects.com/lv2/basic_quantizer',
      'ratio': 'http://polyeffects.com/lv2/basic_modular#ratio',
      'rectify_value': 'http://polyeffects.com/lv2/basic_modular#abs',

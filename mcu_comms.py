@@ -21,6 +21,8 @@ knobs = None # set from headless
 # GPIO.setup("P9_16", GPIO.IN)
 
 # footswitch_is_down = defaultdict(bool)
+# shared to headless
+verbs_initial_preset_loaded = False
 
 input_queue = queue.Queue()
 to_mcu_queue = queue.Queue()
@@ -139,7 +141,9 @@ def process_cc(b_bytes):
             knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
     elif cc == cc_messages["PRESET_CHANGE_CC"]:
         # change preset, loading values from file
-        load_verbs_preset(v)
+        global verbs_initial_preset_loaded
+        if verbs_initial_preset_loaded:
+            load_verbs_preset(v)
     elif cc == cc_messages["MIDI_CHANNEL_CHANGE"]:
         # iterate over all bindings, setting to new channel val.
         knobs.set_channel(v)

@@ -318,10 +318,10 @@ def set_file(effect_id, file_name, is_cab):
     effect_id = effect_id
     file_name = urllib.parse.quote(file_name[len("file://"):])
     # print("setting file", effect_id, file_name, is_cab)
-    if False:
+    if True: ## FIXME verbs specific
         body = """[
              a patch:Set ;
-             patch:property <http://gareus.org/oss/lv2/convoLV2#impulse>;
+             patch:property <http://gareus.org/oss/lv2/zeroconvolv#ir>;
              patch:value <file://"""+ file_name + "> ]"
         q.put((ingen.set, effect_id+"/control", "http://drobilla.net/ns/ingen#activity", body))
         q.put((ingen.set, effect_id, "http://polyeffects.com/lv2/polyconvo#ir", "<"+file_name+">")) # for UI persist
