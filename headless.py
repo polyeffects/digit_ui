@@ -352,7 +352,7 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=Tru
             if not mcu_comms.verbs_initial_preset_loaded:
                 print("loading vebs initial preset")
                 mcu_comms.load_verbs_preset(0)
-                debug_print("loading verbs initial preset!")
+                debug_print("loading verbs initial preset! midi channel", midi_channel.value)
                 mcu_comms.update_midi_ccs(midi_channel.value)
                 mcu_comms.verbs_initial_preset_loaded = True
 
@@ -944,7 +944,7 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
             write_pedal_state()
 
     def set_channel(self, channel):
-        # debug_print("setting channel, ", channel, midi_channel.value)
+        debug_print("setting channel, ", channel, midi_channel.value)
         midi_channel.value = channel
         pedal_state["midi_channel"] = midi_channel.value
         write_pedal_state()
@@ -1602,7 +1602,8 @@ def midi_pc_thread():
             channel = int("0x"+b1, 16) - 0xC0
             program = int("0x"+b2, 16)
             # debug_print("GOT midi change", channel, program, midi_channel.value)
-            if channel == midi_channel.value# - 1: # our channel
+            if channel == midi_channel.value:# - 1: # our channel
+                # debug_print("####### channel == midi_channel.value", channel)
                 # put this in the queue
                 mcu_comms.load_verbs_preset(program % 56)
     # When the subprocess terminates there might be unconsumed output 

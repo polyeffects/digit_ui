@@ -57,7 +57,7 @@ cc_messages = {"ONSET_CC": 14,
 effect_name_parameter_cc_map = {
         ("wet_dry_stereo2", "level") : (cc_messages["BYPASS_CC"], 0, 1),
         ("wet_dry_stereo1", "level") : (cc_messages["MIX_CC"], 0, 1),
-        ("delay1", "Delay_1") : (cc_messages["ONSET_CC"], 0.01, 0.1), # also delay6
+        ("delay1", "Delay_1") : (cc_messages["ONSET_CC"], 0.01, 0.7), # also delay6
         ("filter_uberheim1", "cutoff") : (cc_messages["LOW_CUT_CC"], 0.01, 0.7), # also filter_uberheim2
         ("vca1", "gain") : (cc_messages["SMOOSH_CC"], 0, 1),
         ("sum1", "a") : (cc_messages["CRESCENDO_CC"], 0, 1),
