@@ -264,10 +264,13 @@ def load_pedal_state():
                 pedal_state["l_to_r"] = False
             if "d_is_tuner" not in pedal_state:
                 pedal_state["d_is_tuner"] = True
+            if "set_list" not in pedal_state:
+                pedal_state["set_list"] = [0, 8, 16, 24, 32, 40, 48]
     except:
         pedal_state = {"input_level": 0, "midi_channel": 1, "author": "poly player",
-                "model": "beebo", "thru": True, "invert_enc": False, "screen_flipped": False, "l_to_r": False,
-                "d_is_tuner": True}
+                "model": "beebo", "thru": True, "invert_enc": False, "screen_flipped": False,
+                "d_is_tuner": True, "set_list" : [0, 8, 16, 24, 32, 40, 48],
+                }
 
 
 selected_source_effect_ports = ["val1", "val2"]
@@ -351,7 +354,7 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=Tru
             # load verbs preset
             if not mcu_comms.verbs_initial_preset_loaded:
                 print("loading vebs initial preset")
-                mcu_comms.load_verbs_preset(0)
+                mcu_comms.load_verbs_preset(pedal_state["set_list"][0])
                 debug_print("loading verbs initial preset! midi channel", midi_channel.value)
                 mcu_comms.update_midi_ccs(midi_channel.value)
                 mcu_comms.verbs_initial_preset_loaded = True
@@ -789,11 +792,15 @@ class Knobs():
         # remount RW 
         # copy all wavs in /usb/reverbs and /usr/cabs to /audio/reverbs and /audio/cabs
         # remount RO 
-        command = """if [ -b /dev/sda1 ]; then sudo mount /dev/sda1 /usb_flash; elif [ -b /dev/sda ];
-        then sudo mount /dev/sda /usb_flash; fi;
+        command = """if [ -b /dev/sda1 ]; then sudo mount /dev/sda1 /usb_flash;
+        elif [ -b /dev/sdb1 ]; then sudo mount /dev/sdb1 /usb_flash;
+        elif [ -b /dev/sda ]; then sudo mount /dev/sda /usb_flash;
+        fi;
         if [ -d /usb_flash/reverbs ];
         then cd /usb_flash/reverbs; find . -maxdepth 1 -name "[0-7].wav" -type f -exec sh -c 'test $(soxi -r "$0") = "48000"' {} \; -print0 | xargs -0 cp --target-directory=/pedal_state/reverbs ; fi;
-        umount /usb_flash
+        if [ -f /usb_flash/set_list.txt ];
+        then sudo cp /usb_flash/set_list.txt /pedal_state/ ; fi;
+        sudo umount /usb_flash
         """
         debug_print("ui_copy_irs")
         command_status[0].value = -1
@@ -854,22 +861,6 @@ class Knobs():
         command_status[0].value = -1
         self.launch_subprocess(command, after=get_meta_from_files)
         # after presets have copied we need to parse all the tags / author and update cache
-
-    def export_presets(self):
-        # debug_print("copy presets to USB")
-        # export as tar.bz2
-        # 
-        command = """cd /mnt/presets; mkdir -p /usb_flash/presets; find . -iname "*.ingen" -type d -exec bash -c 'tar -cjf /usb_flash/presets/$(basename "$@" .ingen).instr $@' _ {} \; ;sudo umount /usb_flash"""
-        command_status[0].value = -1
-        self.launch_subprocess(command)
-
-    def export_current_preset(self):
-        # debug_print("copy current preset to USB")
-        i = current_preset_filename.find("presets")+len("presets")+1
-        out_file = current_preset_filename[i:] # strip starting folders
-        command = """cd /mnt/presets; mkdir -p /usb_flash/presets; tar -cjf /usb_flash/presets/"""+out_file.split("/")[1][:-len(".ingen")]+".instr " + out_file +""" ;sudo umount /usb_flash"""
-        command_status[0].value = -1
-        self.launch_subprocess(command)
 
     def copy_logs(self):
         # debug_print("copy presets to USB")
@@ -948,6 +939,14 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
         midi_channel.value = channel
         pedal_state["midi_channel"] = midi_channel.value
         write_pedal_state()
+
+    def save_set_list(self, set_list):
+        # debug_print("saving set list, ", set_list)
+        pedal_state["set_list"] = set_list
+        write_pedal_state()
+
+    def get_set_list(self):
+        return pedal_state["set_list"]
 
     def set_preset_list_length(self, v):
         if (v > len(preset_list_model)):

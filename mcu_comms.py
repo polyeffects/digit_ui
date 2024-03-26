@@ -1,4 +1,4 @@
-import serial
+import serial, os
 # digit main
 from collections import defaultdict
 # import Adafruit_BBIO.GPIO as GPIO
@@ -23,6 +23,8 @@ knobs = None # set from headless
 # footswitch_is_down = defaultdict(bool)
 # shared to headless
 verbs_initial_preset_loaded = False
+a_tap_time = 0
+set_list_number = 0
 
 input_queue = queue.Queue()
 to_mcu_queue = queue.Queue()
@@ -92,6 +94,15 @@ def load_verbs_preset(p):
     to_mcu_queue.put([176, cc_messages["PRESET_CHANGE_CC"], int(p)])
 
 def import_done():
+    # if we've got a set list now, parse it
+    try:
+        with open("/pedal_state/set_list.txt") as f:
+            a = f.read()
+            s = a.strip().split(',')
+            s_l = [int(b) for b in s if int(b) >= 0 and int(b) < 56]
+            knobs.save_set_list(s_l)
+    except FileNotFoundError:
+        pass
     # send to MCU that it's imported, fail or success...
     to_mcu_queue.put([176, cc_messages["IMPORT_DONE_CC"], 127])
 
@@ -102,6 +113,7 @@ def save_verbs_preset(p):
     verbs_presets[str(p)] = n_p
     with open("/pedal_state/verbs_presets.json", "w") as f:
         json.dump(verbs_presets, f)
+        os.sync()
 
 def update_midi_ccs(channel):
     for cc in cc_effect_name_parameter_map.keys():
@@ -122,11 +134,30 @@ def update_midi_ccs(channel):
 def process_cc(b_bytes):
     cc = b_bytes[1] # cc number
     v = b_bytes[2] # value 0-127
+    # check if press on a is a short press vs hold, if short press, 
+    # then go to next preset in set list
     if cc in cc_effect_name_parameter_map:
         effect_id_parameter, min_s, max_s = cc_effect_name_parameter_map[cc]
         effect_id, parameter = effect_id_parameter
         # scale
         value = scale_number(v, 0, 127, min_s, max_s)
+        # check if we're crescendo
+        if cc == cc_messages["CRESCENDO_CC"]:
+            if v == 127:# were set
+                # set on time
+                global a_tap_time
+                a_tap_time = time.perf_counter()
+                # print("setting a tap time ", a_tap_time)
+            else:
+                # print("checking", time.perf_counter() - a_tap_time)
+                if time.perf_counter() - a_tap_time < 0.2:
+                    a_tap_time = 0
+                    # load next verbs preset in list
+                    set_list = knobs.get_set_list()
+                    global set_list_number
+                    set_list_number = (set_list_number + 1) % len(set_list)
+                    # print("loading next in set list", set_list_number)
+                    load_verbs_preset(set_list[set_list_number])
         # set the values
         # onset and low cut are two modules each
         if effect_id == "delay1":
