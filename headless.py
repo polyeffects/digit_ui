@@ -678,6 +678,19 @@ class Knobs():
         else:
             debug_print("effect not found", effect_name, parameter, value, effect_name in current_effects)
 
+    def ui_knob_toggle(self, effect_name, parameter):
+        # debug_print(x, y, z)
+        if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
+            value = 1.0 - current_effects[effect_name]["controls"][parameter].value
+            # clamping here to make it a bit more obvious
+            value = clamp(value, current_effects[effect_name]["controls"][parameter].rmin, current_effects[effect_name]["controls"][parameter].rmax)
+            current_effects[effect_name]["controls"][parameter].value = value
+            ingen_wrapper.set_parameter_value(effect_name+"/"+parameter, value)
+
+            mcu_comms.send_value_to_mcu(effect_name, parameter, float(value))
+        else:
+            debug_print("effect not found", effect_name, parameter, value, effect_name in current_effects)
+
     def ui_knob_inc(self, effect_name, parameter, is_inc=True):
         if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
             v = current_effects[effect_name]["controls"][parameter].value
@@ -916,23 +929,25 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
 
     def set_input_level(self, level, write=True):
         debug_print("setting input_level, ", level, input_level.value)
-        if IS_REMOTE_TEST:
+        if True:
             return
-        command = "amixer -- sset ADC1 "+str(level)+"db; amixer -- sset ADC2 "+str(level)+"db; amixer -- sset ADC3 "+str(level)+"db"
-        command_status[0].value = subprocess.call(command, shell=True)
-        if hardware_info["revision"] < 10 and pedal_state["model"] != "hector":
-            command = "amixer -- sset 'ADC1 Invert' off,on; amixer -- sset 'ADC2 Invert' on,on"
-        elif pedal_state["model"] == "hector":
-            command = ("amixer -- sset 'ADC1 Invert' on,on; amixer -- sset 'ADC2 Invert' on,on; amixer -- sset 'ADC3 Invert' on,on; "
-                    "amixer -- sset 'DAC1 Invert' on,on; amixer -- sset 'DAC2 Invert' on,on; amixer -- sset 'DAC3 Invert' on,on; amixer -- sset 'DAC4 Invert' on,on;")
-        else:
-            command = "amixer -- sset 'ADC1 Invert' on,on; amixer -- sset 'ADC2 Invert' on,on"
+        # if IS_REMOTE_TEST:
+        #     return
+        # command = "amixer -- sset ADC1 "+str(level)+"db; amixer -- sset ADC2 "+str(level)+"db; amixer -- sset ADC3 "+str(level)+"db"
+        # command_status[0].value = subprocess.call(command, shell=True)
+        # if hardware_info["revision"] < 10 and pedal_state["model"] != "hector":
+        #     command = "amixer -- sset 'ADC1 Invert' off,on; amixer -- sset 'ADC2 Invert' on,on"
+        # elif pedal_state["model"] == "hector":
+        #     command = ("amixer -- sset 'ADC1 Invert' on,on; amixer -- sset 'ADC2 Invert' on,on; amixer -- sset 'ADC3 Invert' on,on; "
+        #             "amixer -- sset 'DAC1 Invert' on,on; amixer -- sset 'DAC2 Invert' on,on; amixer -- sset 'DAC3 Invert' on,on; amixer -- sset 'DAC4 Invert' on,on;")
+        # else:
+        #     command = "amixer -- sset 'ADC1 Invert' on,on; amixer -- sset 'ADC2 Invert' on,on"
 
-        command_status[0].value = subprocess.call(command, shell=True)
-        input_level.value = level
-        if write:
-            pedal_state["input_level"] = level
-            write_pedal_state()
+        # command_status[0].value = subprocess.call(command, shell=True)
+        # input_level.value = level
+        # if write:
+        #     pedal_state["input_level"] = level
+        #     write_pedal_state()
 
     def set_channel(self, channel):
         debug_print("setting channel, ", channel, midi_channel.value)
@@ -1592,7 +1607,7 @@ def midi_pc_thread():
     except:
         pass
     # p terminates.
-    while p.poll() is None:
+    while p.poll() is None and not EXIT_PROCESS[0]:
         l = p.stdout.readline() # This blocks until it receives a newline.
         # debug_print("got midi", l)
         if len(l) > 8 and l[6] == b'c'[0]:
@@ -1643,7 +1658,7 @@ if __name__ == "__main__":
     foot_switch_qa = {"a":PolyValue("a", 0, 0, 1), "b":PolyValue("b", 0, 0, 1), "c":PolyValue("c", 0, 0, 1), "d":PolyValue("d", 0, 0, 1), "e":PolyValue("e", 0, 0, 1)}
     encoder_qa = {"left":PolyValue("a", 0, 0, 1), "right":PolyValue("b", 0, 0, 1)}
     connect_source_port = PolyValue("", 1, 1, 16) # for sharing what type the selected source is
-    midi_channel = PolyValue("channel", pedal_state["midi_channel"], 1, 16)
+    midi_channel = PolyValue("channel", pedal_state["midi_channel"], 0, 16)
     input_level = PolyValue("input level", pedal_state["input_level"], -80, 10)
     preset_description = PolyValue("tap to write description", 0, 0, 1)
     debug_print("### Input level is", input_level.value)
@@ -1679,11 +1694,13 @@ if __name__ == "__main__":
         ex_type, ex_value, tb = sys.exc_info()
         error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
         debug_print("EXception is:", error)
+        EXIT_PROCESS[0] = True
         sys.exit()
 
     sys._excepthook = sys.excepthook
     def exception_hook(exctype, value, tb):
         debug_print("except hook got a thing!")
+        EXIT_PROCESS[0] = True
         traceback.print_exception(exctype, value, tb)
         sys._excepthook(exctype, value, tb)
         # sys.exit(1)

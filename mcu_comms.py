@@ -2,7 +2,7 @@ import serial, os
 # digit main
 from collections import defaultdict
 # import Adafruit_BBIO.GPIO as GPIO
-import time, queue, threading, json
+import time, queue, threading, json, subprocess
 # from Adafruit_BBIO.Encoder import RotaryEncoder, eQEP2, eQEP0
 # left_encoder = RotaryEncoder(eQEP0)
 # right_encoder = RotaryEncoder(eQEP2)
@@ -24,7 +24,11 @@ knobs = None # set from headless
 # shared to headless
 verbs_initial_preset_loaded = False
 a_tap_time = 0
+b_tap_time = 0
+B_HOLD_TIME = 1.0
+NUM_PRESETS = 56
 set_list_number = 0
+current_preset_number = 0
 
 input_queue = queue.Queue()
 to_mcu_queue = queue.Queue()
@@ -40,12 +44,23 @@ current_bytes = bytearray()
 with open("/pedal_state/verbs_presets.json") as f:
     verbs_presets = json.load(f)
 
+hardware_state = {}
+
+try:
+    with open("/pedal_state/hardware_state.json") as f:
+        hardware_state = json.load(f)
+    set_mono_sum_kill_dry(hardware_state["mono"], hardware_state["kill_dry"])
+except:
+        hardware_state = {"mono": False, "kill_dry": False}
+
+
+
 cc_messages = {"ONSET_CC": 14,
         "MIX_CC": 15,
         "LOW_CUT_CC": 16,
         "SMOOSH_CC": 17,
-        "CRESCENDO_CC": 43,
-        "BYPASS_CC": 44,
+        "CRESCENDO_CC": 43, #remapped to 18 external
+        "BYPASS_CC": 44, # remapped to 19 external
 # internal only to CPU analog side
         "PRESET_CHANGE_CC": 50,
         "MIDI_CHANNEL_CHANGE": 51,
@@ -53,7 +68,11 @@ cc_messages = {"ONSET_CC": 14,
         "IMPORT_FILES_CC": 53,
 # internal to mcu
         "IMPORT_DONE_CC": 54,
-        "LOADING_PROGRESS_CC": 55}
+        "LOADING_PROGRESS_CC": 55,
+# internal only to CPU analog side
+        "MONO_SUM_CC": 56,
+        "KILL_DRY_CC": 57,
+        }
 
 # effect_name / parameter to CC number and range
 effect_name_parameter_cc_map = {
@@ -76,6 +95,11 @@ effect_name_parameter_cc_map = {
 # invert map 
 cc_effect_name_parameter_map = {v[0]: (k, *v[1:]) for k, v in effect_name_parameter_cc_map.items()}
 
+def write_hardware_state():
+    with open("/pedal_state/hardware_state.json", "w") as f:
+        json.dump(hardware_state, f)
+    os.sync()
+
 def load_verbs_preset(p):
     # iterate over json file, ui_knob_change each value
     # verbs presets are index : {(effect_name, effect_parameter, value), 
@@ -85,12 +109,15 @@ def load_verbs_preset(p):
             time.sleep(0.2)
         elif effect_id  == "wet_dry_stereo2":
             time.sleep(0.03)
+            # print("wet_dry_stereo2, value", value)
             knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
-            send_value_to_mcu(sub_graph+effect_id, parameter, 1.0-float(value))
+            send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
         else:
             time.sleep(0.03)
             knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
             send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
+    global current_preset_number
+    current_preset_number = int(p)
     to_mcu_queue.put([176, cc_messages["PRESET_CHANGE_CC"], int(p)])
 
 def import_done():
@@ -113,7 +140,7 @@ def save_verbs_preset(p):
     verbs_presets[str(p)] = n_p
     with open("/pedal_state/verbs_presets.json", "w") as f:
         json.dump(verbs_presets, f)
-        os.sync()
+    os.sync()
 
 def update_midi_ccs(channel):
     for cc in cc_effect_name_parameter_map.keys():
@@ -129,27 +156,74 @@ def update_midi_ccs(channel):
             knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc)
             knobs.set_midi_cc(sub_graph+"filter_uberheim2", parameter, channel, cc)
         else:
-            knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc)
+            if cc == cc_messages["CRESCENDO_CC"]: # remap these
+                knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, 18)
+            elif cc == cc_messages["BYPASS_CC"]: # remap these
+                knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, 19)
+            else:
+                knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc)
+
+def toggle_mono_sum():
+    # toggle value, write out to file to persist
+    hardware_state["mono"] = not hardware_state["mono"] # {"mono": False, "kill_dry": False}
+    write_hardware_state()
+    set_mono_sum_kill_dry(hardware_state["mono"], hardware_state["kill_dry"])
+    to_mcu_queue.put([176, cc_messages["IMPORT_DONE_CC"], 127])
+
+def toggle_kill_dry():
+    # toggle value, write out to file to persist
+    hardware_state["kill_dry"] = not hardware_state["kill_dry"] # {"mono": False, "kill_dry": False}
+    write_hardware_state()
+    set_mono_sum_kill_dry(hardware_state["mono"], hardware_state["kill_dry"])
+    to_mcu_queue.put([176, cc_messages["IMPORT_DONE_CC"], 127])
+
+
+def set_mono_sum_kill_dry(mono, kill_dry):
+    command = ""
+    if mono:
+        # with jack_connect, need to connect capture 1 to in 2
+        command += "jack_connect system:capture_1 ingen:in_2;"
+    else:
+        command += "jack_disconnect system:capture_1 ingen:in_2;"
+    if kill_dry:
+        command += "amixer -- cset name='Left Playback Mixer Left Bypass Volume' 0;"
+        command += "amixer -- cset name='Right Playback Mixer Right Bypass Volume' 0;"
+        command += "amixer -- cset name='Right Playback Mixer Left Bypass Volume' 0;"
+    else:
+        command += "amixer -- cset name='Left Playback Mixer Left Bypass Volume' 6;"
+        command += "amixer -- cset name='Right Playback Mixer Right Bypass Volume' 6;"
+        if mono:
+            command += "amixer -- cset name='Right Playback Mixer Left Bypass Volume' 6;"
+        else:
+            command += "amixer -- cset name='Right Playback Mixer Left Bypass Volume' 0;"
+    subprocess.call(command, shell=True)
 
 def process_cc(b_bytes):
     cc = b_bytes[1] # cc number
     v = b_bytes[2] # value 0-127
     # check if press on a is a short press vs hold, if short press, 
+    # print("got bytes", b_bytes)
     # then go to next preset in set list
     if cc in cc_effect_name_parameter_map:
         effect_id_parameter, min_s, max_s = cc_effect_name_parameter_map[cc]
         effect_id, parameter = effect_id_parameter
         # scale
         value = scale_number(v, 0, 127, min_s, max_s)
-        # check if we're crescendo
+        # check if we're crescendo, footswitch A actions
         if cc == cc_messages["CRESCENDO_CC"]:
-            if v == 127:# were set
+            # value is processed in generic else
+            # print("a foot switch", value)
+            if v == 127:# button down
+                # print("a foot switch down")
                 # set on time
                 global a_tap_time
                 a_tap_time = time.perf_counter()
                 # print("setting a tap time ", a_tap_time)
+                send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
             else:
+                # print("a foot switch up")
                 # print("checking", time.perf_counter() - a_tap_time)
+                send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
                 if time.perf_counter() - a_tap_time < 0.2:
                     a_tap_time = 0
                     # load next verbs preset in list
@@ -158,6 +232,25 @@ def process_cc(b_bytes):
                     set_list_number = (set_list_number + 1) % len(set_list)
                     # print("loading next in set list", set_list_number)
                     load_verbs_preset(set_list[set_list_number])
+        # check if we're bypass, footswitch B actions
+        elif cc == cc_messages["BYPASS_CC"]:
+            # print("b foot switch", value)
+            if v == 127:# button down
+                # print("b foot switch down")
+                # set on time
+                global b_tap_time
+                b_tap_time = time.perf_counter()
+                # toggle bypass
+                knobs.ui_knob_toggle(sub_graph+effect_id, parameter)
+            else:
+                # print("b foot switch up")
+                # print("checking", time.perf_counter() - a_tap_time)
+                if time.perf_counter() - b_tap_time > B_HOLD_TIME:
+                    b_tap_time = 0
+                    # load next verbs preset 
+                    n_p = (current_preset_number + 1) % NUM_PRESETS
+                    # print("loading next in set list", set_list_number)
+                    load_verbs_preset(n_p)
         # set the values
         # onset and low cut are two modules each
         if effect_id == "delay1":
@@ -167,7 +260,8 @@ def process_cc(b_bytes):
             knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
             knobs.ui_knob_change(sub_graph+"filter_uberheim2", parameter, float(value))
         elif effect_id  == "wet_dry_stereo2":
-            knobs.ui_knob_change(sub_graph+effect_id, parameter, 1.0-float(value))
+            # knobs.ui_knob_change(sub_graph+effect_id, parameter, 1.0-float(value))
+            pass # processed already
         else:
             knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
     elif cc == cc_messages["PRESET_CHANGE_CC"]:
@@ -177,6 +271,7 @@ def process_cc(b_bytes):
             load_verbs_preset(v)
     elif cc == cc_messages["MIDI_CHANNEL_CHANGE"]:
         # iterate over all bindings, setting to new channel val.
+        # print("midi channel is", v)
         knobs.set_channel(v)
         update_midi_ccs(v)
     elif cc == cc_messages["SAVE_PRESET_CC"]:
@@ -186,6 +281,10 @@ def process_cc(b_bytes):
         save_verbs_preset(v)
     elif cc == cc_messages["IMPORT_FILES_CC"]:
         knobs.ui_copy_irs()
+    elif cc == cc_messages["MONO_SUM_CC"]:
+        toggle_mono_sum()
+    elif cc == cc_messages["KILL_DRY_CC"]:
+        toggle_kill_dry()
 
 def scale_number(unscaled, from_min, from_max, to_min, to_max):
     return (to_max-to_min)*(unscaled-from_min)/(from_max-from_min)+to_min
@@ -215,7 +314,7 @@ def send_to_mcu():
     # import done
     # send values so that MIDI changes will show on sliders
     try:
-        while True:
+        while not EXIT_THREADS:
             e = to_mcu_queue.get(block=False)
             a = bytes(e)
             ser.write(a)
@@ -225,7 +324,7 @@ def send_to_mcu():
 def process_from_mcu():
     # read internal MIDI messages
     global current_bytes
-    while True:
+    while not EXIT_THREADS:
         msg = ser.read(3-len(current_bytes))
         if len(msg) == 0:
             break
@@ -244,9 +343,7 @@ def process_from_mcu():
 
 
 def input_worker():
-    while True:
-        if EXIT_THREADS:
-            break
+    while not EXIT_THREADS:
         for key, mask in selector.select(0.2):
             device = key.fileobj
             for event in device.read():
