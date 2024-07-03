@@ -190,10 +190,10 @@ def set_mono_sum_kill_dry(mono, kill_dry):
         command += "amixer -- cset name='Right Playback Mixer Right Bypass Volume' 0;"
         command += "amixer -- cset name='Right Playback Mixer Left Bypass Volume' 0;"
     else:
-        command += "amixer -- cset name='Left Playback Mixer Left Bypass Volume' 6;"
-        command += "amixer -- cset name='Right Playback Mixer Right Bypass Volume' 6;"
+        command += "amixer -- cset name='Left Playback Mixer Left Bypass Volume' 5;"
+        command += "amixer -- cset name='Right Playback Mixer Right Bypass Volume' 5;"
         if mono:
-            command += "amixer -- cset name='Right Playback Mixer Left Bypass Volume' 6;"
+            command += "amixer -- cset name='Right Playback Mixer Left Bypass Volume' 5;"
         else:
             command += "amixer -- cset name='Right Playback Mixer Left Bypass Volume' 0;"
     subprocess.call(command, shell=True)
@@ -219,8 +219,10 @@ def process_cc(b_bytes):
                 global a_tap_time
                 a_tap_time = time.perf_counter()
                 # print("setting a tap time ", a_tap_time)
+                knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
                 send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
             else:
+                knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
                 # print("a foot switch up")
                 # print("checking", time.perf_counter() - a_tap_time)
                 send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
@@ -259,10 +261,11 @@ def process_cc(b_bytes):
         elif effect_id == 'filter_uberheim1':
             knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
             knobs.ui_knob_change(sub_graph+"filter_uberheim2", parameter, float(value))
-        elif effect_id  == "wet_dry_stereo2":
+        elif effect_id  == "wet_dry_stereo2" or effect_id == "sum1":
             # knobs.ui_knob_change(sub_graph+effect_id, parameter, 1.0-float(value))
             pass # processed already
         else:
+            # print(f"param {parameter} value {value}")
             knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
     elif cc == cc_messages["PRESET_CHANGE_CC"]:
         # change preset, loading values from file
@@ -342,24 +345,24 @@ def process_from_mcu():
             break
 
 
-def input_worker():
-    while not EXIT_THREADS:
-        for key, mask in selector.select(0.2):
-            device = key.fileobj
-            for event in device.read():
-                # print(event)
-                input_queue.put(event)
+# def input_worker():
+#     while not EXIT_THREADS:
+#         for key, mask in selector.select(0.2):
+#             device = key.fileobj
+#             for event in device.read():
+#                 # print(event)
+#                 input_queue.put(event)
 
-hw_thread = None
-def add_hardware_listeners():
-    # # check if switches or pots have changed
-    # # 
-    # for knob in "left", "right":
-    #     on_knob_change(knob)
-    if not IS_REMOTE_TEST:
-        global hw_thread
-        hw_thread = threading.Thread(target=input_worker)
-        hw_thread.start()
+# hw_thread = None
+# def add_hardware_listeners():
+#     # # check if switches or pots have changed
+#     # # 
+#     # for knob in "left", "right":
+#     #     on_knob_change(knob)
+#     if not IS_REMOTE_TEST:
+#         global hw_thread
+#         hw_thread = threading.Thread(target=input_worker)
+#         hw_thread.start()
 
 # if __name__ == "__main__":
 #     main()

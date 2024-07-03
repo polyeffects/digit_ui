@@ -1,5 +1,5 @@
 import sys, time, json, os.path, os, subprocess, queue, threading, traceback, glob
-import shutil
+import shutil, socket
 from signal import signal, SIGINT, SIGTERM
 from time import sleep
 from sys import exit
@@ -1713,7 +1713,12 @@ if __name__ == "__main__":
             ingen_wrapper._FINISH = True
             ingen_wrapper.ingen._FINISH = True
             mcu_comms.EXIT_THREADS = True
-            ingen_wrapper.ingen.sock.close()
+            debug_print("finish set in sig handler")
+            try:
+                ingen_wrapper.ingen.sock.shutdown(socket.SHUT_RDWR)
+                ingen_wrapper.ingen.sock.close()
+            except:
+                pass
     signal(SIGINT,  signalHandler)
     signal(SIGTERM, signalHandler)
     initial_preset = False
@@ -1740,15 +1745,27 @@ if __name__ == "__main__":
             ex_type, ex_value, tb = sys.exc_info()
             error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
             print("EXception is:", error)
+            try:
+                ingen_wrapper.ingen.sock.shutdown(socket.SHUT_RDWR)
+            except:
+                pass
             sys.exit()
         sleep(0.01)
 
+    debug_print("EXIT PROCESS")
+    try:
+        ingen_wrapper.ingen.sock.shutdown(socket.SHUT_RDWR)
+    except:
+        pass
     ingen_wrapper.s_thread.join()
+    debug_print("s_thread exited")
     if mcu_comms.hw_thread is not None:
         mcu_comms.hw_thread.join()
+    debug_print("mcu_thread exited")
     ingen_wrapper.r_thread.join()
     debug_print("r_thread exited")
     sys.exit()
+    debug_print("should not get past exit")
 
 
 
