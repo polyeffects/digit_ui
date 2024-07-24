@@ -152,6 +152,8 @@ effect_type_maps = {"beebo" : {'ad_env_level': 'http://drobilla.net/plugins/omin
      # 'amp_rtneural': 'http://aidadsp.cc/plugins/aidadsp-bundle/rt-neural-generic',
      'amp_nam': 'http://github.com/mikeoliphant/neural-amp-modeler-lv2',
     'midi_pc': 'http://polyeffects.com/lv2/midi_pc',
+    'tonestack': 'http://moddevices.com/plugins/caps/ToneStack',
+    'boost': 'http://polyeffects.com/lv2/basic_modular#boost',
      }}
 
 # categories effect, IO, control, synth, 
@@ -3621,7 +3623,26 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                     'outputs': {'out_l': ['Out L', 'AudioPort'],
                                 'out_r': ['Out R', 'AudioPort']},
                     'tags': {'level + dynamics'},
-                    'video_url': 'https://www.youtube.com/watch?v=fE8cb2v5kbw&t=3298s'}}
+                    'video_url': 'https://www.youtube.com/watch?v=fE8cb2v5kbw&t=3298s'},
+'tonestack': {'category': 0,
+               'controls': {'bass': ['Bass', 0.5, 0.0, 1.0],
+                            'mid': ['Mid', 0.5, 0.0, 1.0],
+                            'model': ['Model', 0, 0, 8],
+                            'treble': ['Treble', 0.5, 0.0, 1.0]},
+               'description': 'Amps style 3 knob tone stack',
+               'inputs': {'in': ['In', 'AudioPort']},
+               'long_description': '',
+               'outputs': {'out': ['Out', 'AudioPort']},
+               'tags': {'utilities'}},
+'boost': {'category': 0,
+           'controls': {'enabled': ['enabled', 1, 0, 1],
+                        'gain': ['Gain', 1, 1, 2]},
+           'description': 'very basic boost',
+           'inputs': {'in': ['Input', 'AudioPort']},
+           'long_description': '',
+           'outputs': {'out': ['Output', 'AudioPort']},
+           'tags': {'utilities'}}
+ }
 
 
 

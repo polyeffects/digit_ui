@@ -19,7 +19,8 @@ sys.excepthook = exception_hook
 import ingen_wrapper
 import mcu_comms
 import module_info
-from static_globals import IS_REMOTE_TEST
+from static_globals import IS_REMOTE_TEST, PEDAL_TYPE, pedal_types
+
 
 EXIT_PROCESS = [False]
 ui_messages = queue.Queue()
@@ -39,7 +40,15 @@ looper_footswitch_assignments = {}
 preset_started_loading_time = 0
 is_loading = False
 
+
+
+
 verbs_controllable_modules = {'/main/wet_dry_stereo1', '/main/filter_uberheim1', '/main/sum1', '/main/delay1', '/main/wet_dry_stereo2', '/main/vca1', '/main/quad_ir_reverb1'}
+
+ample_controllable_modules = {'/main/amp_nam1', '/main/mono_cab1', '/main/amp_nam2', '/main/mono_cab2', '/main/tonestack1', '/main/tonestack2', '/main/boost1', '/main/boost2'}
+
+if PEDAL_TYPE == pedal_types.ample: # pedal_types.verbs
+    verbs_controllable_modules = ample_controllable_modules
 
 def reset_footswitch_assignments():
     global footswitch_assignments
@@ -64,7 +73,7 @@ class PatchMode(IntEnum):
 amp_browser_model_s = None
 
 def debug_print(*args, **kwargs):
-    # print( "From py: "+" ".join(map(str,args)), **kwargs)
+    print( "From py: "+" ".join(map(str,args)), **kwargs)
     pass
 
 
@@ -350,14 +359,16 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=Tru
                 "enabled": PolyBool(is_enabled)}
 
         # if were the last verbs needed effect, load verbs preset
+
         if effect_name in verbs_controllable_modules and len(verbs_controllable_modules - set(current_effects.keys())) == 0:
             # load verbs preset
             if not mcu_comms.verbs_initial_preset_loaded:
-                print("loading vebs initial preset")
+                print("loading vebs initial preset", pedal_state["set_list"][0])
                 mcu_comms.load_verbs_preset(pedal_state["set_list"][0])
                 debug_print("loading verbs initial preset! midi channel", midi_channel.value)
                 mcu_comms.update_midi_ccs(midi_channel.value)
                 mcu_comms.verbs_initial_preset_loaded = True
+                mcu_comms.set_main_enable(True)
 
     else:
         debug_print("### backend tried to add an unknown effect!")
@@ -1573,7 +1584,8 @@ class ExceptionThread(threading.Thread):
             if self._target:
                 self._target(*self._args, **self._kwargs)
         except Exception:
-            logging.error(traceback.format_exc())
+            print(traceback.format_exc())
+            # logging.error(traceback.format_exc())
 
 cc_thread = None
 def handle_MIDI_program_change():
@@ -1610,7 +1622,7 @@ def midi_pc_thread():
     while p.poll() is None and not EXIT_PROCESS[0]:
         l = p.stdout.readline() # This blocks until it receives a newline.
         # debug_print("got midi", l)
-        if len(l) > 8 and l[6] == b'c'[0]:
+        if len(l) > 8 and l[6] == b'c'[0]: # 0xC0 is program change
             b = l.decode()
             ig, b1, b2 = b.split()
             channel = int("0x"+b1, 16) - 0xC0
@@ -1620,6 +1632,18 @@ def midi_pc_thread():
                 # debug_print("####### channel == midi_channel.value", channel)
                 # put this in the queue
                 mcu_comms.load_verbs_preset(program % 56)
+        elif PEDAL_TYPE == pedal_types.ample and len(l) > 12 and l[6] == b'b'[0]: # 0xB0 is CC
+            b = l.decode()
+            debug_print(f"####### b {b} split {b.split()} len l {len(l)}")
+            ig, b1, b2, v = b.split()[:4]
+            channel = int("0x"+b1, 16) - 0xB0
+            cc = int("0x"+b2, 16)
+            value = int("0x"+v, 16)
+            # debug_print("GOT midi change", channel, program, midi_channel.value)
+            if channel == midi_channel.value and cc == 18 :# - 1: # our channel and we're the enable CC
+                debug_print(f"####### channel == midi_channel.value {channel} cc {cc} v {v} value {value} len l {len(l)}")
+                # toggle enable
+                mcu_comms.set_main_enable(value > 63)
     # When the subprocess terminates there might be unconsumed output 
     # that still needs to be processed.
     ignored = p.stdout.read()
@@ -1717,8 +1741,10 @@ if __name__ == "__main__":
             try:
                 ingen_wrapper.ingen.sock.shutdown(socket.SHUT_RDWR)
                 ingen_wrapper.ingen.sock.close()
-            except:
-                pass
+            except Exception as e:
+                ex_type, ex_value, tb = sys.exc_info()
+                error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
+                print("tried to close sock EXception is:", error)
     signal(SIGINT,  signalHandler)
     signal(SIGTERM, signalHandler)
     initial_preset = False
@@ -1733,7 +1759,8 @@ if __name__ == "__main__":
     # mcu_comms.load_verbs_preset(0)
     # ingen_wrapper._FINISH = True
     update_dsp_usage_count = 200
-    mcu_comms.send_loading_progress_to_mcu(100)
+    type_v = 1 if PEDAL_TYPE == pedal_types.ample else 0
+    mcu_comms.send_loading_progress_to_mcu(type_v)
     while not EXIT_PROCESS[0]:
         # debug_print("processing events")
         try:
@@ -1759,8 +1786,7 @@ if __name__ == "__main__":
         pass
     ingen_wrapper.s_thread.join()
     debug_print("s_thread exited")
-    if mcu_comms.hw_thread is not None:
-        mcu_comms.hw_thread.join()
+    mcu_comms.EXIT_THREADS = True
     debug_print("mcu_thread exited")
     ingen_wrapper.r_thread.join()
     debug_print("r_thread exited")

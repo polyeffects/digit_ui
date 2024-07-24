@@ -318,7 +318,7 @@ def set_file(effect_id, file_name, is_cab):
     effect_id = effect_id
     file_name = urllib.parse.quote(file_name[len("file://"):])
     # print("setting file", effect_id, file_name, is_cab)
-    if True: ## FIXME verbs specific
+    if not is_cab: ## FIXME verbs specific
         body = """[
              a patch:Set ;
              patch:property <http://gareus.org/oss/lv2/zeroconvolv#ir>;
