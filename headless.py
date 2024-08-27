@@ -9,6 +9,11 @@ import urllib.parse
 from pathlib import Path
 
 sys._excepthook = sys.excepthook
+
+def debug_print(*args, **kwargs):
+    #print( "From py: "+" ".join(map(str,args)), **kwargs)
+    pass
+
 def exception_hook(exctype, value, tb):
     debug_print("except hook 1 got a thing!") #, exctype, value, traceback)
     traceback.print_exception(exctype, value, tb)
@@ -72,9 +77,6 @@ class PatchMode(IntEnum):
 
 amp_browser_model_s = None
 
-def debug_print(*args, **kwargs):
-    print( "From py: "+" ".join(map(str,args)), **kwargs)
-    pass
 
 
 effect_type_maps = module_info.effect_type_maps
@@ -364,7 +366,7 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=Tru
             # load verbs preset
             if not mcu_comms.verbs_initial_preset_loaded:
                 print("loading vebs initial preset", pedal_state["set_list"][0])
-                mcu_comms.load_verbs_preset(pedal_state["set_list"][0])
+                mcu_comms.load_verbs_preset_from_set_list(pedal_state["set_list"][0])
                 debug_print("loading verbs initial preset! midi channel", midi_channel.value)
                 mcu_comms.update_midi_ccs(midi_channel.value)
                 mcu_comms.verbs_initial_preset_loaded = True
@@ -679,6 +681,7 @@ class Knobs():
         # debug_print(x, y, z)
         if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
             current_effects[effect_name]["controls"][parameter].value = value
+            # debug_print(f"got ui_knob_change effect_name {effect_name}, parameter {parameter}, value {value}")
             # clamping here to make it a bit more obvious
             value = clamp(value, current_effects[effect_name]["controls"][parameter].rmin, current_effects[effect_name]["controls"][parameter].rmax)
             # bit sketch but check if BPM here? XXX
@@ -687,20 +690,24 @@ class Knobs():
 
             ingen_wrapper.set_parameter_value(effect_name+"/"+parameter, value)
         else:
-            debug_print("effect not found", effect_name, parameter, value, effect_name in current_effects)
+            debug_print("ui_knob_change effect not found", effect_name, parameter, value, effect_name in current_effects)
 
     def ui_knob_toggle(self, effect_name, parameter):
-        # debug_print(x, y, z)
+        # debug_print("in ui knob toggle", effect_name, parameter)
         if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
             value = 1.0 - current_effects[effect_name]["controls"][parameter].value
             # clamping here to make it a bit more obvious
             value = clamp(value, current_effects[effect_name]["controls"][parameter].rmin, current_effects[effect_name]["controls"][parameter].rmax)
+            # clamping here to make it a bit more obvious
             current_effects[effect_name]["controls"][parameter].value = value
             ingen_wrapper.set_parameter_value(effect_name+"/"+parameter, value)
-
+            # second set to work around ingen bug
+            time.sleep(0.01)
+            ingen_wrapper.set_parameter_value(effect_name+"/"+parameter, value)
+            # debug_print(f'1 in ui knob toggle value current_effects {current_effects[effect_name]["controls"][parameter].value} value {value}, effect_name {effect_name}, parameter {parameter}')
             mcu_comms.send_value_to_mcu(effect_name, parameter, float(value))
         else:
-            debug_print("effect not found", effect_name, parameter, value, effect_name in current_effects)
+            debug_print("ui knob toggle effect not found", effect_name, parameter, value, effect_name in current_effects)
 
     def ui_knob_inc(self, effect_name, parameter, is_inc=True):
         if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
@@ -733,6 +740,9 @@ class Knobs():
 
         if "file://" in ir_file:
             prefix=''
+
+        if current_effects[effect_id]["controls"]["ir"].name == ir_file:
+            return
 
         current_effects[effect_id]["controls"]["ir"].name = ir_file
         # ir_browser_model_s.external_ir_set(ir_file)
@@ -1121,7 +1131,7 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
             for parameter in current_effects[effect_name]["broadcast_ports"].keys():
                 ingen_wrapper.set_broadcast(effect_name+"/"+parameter, is_broadcast)
         else:
-            debug_print("effect not found", effect_name, effect_name in current_effects)
+            debug_print("set broadcast effect not found", effect_name, effect_name in current_effects)
 
     def midi_learn(self, effect_name, parameter):
         # this toggles, if we're already learned, forget. No way to currently cancel waiting for midi
@@ -1354,7 +1364,7 @@ def process_ui_messages():
     try:
         while not EXIT_PROCESS[0]:
             m = ui_messages.get(block=False)
-            debug_print("got ui message", m)
+            # debug_print("got ui message", m)
             if m[0] == "value_change":
                 # debug_print("got value change in process_ui")
                 effect_name_parameter, value = m[1:]
@@ -1367,7 +1377,7 @@ def process_ui_messages():
                             # debug_print("kill dry value set", value)
                             current_effects[effect_name]["enabled"] = bool(float(value))
                         current_effects[effect_name]["controls"][parameter].value = float(value)
-                        debug_print("send value to mcu", effect_name, parameter, value )
+                        debug_print("### send value to mcu", effect_name, parameter, value )
                         if not mcu_comms.verbs_initial_preset_loaded:
                             mcu_comms.send_value_to_mcu(effect_name, parameter, float(value))
                 except ValueError:
@@ -1386,9 +1396,9 @@ def process_ui_messages():
                 from_backend_disconnect(head, tail)
             elif m[0] == "add_plugin":
                 effect_name, effect_type, x, y, is_enabled = m[1:6]
-                debug_print("got add", m)
+                # debug_print("got add", m)
                 if (effect_name not in current_effects and (effect_type in inv_effect_type_map or effect_type in bare_ports)):
-                    debug_print("adding ", m)
+                    # debug_print("adding ", m)
                     if effect_type == "http://polyeffects.com/lv2/polyfoot":
                         mapped_type = effect_name.rsplit("/", 1)[1].rstrip("123456789")
                         if mapped_type in effect_type_map:
@@ -1491,6 +1501,7 @@ def process_ui_messages():
                         # debug_print("kill dry value set", value)
                         current_effects[effect_name]["enabled"] = bool(float(value))
                     current_effects[effect_name]["controls"][parameter].value = float(value)
+                    debug_print(f"got value change in process_ui effect_name {effect_name}, parameter {parameter}, value {value}")
                     mcu_comms.send_value_to_mcu(effect_name, parameter, float(value))
                 try:
                     if (effect_name in current_effects) and (parameter in current_effects[effect_name]["broadcast_ports"]):
@@ -1640,7 +1651,7 @@ def midi_pc_thread():
             cc = int("0x"+b2, 16)
             value = int("0x"+v, 16)
             # debug_print("GOT midi change", channel, program, midi_channel.value)
-            if channel == midi_channel.value and cc == 18 :# - 1: # our channel and we're the enable CC
+            if channel == midi_channel.value and cc == 19 :# - 1: # our channel and we're the enable CC
                 debug_print(f"####### channel == midi_channel.value {channel} cc {cc} v {v} value {value} len l {len(l)}")
                 # toggle enable
                 mcu_comms.set_main_enable(value > 63)

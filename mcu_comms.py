@@ -21,12 +21,15 @@ knobs = None # set from headless
 # GPIO.setup("P9_14", GPIO.IN)
 # GPIO.setup("P9_16", GPIO.IN)
 
-# footswitch_is_down = defaultdict(bool)
+footswitch_is_down = defaultdict(bool)
+footswitch_action_done = defaultdict(bool)
+footswitch_action_time = defaultdict(int)
 # shared to headless
 verbs_initial_preset_loaded = False
 a_tap_time = 0
 b_tap_time = 0
-B_HOLD_TIME = 1.0
+B_HOLD_TIME = 0.8
+PRESET_SWITCH_TIME = 0.5
 NUM_PRESETS = 56
 set_list_number = 0
 current_preset_number = 0
@@ -129,7 +132,6 @@ if PEDAL_TYPE != pedal_types.verbs:
 
 if PEDAL_TYPE == pedal_types.verbs:
     effect_name_parameter_cc_map = {
-            ("wet_dry_stereo2", "level") : (cc_messages["BYPASS_CC"], 0, 1),
             ("wet_dry_stereo1", "level") : (cc_messages["MIX_CC"], 0, 1),
             ("delay1", "Delay_1") : (cc_messages["ONSET_CC"], 0.01, 0.7), # also delay6
             ("filter_uberheim1", "cutoff") : (cc_messages["LOW_CUT_CC"], 0.01, 0.7), # also filter_uberheim2
@@ -138,13 +140,13 @@ if PEDAL_TYPE == pedal_types.verbs:
             }
 else:
     effect_name_parameter_cc_map = {
-            ("boost1", "gain") : (cc_messages["BOOST_CC"], 1, 2), # bypass
-            ("amp_nam1", "output_level") : (cc_messages["MIX_CC"], -20, 0), # volume
+            ("boost1", "gain") : (cc_messages["BOOST_CC"], 1, 4), # bypass
+            ("amp_nam1", "output_level") : (cc_messages["MIX_CC"], -20, 6), # volume
             ("amp_nam1", "input_level") : (cc_messages["ONSET_CC"], -20, 20), # gain
             ("tonestack1", "bass") : (cc_messages["LOW_CUT_CC"], 0.01, 0.9), #  bass
             ("tonestack1", "treble") : (cc_messages["SMOOSH_CC"], 0, 1), # treble
             ("tonestack1", "mid") : (cc_messages["MID_CC"], 0, 1), # treble
-            ("boost1", "enable") : (cc_messages["CRESCENDO_CC"], 0, 1), # boost
+            ("boost1", "on") : (cc_messages["CRESCENDO_CC"], 0, 1), # boost
             }
 
 # verb_presets = {0: (("wet_dry_stereo2", "level", 1),
@@ -163,9 +165,51 @@ def write_hardware_state():
         json.dump(hardware_state, f)
     os.sync()
 
-def load_verbs_preset(p):
-    # iterate over json file, ui_knob_change each value
+def load_verbs_preset_from_set_list(set_list_entry, load_now=True):
+    if PEDAL_TYPE == pedal_types.ample:
+        # if load now is false we just change the indictors
+        try:
+            #load left and right if they exist
+            l = set_list_entry[0]
+            r = set_list_entry[1]
+
+            if hardware_state["split"]:
+                global audio_side
+                prev_audio_side = audio_side
+                if audio_side == "2":
+                    audio_side = "1"
+                    to_mcu_queue.put([176, cc_messages["SIDE_CC"], int(audio_side)-1])
+                    load_verbs_preset(l, load_now)
+                audio_side = "2"
+                to_mcu_queue.put([176, cc_messages["SIDE_CC"], int(audio_side)-1])
+                load_verbs_preset(r, load_now)
+                if prev_audio_side != audio_side:
+                    audio_side = prev_audio_side
+                    to_mcu_queue.put([176, cc_messages["SIDE_CC"], int(audio_side)-1])
+            else:
+                load_verbs_preset(l, load_now)
+        except TypeError:
+            load_verbs_preset(set_list_entry, load_now)
+    else:
+        load_verbs_preset(set_list_entry)
+
+def load_verbs_preset(p, load_now=True):
     # verbs presets are index : {(effect_name, effect_parameter, value), 
+    to_mcu_queue.put([176, cc_messages["PRESET_CHANGE_CC"], int(p)])
+    global current_preset_number
+    current_preset_number = int(p)
+    # mute before loading if ample
+    if PEDAL_TYPE == pedal_types.ample:
+        if not load_now:
+            return
+        if hardware_state["split"]:
+            knobs.ui_knob_change(sub_graph+"mono_cab"+str(audio_side), "wet", -60.0)
+        else:
+            knobs.ui_knob_change(sub_graph+"mono_cab1", "wet", -60.0)
+            time.sleep(0.01)
+            knobs.ui_knob_change(sub_graph+"mono_cab2", "wet", -60.0)
+
+
     for effect_id, parameter, value in verbs_presets[str(p)]:
         if parameter == "ir":
             if effect_id in ("amp_nam1", "amp_nam2"):
@@ -174,45 +218,61 @@ def load_verbs_preset(p):
                 # if we're ample only send to the current side of MCU if split
                 if hardware_state["split"]:
                     if str(audio_side) == effect_id[-1:]:
-                        print("calling update nam json split, ", effect_id, value)
+                        # print("calling update nam json split, ", effect_id, value)
                         knobs.update_json(sub_graph+effect_id, value)
                 else:
                     if effect_id[-1:] == "1": # side 1s value to both sides in non-split mode
                         print("calling update nam json not split, ", effect_id, value)
                         knobs.update_json(sub_graph+effect_id, value)
+                        time.sleep(0.02)
                         knobs.update_json(sub_graph+effect_id[:-1]+"2", value)
             else:
                 if PEDAL_TYPE == pedal_types.ample:
                     # if we're ample only send to the current side of MCU if split
                     if hardware_state["split"]:
                         if str(audio_side) == effect_id[-1:]:
-                            print("calling update ir split, ", effect_id, value)
+                            # print("calling update ir split, ", effect_id, value)
                             knobs.update_ir(sub_graph+effect_id, value)
                     else:
                         if effect_id[-1:] == "1": # side 1s value to both sides in non-split mode
                             print("calling update ir not split, ", effect_id, value)
                             knobs.update_ir(sub_graph+effect_id, value)
+                            time.sleep(0.02)
                             knobs.update_ir(sub_graph+effect_id[:-1]+"2", value)
                 else:
                     knobs.update_ir(sub_graph+effect_id, value)
-            time.sleep(0.2)
+            time.sleep(0.02)
         else:
-            time.sleep(0.03)
-            knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
+            time.sleep(0.01)
             if PEDAL_TYPE == pedal_types.ample:
                 # if we're ample only send to the current side of MCU if split
                 if hardware_state["split"]:
                     if str(audio_side) == effect_id[-1:]:
                         send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
+                        knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
                 else:
                     if effect_id[-1:] == "1": # side 1s value to both sides in non-split mode
                         send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
-                        send_value_to_mcu(sub_graph+effect_id[:-1]+"2", parameter, float(value))
+                        knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
+                        time.sleep(0.01)
+                        knobs.ui_knob_change(sub_graph+effect_id[:-1]+"2", parameter, float(value))
             else:
+                knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
                 send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
-    global current_preset_number
-    current_preset_number = int(p)
-    to_mcu_queue.put([176, cc_messages["PRESET_CHANGE_CC"], int(p)])
+
+    # we're loaded, now unmute
+    if PEDAL_TYPE == pedal_types.ample:
+        time.sleep(0.2)
+        if hardware_state["split"]:
+            knobs.ui_knob_change(sub_graph+"mono_cab"+str(audio_side), "wet", 0.0)
+        else:
+            knobs.ui_knob_change(sub_graph+"mono_cab1", "wet", 0.0)
+            time.sleep(0.01)
+            knobs.ui_knob_change(sub_graph+"mono_cab2", "wet", 0.0)
+            time.sleep(0.01)
+            knobs.ui_knob_change(sub_graph+"mono_cab1", "wet", 0.001)
+            time.sleep(0.01)
+            knobs.ui_knob_change(sub_graph+"mono_cab2", "wet", 0.001)
 
 def import_done():
     # if we've got a set list now, parse it
@@ -220,7 +280,21 @@ def import_done():
         with open("/pedal_state/set_list.txt") as f:
             a = f.read()
             s = a.strip().split(',')
-            s_l = [int(b) for b in s if int(b) >= 0 and int(b) < 56]
+            s_l = []
+            if PEDAL_TYPE == pedal_types.verbs:
+                s_l = [int(b) for b in s if int(b) >= 0 and int(b) < 56]
+            else:
+                if ":" in a:
+                    for b in s:
+                        if ":" in b:
+                            l, r = b.split(":")
+                        else:
+                            l = b
+                            r = b
+                        if (int(l) >= 0 and int(l) < 56 and int(r) >= 0 and int(r) < 56 ):
+                            s_l.applend((int(l), int(r)))
+                else:
+                    s_l = [int(b) for b in s if int(b) >= 0 and int(b) < 56]
             knobs.save_set_list(s_l)
     except FileNotFoundError:
         pass
@@ -230,7 +304,7 @@ def import_done():
 def save_verbs_preset(p):
     c_p = verbs_presets[str(p)]
     # print("preset is", c_p)
-    n_p = [[effect_id, parameter, knobs.get_current_parameter_value(sub_graph+effect_id, parameter) if effect_id != "quad_ir_reverb1" else v] for effect_id, parameter, v in c_p ]
+    n_p = [[effect_id, parameter, knobs.get_current_parameter_value(sub_graph+effect_id, parameter) if parameter not in ("ir", ) else v] for effect_id, parameter, v in c_p ]
     verbs_presets[str(p)] = n_p
 
     if PEDAL_TYPE == pedal_types.verbs:
@@ -241,10 +315,19 @@ def save_verbs_preset(p):
             json.dump(verbs_presets, f)
     os.sync()
 
+def update_mcu_values():
+    print("update mcu values")
+    for (effect_name, parameter) in effect_name_parameter_cc_map.keys():
+        effect_name_side = sub_graph+effect_name[:-1]+str(audio_side)
+        value = float(knobs.get_current_parameter_value(effect_name_side, parameter))
+        print(f"effect name side {effect_name_side} {parameter} value {value}")
+        send_value_to_mcu(effect_name_side, parameter, value)
+
 def update_midi_ccs(channel):
     for cc in cc_effect_name_parameter_map.keys():
         effect_id_parameter, min_s, max_s = cc_effect_name_parameter_map[cc]
         effect_id, parameter = effect_id_parameter
+        effect_id_trim = effect_id[:-1]
         # scale
         # set the values
         # onset and low cut are two modules each
@@ -256,16 +339,24 @@ def update_midi_ccs(channel):
             knobs.set_midi_cc(sub_graph+"filter_uberheim2", parameter, channel, cc)
         else:
             if cc == cc_messages["CRESCENDO_CC"]: # remap these
-                knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, 18)
+                if PEDAL_TYPE == pedal_types.verbs:
+                    knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, 18)
+                else:
+                    knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, 18)
+                    knobs.set_midi_cc(sub_graph+effect_id_trim+"2", parameter, channel, 18+20)
             elif cc == cc_messages["BYPASS_CC"]: # remap these
                 knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, 19)
             else:
-                knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc)
-                # todo bind both sides of Ample
+                if PEDAL_TYPE == pedal_types.verbs:
+                    knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc)
+                else:
+                    knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc)
+                    knobs.set_midi_cc(sub_graph+effect_id_trim+"2", parameter, channel, cc+20)
 
 def toggle_mono_sum():
     # toggle value, write out to file to persist
     hardware_state["mono"] = not hardware_state["mono"] # {"mono": False, "kill_dry": False}
+    print("mono to stereo is now", hardware_state["mono"])
     write_hardware_state()
     set_mono_sum_kill_dry(hardware_state["mono"], hardware_state["kill_dry"])
     to_mcu_queue.put([176, cc_messages["IMPORT_DONE_CC"], 127])
@@ -274,7 +365,12 @@ def toggle_split():
     # toggle value, write out to file to persist
     hardware_state["split"] = not hardware_state["split"] # {"mono": False, "kill_dry": False}
     write_hardware_state()
+    global audio_side
+    if audio_side == "2":
+        audio_side = "1"
+        to_mcu_queue.put([176, cc_messages["SIDE_CC"], int(audio_side)-1])
     to_mcu_queue.put([176, cc_messages["SPLIT_CC"], int(hardware_state['split'])])
+    update_mcu_values()
 
 def toggle_side():
     # toggle value, write out to file to persist
@@ -286,10 +382,12 @@ def toggle_side():
         else:
             audio_side = "1"
         to_mcu_queue.put([176, cc_messages["SIDE_CC"], int(audio_side)-1])
+        update_mcu_values()
 
 def toggle_cab():
     # toggle value, write out to file to persist
     hardware_state["cab_enabled"] = not hardware_state["cab_enabled"]
+    print("cab enabled is now", hardware_state["cab_enabled"])
     knobs.set_bypass(sub_graph+"mono_cab1", hardware_state["cab_enabled"])
     knobs.set_bypass(sub_graph+"mono_cab2", hardware_state["cab_enabled"])
     write_hardware_state()
@@ -307,9 +405,26 @@ def set_main_enable(is_enabled):
     # set bypass state, 
     global main_enable
     main_enable = is_enabled
+
+
+#XXX FIXME
+# for testing
+
+    if is_enabled:
+        knobs.ui_knob_change(sub_graph+"mono_cab1", "wet", 0.0)
+        knobs.ui_knob_change(sub_graph+"mono_cab2", "wet", 0.0)
+    else:
+        knobs.ui_knob_change(sub_graph+"mono_cab1", "wet", -60.0)
+        knobs.ui_knob_change(sub_graph+"mono_cab2", "wet", -60.0)
+    to_mcu_queue.put([176, cc_messages["BYPASS_CC"], 127 if main_enable else 0])
+    return
+
+#XXX FIXME
+# for testing
+
     # update mixer for dry signal
     if is_enabled:
-        print("is enabled is ", is_enabled)
+        # print("is enabled is ", is_enabled)
         # enable amps, disable dry
         knobs.set_bypass(sub_graph+"amp_nam1", True)
         knobs.set_bypass(sub_graph+"amp_nam2", True)
@@ -319,7 +434,7 @@ def set_main_enable(is_enabled):
         command += "amixer -- cset name='Right Playback Mixer Right Bypass Volume' 0;"
         command += "amixer -- cset name='Right Playback Mixer Left Bypass Volume' 0;"
     else:
-        print("is enabled is ", is_enabled)
+        # print("is enabled is ", is_enabled)
         # disenable amps, enable dry
         knobs.set_bypass(sub_graph+"amp_nam1", False)
         knobs.set_bypass(sub_graph+"amp_nam2", False)
@@ -342,60 +457,93 @@ def process_cc(b_bytes):
     cc = b_bytes[1] # cc number
     v = b_bytes[2] # value 0-127
     # check if press on a is a short press vs hold, if short press, 
-    # print("got bytes", b_bytes)
+    # print("got bytes", b_bytes, "cc is ", cc)
     # then go to next preset in set list
-    if cc in cc_effect_name_parameter_map:
-        effect_id_parameter, min_s, max_s = cc_effect_name_parameter_map[cc]
-        effect_id, parameter = effect_id_parameter
-        # scale
-        value = scale_number(v, 0, 127, min_s, max_s)
-        # check if we're crescendo, footswitch A actions
-        if cc == cc_messages["CRESCENDO_CC"]:
-            # value is processed in generic else
-            # print("a foot switch", value)
-            if v == 127:# button down
-                # print("a foot switch down")
-                # set on time
-                global a_tap_time
-                a_tap_time = time.perf_counter()
-                # print("setting a tap time ", a_tap_time)
-                knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
-                send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
+
+    # check if we're bypass, footswitch B actions
+    if cc == cc_messages["BYPASS_CC"]:
+        # print("b foot switch", v)
+        global b_tap_time
+        if v == 127:# button down
+            # print("b foot switch down")
+            # set on time
+            b_tap_time = time.perf_counter()
+            # toggle bypass
+            if (PEDAL_TYPE == pedal_types.ample):
+                # start counting for preset change
+                footswitch_is_down["b"] = True
+                footswitch_action_done["b"] = False
             else:
-                knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
-                # print("a foot switch up")
-                # print("checking", time.perf_counter() - a_tap_time)
-                send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
-                if time.perf_counter() - a_tap_time < 0.2:
-                    a_tap_time = 0
-                    # load next verbs preset in list
-                    set_list = knobs.get_set_list()
-                    global set_list_number
-                    set_list_number = (set_list_number + 1) % len(set_list)
-                    # print("loading next in set list", set_list_number)
-                    load_verbs_preset(set_list[set_list_number])
-        # check if we're bypass, footswitch B actions
-        elif cc == cc_messages["BYPASS_CC"]:
-            # print("b foot switch", value)
-            if v == 127:# button down
-                # print("b foot switch down")
-                # set on time
-                global b_tap_time
-                b_tap_time = time.perf_counter()
-                # toggle bypass
-                set_main_enable(not main_enable)
-            else:
+                effect_id_parameter, min_s, max_s = cc_effect_name_parameter_map[cc]
+                effect_id, parameter = effect_id_parameter
+                knobs.ui_knob_toggle(sub_graph+effect_id, parameter)
+        else:
+            # print("b foot switch up")
+            # print("checking", time.perf_counter() - a_tap_time)
+            # if we didn't switch presets
+            if (PEDAL_TYPE == pedal_types.ample):
                 # print("b foot switch up")
-                # print("checking", time.perf_counter() - a_tap_time)
+                footswitch_is_down["b"] = False
+                if not footswitch_action_done["b"]:
+                    # print("b foot switch up toggle enable")
+                    set_main_enable(not main_enable)
+                else:
+                    load_verbs_preset(current_preset_number, True)
+            else:
                 if time.perf_counter() - b_tap_time > B_HOLD_TIME:
                     b_tap_time = 0
                     # load next verbs preset 
                     n_p = (current_preset_number + 1) % NUM_PRESETS
                     # print("loading next in set list", set_list_number)
                     load_verbs_preset(n_p)
+    elif cc in cc_effect_name_parameter_map:
+        effect_id_parameter, min_s, max_s = cc_effect_name_parameter_map[cc]
+        effect_id, parameter = effect_id_parameter
+        # scale
+        value = scale_number(v, 0, 127, min_s, max_s)
+        # print("cc", v, value, effect_id, parameter)
+        # check if we're crescendo, footswitch A actions
+        if cc == cc_messages["CRESCENDO_CC"]:
+            # value is processed in generic else
+            # print("a foot switch", v, value, effect_id, parameter)
+            if v == 127:# button down
+                # print("a foot switch down")
+                # set on time
+                global a_tap_time
+                a_tap_time = time.perf_counter()
+                # print("setting a tap time ", a_tap_time)
+                if PEDAL_TYPE == pedal_types.ample:
+                    footswitch_is_down["a"] = True
+                    footswitch_action_done["a"] = False
+                else:
+                    knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
+                    send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
+            else:
+                if (PEDAL_TYPE == pedal_types.ample):
+                    # print("a foot switch up")
+                    footswitch_is_down["a"] = False
+                    if not footswitch_action_done["a"]:
+                        # print("a foot switch up toggling")
+                        knobs.ui_knob_toggle(sub_graph+"boost1", "on")
+                        time.sleep(0.01)
+                        knobs.ui_knob_toggle(sub_graph+"boost2", "on")
+                    else:
+                        load_verbs_preset(current_preset_number, True)
+                else:
+                    # print("checking", time.perf_counter() - a_tap_time)
+                    # send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
+                    time_diff = time.perf_counter() - a_tap_time
+                    if PEDAL_TYPE == pedal_types.verbs and time_diff < 0.2:
+                        a_tap_time = 0
+                        # load next verbs preset in list
+                        set_list = knobs.get_set_list()
+                        global set_list_number
+                        set_list_number = (set_list_number + 1) % len(set_list)
+                        # print("loading next in set list", set_list_number)
+                        load_verbs_preset_from_set_list(set_list[set_list_number])
         # set the values
         # onset and low cut are two modules each
-        if effect_id == "delay1":
+        elif effect_id == "delay1":
             knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
             knobs.ui_knob_change(sub_graph+"delay6", parameter, float(value))
         elif effect_id == 'filter_uberheim1':
@@ -452,6 +600,8 @@ def scale_number(unscaled, from_min, from_max, to_min, to_max):
 def send_value_to_mcu(effect_name, parameter, value):
     # check if we need to send this value
     # print("sending to mcu", effect_name, parameter)
+    if (PEDAL_TYPE == pedal_types.ample):
+        effect_name = effect_name[:-1]+"1"
     effect_name = effect_name.rsplit('/', 1)[1]
     if (effect_name, parameter) in effect_name_parameter_cc_map:
         cc_num, min_s, max_s = effect_name_parameter_cc_map[(effect_name, parameter)]
@@ -481,10 +631,54 @@ def send_to_mcu():
     except queue.Empty:
         pass
 
+def process_hold_actions():
+    # called often to check if timers have elapsed. 
+    global b_tap_time
+    global a_tap_time
+    if footswitch_is_down["b"]:
+        # check how long since last b action
+        if not footswitch_action_done["b"] and time.perf_counter() - b_tap_time > B_HOLD_TIME:
+            footswitch_action_done["b"] = True
+            footswitch_action_time["b"] = time.perf_counter()
+            b_tap_time = 0
+            # load next verbs preset 
+            n_p = (current_preset_number + 1) % NUM_PRESETS
+            # print("loading next in set list", set_list_number)
+            load_verbs_preset(n_p, False)
+        elif footswitch_action_done["b"] and time.perf_counter() - footswitch_action_time["b"] > PRESET_SWITCH_TIME:
+            footswitch_action_time["b"] = time.perf_counter()
+            # load next verbs preset 
+            n_p = (current_preset_number + 1) % NUM_PRESETS
+            # print("loading next in set list", set_list_number)
+            load_verbs_preset(n_p, False)
+
+    if footswitch_is_down["a"]:
+        time_diff = time.perf_counter() - a_tap_time
+        global set_list_number
+        if not footswitch_action_done["a"] and time_diff > B_HOLD_TIME:
+            footswitch_action_done["a"] = True
+            footswitch_action_time["a"] = time.perf_counter()
+            a_tap_time = 0
+            # load next verbs preset in list
+            set_list = knobs.get_set_list()
+            set_list_number = (set_list_number + 1) % len(set_list)
+            # print("loading next in set list", set_list_number)
+            load_verbs_preset_from_set_list(set_list[set_list_number], False)
+        elif footswitch_action_done["a"] and time.perf_counter() - footswitch_action_time["a"] > PRESET_SWITCH_TIME:
+            footswitch_action_time["a"] = time.perf_counter()
+            # load next verbs preset in list
+            set_list = knobs.get_set_list()
+            set_list_number = (set_list_number + 1) % len(set_list)
+            # print("loading next in set list", set_list_number)
+            load_verbs_preset_from_set_list(set_list[set_list_number], False)
+
 def process_from_mcu():
     # read internal MIDI messages
     global current_bytes
     while not EXIT_THREADS:
+        # first check if we need to process hold actions
+        if PEDAL_TYPE == pedal_types.ample:
+            process_hold_actions()
         msg = ser.read(3-len(current_bytes))
         if len(msg) == 0:
             break
