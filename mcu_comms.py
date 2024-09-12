@@ -44,7 +44,7 @@ hardware_info = {"revision": 12, "pedal": "verbs"}
 
 PEDAL_VERSION = hardware_info["revision"]
 
-sub_graph = "/main/"
+sub_graph = "ingen:/main/"
 current_bytes = bytearray()
 
 if PEDAL_TYPE == pedal_types.verbs:
@@ -193,6 +193,14 @@ def load_verbs_preset_from_set_list(set_list_entry, load_now=True):
     else:
         load_verbs_preset(set_list_entry)
 
+def cab_enabled_name(value):
+    # given a name, return the full rig name if cab is enable, else name
+    if hardware_state["cab_enabled"]:
+        return value[:-len(".nam")]+"_full_rig.nam"
+    else:
+        return value
+
+
 def load_verbs_preset(p, load_now=True):
     # verbs presets are index : {(effect_name, effect_parameter, value), 
     to_mcu_queue.put([176, cc_messages["PRESET_CHANGE_CC"], int(p)])
@@ -214,24 +222,25 @@ def load_verbs_preset(p, load_now=True):
         if parameter == "ir":
             if effect_id in ("amp_nam1", "amp_nam2"):
                 # load to left and right if we're in normal mode
+                amp_name = cab_enabled_name(value)
 
                 # if we're ample only send to the current side of MCU if split
                 if hardware_state["split"]:
                     if str(audio_side) == effect_id[-1:]:
-                        # print("calling update nam json split, ", effect_id, value)
-                        knobs.update_json(sub_graph+effect_id, value)
+                        print("calling update nam json split, ", effect_id, amp_name, value)
+                        knobs.update_json(sub_graph+effect_id, amp_name)
                 else:
                     if effect_id[-1:] == "1": # side 1s value to both sides in non-split mode
-                        print("calling update nam json not split, ", effect_id, value)
-                        knobs.update_json(sub_graph+effect_id, value)
+                        print("calling update nam json not split, ", effect_id, amp_name, value)
+                        knobs.update_json(sub_graph+effect_id, amp_name)
                         time.sleep(0.02)
-                        knobs.update_json(sub_graph+effect_id[:-1]+"2", value)
+                        knobs.update_json(sub_graph+effect_id[:-1]+"2", amp_name)
             else:
                 if PEDAL_TYPE == pedal_types.ample:
                     # if we're ample only send to the current side of MCU if split
                     if hardware_state["split"]:
                         if str(audio_side) == effect_id[-1:]:
-                            # print("calling update ir split, ", effect_id, value)
+                            print("calling update ir split, ", effect_id, value)
                             knobs.update_ir(sub_graph+effect_id, value)
                     else:
                         if effect_id[-1:] == "1": # side 1s value to both sides in non-split mode
@@ -407,20 +416,18 @@ def set_main_enable(is_enabled):
     main_enable = is_enabled
 
 
-#XXX FIXME
-# for testing
+# # for testing
 
-    if is_enabled:
-        knobs.ui_knob_change(sub_graph+"mono_cab1", "wet", 0.0)
-        knobs.ui_knob_change(sub_graph+"mono_cab2", "wet", 0.0)
-    else:
-        knobs.ui_knob_change(sub_graph+"mono_cab1", "wet", -60.0)
-        knobs.ui_knob_change(sub_graph+"mono_cab2", "wet", -60.0)
-    to_mcu_queue.put([176, cc_messages["BYPASS_CC"], 127 if main_enable else 0])
-    return
+#     if is_enabled:
+#         knobs.ui_knob_change(sub_graph+"mono_cab1", "wet", 0.0)
+#         knobs.ui_knob_change(sub_graph+"mono_cab2", "wet", 0.0)
+#     else:
+#         knobs.ui_knob_change(sub_graph+"mono_cab1", "wet", -60.0)
+#         knobs.ui_knob_change(sub_graph+"mono_cab2", "wet", -60.0)
+#     to_mcu_queue.put([176, cc_messages["BYPASS_CC"], 127 if main_enable else 0])
+#     return
 
-#XXX FIXME
-# for testing
+# # for testing
 
     # update mixer for dry signal
     if is_enabled:

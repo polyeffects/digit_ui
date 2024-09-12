@@ -17,6 +17,9 @@ from static_globals import IS_REMOTE_TEST
 ingen_started_lock = threading.Lock()
 ingen_started = False
 
+if "curie" not in serd.__dict__:
+    serd.curie = serd.uri
+
 # atom_AtomPort = serd.uri("http://lv2plug.in/ns/ext/atom#AtomPort")
 # ingen_max_run_load = serd.uri("http://drobilla.net/ns/ingen#maxRunLoad")
 # ingen_mean_run_load = serd.uri("http://drobilla.net/ns/ingen#meanRunLoad")
@@ -305,7 +308,7 @@ def set_json(effect_id, file_name):
 def set_json_nam(effect_id, file_name):
     effect_id = effect_id
     file_name = urllib.parse.quote(file_name)
-    # print("setting json file", effect_id, file_name)
+    print("setting json file", effect_id, file_name)
     body = """[
          a patch:Set ;
          patch:property <http://github.com/mikeoliphant/neural-amp-modeler-lv2#model>;

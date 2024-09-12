@@ -11,8 +11,8 @@ from pathlib import Path
 sys._excepthook = sys.excepthook
 
 def debug_print(*args, **kwargs):
-    #print( "From py: "+" ".join(map(str,args)), **kwargs)
-    pass
+    print( "From py: "+" ".join(map(str,args)), **kwargs)
+    # pass
 
 def exception_hook(exctype, value, tb):
     debug_print("except hook 1 got a thing!") #, exctype, value, traceback)
@@ -31,8 +31,8 @@ EXIT_PROCESS = [False]
 ui_messages = queue.Queue()
 
 current_source_port = None
-current_sub_graph = "/main/sub1/"
-sub_graphs = set(["/main/sub1"])
+current_sub_graph = "ingen:/main/sub1/"
+sub_graphs = set(["ingen:/main/sub1"])
 # current_effects = OrderedDict()
 current_effects = {}
 # current_effects["delay1"] = {"x": 20, "y": 30, "effect_type": "delay", "controls": {}, "highlight": False}
@@ -48,9 +48,9 @@ is_loading = False
 
 
 
-verbs_controllable_modules = {'/main/wet_dry_stereo1', '/main/filter_uberheim1', '/main/sum1', '/main/delay1', '/main/wet_dry_stereo2', '/main/vca1', '/main/quad_ir_reverb1'}
+verbs_controllable_modules = {'ingen:/main/wet_dry_stereo1', 'ingen:/main/filter_uberheim1', 'ingen:/main/sum1', 'ingen:/main/delay1', 'ingen:/main/wet_dry_stereo2', 'ingen:/main/vca1', 'ingen:/main/quad_ir_reverb1'}
 
-ample_controllable_modules = {'/main/amp_nam1', '/main/mono_cab1', '/main/amp_nam2', '/main/mono_cab2', '/main/tonestack1', '/main/tonestack2', '/main/boost1', '/main/boost2'}
+ample_controllable_modules = {'ingen:/main/amp_nam1', 'ingen:/main/mono_cab1', 'ingen:/main/amp_nam2', 'ingen:/main/mono_cab2', 'ingen:/main/tonestack1', 'ingen:/main/tonestack2', 'ingen:/main/boost1', 'ingen:/main/boost2'}
 
 if PEDAL_TYPE == pedal_types.ample: # pedal_types.verbs
     verbs_controllable_modules = ample_controllable_modules
@@ -292,7 +292,7 @@ sub_graph_suffix = 0
 def add_inc_sub_graph(actually_add=True):
     global sub_graph_suffix
     sub_graph_suffix = sub_graph_suffix + 1
-    name = "/main/sub"+str(sub_graph_suffix)+"/"
+    name = "ingen:/main/sub"+str(sub_graph_suffix)+"/"
     global current_sub_graph
     current_sub_graph = name
     sub_graphs.add(name.rstrip("/"))
@@ -328,7 +328,7 @@ def load_preset(name, initial=False, force=False):
     preset_description.name = "Tap here to enter preset description"
     to_delete = list(current_effects.keys())
     for effect_id in to_delete:
-        if effect_id in ["/main/out_1", "/main/out_2", "/main/out_3", "/main/out_4", "/main/in_1", "/main/in_2", "/main/in_3", "/main/in_4"]:
+        if effect_id in ["ingen:/main/out_1", "ingen:/main/out_2", "ingen:/main/out_3", "ingen:/main/out_4", "ingen:/main/in_1", "ingen:/main/in_2", "ingen:/main/in_3", "ingen:/main/in_4"]:
             pass
         else:
             try:
@@ -422,7 +422,7 @@ def from_backend_add_connection(head, tail):
         current_source_port = s_effect + "/" + s_port
         # debug_print("## current_source_port", current_source_port)
     else:
-        if current_source_port.rsplit("/", 1)[0] == "/main":
+        if current_source_port.rsplit("/", 1)[0] == "ingen:/main":
             return
         # debug_print("## current_source_port not in sub graph", current_source_port, sub_graphs)
 
@@ -442,7 +442,7 @@ def from_backend_add_connection(head, tail):
         if t_port is None:
             return
     else:
-        if effect_id_port_name[0] == "/main":
+        if effect_id_port_name[0] == "ingen:/main":
             return
         # print("effect_id_port_name", effect_id_port_name)
         t_effect, t_port = effect_id_port_name
@@ -1259,24 +1259,24 @@ def io_new_effect(effect_name, effect_type, x=20, y=30):
                 }
 
 def add_io():
-    ingen_wrapper.add_midi_input("/main/midi_in", x=1192, y=(80 * 5))
-    ingen_wrapper.add_midi_input2("/main/loop_midi_out", x=1192, y=(80 * 6))
-    ingen_wrapper.add_midi_output("/main/loop_extra_midi", x=20, y=(80 * 3))
-    ingen_wrapper.add_midi_output2("/main/midi_out", x=-20, y=(80 * 5))
+    ingen_wrapper.add_midi_input("ingen:/main/midi_in", x=1192, y=(80 * 5))
+    ingen_wrapper.add_midi_input2("ingen:/main/loop_midi_out", x=1192, y=(80 * 6))
+    ingen_wrapper.add_midi_output("ingen:/main/loop_extra_midi", x=20, y=(80 * 3))
+    ingen_wrapper.add_midi_output2("ingen:/main/midi_out", x=-20, y=(80 * 5))
     if current_pedal_model.name == "hector":
         for i in range(1,7):
-            ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
+            ingen_wrapper.add_input("ingen:/main/in_"+str(i), x=1192, y=(80*i))
         for i in range(1,9):
-            ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
+            ingen_wrapper.add_output("ingen:/main/out_"+str(i), x=-20, y=(80 * i))
     else:
         for i in range(1,5):
-            ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
+            ingen_wrapper.add_input("ingen:/main/in_"+str(i), x=1192, y=(80*i))
         for i in range(1,5):
-            ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
-    ingen_wrapper.add_output("/main/loop_common_in_1", x=1092, y=(80*1))
-    ingen_wrapper.add_output("/main/loop_common_in_2", x=1092, y=(80*2))
-    ingen_wrapper.add_input("/main/loop_common_out_1", x=20, y=(80*1))
-    ingen_wrapper.add_input("/main/loop_common_out_2", x=20, y=(80*2))
+            ingen_wrapper.add_output("ingen:/main/out_"+str(i), x=-20, y=(80 * i))
+    ingen_wrapper.add_output("ingen:/main/loop_common_in_1", x=1092, y=(80*1))
+    ingen_wrapper.add_output("ingen:/main/loop_common_in_2", x=1092, y=(80*2))
+    ingen_wrapper.add_input("ingen:/main/loop_common_out_1", x=20, y=(80*1))
+    ingen_wrapper.add_input("ingen:/main/loop_common_out_2", x=20, y=(80*2))
 
 class Encoder():
     # name, min, max, value
@@ -1724,6 +1724,7 @@ if __name__ == "__main__":
     time.sleep(1)
     try:
         add_io()
+        pass
     except Exception as e:
         debug_print("########## e1 is:", e)
         ex_type, ex_value, tb = sys.exc_info()
@@ -1749,13 +1750,15 @@ if __name__ == "__main__":
             ingen_wrapper.ingen._FINISH = True
             mcu_comms.EXIT_THREADS = True
             debug_print("finish set in sig handler")
-            try:
-                ingen_wrapper.ingen.sock.shutdown(socket.SHUT_RDWR)
-                ingen_wrapper.ingen.sock.close()
-            except Exception as e:
-                ex_type, ex_value, tb = sys.exc_info()
-                error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
-                print("tried to close sock EXception is:", error)
+            # try:
+            #     ingen_wrapper.ingen.sock.shutdown(socket.SHUT_RDWR)
+            #     ingen_wrapper.ingen.sock.close()
+            # except Exception as e:
+            #     ex_type, ex_value, tb = sys.exc_info()
+            #     error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
+            #     print("tried to close sock EXception is:", error)
+            sys.exit()
+
     signal(SIGINT,  signalHandler)
     signal(SIGTERM, signalHandler)
     initial_preset = False
@@ -1763,7 +1766,7 @@ if __name__ == "__main__":
     time.sleep(0.3)
     change_pedal_model("beebo")
     time.sleep(0.5)
-    ingen_wrapper.get_state("/main")
+    ingen_wrapper.get_state("ingen:/main")
     # load_preset("file:///home/pleb/Verbs2.ingen/main.ttl", True)
     debug_print("attempting load preset")
     time.sleep(0.5)

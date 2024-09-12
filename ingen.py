@@ -141,7 +141,12 @@ class Remote(Interface):
         """
         msg = u''
         while not _FINISH:
-            chunk = self.sock.recv(1, 0)
+            try:
+                self.sock.settimeout(2)
+                chunk = self.sock.recv(1)
+            except socket.timeout:
+                continue
+
             if not chunk or chunk[0] == 0:  # End of transmission
                 break
             # print(chunk.decode('utf-8'), end="")
