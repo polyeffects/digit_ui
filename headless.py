@@ -50,7 +50,9 @@ is_loading = False
 
 verbs_controllable_modules = {'ingen:/main/wet_dry_stereo1', 'ingen:/main/filter_uberheim1', 'ingen:/main/sum1', 'ingen:/main/delay1', 'ingen:/main/wet_dry_stereo2', 'ingen:/main/vca1', 'ingen:/main/quad_ir_reverb1'}
 
-ample_controllable_modules = {'ingen:/main/amp_nam1', 'ingen:/main/mono_cab1', 'ingen:/main/amp_nam2', 'ingen:/main/mono_cab2', 'ingen:/main/tonestack1', 'ingen:/main/tonestack2', 'ingen:/main/boost1', 'ingen:/main/boost2'}
+ample_controllable_modules = {'ingen:/main/amp_nam1', 'ingen:/main/mono_cab1', 'ingen:/main/amp_nam2',
+        'ingen:/main/mono_cab2', 'ingen:/main/tonestack1', 'ingen:/main/tonestack2',
+        'ingen:/main/boost1', 'ingen:/main/boost2', 'ingen:/main/stereo_reverb1'}
 
 if PEDAL_TYPE == pedal_types.ample: # pedal_types.verbs
     verbs_controllable_modules = ample_controllable_modules
@@ -370,6 +372,11 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=Tru
                 debug_print("loading verbs initial preset! midi channel", midi_channel.value)
                 mcu_comms.update_midi_ccs(midi_channel.value)
                 mcu_comms.verbs_initial_preset_loaded = True
+
+                if PEDAL_TYPE == pedal_types.ample: # pedal_types.verbs
+                    # if ample load reverb
+                    knobs.update_ir("ingen:/main/stereo_reverb1", "/audio/6/2.wav")
+                    mcu_comms.set_cab()
                 mcu_comms.set_main_enable(True)
 
     else:
@@ -529,6 +536,7 @@ class Knobs():
             s_effect, s_port = current_source_port.rsplit("/", 1)
             s_effect_type = current_effects[s_effect]["effect_type"]
             t_effect_type = current_effects[effect_id]["effect_type"]
+            debug_print ("*** set current port ", t_effect_type, s_effect_type)
             if t_effect_type in bare_ports:
                 if s_effect_type in bare_ports:
                     ingen_wrapper.connect_port(s_effect, effect_id)
@@ -631,7 +639,7 @@ class Knobs():
                 break
 
         if is_bare_port:
-            # debug_print("new effect si bare port")
+            debug_print("new effect si bare port")
             bare_ports_map = {"input" : "in", "output" : "out", "midi_input" : "midi_in",
                     "midi_output" : "midi_out", "loop_common_in" : "out",
                     "loop_common_out" : "in",
@@ -1412,6 +1420,7 @@ def process_ui_messages():
                             except:
                                 l_effect_num = 0
                             if l_effect_num < 5: # filter out Hector ports
+                                debug_print("$$$ adding bare port")
                                 from_backend_new_effect(effect_name, effect_type, x, y, is_enabled)
                     else:
                         from_backend_new_effect(effect_name, inv_effect_type_map[effect_type], x, y, is_enabled)
@@ -1645,7 +1654,7 @@ def midi_pc_thread():
                 mcu_comms.load_verbs_preset(program % 56)
         elif PEDAL_TYPE == pedal_types.ample and len(l) > 12 and l[6] == b'b'[0]: # 0xB0 is CC
             b = l.decode()
-            debug_print(f"####### b {b} split {b.split()} len l {len(l)}")
+            # debug_print(f"####### b {b} split {b.split()} len l {len(l)}")
             ig, b1, b2, v = b.split()[:4]
             channel = int("0x"+b1, 16) - 0xB0
             cc = int("0x"+b2, 16)
@@ -1723,13 +1732,13 @@ if __name__ == "__main__":
     # qWarning("logging with qwarning")
     time.sleep(1)
     try:
-        add_io()
+        # add_io()
         pass
     except Exception as e:
         debug_print("########## e1 is:", e)
         ex_type, ex_value, tb = sys.exc_info()
         error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
-        debug_print("EXception is:", error)
+        debug_print("EXception is:", error, error[2])
         EXIT_PROCESS[0] = True
         sys.exit()
 
@@ -1785,7 +1794,7 @@ if __name__ == "__main__":
         except Exception as e:
             ex_type, ex_value, tb = sys.exc_info()
             error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
-            print("EXception is:", error)
+            print("EXception is:", error, error[2])
             try:
                 ingen_wrapper.ingen.sock.shutdown(socket.SHUT_RDWR)
             except:

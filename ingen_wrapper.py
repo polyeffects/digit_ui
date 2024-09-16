@@ -308,6 +308,9 @@ def set_json(effect_id, file_name):
 def set_json_nam(effect_id, file_name):
     effect_id = effect_id
     file_name = urllib.parse.quote(file_name)
+    # strip anything before audio, shouldn't get to here..
+    n = file_name.find("/audio")
+    file_name = file_name[n:]
     print("setting json file", effect_id, file_name)
     body = """[
          a patch:Set ;
@@ -429,6 +432,7 @@ sooperlooper:loop0_out_1
 # on enabled / disable looper add / remove ports
 connected_ports = set()
 def connect_jack_port(port, x, y, physical_port):
+    port = port.lstrip("ingen:")
     if port not in connected_ports:
             port_map = {"/main/out_1": "ingen:out_1 system:playback_3",
                     "/main/out_2": "ingen:out_2 system:playback_4",
@@ -456,7 +460,7 @@ def connect_jack_port(port, x, y, physical_port):
                     }
             # if connected_ports == set(port_map.keys()):
             #     all_connected = True
-            # print("got port", port, x, y)
+            print("got port", port, x, y)
             if port in port_map:
                 pass
                 # connected_ports.add(port)
