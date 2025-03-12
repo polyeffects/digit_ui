@@ -11,8 +11,8 @@ from pathlib import Path
 sys._excepthook = sys.excepthook
 
 def debug_print(*args, **kwargs):
-    print( "From py: "+" ".join(map(str,args)), **kwargs)
-    # pass
+    pass
+    # print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 def exception_hook(exctype, value, tb):
     debug_print("except hook 1 got a thing!") #, exctype, value, traceback)
@@ -20,6 +20,21 @@ def exception_hook(exctype, value, tb):
     sys._excepthook(exctype, value, tb)
     sys.exit(1)
 sys.excepthook = exception_hook
+
+print("starting frontend")
+# sleep here until ingen socket exists, then sleep for 3 seconds 
+import stat
+ingen_is_ready = False
+while not ingen_is_ready:
+    try:
+        mode = os.stat("/tmp/ingen.sock").st_mode
+        if stat.S_ISSOCK(mode):
+            ingen_is_ready = True
+        else:
+            time.sleep(0.2)
+    except FileNotFoundError:
+        time.sleep(0.2)
+time.sleep(0.2)
 
 import ingen_wrapper
 import mcu_comms
@@ -375,7 +390,7 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=Tru
 
                 if PEDAL_TYPE == pedal_types.ample: # pedal_types.verbs
                     # if ample load reverb
-                    knobs.update_ir("ingen:/main/stereo_reverb1", "/audio/6/2.wav")
+                    knobs.update_ir("ingen:/main/stereo_reverb1", "/audio/ample_reverb.wav")
                     mcu_comms.set_cab()
                 mcu_comms.set_main_enable(True)
 
@@ -1641,29 +1656,33 @@ def midi_pc_thread():
     # p terminates.
     while p.poll() is None and not EXIT_PROCESS[0]:
         l = p.stdout.readline() # This blocks until it receives a newline.
-        # debug_print("got midi", l)
+        debug_print("got midi", l)
         if len(l) > 8 and l[6] == b'c'[0]: # 0xC0 is program change
             b = l.decode()
             ig, b1, b2 = b.split()
             channel = int("0x"+b1, 16) - 0xC0
             program = int("0x"+b2, 16)
-            # debug_print("GOT midi change", channel, program, midi_channel.value)
+            debug_print("GOT midi change", channel, program, midi_channel.value)
             if channel == midi_channel.value:# - 1: # our channel
-                # debug_print("####### channel == midi_channel.value", channel)
+                debug_print("####### channel == midi_channel.value", channel)
                 # put this in the queue
                 mcu_comms.load_verbs_preset(program % 56)
         elif PEDAL_TYPE == pedal_types.ample and len(l) > 12 and l[6] == b'b'[0]: # 0xB0 is CC
             b = l.decode()
-            # debug_print(f"####### b {b} split {b.split()} len l {len(l)}")
+            debug_print(f"####### b {b} split {b.split()} len l {len(l)}")
             ig, b1, b2, v = b.split()[:4]
             channel = int("0x"+b1, 16) - 0xB0
             cc = int("0x"+b2, 16)
             value = int("0x"+v, 16)
             # debug_print("GOT midi change", channel, program, midi_channel.value)
-            if channel == midi_channel.value and cc == 19 :# - 1: # our channel and we're the enable CC
-                debug_print(f"####### channel == midi_channel.value {channel} cc {cc} v {v} value {value} len l {len(l)}")
-                # toggle enable
-                mcu_comms.set_main_enable(value > 63)
+            if channel == midi_channel.value:
+                if cc == 19 :# - 1: # our channel and we're the enable CC
+                    debug_print(f"####### channel == midi_channel.value {channel} cc {cc} v {v} value {value} len l {len(l)}")
+                    # toggle enable
+                    mcu_comms.set_main_enable(value > 63)
+                elif cc == 23:
+                    debug_print(f"####### channel == midi_channel.value {channel} cc {cc} v {v} value {value} len l {len(l)}")
+                    mcu_comms.set_side(value > 63)
     # When the subprocess terminates there might be unconsumed output 
     # that still needs to be processed.
     ignored = p.stdout.read()

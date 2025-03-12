@@ -138,7 +138,7 @@ def DestinationThread( ) :
                         time.sleep(0.1)
                     time.sleep(0.2)
 
-                    print("setting ingen remote server dest")
+                    # print("setting ingen remote server dest")
                     ingen.socket_connect()
                     ingen_started = True
 
@@ -311,7 +311,7 @@ def set_json_nam(effect_id, file_name):
     # strip anything before audio, shouldn't get to here..
     n = file_name.find("/audio")
     file_name = file_name[n:]
-    print("setting json file", effect_id, file_name)
+    # print("setting json file", effect_id, file_name)
     body = """[
          a patch:Set ;
          patch:property <http://github.com/mikeoliphant/neural-amp-modeler-lv2#model>;
@@ -460,7 +460,7 @@ def connect_jack_port(port, x, y, physical_port):
                     }
             # if connected_ports == set(port_map.keys()):
             #     all_connected = True
-            print("got port", port, x, y)
+            # print("got port", port, x, y)
             if port in port_map:
                 pass
                 # connected_ports.add(port)
@@ -706,7 +706,7 @@ def parse_ingen(to_parse):
             # print("broadcast_update parsed", subject, "value", value)
             ui_queue.put(("broadcast_update", subject, float(str(value))))
         elif m.ask(None, patch_property, midi_binding):
-            print("midi learn parsed subject:", subject)
+            # print("midi learn parsed subject:", subject)
             try:
                 value = get_value(m, midi_controllerNumber)
                 # print("midi learn parsed: value, ", int(str(value)))

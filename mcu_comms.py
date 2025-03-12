@@ -146,10 +146,10 @@ else:
     effect_name_parameter_cc_map = {
             ("boost1", "gain") : (cc_messages["BOOST_CC"], 1, 4), # bypass
             ("amp_nam1", "output_level") : (cc_messages["MIX_CC"], -20, 6), # volume
-            ("amp_nam1", "input_level") : (cc_messages["ONSET_CC"], -20, 20), # gain
-            ("tonestack1", "bass") : (cc_messages["LOW_CUT_CC"], 0.01, 0.9), #  bass
-            ("tonestack1", "treble") : (cc_messages["SMOOSH_CC"], 0, 1), # treble
-            ("tonestack1", "mid") : (cc_messages["MID_CC"], 0, 1), # treble
+            ("amp_nam1", "input_level") : (cc_messages["ONSET_CC"], -45.0, 5), # gain
+            ("tonestack1", "bass_0") : (cc_messages["LOW_CUT_CC"], -10, 10), #  bass
+            ("tonestack1", "mid_1") : (cc_messages["MID_CC"], -10, 10), # treble
+            ("tonestack1", "treble_2") : (cc_messages["SMOOSH_CC"], -10, 10), # treble
             ("boost1", "on") : (cc_messages["CRESCENDO_CC"], 0, 1), # boost
             ("stereo_reverb1", "wet") : (cc_messages["ROOM_CC"], -60, -20), # boost
             }
@@ -192,7 +192,7 @@ def load_verbs_preset_from_set_list(set_list_entry, load_now=True):
                     audio_side = prev_audio_side
                     to_mcu_queue.put([176, cc_messages["SIDE_CC"], int(audio_side)-1])
             else:
-                print("## loading non split")
+                # print("## loading non split")
                 load_verbs_preset(l, load_now)
         except TypeError:
             load_verbs_preset(set_list_entry, load_now)
@@ -239,11 +239,11 @@ def load_verbs_preset(p, load_now=True):
                 # if we're ample only send to the current side of MCU if split
                 if hardware_state["split"]:
                     if str(audio_side) == effect_id[-1:]:
-                        print("calling update nam json split, ", effect_id, amp_name, value)
+                        # print("calling update nam json split, ", effect_id, amp_name, value)
                         knobs.update_json(sub_graph+effect_id, amp_name)
                 else:
                     if effect_id[-1:] == "1": # side 1s value to both sides in non-split mode
-                        print("calling update nam json not split, ", effect_id, amp_name, value)
+                        # print("calling update nam json not split, ", effect_id, amp_name, value)
                         knobs.update_json(sub_graph+effect_id, amp_name)
                         time.sleep(0.02)
                         knobs.update_json(sub_graph+effect_id[:-1]+"2", amp_name)
@@ -252,11 +252,11 @@ def load_verbs_preset(p, load_now=True):
                     # if we're ample only send to the current side of MCU if split
                     if hardware_state["split"]:
                         if str(audio_side) == effect_id[-1:]:
-                            print("calling update ir split, ", effect_id, value)
+                            # print("calling update ir split, ", effect_id, value)
                             knobs.update_ir(sub_graph+effect_id, value)
                     else:
                         if effect_id[-1:] == "1": # side 1s value to both sides in non-split mode
-                            print("calling update ir not split, ", effect_id, value)
+                            # print("calling update ir not split, ", effect_id, value)
                             knobs.update_ir(sub_graph+effect_id, value)
                             time.sleep(0.02)
                             knobs.update_ir(sub_graph+effect_id[:-1]+"2", value)
@@ -321,11 +321,14 @@ def import_done():
     # send to MCU that it's imported, fail or success...
     to_mcu_queue.put([176, cc_messages["IMPORT_DONE_CC"], 127])
 
-def save_verbs_preset(p):
+def save_verbs_preset(ignored):
+    p = current_preset_number[int(audio_side)-1]
     c_p = verbs_presets[str(p)]
     # print("preset is", c_p)
-    n_p = [[effect_id, parameter, knobs.get_current_parameter_value(sub_graph+effect_id, parameter) if parameter not in ("ir", ) else v] for effect_id, parameter, v in c_p ]
+    n_p = [[effect_id, parameter, knobs.get_current_parameter_value(sub_graph+effect_id, parameter) if parameter not in ("ir", "model" ) else v] for effect_id, parameter, v in c_p ]
     verbs_presets[str(p)] = n_p
+    import pprint
+    pprint.pprint(n_p)
 
     if PEDAL_TYPE == pedal_types.verbs:
         with open("/pedal_state/verbs_presets.json", "w") as f:
@@ -336,13 +339,13 @@ def save_verbs_preset(p):
     os.sync()
 
 def update_mcu_values():
-    print("update mcu values")
+    # print("update mcu values")
     for (effect_name, parameter) in effect_name_parameter_cc_map.keys():
         if "stereo_reverb" not in effect_name:
-            print(f"effect name {effect_name} {parameter} ")
+            # print(f"effect name {effect_name} {parameter} ")
             effect_name_side = sub_graph+effect_name[:-1]+str(audio_side)
             value = float(knobs.get_current_parameter_value(effect_name_side, parameter))
-            print(f"effect name side {effect_name_side} {parameter} value {value}")
+            # print(f"effect name side {effect_name_side} {parameter} value {value}")
             send_value_to_mcu(effect_name_side, parameter, value)
 
 def update_midi_ccs(channel):
@@ -379,7 +382,7 @@ def update_midi_ccs(channel):
 def toggle_mono_sum():
     # toggle value, write out to file to persist
     hardware_state["mono"] = not hardware_state["mono"] # {"mono": False, "kill_dry": False}
-    print("mono to stereo is now", hardware_state["mono"])
+    # print("mono to stereo is now", hardware_state["mono"])
     write_hardware_state()
     set_mono_sum_kill_dry(hardware_state["mono"], hardware_state["kill_dry"])
     to_mcu_queue.put([176, cc_messages["IMPORT_DONE_CC"], 127])
@@ -395,8 +398,19 @@ def toggle_split():
     to_mcu_queue.put([176, cc_messages["SPLIT_CC"], int(hardware_state['split'])])
     update_mcu_values()
 
+def set_side(n):
+    # only do anything if we are split
+    if hardware_state["split"]:
+        global audio_side
+        if n:
+            audio_side = "2"
+        else:
+            audio_side = "1"
+        to_mcu_queue.put([176, cc_messages["SIDE_CC"], int(audio_side)-1])
+        update_mcu_values()
+
 def toggle_side():
-    # toggle value, write out to file to persist
+    # toggle value
     # only do anything if we are split
     if hardware_state["split"]:
         global audio_side
@@ -410,7 +424,7 @@ def toggle_side():
 def toggle_cab():
     # toggle value, write out to file to persist
     hardware_state["cab_enabled"] = not hardware_state["cab_enabled"]
-    print("cab enabled is now", hardware_state["cab_enabled"])
+    # print("cab enabled is now", hardware_state["cab_enabled"])
     knobs.set_bypass(sub_graph+"mono_cab1", hardware_state["cab_enabled"])
     knobs.set_bypass(sub_graph+"mono_cab2", hardware_state["cab_enabled"])
     write_hardware_state()
@@ -470,9 +484,9 @@ def set_main_enable(is_enabled):
     else:
         # print("is enabled is ", is_enabled)
         # disenable amps, enable dry
-        knobs.set_bypass(sub_graph+"amp_nam1", False)
-        knobs.set_bypass(sub_graph+"amp_nam2", False)
-        knobs.set_bypass(sub_graph+"amp_nam2", False) # double due to ingen bug
+        # knobs.set_bypass(sub_graph+"amp_nam1", False)
+        # knobs.set_bypass(sub_graph+"amp_nam2", False)
+        # knobs.set_bypass(sub_graph+"amp_nam2", False) # double due to ingen bug
         command += "amixer -- cset name='Left Playback Mixer Left DAC Switch' off;"
         command += "amixer -- cset name='Right Playback Mixer Right DAC Switch' off;"
         command += "amixer -- cset name='Left Playback Mixer Left Bypass Volume' 5;"
@@ -608,7 +622,7 @@ def process_cc(b_bytes):
     elif cc == cc_messages["PRESET_CHANGE_CC"]:
         # change preset, loading values from file
         global verbs_initial_preset_loaded
-        print ("got preset change CC", v, verbs_initial_preset_loaded)
+        # print ("got preset change CC", v, verbs_initial_preset_loaded)
         if verbs_initial_preset_loaded:
             load_verbs_preset(v)
     elif cc == cc_messages["MIDI_CHANNEL_CHANGE"]:
