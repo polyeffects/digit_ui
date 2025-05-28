@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
@@ -78,7 +79,7 @@ Item {
                     effect: effect
                     param: "PEAKRMS"
                 }
-                Switch {
+               PolyControls.Switch {
                     text: qsTr("INVERT")
                     font.pixelSize: baseFontSize
                     width: 300
@@ -93,7 +94,7 @@ Item {
                 }
             }
 
-            Button {
+           PolyControls.Button {
                 text: "ASSIGN"
                 font.pixelSize: baseFontSize
                 width: 140

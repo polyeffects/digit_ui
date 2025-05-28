@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.11
 import QtQuick.Controls 2.4
 import QtQuick.Controls.Material 2.4
@@ -63,7 +64,7 @@ Item {
 			property string v_type: ModuleInfo.effectPrototypes[effect_type]["controls"][selected_parameter].length > 4 ? ModuleInfo.effectPrototypes[effect_type]["controls"][selected_parameter][4] : "float"
 			property bool is_log: false
 			property bool force_update: false
-			snapMode: Slider.SnapAlways
+			snapMode:PolyControls.Slider.SnapAlways
 			stepSize: v_type == "int" ? 1.0 : 0.0
 			from: is_log ? 20 : currentEffects[current_effect]["controls"][selected_parameter].rmin
 			to: is_log ? 20000 : currentEffects[current_effect]["controls"][selected_parameter].rmax

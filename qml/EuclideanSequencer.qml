@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
@@ -165,7 +166,7 @@ Rectangle {
 					property bool isEnabled: currentEffects[effect]["controls"]["is_enabled"+(index+1)].value > 0.9
 
 
-                    Button {
+                   PolyControls.Button {
                         y: 17; x: 20
                         width: 155
                         height: 70
@@ -269,7 +270,7 @@ Rectangle {
                         Item {
                             height:82
 
-                            Button {
+                           PolyControls.Button {
                                 width: 72
                                 height:82
                                 y:2
@@ -308,7 +309,7 @@ Rectangle {
                                 }
                             }
 
-                            Button {
+                           PolyControls.Button {
                                 id: plusButton
                                 width: 72
                                 height:82

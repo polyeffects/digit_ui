@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
@@ -84,7 +85,7 @@ Item {
 
                             Repeater {
                                 model: ["Commands", "Level / Sync", "Rate"]
-                                Button {
+                               PolyControls.Button {
                                     height: 80
                                     width: 130
                                     text: modelData
@@ -118,7 +119,7 @@ Item {
                                     }
                                 }
                             }
-                            Button {
+                           PolyControls.Button {
                                 id: g_but
                                 height: 210
                                 width: 130
@@ -370,12 +371,12 @@ Item {
 
 
 
-                                    Slider {
+                                   PolyControls.Slider {
                                         x: 0
                                         y: 0
                                         Material.foreground: parent.Material.foreground
                                         visible: loop_slider.v_type != "bool"
-                                        snapMode: Slider.SnapAlways
+                                        snapMode:PolyControls.Slider.SnapAlways
                                         stepSize: loop_slider.v_type == "int" ? 1.0 : 0.0
                                         title: LoopMap.parameter_map[loop_slider.selected_parameter]
                                         width: parent.width - 50
@@ -518,11 +519,11 @@ Item {
                                     property bool force_update: false
                                     Material.foreground: Constants.short_rainbow[0]
 
-                                    Slider {
+                                   PolyControls.Slider {
                                         x: 0
                                         y: 0
                                         Material.foreground: parent.Material.foreground
-                                        snapMode: Slider.SnapAlways
+                                        snapMode:PolyControls.Slider.SnapAlways
                                         stepSize: loop_slider_rate.selected_parameter == "rate" ? 0.25 : 0.01
                                         title: LoopMap.parameter_map[loop_slider_rate.selected_parameter]
                                         width: parent.width - 50
@@ -689,7 +690,7 @@ Item {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                 }
 
-                                SpinBox {
+                               PolyControls.SpinBox {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     width: 285
                                     height: 100
@@ -718,7 +719,7 @@ Item {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                 }
 
-                                SpinBox {
+                               PolyControls.SpinBox {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     width: 285
                                     height: 100
@@ -811,11 +812,11 @@ Item {
                                         property string v_type: selected_parameter == "fade_samples" ? "int" : "float"
                                         property bool force_update: false
 
-                                        Slider {
+                                       PolyControls.Slider {
                                             x: 0
                                             y: 0
                                             Material.foreground: parent.Material.foreground
-                                            snapMode: Slider.SnapAlways
+                                            snapMode:PolyControls.Slider.SnapAlways
                                             stepSize: global_slider.v_type == "int" ? 1.0 : 0.0
                                             orientation: Qt.Vertical
                                             title: LoopMap.parameter_map[global_slider.selected_parameter]

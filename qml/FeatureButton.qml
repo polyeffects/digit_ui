@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 /****************************************************************************
 **
 ** Copyright (C) 2017 The Qt Company Ltd.
@@ -69,5 +70,5 @@ Button {
     icon.name: "placeholder"
     icon.width: 44
     icon.height: 44
-    display: Button.TextUnderIcon
+    display:PolyControls.Button.TextUnderIcon
 }

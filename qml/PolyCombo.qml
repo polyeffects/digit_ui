@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.11
 // import QtQuick.Controls.Material 2.4
 // import QtQuick.Controls.Material.impl 2.4
@@ -9,7 +10,7 @@ ComboBox {
     // width: 140
     // model: ["LEVEL", "TONE", "FEEDBACK", "GLIDE", "WARP"]
     font.pixelSize: baseFontSize
-    delegate: ItemDelegate {
+    delegate:PolyControls.ItemDelegate {
         width: control.width
         text: control.textRole ? (Array.isArray(control.model) ? modelData[control.textRole] : model[control.textRole]) : modelData
         font.weight: control.currentIndex === index ? Font.DemiBold : Font.Normal

@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 /* DIGIT UI ****************************************************************************/
 
 import QtQuick 2.9
@@ -120,7 +121,7 @@ ApplicationWindow {
                 //     text: "Which parameter?"
                 //     font.pixelSize: baseFontSize 
                 // }
-                Button {
+               PolyControls.Button {
                     text: "Clear Mapping"
                     font.pixelSize: baseFontSize
                     width: 190
@@ -137,14 +138,14 @@ ApplicationWindow {
                         font.pixelSize: baseFontSize 
                     }
 
-                    SpinBox {
+                   PolyControls.SpinBox {
                         id: selectedCC
                         value: 0
                         from: 0 
                         to: 100
                     }
 
-                    Button {
+                   PolyControls.Button {
                         text: "Assign"
                         font.pixelSize: baseFontSize
                         // width: 140
@@ -215,7 +216,7 @@ ApplicationWindow {
                 //     text: "Which parameter?"
                 //     font.pixelSize: baseFontSize 
                 // }
-                Button {
+               PolyControls.Button {
                     text: mappingPopup.param1Name
                     font.pixelSize: baseFontSize
                     width: 140
@@ -233,7 +234,7 @@ ApplicationWindow {
                     }
                     // flat: true
                 }
-                Button {
+               PolyControls.Button {
                     text: mappingPopup.param2Name
                     font.pixelSize: baseFontSize
                     // width: 140
@@ -332,7 +333,7 @@ ApplicationWindow {
                                                 from: -10
                                                 to: 10
                                             }
-                                            Switch {
+                                           PolyControls.Switch {
                                                 text: qsTr("ENABLED")
                                                 font.pixelSize: fontSizeMedium
                                                 checked: pluginState.tape1.value
@@ -384,7 +385,7 @@ ApplicationWindow {
                                     //             from: 0
                                     //             to: 0.8
                                     //         }
-                                    //         Switch {
+                                    //        PolyControls.Switch {
                                     //             text: qsTr("ENABLED")
                                     //             onClicked: {
                                     //                 knobs.toggle_enabled("filter1")
@@ -434,7 +435,7 @@ ApplicationWindow {
                                                 from: -90
                                                 to: 20
                                             }
-                                            Switch {
+                                           PolyControls.Switch {
                                                 text: qsTr("ENABLED")
                                                 font.pixelSize: fontSizeMedium
                                                 height: parent.height
@@ -497,7 +498,7 @@ ApplicationWindow {
                                                 from: -90
                                                 to: 20
                                             }
-                                            Switch {
+                                           PolyControls.Switch {
                                                 text: qsTr("ENABLED")
                                                 font.pixelSize: fontSizeMedium
                                                 height: parent.height
@@ -614,20 +615,20 @@ ApplicationWindow {
                         spacing: 0
                         currentIndex: 0
                         anchors.bottom: parent.bottom
-                        TabButton {
+                       PolyControls.TabButton {
                             id: tabButton7
                             text: qsTr("MAIN")
                             font.pixelSize: fontSizeMedium
                         }
 
-                        TabButton {
+                       PolyControls.TabButton {
                             id: tabButton8
                             text: qsTr("EFFECTS")
                             font.pixelSize: fontSizeMedium
                             width: 180
                         }
 
-                        TabButton {
+                       PolyControls.TabButton {
                             id: tabButton9
                             text: qsTr("BUS")
                             font.pixelSize: fontSizeMedium
@@ -780,19 +781,19 @@ ApplicationWindow {
                         width: 376
                         anchors.bottom: parent.bottom
                         anchors.bottomMargin: 0
-                        TabButton {
+                       PolyControls.TabButton {
                             id: tabButton4
                             text: qsTr("MAIN")
                             font.pixelSize: fontSizeMedium
                         }
 
-                        TabButton {
+                       PolyControls.TabButton {
                             id: tabButton5
                             font.pixelSize: fontSizeMedium
                             text: qsTr("EQ")
                         }
 
-                        TabButton {
+                       PolyControls.TabButton {
                             font.pixelSize: fontSizeMedium
                             id: tabButton6
                             text: qsTr("BUS")
@@ -1060,13 +1061,13 @@ ApplicationWindow {
                         currentIndex: 1
                         anchors.bottomMargin: 0
                         spacing: 0
-                        TabButton {
+                       PolyControls.TabButton {
                             id: tabButton10
                             text: qsTr("MAIN")
                             font.pixelSize: fontSizeMedium
                         }
 
-                        TabButton {
+                       PolyControls.TabButton {
                             id: tabButton12
                             text: qsTr("BUS")
                             font.pixelSize: fontSizeMedium
@@ -1184,12 +1185,12 @@ ApplicationWindow {
                         width: 376
                         anchors.bottom: parent.bottom
                         anchors.bottomMargin: 0
-                        TabButton {
+                       PolyControls.TabButton {
                             text: qsTr("MAIN")
                             font.pixelSize: fontSizeMedium
                         }
 
-                        TabButton {
+                       PolyControls.TabButton {
                             font.pixelSize: fontSizeMedium
                             text: qsTr("BUS")
                         }
@@ -1273,27 +1274,27 @@ ApplicationWindow {
                         width: 476
                         anchors.bottom: parent.bottom
                         anchors.bottomMargin: 0
-                        TabButton {
+                       PolyControls.TabButton {
                             text: qsTr("LFO1")
                             font.pixelSize: fontSizeMedium
                         }
-                        // TabButton {
+                        //PolyControls.TabButton {
                         //     text: qsTr("LFO2")
                         //     font.pixelSize: baseFontSize
                         // }
-                        // TabButton {
+                        //PolyControls.TabButton {
                         //     text: qsTr("LFO3")
                         //     font.pixelSize: baseFontSize
                         // }
-                        // TabButton {
+                        //PolyControls.TabButton {
                         //     text: qsTr("LFO4")
                         //     font.pixelSize: baseFontSize
                         // }
-                        // TabButton {
+                        //PolyControls.TabButton {
                         //     text: qsTr("ENV1")
                         //     font.pixelSize: baseFontSize
                         // }
-                        // TabButton {
+                        //PolyControls.TabButton {
                         //     text: qsTr("ENV2")
                         //     font.pixelSize: baseFontSize
                         // }
@@ -1310,7 +1311,7 @@ ApplicationWindow {
                 currentIndex: 0
                 property int prevIndex: 0
 
-                TabButton {
+               PolyControls.TabButton {
                     Material.foreground: pluginState.delay1.value ? Material.color(Material.Indigo, Material.Shade200) : Material.Grey
                     Material.accent: pluginState.delay1.value ? Material.color(Material.Indigo, Material.Shade200) : Material.Grey
                     id: tabButton
@@ -1331,7 +1332,7 @@ ApplicationWindow {
                     }
                 }
 
-                TabButton {
+               PolyControls.TabButton {
                     Material.foreground: pluginState.reverb.value ? Material.color(Material.Indigo, Material.Shade200) : Material.Grey
                     Material.accent: pluginState.reverb.value ? Material.color(Material.Indigo, Material.Shade200) : Material.Grey
                     id: tabButton1
@@ -1349,7 +1350,7 @@ ApplicationWindow {
                     }
                 }
 
-                TabButton {
+               PolyControls.TabButton {
                     // Material.foreground: pluginState.mixer.value ? Material.LightGreen : Material.Grey
                     // Material.accent: pluginState.mixer.value ? Material.lightGreen : Material.Grey
                     Material.foreground: Material.color(Material.Indigo, Material.Shade200)
@@ -1364,7 +1365,7 @@ ApplicationWindow {
                     }
                 }
 
-                TabButton {
+               PolyControls.TabButton {
                     Material.foreground: pluginState.cab.value ? Material.color(Material.Indigo, Material.Shade200) : Material.Grey
                     Material.accent: pluginState.cab.value ? Material.color(Material.Indigo, Material.Shade200) : Material.Grey
                     id: tabButton3
@@ -1381,7 +1382,7 @@ ApplicationWindow {
                         }
                     }
                 }
-                TabButton {
+               PolyControls.TabButton {
                     // Material.foreground: pluginState.cab.value ? Material.LightGreen : Material.Grey
                     // Material.accent: pluginState.cab.value ? Material.lightGreen : Material.Grey
                     // color: pluginState.cab ? Material.Green : Material.Grey
@@ -1547,7 +1548,7 @@ ApplicationWindow {
                     pixelSize: fontSizeLarge
                 }
             }
-            Button {
+           PolyControls.Button {
                 anchors.bottom: parent.bottom
                 anchors.right: parent.right
                 anchors.rightMargin: 100

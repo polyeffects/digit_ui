@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 
 import QtQuick 2.4
 import QtQuick.Window 2.2
@@ -44,81 +45,82 @@ ApplicationWindow {
         // TitleFooter {
         // }
 
-        // Item {
-        //     width: 1280
-        //     height: 720
+    //     Item {
+    //         width: 1280
+    //         height: 720
         
-        // Slider {
-        //     x: 50
-        //     y: 50
-        //     width: 625
-        //     height: 48
-        //     value: 0.5
-        //     from: 0
-        //     to: 1
-        //     title: "Fragment Length"
-        // }
+    //    PolyControls.Slider {
+    //         x: 50
+    //         y: 50
+    //         width: 625
+    //         height: 48
+    //         value: 0.5
+    //         from: 0
+    //         to: 1
+    //         title: "Fragment Length"
+    //     }
 
-        // Slider {
-        //     x: 100
-        //     y: 300
-        //     value: 0.5
-        //     from: 0
-        //     to: 1
-        //     title: "Fragment"
-        //     orientation: Qt.Vertical
-        //     width: 50 
-        //     height: 300
-        // }
+    //    PolyControls.Slider {
+    //         x: 100
+    //         y: 300
+    //         value: 0.5
+    //         from: 0
+    //         to: 1
+    //         title: "Fragment"
+    //         orientation: Qt.Vertical
+    //         width: 50 
+    //         height: 300
+    //     }
 
-        // Slider {
-        //     x: 200
-        //     y: 300
-        //     value: 0.5
-        //     from: 0
-        //     to: 1
-        //     title: "Gain"
-        //     orientation: Qt.Vertical
-        //     width: 75 
-        //     height: 300
-        // }
+       // PolyControls.Slider {
+       //      x: 200
+       //      y: 300
+       //      value: 0.5
+       //      from: 0
+       //      to: 1
+       //      title: "Gain"
+       //      is_log: true
+       //      orientation: Qt.Vertical
+       //      width: 75 
+       //      height: 300
+       //  }
 
-        // Slider {
-        //     x: 300
-        //     y: 300
-        //     value: 0.5
-        //     from: 0
-        //     to: 1
-        //     title: "Gain"
-        //     orientation: Qt.Vertical
-        //     width: 75 
-        //     height: 200
-        // }
-        // // Switch {
-        // //     x: 50
-        // //     y: 50
-        // //     text: qsTr("BAND 5")
-        // //     font.pixelSize: baseFontSize
-        // //     bottomPadding: 0
-        // //     // height: 20
-        // //     // implicitWidth: 100
-        // //     width: 175
-        // //     height: 30
-        // //     leftPadding: 0
-        // //     topPadding: 0
-        // //     rightPadding: 0
-        // // }
+    //    PolyControls.Slider {
+    //         x: 300
+    //         y: 300
+    //         value: 0.5
+    //         from: 0
+    //         to: 1
+    //         title: "Gain"
+    //         orientation: Qt.Vertical
+    //         width: 75 
+    //         height: 200
+    //     }
+    //     //PolyControls.Switch {
+    //     //     x: 50
+    //     //     y: 50
+    //     //     text: qsTr("BAND 5")
+    //     //     font.pixelSize: baseFontSize
+    //     //     bottomPadding: 0
+    //     //     // height: 20
+    //     //     // implicitWidth: 100
+    //     //     width: 175
+    //     //     height: 30
+    //     //     leftPadding: 0
+    //     //     topPadding: 0
+    //     //     rightPadding: 0
+    //     // }
 
-        // SpinBox {
-        //     x: 100
-        //     y: 100
-        //     height: 50
-        //     value: 10
-        //     from: 1
-        //     to:  100
-        //     stepSize: 10
-        // }
-    // }
+    //    PolyControls.SpinBox {
+    //         x: 100
+    //         y: 100
+    //         height: 50
+    //         value: 10
+    //         from: 1
+    //         to:  100
+    //         stepSize: 10
+    //     }
+    //  }
         // NoteSequencer {
         
         // }
@@ -130,30 +132,30 @@ ApplicationWindow {
 		
 		// }
         //
-        // StackView {
-        //     id: patchStack
-        //     initialItem: 
-        //     // AmpBrowser {
+        StackView {
+            id: patchStack
+            initialItem: 
+            AmpBrowser {
 
-        //     // }
-        //     ReverbBrowser {
+            }
+            // ReverbBrowser {
             
-        //     }
-        // }
+            // }
+        }
         
         // Loopler {
         
         // }
-        ModuleBrowser {
+        // ModuleBrowser {
         
-        }
+        // }
         // EuclideanSequencer {
         
         // }
         // More {
         
         // }
-    }
+    // }
     // PresetSave {
     // }
     // Settings {
@@ -173,7 +175,7 @@ ApplicationWindow {
             
     //     })
 
-    // }
+    }
     //
     Item {
         transform: Rotation {
@@ -190,3 +192,4 @@ ApplicationWindow {
         }
     }
 }
+

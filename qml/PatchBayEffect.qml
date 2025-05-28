@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.4
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
@@ -813,7 +814,7 @@ Rectangle {
 						}
 					}
 
-                    ComboBox {
+                   PolyControls.ComboBox {
 						visible: beatsRadio.checked
                         // visible: !Qt.inputMethod.visible
 						width: 500
@@ -825,7 +826,7 @@ Rectangle {
                             pixelSize: 32
                             capitalization: Font.AllUppercase
                         }
-                        delegate: ItemDelegate {
+                        delegate:PolyControls.ItemDelegate {
                             width: note_subdivisions.width
                             contentItem: Text {
                                 text: modelData.text
@@ -1015,7 +1016,7 @@ Rectangle {
                         v_type: "int"
                     }
 
-                    ComboBox {
+                   PolyControls.ComboBox {
 						visible: beatsRadio.checked
                         // visible: !Qt.inputMethod.visible
 						width: 500
@@ -1027,7 +1028,7 @@ Rectangle {
                             pixelSize: 32
                             capitalization: Font.AllUppercase
                         }
-                        delegate: ItemDelegate {
+                        delegate:PolyControls.ItemDelegate {
                             width: note_subdivisions.width
                             contentItem: Text {
                                 text: modelData.text
@@ -1225,7 +1226,7 @@ Rectangle {
                         id: plaitsBar
                         width: parent.width
                         height: 75
-                        TabButton {
+                       PolyControls.TabButton {
                             text: qsTr("Model")
                             height: parent.height
                             font {
@@ -1233,7 +1234,7 @@ Rectangle {
                                 capitalization: Font.AllUppercase
                             }
                         }
-                        TabButton {
+                       PolyControls.TabButton {
                             text: qsTr("Tone")
                             height: parent.height
                             font {
@@ -1241,7 +1242,7 @@ Rectangle {
                                 capitalization: Font.AllUppercase
                             }
                         }
-                        TabButton {
+                       PolyControls.TabButton {
                             text: qsTr("Modulation")
                             height: parent.height
                             font {
@@ -2152,7 +2153,7 @@ Rectangle {
 						has_border: true
 						text: "FREEZE"
 						radius: 11
-						display: Button.TextUnderIcon
+						display:PolyControls.Button.TextUnderIcon
 						font {
 							pixelSize: 24
 							capitalization: Font.AllUppercase
@@ -2167,7 +2168,7 @@ Rectangle {
 						has_border: true
 						text: "REVERSE"
 						radius: 11
-						display: Button.TextUnderIcon
+						display:PolyControls.Button.TextUnderIcon
 						font {
 							pixelSize: 24
 							capitalization: Font.AllUppercase
@@ -2591,7 +2592,7 @@ Rectangle {
                         }
                     }
 
-                    Switch {
+                   PolyControls.Switch {
                         anchors.horizontalCenter: parent.horizontalCenter
                         Material.foreground: Constants.rainbow[0]
                         text: "MEASURE"

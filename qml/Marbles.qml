@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
@@ -50,7 +51,7 @@ Item {
     
         Repeater {
             model: ["Gate Generator", "X Voltage", "Deja Vu", "Y Voltage", "Steps Quantizer"]
-            Button {
+           PolyControls.Button {
                 height: 92
                 width: 180
                 text: modelData

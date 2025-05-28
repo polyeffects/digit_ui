@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.9
 import QtQuick.Controls 2.3
 // import QtQuick.Window 2.2
@@ -48,7 +49,7 @@ Item {
 						}
                     }
 
-                    Button {
+                   PolyControls.Button {
 						width: 300
                         text: "COPY IRS / AMPS"
                         font.pixelSize: baseFontSize
@@ -59,7 +60,7 @@ Item {
                         Material.background: Constants.outline_color
                     }
 
-                    Button {
+                   PolyControls.Button {
 						width: 300
                         text: "DELETE ALL IRS"
                         font.pixelSize: baseFontSize
@@ -76,7 +77,7 @@ Item {
                         text: qsTr("MIDI CHANNEL")
                     }
 
-                    SpinBox {
+                   PolyControls.SpinBox {
 						width: 300
                         id: midi_channel_spin
                         font.pixelSize: baseFontSize
@@ -131,7 +132,7 @@ Item {
                     Row {
                         width: 300
                         spacing: 10
-                        Button {
+                       PolyControls.Button {
                             flat: false
                             width: 140
                             text: "COPY LOGS"
@@ -140,7 +141,7 @@ Item {
                             onClicked: knobs.copy_logs()
                         }
 
-                        Button {
+                       PolyControls.Button {
                             flat: false
                             width: 140
                             text: "RESET SET LIST"
@@ -166,7 +167,7 @@ Item {
 					}
 
 
-                    // Switch {
+                    //PolyControls.Switch {
                     //     font.pixelSize: baseFontSize
                     //     text: qsTr("SEND MIDI CLOCK")
                     //     // bottomPadding: 0
@@ -180,7 +181,7 @@ Item {
                     //     // }
                     // }
 
-                    // Switch {
+                    //PolyControls.Switch {
                     //     font.pixelSize: baseFontSize
                     //     text: qsTr("ENABLE LINK")
                     //     // bottomPadding: 0
@@ -203,7 +204,7 @@ Item {
                     spacing: 30
                     // height:parent.height
 
-                    Button {
+                   PolyControls.Button {
                         flat: false
 						width: 300
                         font.pixelSize: baseFontSize
@@ -212,7 +213,7 @@ Item {
                         // show screen explaining to put USB flash drive in
                     }
 
-                    // Switch {
+                    //PolyControls.Switch {
                     //     font.pixelSize: baseFontSize
                     //     text: qsTr("IN 1/2 BALANCED")
                     //     // bottomPadding: 0
@@ -225,7 +226,7 @@ Item {
                     //     //     lfo_control.snapping = checked
                     //     // }
                     // }
-                    // Switch {
+                    //PolyControls.Switch {
                     //     font.pixelSize: baseFontSize
                     //     text: qsTr("IN 3/4 BALANCED")
                     //     // bottomPadding: 0
@@ -238,7 +239,7 @@ Item {
                     //     //     lfo_control.snapping = checked
                     //     // }
                     // }
-                    // Switch {
+                    //PolyControls.Switch {
                     //     font.pixelSize: baseFontSize
                     //     text: qsTr("OUT 1/2 BALANCED")
                     //     // bottomPadding: 0
@@ -251,7 +252,7 @@ Item {
                     //     //     lfo_control.snapping = checked
                     //     // }
                     // }
-                    // Switch {
+                    //PolyControls.Switch {
                     //     font.pixelSize: baseFontSize
                     //     text: qsTr("OUT 3/4 BALANCED")
                     //     // bottomPadding: 0
@@ -269,7 +270,7 @@ Item {
                         // color: "#ffffff"
                         text: qsTr("INPUT LEVEL")
                     }
-                    SpinBox {
+                   PolyControls.SpinBox {
 						width: 300
                         id: input_level_spin
                         font.pixelSize: baseFontSize
@@ -289,7 +290,7 @@ Item {
                         Component.onCompleted: value = inputLevel.value
                     }
 
-                    // Button {
+                    //PolyControls.Button {
                     //     flat: false
                     //     text: "STAGE VIEW"
                     //     font.pixelSize: baseFontSize
@@ -297,7 +298,7 @@ Item {
                     //     onClicked: mainStack.push("PerformanceMode.qml")
                     // }
 
-                    Button {
+                   PolyControls.Button {
                         flat: false
                         text: "QA CHECK"
 						width: 300
@@ -322,7 +323,7 @@ Item {
 
 					}
 
-                    Button {
+                   PolyControls.Button {
                         flat: false
 						width: 300
                         text: "SET AUTHOR"
@@ -330,7 +331,7 @@ Item {
                         onClicked: settingsStack.push(setAuthor)
                     }
 
-                    Button {
+                   PolyControls.Button {
                         flat: false
 						width: 300
                         text: "FLIP SCREEN"
@@ -412,7 +413,7 @@ Item {
                     y: 150
                     spacing: 100
                     width: 450
-                    Button {
+                   PolyControls.Button {
                         flat: false
                         font {
                             pixelSize: fontSizeMedium
@@ -424,7 +425,7 @@ Item {
                         }
                     }
 
-                    Button {
+                   PolyControls.Button {
                         flat: false
                         font {
                             pixelSize: fontSizeMedium
@@ -437,7 +438,7 @@ Item {
                         }
                     }
 
-                    Button {
+                   PolyControls.Button {
                         flat: false
                         font {
                             pixelSize: fontSizeMedium
@@ -452,7 +453,7 @@ Item {
                 }
 
             }
-            Button {
+           PolyControls.Button {
                 font {
                     pixelSize: fontSizeMedium
                 }
@@ -487,7 +488,7 @@ Item {
                     textFormat: Text.StyledText
                 }
 
-                Button {
+               PolyControls.Button {
                     flat: false
                     font {
                         pixelSize: fontSizeMedium
@@ -500,7 +501,7 @@ Item {
                     }
                 }
             }
-            Button {
+           PolyControls.Button {
                 font {
                     pixelSize: fontSizeMedium
                 }
@@ -536,7 +537,7 @@ Item {
                     textFormat: Text.StyledText
                 }
 
-                Button {
+               PolyControls.Button {
                     flat: false
                     font {
                         pixelSize: fontSizeMedium
@@ -549,7 +550,7 @@ Item {
                     }
                 }
             }
-            Button {
+           PolyControls.Button {
                 flat: false
                 font {
                     pixelSize: fontSizeMedium
@@ -609,7 +610,7 @@ Item {
                     visible: commandStatus[0].value == 16 
                 }
 
-                Button {
+               PolyControls.Button {
                     flat: false
                     font {
                         pixelSize: fontSizeMedium
@@ -639,7 +640,7 @@ Item {
                 }
 
             }
-            Button {
+           PolyControls.Button {
                 flat: false
                 font {
                     pixelSize: fontSizeMedium
@@ -705,7 +706,7 @@ Item {
                 }
 
             }
-            Button {
+           PolyControls.Button {
                 flat: false
                 font {
                     pixelSize: fontSizeMedium
@@ -752,7 +753,7 @@ Item {
                     placeholderText: qsTr("Preset Author")    
                 }
 
-                Button {
+               PolyControls.Button {
                     font {
                         pixelSize: fontSizeMedium
                     }

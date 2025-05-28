@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.9
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3  
@@ -33,7 +34,7 @@ Item {
 			background: Rectangle { color: encoderQA["right"].value < 0.9 ? "red" : "green"; width: parent.width; height: parent.height }
 		}
 
-        Switch {
+       PolyControls.Switch {
             text: "ENCODER INV"
             height: 150
             width: 300

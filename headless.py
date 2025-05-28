@@ -1666,7 +1666,15 @@ def midi_pc_thread():
             if channel == midi_channel.value:# - 1: # our channel
                 debug_print("####### channel == midi_channel.value", channel)
                 # put this in the queue
-                mcu_comms.load_verbs_preset(program % 56)
+                if program < 56:
+                    debug_print("####### program", program)
+                    mcu_comms.load_verbs_preset(program)
+                else:
+                    debug_print("####### program set list", program)
+                    debug_print("####### channel == midi_channel.value", channel)
+                    program = program - 55
+                    set_list = knobs.get_set_list()
+                    mcu_comms.load_verbs_preset_from_set_list(set_list[program % len(set_list)], True)
         elif PEDAL_TYPE == pedal_types.ample and len(l) > 12 and l[6] == b'b'[0]: # 0xB0 is CC
             b = l.decode()
             debug_print(f"####### b {b} split {b.split()} len l {len(l)}")

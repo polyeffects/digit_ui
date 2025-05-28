@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.9
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3  
@@ -34,7 +35,7 @@ import "polyconst.js" as Constants
                 }
             }
 
-            // Button {
+            //PolyControls.Button {
             //     anchors.bottom: parent.bottom
             //     anchors.right: parent.right
             //     anchors.rightMargin: 100

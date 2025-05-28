@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.11
 import QtQuick.Controls 2.4
 import QtQuick.Controls.Material 2.4
@@ -32,7 +33,7 @@ Item {
 				model: titles 
 
 
-                Button {
+               PolyControls.Button {
                     height: 145
                     width: 140
                     text: modelData
@@ -71,7 +72,7 @@ Item {
 
         Repeater {
             model: num_col 
-            Slider {
+           PolyControls.Slider {
                 id: slider
                 height: control.height - 20
                 width: (837 / num_col) - 15
@@ -80,7 +81,7 @@ Item {
                 property bool is_log: false
                 property string slider_param: control.param_base+"_"+(index+1)+"_"+control.selected_parameter
                 // property string v_type: ModuleInfo.effectPrototypes[effect_type]["controls"][slider_param].length > 4 ? ModuleInfo.effectPrototypes[effect_type]["controls"][slider_param][4] : "float"
-                snapMode: Slider.SnapAlways
+                snapMode:PolyControls.Slider.SnapAlways
                 // stepSize: v_type == "int" ? 1.0 : 0.0
                 from: is_log ? 20 : currentEffects[current_effect]["controls"][slider_param].rmin
                 to: is_log ? 20000 : currentEffects[current_effect]["controls"][slider_param].rmax

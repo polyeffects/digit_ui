@@ -23,7 +23,7 @@ import properties
 
 EXIT_PROCESS = [False]
 import module_browser_model
-# import amp_browser_mode
+import amp_browser_model
 # import ir_browser_model
 
 
@@ -222,7 +222,7 @@ if __name__ == "__main__":
     # Instantiate the Python object.
     knobs = Knobs()
     module_browser_model_s = module_browser_model.ModuleBrowserModel({"modules": [], "presets": []})
-    # amp_browser_model_s = amp_browser_model.AmpBrowserModel({"nam": [], "amp": []}, knobs)
+    amp_browser_model_s = amp_browser_model.AmpBrowserModel({"nam": [], "amp": []}, knobs)
     # ir_browser_model_s = ir_browser_model.irBrowserModel({"reverbs": [], "cabs": []}, knobs)
     #loopler = loopler_lib.Loopler()
     #loopler.start_loopler()
@@ -244,6 +244,7 @@ if __name__ == "__main__":
     # available_effects = QStringListModel()
     # available_effects.setStringList(list(effect_type_map.keys()))
     engine = QQmlApplicationEngine()
+    engine.addImportPath(":/")
 
     # qmlRegisterType(patch_bay_model.PatchBayModel, 'Poly', 1, 0, 'PatchBayModel')
     # Expose the object to QML.
@@ -256,7 +257,7 @@ if __name__ == "__main__":
     current_pedal_model = PolyValue("beebo", 0, -1, 1)
     # context.setContextProperty("loopler", loopler)
     context.setContextProperty("module_browser_model", module_browser_model_s)
-    # context.setContextProperty("amp_browser_model", amp_browser_model_s)
+    context.setContextProperty("amp_browser_model", amp_browser_model_s)
     # context.setContextProperty("ir_browser_model", ir_browser_model_s)
     context.setContextProperty("accent_color", accent_color)
     context.setContextProperty("currentPedalModel", current_pedal_model)

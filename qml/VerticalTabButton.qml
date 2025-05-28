@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.4
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
@@ -8,7 +9,7 @@ Item {
     property string text
     property int our_index: 0
 
-    Button {
+   PolyControls.Button {
         height: 92
         width: 180
         text: text

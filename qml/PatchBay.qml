@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
@@ -203,7 +204,7 @@ import "module_info.js" as ModuleInfo
             function findConnections(drawContext){ 
                 // iterate over items in rep1, adding to dictionary of effect_id : patchbayeffect
                 // source and targets are the wrong way round XXX 
-                // console.log("finding connection", Object.keys(portConnections));
+                console.log("finding connection", Object.keys(portConnections));
                 for (var source_effect_port_str in portConnections){ 
                     var source_effect_port = rsplit(source_effect_port_str, "/", 1);
                     var targets = portConnections[source_effect_port_str];

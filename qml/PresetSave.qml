@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.9
 import QtQuick.Controls 2.3
 // import QtQuick.Window 2.2
@@ -353,7 +354,7 @@ import QtQuick.Controls.Material 2.3
 						
                     } // preset loaded on click on preset
 
-                    // Button {
+                    //PolyControls.Button {
                     //     y: 460
 						// x: 400
                     //     width: 500
@@ -393,7 +394,7 @@ import QtQuick.Controls.Material 2.3
                     spacing: 100
 					anchors.centerIn: parent
 
-                    Button {
+                   PolyControls.Button {
 						font {
 							pixelSize: fontSizeLarge
 						}
@@ -407,7 +408,7 @@ import QtQuick.Controls.Material 2.3
 						visible: currentPreset.name != 'Empty'
                     }
 
-                    Button {
+                   PolyControls.Button {
 						font {
 							pixelSize: fontSizeLarge
 						}
@@ -468,7 +469,7 @@ import QtQuick.Controls.Material 2.3
                     }
                     // create new folder
 
-                    Button {
+                   PolyControls.Button {
 						font {
 							pixelSize: fontSizeLarge
 						}
@@ -530,7 +531,7 @@ import QtQuick.Controls.Material 2.3
                         placeholderText: qsTr("Preset Name")    
                     }
 
-                    Button {
+                   PolyControls.Button {
 						font {
 							pixelSize: fontSizeMedium
 						}
@@ -584,7 +585,7 @@ import QtQuick.Controls.Material 2.3
 				width:1280
 
 
-                SpinBox {
+               PolyControls.SpinBox {
                     y: 80
                     x: 500
                     // width: 500
@@ -602,7 +603,7 @@ import QtQuick.Controls.Material 2.3
                     width: 600
                     height: 500
                     clip: true
-                    delegate: ItemDelegate {
+                    delegate:PolyControls.ItemDelegate {
                         width: parent.width
                         height: 50
                         text: index + " " + edit.slice(20, -6) // trim .ingen and /mnt/preset
@@ -627,7 +628,7 @@ import QtQuick.Controls.Material 2.3
                 // Row {
                 //     spacing: 100
 					// anchors.centerIn: parent
-                //     Button {
+                //    PolyControls.Button {
 						// font {
 							// pixelSize: fontSizeLarge
 						// }
@@ -638,7 +639,7 @@ import QtQuick.Controls.Material 2.3
 							// mainStack.pop()
 						// }
                 //     }
-                //     Button {
+                //    PolyControls.Button {
 						// font {
 							// pixelSize: fontSizeLarge
 						// }

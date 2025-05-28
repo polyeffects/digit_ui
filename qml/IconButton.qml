@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 /****************************************************************************
 **
 ** Copyright (C) 2017 The Qt Company Ltd.

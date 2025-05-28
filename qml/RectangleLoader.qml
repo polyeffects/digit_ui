@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.7
 import QtQuick.Controls.Material 2.3
 import QtQuick.Controls.Material.impl 2.3

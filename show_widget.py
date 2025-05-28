@@ -27,6 +27,19 @@ def exception_hook(exctype, value, tb):
     sys.exit(1)
 sys.excepthook = exception_hook
 
+import stat
+ingen_is_ready = False
+while not ingen_is_ready:
+    try:
+        mode = os.stat("/tmp/ingen.sock").st_mode
+        if stat.S_ISSOCK(mode):
+            ingen_is_ready = True
+        else:
+            time.sleep(0.2)
+    except FileNotFoundError:
+        time.sleep(0.2)
+time.sleep(0.2)
+
 os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
 import icons.icons
 # #, imagine_assets
@@ -86,8 +99,8 @@ context = None
 amp_browser_model_s = None
 
 def debug_print(*args, **kwargs):
-    pass
-    # print( "From py: "+" ".join(map(str,args)), **kwargs)
+    # pass
+    print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 
 effect_type_maps = module_info.effect_type_maps
@@ -518,6 +531,7 @@ def load_preset(name, initial=False, force=False):
     knobs.spotlight_entries = []
     preset_description.name = "Tap here to enter preset description"
     to_delete = list(current_effects.keys())
+    print("load preset to delete, current_effects", to_delete)
     for effect_id in to_delete:
         if effect_id in ["/main/out_1", "/main/out_2", "/main/out_3", "/main/out_4", "/main/in_1", "/main/in_2", "/main/in_3", "/main/in_4"]:
             pass
@@ -579,6 +593,7 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=Tru
 
 def from_backend_remove_effect(effect_name):
     # called by engine code when effect is removed
+    debug_print("### from backend removing effect, is effect_name in effects", effect_name)
     if effect_name not in current_effects:
         return
     effect_type = current_effects[effect_name]["effect_type"]
@@ -617,11 +632,12 @@ def from_backend_remove_effect(effect_name):
     update_counter.value+=1
 
 def from_backend_add_connection(head, tail):
-    # debug_print("head ", head, "tail", tail)
-    current_source_port = head
+    debug_print("head ", head, "tail", tail, sub_graphs)
+    tail = tail.removeprefix("ingen:")
+    current_source_port = head.removeprefix("ingen:")
     if current_source_port.rsplit("/", 1)[0] in sub_graphs:
         s_effect = current_source_port
-        # debug_print("## s_effect", s_effect)
+        # debug_print("## s_effect", s_effect, current_effects)
         if s_effect not in current_effects:
             return
         s_effect_type = current_effects[s_effect]["effect_type"]
@@ -630,15 +646,16 @@ def from_backend_add_connection(head, tail):
         elif s_effect_type in bare_input_ports:
             s_port = "output"
         current_source_port = s_effect + "/" + s_port
-        # debug_print("## current_source_port", current_source_port)
+        debug_print("## current_source_port", current_source_port)
     else:
         if current_source_port.rsplit("/", 1)[0] == "/main":
             return
-        # debug_print("## current_source_port not in sub graph", current_source_port, sub_graphs)
+        debug_print("## current_source_port not in sub graph", current_source_port, sub_graphs)
 
 
     effect_id_port_name = tail.rsplit("/", 1)
     if effect_id_port_name[0] in sub_graphs :
+        debug_print("## tail in sub graph", effect_id_port_name, sub_graphs)
         t_effect = tail
         if t_effect not in current_effects:
             return
@@ -648,16 +665,19 @@ def from_backend_add_connection(head, tail):
             t_port = "input"
         elif t_effect_type in bare_input_ports:
             t_port = "output"
-        # debug_print("## tail in sub_graph", tail, t_effect, t_port)
+        debug_print("## tail in sub_graph", tail, t_effect, t_effect_type, t_port)
         if t_port is None:
+            debug_print("## t_effect_type is ", t_effect_type, "t_effect", t_effect)
             return
     else:
+        debug_print("## tail not in sub graph 1", effect_id_port_name, sub_graphs)
         if effect_id_port_name[0] == "/main":
             return
-        # print("effect_id_port_name", effect_id_port_name)
+        print("effect_id_port_name", effect_id_port_name)
         t_effect, t_port = effect_id_port_name
-        # debug_print("## tail not in sub_graph", tail, t_effect, t_port, sub_graphs)
+        debug_print("## tail not in sub_graph 2", tail, t_effect, t_port, sub_graphs)
         if t_effect not in current_effects:
+            debug_print("## current_effects is ", current_effects, "t_effect", t_effect)
             return
 
     if current_source_port not in port_connections:
@@ -665,7 +685,7 @@ def from_backend_add_connection(head, tail):
     if [t_effect, t_port] not in port_connections[current_source_port]:
         port_connections[current_source_port].append([t_effect, t_port])
 
-    # debug_print("port_connections is", port_connections)
+    debug_print("port_connections is", port_connections)
     # global context
     context.setContextProperty("portConnections", port_connections)
     update_counter.value+=1
@@ -673,7 +693,7 @@ def from_backend_add_connection(head, tail):
 
 def from_backend_disconnect(head, tail):
     # debug_print("head ", head, "tail", tail)
-    current_source_port = head
+    current_source_port = head.removeprefix("ingen:")
     try:
         if current_source_port.rsplit("/", 1)[0] in sub_graphs:
             s_effect = current_source_port
@@ -684,9 +704,9 @@ def from_backend_disconnect(head, tail):
                 s_port = "output"
             current_source_port = s_effect + "/" + s_port
 
-        effect_id_port_name = tail.rsplit("/", 1)
+        effect_id_port_name = tail.removeprefix("ingen:").rsplit("/", 1)
         if effect_id_port_name[0] in sub_graphs:
-            t_effect = tail
+            t_effect = tail.removeprefix("ingen:")
             t_effect_type = current_effects[t_effect]["effect_type"]
             if t_effect_type in bare_output_ports:
                 t_port = "input"
@@ -919,7 +939,7 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
     @Slot(str)
     def remove_effect(self, effect_id):
         # calls backend to remove effect
-        # debug_print("remove effect", effect_id)
+        debug_print("remove effect", effect_id)
         # if effect is loopler we need to just hide it instead, because otherwise Ingen crashes
         if effect_id in current_effects and current_effects[effect_id]["effect_type"] in loopler_modules:
             # find all connections and remove them, disconnect plugin doesn't work
@@ -933,9 +953,11 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
                     for e, p in port_connections[source_port]:
                         if e == effect_id:
                             knobs.disconnect_port("/".join([e, p]) + "---" + source_port, False)
+            debug_print("removing loopler module", effect_id)
             from_backend_remove_effect(effect_id)
             # ingen_wrapper.remove_plugin(effect_id)
         else:
+            debug_print("removing module", effect_id)
             ingen_wrapper.remove_plugin(effect_id)
 
     @Slot(str, str, 'double')
@@ -1966,7 +1988,12 @@ def process_ui_messages():
     # pop from queue
     try:
         while not EXIT_PROCESS[0]:
-            m = ui_messages.get(block=False)
+            m = list(ui_messages.get(block=False))
+            if len(m) > 1:
+                # if m[1].startswith("ingen:"):
+                    # debug_print("message starts with ingen:", m)
+                m[1] = m[1].removeprefix("ingen:")
+
             # debug_print("got ui message", m)
             if m[0] == "value_change":
                 # debug_print("got value change in process_ui")
@@ -1996,7 +2023,8 @@ def process_ui_messages():
                 from_backend_disconnect(head, tail)
             elif m[0] == "add_plugin":
                 effect_name, effect_type, x, y, is_enabled = m[1:6]
-                # debug_print("got add", m)
+                effect_name = effect_name.removeprefix("ingen:")
+                debug_print("got add", m)
                 if (effect_name not in current_effects and (effect_type in inv_effect_type_map or effect_type in bare_ports)):
                     # debug_print("adding ", m)
                     if effect_type == "http://polyeffects.com/lv2/polyfoot":
@@ -2017,7 +2045,8 @@ def process_ui_messages():
                         from_backend_new_effect(effect_name, inv_effect_type_map[effect_type], x, y, is_enabled)
                         ingen_wrapper.get_state("/engine")
             elif m[0] == "remove_plugin":
-                effect_name = m[1]
+                # debug_print("from backend remove plugin ", m, current_effects)
+                effect_name = m[1].removeprefix("ingen:")
                 if (effect_name in current_effects):
                     from_backend_remove_effect(effect_name)
             elif m[0] == "enabled_change":
@@ -2028,6 +2057,7 @@ def process_ui_messages():
                     current_effects[effect_name]["enabled"].value = bool(is_enabled)
             elif m[0] == "pedalboard_loaded":
                 subgraph, file_name = m[1:]
+                subgraph = subgraph.removeprefix("ingen:")
                 # disable loading sign
                 print ("pedalboard loaded", subgraph, file_name, current_sub_graph)
                 if subgraph == current_sub_graph.rstrip("/"):
@@ -2099,7 +2129,7 @@ def process_ui_messages():
                 # global EXIT_PROCESS
                 EXIT_PROCESS[0] = True
             elif m[0] == "broadcast_update":
-                # debug_print("got value change in process_ui")
+                debug_print("got value change in process_ui", m)
                 effect_name_parameter, value = m[1:]
                 effect_name, parameter = effect_name_parameter.rsplit("/", 1)
 
@@ -2195,7 +2225,26 @@ def change_pedal_model(name, initial=False):
     load_preset_list()
     jump_to_preset(False, 0, initial)
 
+
+class ExceptionThread(threading.Thread):
+    def __init__(self, *args, **kwargs):
+        threading.Thread.__init__(self, *args, **kwargs)
+
+    def run(self):
+        try:
+            if self._target:
+                self._target(*self._args, **self._kwargs)
+        except Exception:
+            print(traceback.format_exc())
+            # logging.error(traceback.format_exc())
+
+cc_thread = None
 def handle_MIDI_program_change():
+    global cc_thread
+    cc_thread = ExceptionThread(target=midi_pc_thread)
+    cc_thread.start()
+
+def midi_pc_thread():
     # This is pretty dodgy... but I don't want to depend on jack in the main process as it'll slow down startup
     # we need to wait here for ttymidi to be up
     ttymidi_found = False
@@ -2219,7 +2268,7 @@ def handle_MIDI_program_change():
     except:
         pass
     # p terminates.
-    while p.poll() is None:
+    while p.poll() is None and not EXIT_PROCESS[0]:
         l = p.stdout.readline() # This blocks until it receives a newline.
         if len(l) > 8 and l[6] == b'c'[0]:
             b = l.decode()
@@ -2363,11 +2412,13 @@ if __name__ == "__main__":
         ex_type, ex_value, tb = sys.exc_info()
         error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
         debug_print("EXception is:", error)
+        EXIT_PROCESS[0] = True
         sys.exit()
 
     sys._excepthook = sys.excepthook
     def exception_hook(exctype, value, tb):
         debug_print("except hook got a thing!")
+        EXIT_PROCESS[0] = True
         traceback.print_exception(exctype, value, tb)
         sys._excepthook(exctype, value, tb)
         # sys.exit(1)
@@ -2389,6 +2440,7 @@ if __name__ == "__main__":
             ingen_wrapper.ingen._FINISH = True
             pedal_hardware.EXIT_THREADS = True
             ingen_wrapper.ingen.sock.close()
+            sys.exit()
     signal(SIGINT,  signalHandler)
     signal(SIGTERM, signalHandler)
     initial_preset = False
@@ -2414,6 +2466,10 @@ if __name__ == "__main__":
             ex_type, ex_value, tb = sys.exc_info()
             error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
             debug_print("EXception is:", error)
+            try:
+                ingen_wrapper.ingen.sock.shutdown(socket.SHUT_RDWR)
+            except:
+                pass
             qCritical("########## exception is:"+ str(error))
             sys.exit()
         sleep(0.01)

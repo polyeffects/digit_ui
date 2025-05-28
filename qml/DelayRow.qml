@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
@@ -31,12 +32,12 @@ Item {
        return x.replace(/\.[^/.]+$/, "") 
     }
 
-    Slider {
+   PolyControls.Slider {
         x: 0
         y: 0
         is_log: control.is_log
         visible: v_type != "bool"
-        snapMode: Slider.SnapAlways
+        snapMode:PolyControls.Slider.SnapAlways
         stepSize: v_type == "int" ? 1.0 : 0.0
         title: control.title
         width: parent.width - 50
@@ -58,7 +59,7 @@ Item {
         }
     }
 
-    Switch {
+   PolyControls.Switch {
         x: 0
         y: 0
         visible: v_type == "bool"

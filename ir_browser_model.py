@@ -22,7 +22,7 @@ metadata_start_path = "/audio/" # reverbs and cabs
 ir_folders  = {True: [], False: []}
 # favourites = {}
 reverse_files  = {True: {}, False: {}}
-master_ir_metadata = {} # is cab True / False
+master_ir_metadata = {True: {}, False: {}} # is cab True / False
 
 def gen_meta(prefix, description, display_name):
     wavs = glob.glob(os.path.join(prefix, "*.wav"))
@@ -49,12 +49,14 @@ def gen_imported_meta(is_cab):
         imported[ir_name] = gen_meta(i_d, "imported IRs", ir_name)
     return imported
 
-
-with open(os.path.join(metadata_start_path, "reverbs", "reverb_meta.json")) as f:
-    master_ir_metadata[False] = json.load(f)
-# merge in for imported amps, if doesn't exist, create
-with open(os.path.join(metadata_start_path, "cabs", "cab_meta.json")) as f:
-    master_ir_metadata[True] = json.load(f)
+try:
+    with open(os.path.join(metadata_start_path, "reverbs", "reverb_meta.json")) as f:
+        master_ir_metadata[False] = json.load(f)
+    # merge in for imported amps, if doesn't exist, create
+    with open(os.path.join(metadata_start_path, "cabs", "cab_meta.json")) as f:
+        master_ir_metadata[True] = json.load(f)
+except FileNotFoundError:
+    pass
 
 
 

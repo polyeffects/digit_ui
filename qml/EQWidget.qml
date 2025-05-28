@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
@@ -900,7 +901,7 @@ import "../qml/polyconst.js" as Constants
                 spacing: 20
                 height:parent.height
 
-                Switch {
+               PolyControls.Switch {
                     text: "BAND " + (time_scale.selected_point + 1)
 					font.pixelSize: baseFontSize
                     width: 140
@@ -921,7 +922,7 @@ import "../qml/polyconst.js" as Constants
                 }
 
 
-                Slider {
+               PolyControls.Slider {
                     x: 20
                     id: control
                     width: 60 

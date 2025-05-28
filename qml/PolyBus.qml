@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.9
 import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.3
@@ -38,7 +39,7 @@ Row {
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 clip: true
-                delegate: ItemDelegate {
+                delegate:PolyControls.ItemDelegate {
                     width: parent.width
                     height: 40
                     text: edit
@@ -92,7 +93,7 @@ Row {
                 anchors.bottom: parent.bottom
                 clip: true
                 // anchors.bottomMargin: 10
-                delegate: ItemDelegate {
+                delegate:PolyControls.ItemDelegate {
                     width: parent.width
                     height: 40
                     text: edit

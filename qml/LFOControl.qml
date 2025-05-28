@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
@@ -113,7 +114,7 @@ Item {
             spacing: 10
             height:parent.height
 
-            SpinBox {
+           PolyControls.SpinBox {
                 font.pixelSize: baseFontSize
                 from: 1
                 value: lfo_control.num_lfos
@@ -134,7 +135,7 @@ Item {
                 }
             }
 
-            Switch {
+           PolyControls.Switch {
                 text: qsTr("SNAPPING")
                 font.pixelSize: baseFontSize
                 bottomPadding: 0
@@ -147,7 +148,7 @@ Item {
                     lfo_control.snapping = checked
                 }
             }
-            // Switch {
+            //PolyControls.Switch {
             //     text: qsTr("REPEAT")
             //     bottomPadding: 0
             //     width: 200
@@ -160,7 +161,7 @@ Item {
             //         mycanvas.requestPaint();
             //     }
             // }
-            // Switch {
+            //PolyControls.Switch {
             //     text: qsTr("+-")
             //     font.pixelSize: baseFontSize
             //     bottomPadding: 0
@@ -206,7 +207,7 @@ Item {
                 flat: true
             }
 
-            Button {
+           PolyControls.Button {
                 text: "ASSIGN"
                 flat: true
                 font.pixelSize: baseFontSize

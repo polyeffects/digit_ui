@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 
 import QtQuick 2.4
 import QtQuick.Window 2.2
@@ -15,7 +16,7 @@ ApplicationWindow {
     // Material.buttonColor: "grey"
     // contentOrientation: 
     
-    property bool onDevice: Qt.platform.os == "linux" 
+    property bool onDevice: false // Qt.platform.os == "linux" 
     readonly property int baseFontSize: 20 
     readonly property int tabHeight: 60 
     readonly property int fontSizeExtraSmall: baseFontSize * 0.8

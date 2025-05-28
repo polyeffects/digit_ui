@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
@@ -55,7 +56,7 @@ import "../qml/polyconst.js" as Constants
             y: 48
             width: 81
             height: 92
-            Button {
+           PolyControls.Button {
                 // x:0
                 // y:0
                 anchors.centerIn: parent
@@ -72,7 +73,7 @@ import "../qml/polyconst.js" as Constants
             y: 48
             width: 81
             height: 92
-            Button {
+           PolyControls.Button {
                 // x:0
                 // y:0
                 anchors.centerIn: parent
@@ -90,7 +91,7 @@ import "../qml/polyconst.js" as Constants
             y: 48
             width: 81
             height: 92
-            Button {
+           PolyControls.Button {
                 // x:0
                 // y:0
                 anchors.centerIn: parent
@@ -125,7 +126,7 @@ import "../qml/polyconst.js" as Constants
             z: 2
             width: 81
             height: 92
-            Button {
+           PolyControls.Button {
                 // x:0
                 // y:0
                 anchors.centerIn: parent
@@ -144,7 +145,7 @@ import "../qml/polyconst.js" as Constants
             z: 1
             width: 81
             height: 92
-            Button {
+           PolyControls.Button {
                 // x:0
                 // y:0
                 anchors.centerIn: parent
@@ -162,7 +163,7 @@ import "../qml/polyconst.js" as Constants
             z: 0
             width: 81
             height: 92
-            Button {
+           PolyControls.Button {
                 // x:0
                 // y:0
                 anchors.centerIn: parent
@@ -211,7 +212,7 @@ import "../qml/polyconst.js" as Constants
             z: 2
             width: 44
             height: 334
-            Button {
+           PolyControls.Button {
                 // x:0
                 // y:0
                 anchors.centerIn: parent

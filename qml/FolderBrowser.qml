@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.9
 import QtQuick.Controls 2.3
 // import QtQuick.Window 2.2
@@ -57,7 +58,7 @@ import Qt.labs.folderlistmodel 2.2
         //     elide: Text.ElideMiddle
         // }
 
-        Button {
+       PolyControls.Button {
             anchors.right: mainRect.right
             anchors.rightMargin: 10
             font {

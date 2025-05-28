@@ -37,7 +37,7 @@ audio_side = "1" # 1 or 2
 
 input_queue = queue.Queue()
 to_mcu_queue = queue.Queue()
-ser = serial.Serial('/dev/ttyS0', 62500, timeout=0)
+ser = serial.Serial('/dev/ttyS2', 62500, timeout=0)
 
 hardware_info = {"revision": 12, "pedal": "verbs"}
 
@@ -191,6 +191,9 @@ def load_verbs_preset_from_set_list(set_list_entry, load_now=True):
                 if prev_audio_side != audio_side:
                     audio_side = prev_audio_side
                     to_mcu_queue.put([176, cc_messages["SIDE_CC"], int(audio_side)-1])
+                if len(set_list_entry) == 4: # we've got cab info
+                    knobs.set_bypass(sub_graph+"mono_cab1", not set_list_entry[2])
+                    knobs.set_bypass(sub_graph+"mono_cab2", not set_list_entry[3])
             else:
                 # print("## loading non split")
                 load_verbs_preset(l, load_now)
@@ -306,16 +309,23 @@ def import_done():
             else:
                 if ":" in a:
                     for b in s:
-                        if ":" in b:
+                        l_c = -1
+                        if b.count(":") == 3: # got cab on off info
+                            l, r, l_c, r_c = b.split(":")
+                        elif ":" in b:
                             l, r = b.split(":")
                         else:
                             l = b
                             r = b
                         if (int(l) >= 0 and int(l) < 56 and int(r) >= 0 and int(r) < 56 ):
-                            s_l.append((int(l), int(r)))
+                            if (l_c != -1):
+                                s_l.append((int(l), int(r), bool(int(l_c)), bool(int(r_c)) ))
+                            else:
+                                s_l.append((int(l), int(r)))
                 else:
                     s_l = [int(b) for b in s if int(b) >= 0 and int(b) < 56]
-            knobs.save_set_list(s_l)
+            if (len(s_l) > 0):
+                knobs.save_set_list(s_l)
     except FileNotFoundError:
         pass
     # send to MCU that it's imported, fail or success...

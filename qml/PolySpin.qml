@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.11
 // import QtQuick.Templates 2.4 as T
 import QtQuick.Controls 2.4

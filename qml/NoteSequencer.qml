@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
@@ -312,7 +313,7 @@ import "../qml/polyconst.js" as Constants
             height: 468 
 
 
-			// Slider {
+			//PolyControls.Slider {
 			// 	y: 22
 			// 	anchors.horizontalCenter: parent.horizontalCenter
 			// 	width: 60 

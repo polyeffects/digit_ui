@@ -1,3 +1,4 @@
+import "controls" as PolyControls
 import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
@@ -128,7 +129,7 @@ import QtQuick.Controls.Material 2.3
                 spacing: 10
                 height:parent.height
 
-                // SpinBox {
+                //PolyControls.SpinBox {
                 //     from: 1
                 //     value: 1
                 //     to: 4
@@ -137,7 +138,7 @@ import QtQuick.Controls.Material 2.3
                 //     }
                 // }
 
-                Switch {
+               PolyControls.Switch {
                     text: qsTr("SNAPPING")
 					font.pixelSize: baseFontSize
                     bottomPadding: 0
@@ -151,7 +152,7 @@ import QtQuick.Controls.Material 2.3
                         time_scale.snapping = checked
                     }
                 }
-                // Switch {
+                //PolyControls.Switch {
                 //     text: qsTr("TEMPO SYNC")
 					// font.pixelSize: baseFontSize
                 //     bottomPadding: 0
@@ -199,7 +200,7 @@ import QtQuick.Controls.Material 2.3
                     // color: "grey"
                 }
 
-                SpinBox {
+               PolyControls.SpinBox {
                     value: bars
 					font.pixelSize: baseFontSize
                     from: 1 
@@ -443,7 +444,7 @@ import QtQuick.Controls.Material 2.3
                             width: 140
                         }
 
-                        Slider {
+                       PolyControls.Slider {
                             width: 625
                             value: time_scale.delay_data[time_scale.current_delay]["Delay_1"].value 
                             from: time_scale.delay_data[time_scale.current_delay]["Delay_1"].rmin 
@@ -454,7 +455,7 @@ import QtQuick.Controls.Material 2.3
 
                         }
 
-                        SpinBox {
+                       PolyControls.SpinBox {
                             id: spinbox
                             value: time_scale.delay_data[time_scale.current_delay]["Delay_1"].value * (60 / currentBPM.value) * 1000
                             from: time_scale.delay_data[time_scale.current_delay]["Delay_1"].rmin * (60 / currentBPM.value) * 1000
@@ -487,7 +488,7 @@ import QtQuick.Controls.Material 2.3
                 }
                 
 
-                Button {
+               PolyControls.Button {
                     font {
                         pixelSize: fontSizeMedium
                     }
