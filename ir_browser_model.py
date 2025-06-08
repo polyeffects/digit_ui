@@ -25,7 +25,7 @@ reverse_files  = {True: {}, False: {}}
 master_ir_metadata = {True: {}, False: {}} # is cab True / False
 
 def gen_meta(prefix, description, display_name):
-    wavs = glob.glob(os.path.join(prefix, "*.wav"))
+    wavs = [w.split("/", 3)[3] for w in glob.glob(os.path.join(prefix, "*.wav"))]
     f_i = glob.glob(os.path.join(prefix,  "*.jp*g"))
     # name = Path(f_i[0]).stem
     # with open(f"{name}.json", "w") as f:
@@ -43,6 +43,7 @@ def gen_imported_meta(is_cab):
     imported = {}
 
     for i_d in ir_dirs:
+        print(f"i_d is {i_d} base_dir_prefix {base_dir_prefix} ")
         ir_name = os.path.relpath(i_d, base_dir_prefix).replace("/", "-")
         if ir_name == ".":
             ir_name = "imported"
@@ -147,9 +148,10 @@ class irBrowserModel(QAbstractListModel):
         print("external ir set ", ir_name, "reverse files", ir_name[len(self.start_path)+7:])#reverse_files[self.is_cab])
         try:
             self.reverse_name = reverse_files[self.is_cab][ir_name[len(self.start_path)+7:]]
-            # print("reverse name is ", self.reverse_name)
+            print("reverse name is ", self.reverse_name)
         except:
             self.reverse_name = "" # need to cope with restoring being a different file
+            print("### setting reverse name to empty reverse name is ", self.reverse_name, reverse_files)
         return self.reverse_name
         # self.add_filter(self.current_search) # refresh list
 
@@ -194,7 +196,7 @@ class irBrowserModel(QAbstractListModel):
         # if ir_path != "":
 
         ir_path = os.path.join(self.start_path, ir_path)
-        # print("nam path is ", nam_path)
+        print("ir path is ", ir_path)
         knobs.update_ir(effect_id, ir_path)
 
     @Slot()

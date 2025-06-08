@@ -162,9 +162,11 @@ class Remote(Interface):
         if type(msg) == list:
             msg = '\n'.join(msg)
 
-        # print("sending", msg)
+        # print("****** sending", msg)
         # Send message to server
-        self.sock.sendall(self.msgencode(msg) + b'\0')
+        # self.sock.sendall(self.msgencode(msg) + b'\r\n\0')
+        # self.sock.sendall(self.msgencode(msg) + b'\0') # null on the end messes with sending!
+        self.sock.sendall(self.msgencode(msg))
 
     def get(self, subject):
         return self.send('''

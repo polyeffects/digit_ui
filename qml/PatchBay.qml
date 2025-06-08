@@ -143,7 +143,7 @@ import "module_info.js" as ModuleInfo
             }
 
             onReRemoveModule: {
-                // console.log("remove module signal", l_effect_id);
+                console.log("remove module signal", l_effect_id);
                 selected_effect = null;
                 if  (l_effect_id in effect_map) {
                     effect_map[l_effect_id].destroy(1);
@@ -151,7 +151,7 @@ import "module_info.js" as ModuleInfo
                 }
                 knobs.finish_remove_effect(l_effect_id)
 
-                // console.log("done remove module signal", l_effect_id);
+                console.log("done remove module signal", l_effect_id);
             }
 
             onReLoadingPreset: {

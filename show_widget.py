@@ -406,7 +406,7 @@ def jump_to_preset(is_inc, num, initial=False):
         debug_print("already on preset, not jumping ", p_list[current_preset.value], "num is", num)
     else:
         debug_print("jumping to preset ", p_list[current_preset.value], "num is", num)
-        knobs.ui_load_preset_by_name(p_list[current_preset.value])
+        knobs.ui_load_preset_by_name(p_list[current_preset.value], initial)
 
 def write_pedal_state():
     if IS_REMOTE_TEST:
@@ -485,7 +485,7 @@ selected_dest_effect_ports = QStringListModel()
 selected_dest_effect_ports.setStringList(["val1", "val2"])
 seq_num = 10
 
-sub_graph_suffix = 0
+sub_graph_suffix = 1
 def add_inc_sub_graph(actually_add=True):
     global sub_graph_suffix
     sub_graph_suffix = sub_graph_suffix + 1
@@ -542,13 +542,13 @@ def load_preset(name, initial=False, force=False):
             except:
                 pass
     if not initial:
-        # debug_print("deleting sub graph", current_sub_graph)
+        debug_print("deleting sub graph", current_sub_graph)
         delete_sub_graph(current_sub_graph)
         if loopler.is_running:
             loopler.stop_loopler()
             reset_looper_footswitch_assignments()
     add_inc_sub_graph(False)
-    # debug_print("adding inc sub graph", current_sub_graph)
+    debug_print("adding inc sub graph", current_sub_graph)
     ingen_wrapper.load_pedalboard(name, current_sub_graph.rstrip("/"))
     context.setContextProperty("currentEffects", current_effects) # might be slow
     context.setContextProperty("portConnections", port_connections)
@@ -562,10 +562,14 @@ def load_preset(name, initial=False, force=False):
         debug_print("it does", loopler_file)
     time.sleep(0.1)
     ingen_wrapper.get_state("/engine")
+    debug_print("getting state")
+    time.sleep(0.1)
+    debug_print("getting state 2")
+    # ingen_wrapper.get_state("/engine")
 
 def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=True):
     # called by engine code when new effect is created
-    # debug_print("from backend new effect", effect_name, effect_type)
+    debug_print("from backend new effect", effect_name, effect_type)
     if effect_type in effect_prototypes:
         broadcast_ports = {}
         if "broadcast_ports" in effect_prototypes[effect_type]:
@@ -1033,14 +1037,14 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
 
 
     @Slot(str)
-    def ui_load_preset_by_name(self, preset_file):
-        if is_loading.value == True:
+    def ui_load_preset_by_name(self, preset_file, initial=False):
+        if is_loading.value == True and not initial:
             return
 
         patch_bay_notify.loading_preset.emit(True)
         # debug_print("loading", preset_file)
         # outfile = preset_file[7:] # strip file:// prefix
-        load_preset(preset_file+"/main.ttl")
+        load_preset(preset_file+"/main.ttl", initial=initial)
         current_preset.name = preset_file.strip("/").split("/")[-1][:-6]
         global current_preset_filename
         global previous_preset_filename
@@ -1453,6 +1457,7 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
             return
         pedal_state["model"] = pedal_model
         write_pedal_state()
+        time.sleep(1)
         change_pedal_model(pedal_model)
 
     @Slot(str)
@@ -1686,24 +1691,24 @@ def io_new_effect(effect_name, effect_type, x=20, y=30):
                 }
 
 def add_io():
-    ingen_wrapper.add_midi_input("/main/midi_in", x=1192, y=(80 * 5))
-    ingen_wrapper.add_midi_input2("/main/loop_midi_out", x=1192, y=(80 * 6))
-    ingen_wrapper.add_midi_output("/main/loop_extra_midi", x=20, y=(80 * 3))
-    ingen_wrapper.add_midi_output2("/main/midi_out", x=-20, y=(80 * 5))
+    # ingen_wrapper.add_midi_input("/main/midi_in", x=1192, y=(80 * 5))
+    # ingen_wrapper.add_midi_input2("/main/loop_midi_out", x=1192, y=(80 * 6))
+    # ingen_wrapper.add_midi_output("/main/loop_extra_midi", x=20, y=(80 * 3))
+    # ingen_wrapper.add_midi_output2("/main/midi_out", x=-20, y=(80 * 5))
     if current_pedal_model.name == "hector":
-        for i in range(1,7):
+        for i in range(5,7):
             ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
-        for i in range(1,9):
+        for i in range(5,9):
             ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
-    else:
-        for i in range(1,5):
-            ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
-        for i in range(1,5):
-            ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
-    ingen_wrapper.add_output("/main/loop_common_in_1", x=1092, y=(80*1))
-    ingen_wrapper.add_output("/main/loop_common_in_2", x=1092, y=(80*2))
-    ingen_wrapper.add_input("/main/loop_common_out_1", x=20, y=(80*1))
-    ingen_wrapper.add_input("/main/loop_common_out_2", x=20, y=(80*2))
+    # else:
+    #     for i in range(1,5):
+    #         ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
+    #     for i in range(1,5):
+    #         ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
+    # ingen_wrapper.add_output("/main/loop_common_in_1", x=1092, y=(80*1))
+    # ingen_wrapper.add_output("/main/loop_common_in_2", x=1092, y=(80*2))
+    # ingen_wrapper.add_input("/main/loop_common_out_1", x=20, y=(80*1))
+    # ingen_wrapper.add_input("/main/loop_common_out_2", x=20, y=(80*2))
 
 class Encoder():
     # name, min, max, value
@@ -2215,7 +2220,7 @@ def change_pedal_model(name, initial=False):
     effect_type_map = effect_type_maps[_name]
     effect_prototypes = effect_prototypes_models[_name]
 
-    set_available_effects()
+    # set_available_effects()
     # context.setContextProperty("effectPrototypes", effect_prototypes)
     accent_color_models = {"beebo": "#FFA0E0", "digit": "#FFA0E0", "hector": "#32D2BE"}
     accent_color.name = accent_color_models[name]
@@ -2223,7 +2228,6 @@ def change_pedal_model(name, initial=False):
     inv_effect_type_map = {v:k for k, v in effect_type_map.items()}
     current_pedal_model.name = name
     load_preset_list()
-    jump_to_preset(False, 0, initial)
 
 
 class ExceptionThread(threading.Thread):
@@ -2344,15 +2348,17 @@ if __name__ == "__main__":
 
     patch_bay_notify = PatchBayNotify()
 
+    current_pedal_model = PolyValue(pedal_state["model"], 0, -1, 1)
+    # accent_color = PolyValue("#8BB8E8", 0, -1, 1)
+    accent_color = PolyValue("#FF75D0", 0, -1, 1)
+    current_ip = PolyValue("", 0, -1, 1)
+    change_pedal_model(pedal_state["model"], True)
+
     available_effects = [QStringListModel() for i in range(4)]
     set_available_effects()
     qmlRegisterType(ir_browser_model.irBrowserModel, "ir_browser_module", 1, 0, "IrBrowserModel")
     engine = QQmlApplicationEngine()
 
-    current_pedal_model = PolyValue(pedal_state["model"], 0, -1, 1)
-    # accent_color = PolyValue("#8BB8E8", 0, -1, 1)
-    accent_color = PolyValue("#FF75D0", 0, -1, 1)
-    current_ip = PolyValue("", 0, -1, 1)
 
     # Expose the object to QML.
     # global context
@@ -2363,7 +2369,6 @@ if __name__ == "__main__":
     context.setContextProperty("preset_browser_model", preset_browser_model_s)
     context.setContextProperty("amp_browser_model", amp_browser_model_s)
     # context.setContextProperty("ir_browser_model", ir_browser_model_s)
-    change_pedal_model(pedal_state["model"], True)
     context.setContextProperty("available_effects", available_effects)
     context.setContextProperty("selectedSourceEffectPorts", selected_source_effect_ports)
     context.setContextProperty("selectedDestEffectPorts", selected_dest_effect_ports)
@@ -2449,18 +2454,27 @@ if __name__ == "__main__":
     ingen_wrapper.get_state("/main")
     # load_preset("file:///mnt/presets/Default_Preset.ingen/main.ttl", False)
     # ingen_wrapper._FINISH = True
-    update_dsp_usage_count = 200
+    update_dsp_usage_count = 500
     num_loops = 0
     while not EXIT_PROCESS[0]:
         # debug_print("processing events")
         try:
             app.processEvents()
-            # debug_print("processing ui messages")
+            # debug_print("before processing ui messages")
             process_ui_messages()
+            # debug_print("after processing ui messages")
             pedal_hardware.process_input()
+            num_loops = num_loops + 1
             if num_loops > update_dsp_usage_count:
                 num_loops = 0
-                ingen_wrapper.get_state("/engine")
+
+                if not initial_preset:
+                    initial_preset = True
+                    jump_to_preset(False, 0, True)
+                else:
+                    # pass
+                    ingen_wrapper.get_state("/engine")
+                # debug_print("******* \n\n***** \n getting engine state, dsp")
         except Exception as e:
             qCritical("########## e2 is:"+ str(e))
             ex_type, ex_value, tb = sys.exc_info()

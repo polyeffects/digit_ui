@@ -1,8 +1,8 @@
 import ingen
 from queue import Queue
-import serd
+import lightrdf
 import queue
-import time, re
+import time, re, io
 import threading, subprocess
 from io import StringIO as StringIO
 import traceback
@@ -17,89 +17,96 @@ from static_globals import IS_REMOTE_TEST
 ingen_started_lock = threading.Lock()
 ingen_started = False
 
-if "curie" not in serd.__dict__:
-    serd.curie = serd.uri
+def iri_equal(a, b):
+    #print("iri", a, b)
+    return (hasattr(b, "strip") and a.iri == b.strip("<>")) or (hasattr(b, "iri") and a.iri == b.iri)
 
-# atom_AtomPort = serd.uri("http://lv2plug.in/ns/ext/atom#AtomPort")
-# ingen_max_run_load = serd.uri("http://drobilla.net/ns/ingen#maxRunLoad")
-# ingen_mean_run_load = serd.uri("http://drobilla.net/ns/ingen#meanRunLoad")
-# ingen_min_run_load = serd.uri("http://drobilla.net/ns/ingen#minRunLoad")
-# ingen_Arc = serd.uri("http://drobilla.net/ns/ingen#Arc")
-# ingen_Block = serd.uri("http://drobilla.net/ns/ingen#Block")
-# ingen_canvasX = serd.uri("http://drobilla.net/ns/ingen#canvasX")
-# ingen_canvasY = serd.uri("http://drobilla.net/ns/ingen#canvasY")
-# ingen_enabled = serd.uri("http://drobilla.net/ns/ingen#enabled")
-# ingen_file = serd.uri("http://drobilla.net/ns/ingen#file")
-# ingen_head = serd.uri("http://drobilla.net/ns/ingen#head")
-# ingen_minRunLoad = serd.uri("http://drobilla.net/ns/ingen#minRunLoad")
-# ingen_tail = serd.uri("http://drobilla.net/ns/ingen#tail")
-# ingen_value = serd.uri("http://drobilla.net/ns/ingen#value")
-# lv2_AudioPort = serd.uri("http://lv2plug.in/ns/lv2core#AudioPort")
-# lv2_AtomPort = serd.uri("http://lv2plug.in/ns/lv2core#AtomPort")
-# lv2_InputPort = serd.uri("http://lv2plug.in/ns/lv2core#InputPort")
-# lv2_OutputPort = serd.uri("http://lv2plug.in/ns/lv2core#OutputPort")
-# lv2_prototype = serd.uri("http://lv2plug.in/ns/lv2core#prototype")
-# patch_Put = serd.uri("http://lv2plug.in/ns/ext/patch#Put")
-# patch_Delete = serd.uri("http://lv2plug.in/ns/ext/patch#Delete")
-# patch_Set = serd.uri("http://lv2plug.in/ns/ext/patch#Set")
-# patch_body = serd.uri("http://lv2plug.in/ns/ext/patch#body")
-# patch_property = serd.uri("http://lv2plug.in/ns/ext/patch#property")
-# patch_subject = serd.uri("http://lv2plug.in/ns/ext/patch#subject")
-# patch_value = serd.uri("http://lv2plug.in/ns/ext/patch#value")
-# poly_assigned_footswitch = serd.uri("http://polyeffects.com/ns/core#assigned_footswitch")
-# rdf_type = serd.uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
-# rdfs_comment = serd.uri("http://www.w3.org/2000/01/rdf-schema#comment")
+lightrdf.IRI.__eq__ = iri_equal
 
-atom_AtomPort = serd.curie("atom:AtomPort")
-ingen_max_run_load = serd.curie("ingen:maxRunLoad")
-ingen_mean_run_load = serd.curie("ingen:meanRunLoad")
-ingen_min_run_load = serd.curie("ingen:minRunLoad")
-ingen_Arc = serd.curie("ingen:Arc")
-ingen_Block = serd.curie("ingen:Block")
-ingen_canvasX = serd.curie("ingen:canvasX")
-ingen_canvasY = serd.curie("ingen:canvasY")
-ingen_enabled = serd.curie("ingen:enabled")
-ingen_file = serd.curie("ingen:file")
-ingen_head = serd.curie("ingen:head")
-ingen_minRunLoad = serd.curie("ingen:minRunLoad")
-ingen_tail = serd.curie("ingen:tail")
-ingen_value = serd.curie("ingen:value")
-lv2_AudioPort = serd.curie("lv2:AudioPort")
-lv2_InputPort = serd.curie("lv2:InputPort")
-lv2_OutputPort = serd.curie("lv2:OutputPort")
-lv2_prototype = serd.curie("lv2:prototype")
-midi_binding = serd.curie("midi:binding")
-midi_controllerNumber = serd.curie("midi:controllerNumber")
-patch_Put = serd.curie("patch:Put")
-patch_Patch = serd.curie("patch:Patch")
-patch_Delete = serd.curie("patch:Delete")
-patch_Set = serd.curie("patch:Set")
-patch_body = serd.curie("patch:body")
-patch_property = serd.curie("patch:property")
-patch_subject = serd.curie("patch:subject")
-patch_value = serd.curie("patch:value")
-poly_assigned_footswitch = serd.uri("http://polyeffects.com/ns/core#assigned_footswitch")
-poly_looper_footswitch = serd.uri("http://polyeffects.com/ns/core#looper_footswitch")
-poly_spotlight = serd.uri("http://polyeffects.com/ns/core#spotlight")
-poly_physical_port = serd.uri("http://polyeffects.com/ns/core#physical_port")
-rdf_type = serd.curie("rdf:type")
-rdfs_comment = serd.curie("rdfs:comment")
+atom_AtomPort = lightrdf.IRI("http://lv2plug.in/ns/ext/atom#AtomPort")
+ingen_max_run_load = lightrdf.IRI("http://drobilla.net/ns/ingen#maxRunLoad")
+ingen_mean_run_load = lightrdf.IRI("http://drobilla.net/ns/ingen#meanRunLoad")
+ingen_min_run_load = lightrdf.IRI("http://drobilla.net/ns/ingen#minRunLoad")
+ingen_Arc = lightrdf.IRI("http://drobilla.net/ns/ingen#Arc")
+ingen_Block = lightrdf.IRI("http://drobilla.net/ns/ingen#Block")
+ingen_canvasX = lightrdf.IRI("http://drobilla.net/ns/ingen#canvasX")
+ingen_canvasY = lightrdf.IRI("http://drobilla.net/ns/ingen#canvasY")
+ingen_enabled = lightrdf.IRI("http://drobilla.net/ns/ingen#enabled")
+ingen_file = lightrdf.IRI("http://drobilla.net/ns/ingen#file")
+ingen_head = lightrdf.IRI("http://drobilla.net/ns/ingen#head")
+ingen_minRunLoad = lightrdf.IRI("http://drobilla.net/ns/ingen#minRunLoad")
+ingen_tail = lightrdf.IRI("http://drobilla.net/ns/ingen#tail")
+ingen_value = lightrdf.IRI("http://drobilla.net/ns/ingen#value")
+lv2_AudioPort = lightrdf.IRI("http://lv2plug.in/ns/lv2core#AudioPort")
+lv2_AtomPort = lightrdf.IRI("http://lv2plug.in/ns/lv2core#AtomPort")
+lv2_InputPort = lightrdf.IRI("http://lv2plug.in/ns/lv2core#InputPort")
+lv2_OutputPort = lightrdf.IRI("http://lv2plug.in/ns/lv2core#OutputPort")
+lv2_prototype = lightrdf.IRI("http://lv2plug.in/ns/lv2core#prototype")
+midi_binding = lightrdf.IRI("http://lv2plug.in/ns/ext/midi#binding")
+midi_controllerNumber = lightrdf.IRI("http://lv2plug.in/ns/ext/midi#controllerNumber")
+patch_Put = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#Put")
+patch_Patch = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#Patch")
+patch_Delete = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#Delete")
+patch_Set = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#Set")
+patch_body = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#body")
+patch_property = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#property")
+patch_subject = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#subject")
+patch_value = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#value")
+poly_assigned_footswitch = lightrdf.IRI("http://polyeffects.com/ns/core#assigned_footswitch")
+rdf_type = lightrdf.IRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+rdfs_comment = lightrdf.IRI("http://www.w3.org/2000/01/rdf-schema#comment")
 
-ir_url = serd.uri("http://polyeffects.com/lv2/polyconvo#ir")
+# atom_AtomPort = serd.curie("atom:AtomPort")
+# ingen_max_run_load = serd.curie("ingen:maxRunLoad")
+# ingen_mean_run_load = serd.curie("ingen:meanRunLoad")
+# ingen_min_run_load = serd.curie("ingen:minRunLoad")
+# ingen_Arc = serd.curie("ingen:Arc")
+# ingen_Block = serd.curie("ingen:Block")
+# ingen_canvasX = serd.curie("ingen:canvasX")
+# ingen_canvasY = serd.curie("ingen:canvasY")
+# ingen_enabled = serd.curie("ingen:enabled")
+# ingen_file = serd.curie("ingen:file")
+# ingen_head = serd.curie("ingen:head")
+# ingen_minRunLoad = serd.curie("ingen:minRunLoad")
+# ingen_tail = serd.curie("ingen:tail")
+# ingen_value = serd.curie("ingen:value")
+# lv2_AudioPort = serd.curie("lv2:AudioPort")
+# lv2_InputPort = serd.curie("lv2:InputPort")
+# lv2_OutputPort = serd.curie("lv2:OutputPort")
+# lv2_prototype = serd.curie("lv2:prototype")
+# midi_binding = serd.curie("midi:binding")
+# midi_controllerNumber = serd.curie("midi:controllerNumber")
+# patch_Put = serd.curie("patch:Put")
+# patch_Patch = serd.curie("patch:Patch")
+# patch_Delete = serd.curie("patch:Delete")
+# patch_Set = serd.curie("patch:Set")
+# patch_body = serd.curie("patch:body")
+# patch_property = serd.curie("patch:property")
+# patch_subject = serd.curie("patch:subject")
+# patch_value = serd.curie("patch:value")
+poly_assigned_footswitch = lightrdf.IRI("http://polyeffects.com/ns/core#assigned_footswitch")
+poly_looper_footswitch = lightrdf.IRI("http://polyeffects.com/ns/core#looper_footswitch")
+poly_spotlight = lightrdf.IRI("http://polyeffects.com/ns/core#spotlight")
+poly_physical_port = lightrdf.IRI("http://polyeffects.com/ns/core#physical_port")
+# rdf_type = serd.curie("rdf:type")
+# rdfs_comment = serd.curie("rdfs:comment")
 
-# prefix_header = """@prefix xml: <http://www.w3.org/XML/1998/namespace> .
-# @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-# @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-# @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-# @prefix atom: <http://lv2plug.in/ns/ext/atom#> .
-# @prefix ingen: <http://drobilla.net/ns/ingen#> .
-# @prefix ingerr: <http://drobilla.net/ns/ingen/errors#> .
-# @prefix lv2: <http://lv2plug.in/ns/lv2core#> .
-# @prefix patch: <http://lv2plug.in/ns/ext/patch#> .
-# @prefix midi: <http://lv2plug.in/ns/ext/midi#> .
-# @prefix rsz: <http://lv2plug.in/ns/ext/resize-port#> .
-# @prefix doap: <http://usefulinc.com/ns/doap#> .
-# @prefix poly: <http://polyeffects.com/ns/core#> ."""
+ir_url = lightrdf.IRI("http://polyeffects.com/lv2/polyconvo#ir")
+
+prefix_header = """@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix atom: <http://lv2plug.in/ns/ext/atom#> .
+@prefix ingen: <http://drobilla.net/ns/ingen#> .
+@prefix ingerr: <http://drobilla.net/ns/ingen/errors#> .
+@prefix lv2: <http://lv2plug.in/ns/lv2core#> .
+@prefix patch: <http://lv2plug.in/ns/ext/patch#> .
+@prefix midi: <http://lv2plug.in/ns/ext/midi#> .
+@prefix rsz: <http://lv2plug.in/ns/ext/resize-port#> .
+@prefix doap: <http://usefulinc.com/ns/doap#> .
+@prefix poly: <http://polyeffects.com/ns/core#> ."""
+
 
 class ExceptionThread(threading.Thread):
     def __init__(self, *args, **kwargs):
@@ -143,7 +150,7 @@ def DestinationThread( ) :
                     ingen_started = True
 
         if _FINISH:
-            break
+            return
         try:
             items = get_timed_interruptable(q, 1)
             func = items[0]
@@ -324,8 +331,7 @@ def set_file(effect_id, file_name, is_cab):
     effect_id = effect_id
     file_name = urllib.parse.quote(file_name[len("file://"):])
     # print("setting file", effect_id, file_name, is_cab)
-    # if not is_cab: ## FIXME verbs specific
-    if True: ## FIXME verbs specific
+    if any([a in effect_id for a in ["quad_ir_reverb", "mono_cab", "stereo_reverb"]]):
         body = """[
              a patch:Set ;
              patch:property <http://gareus.org/oss/lv2/zeroconvolv#ir>;
@@ -414,15 +420,16 @@ def ingen_recv_thread( ) :
 
         if _FINISH:
             ingen._FINISH = True
-            break
+            return
         r = ingen.recv()
         # print("recv in ingen_wrapper", r)
         for s in r.split("\n\n"):
             if len(s) > 10:
                 if not (len(s) < 80 and ("ingen:BundleEnd" in s or "ingen:BundleStart" in s) or "@prefix" in s):
                     # print("len is ", len(s), )
-                    # a = prefix_header + s
-                    parse_ingen(s)
+                    # print (" to parse", s)
+                    p_s = prefix_header + s
+                    parse_ingen(p_s)
 
 """
 sooperlooper:loop0_in_1
@@ -505,48 +512,61 @@ def connect_jack_port(port, x, y, physical_port):
                 else:
                     pass
                     # print("got port we don't know", port, x, y, physical_port)
+def parse_value(v):
+    r = v.split("^")[0].strip('"').strip("<>")
+    # print("parsing value", v, r)
+    return r
+
+def ask(d, s, p, o):
+    return len([t for t in d.search_triples(s, p, o)]) > 0
 
 def get_value(model, p):
-    # seg fault if it doesn't exist, could ask first
-    return str(tuple(model.range((None, p, None)))[0].object())
+    return parse_value(tuple(model.search_triples(None, p, None))[0][2])
 
 def get_node(model, p):
-    # seg fault if it doesn't exist, could ask first
-    return tuple(model.range((None, p, None)))[0].object()
+    return tuple(model.search_triples(None, p, None))[0][2]
 
-def has_predicate(body, p):
-    return len([b for b in body if b.predicate() == p]) > 0
+def has_predicate(d, body, p):
+    return ask(d, body, p, None)
 
-def has_object(body, o):
-    return len([b for b in body if b.object() == o]) > 0
+def has_object(d, body, o):
+    return ask(d, body, None, o)
 
-def get_body_value(body, p):
-    return str([b for b in body if b.predicate() == p][0].object())
+def get_body_value(d, body, p):
+    return parse_value([t for t in d.search_triples(body, p, None)][0][2])
 
-def get_body(model):
+def get_body_triples(model):
     try:
         b_n = get_node(model, patch_body)
-        return tuple(model.range((b_n, None, None)))
+        return tuple(model.search_triples(b_n, None, None))
+    except:
+        return None
+
+def get_body_id(model):
+    try:
+        b_n = get_node(model, patch_body)
+        return b_n
     except:
         return None
 
 def parse_ingen(to_parse):
-    world = serd.World()
-    try:
+    # try:
+    if True:
         # print("parsing", to_parse)
-        m = world.loads(to_parse)
-    except:
+        m = lightrdf.RDFDocument(io.BytesIO(to_parse.encode()), parser=lightrdf.turtle.PatternParser)
+    # except:
         # print("parsing", to_parse)
-        print("###\n###\n###\nfailed to parse")
-        return
-    if m.ask(None, None, patch_Put):
+        # print("###\n###\n###\nfailed to parse")
+        # return
+    if ask(m, None, None, patch_Put):
         r_subject = get_value(m, patch_subject)
         # r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
         subject  = r_subject #[6:]
         # print("put subject is", subject)
 
-        if m.ask(None, patch_body, None):
-            body = get_body(m)
+        if ask(m, None, patch_body, None):
+            body = get_body_id(m)
+            body_triples = get_body_triples(m)
             if body is None:
                 return
 
@@ -555,52 +575,52 @@ def parse_ingen(to_parse):
                 mean_load = 0
                 min_load = 0
                 send = False
-                for p in body:
-                    if p.predicate() == ingen_max_run_load:
+                for p in body_triples:
+                    if p[1] == ingen_max_run_load:
                         send = True
-                        max_load = float(str(p.object()))
-                    elif p.predicate() == ingen_mean_run_load:
-                        mean_load = float(str(p.object()))
+                        max_load = float(str(parse_value(p[2])))
+                    elif p[1] == ingen_mean_run_load:
+                        mean_load = float(str(parse_value(p[2])))
                         send = True
-                    elif p.predicate() == ingen_min_run_load:
-                        min_load = float(str(p.object()))
+                    elif p[1] == ingen_min_run_load:
+                        min_load = float(str(parse_value(p[2])))
                         send = True
                 # print("load subject", subject, max_load, mean_load, min_load)
                 if send:
                     ui_queue.put(("dsp_load", max_load, mean_load, min_load))
-            elif has_predicate(body, rdfs_comment):
-                value = get_body_value(body, rdfs_comment)
+            elif has_predicate(m, body, rdfs_comment):
+                value = get_body_value(m, body, rdfs_comment)
                 ui_queue.put(("set_comment", value, subject))
-            elif has_predicate(body, poly_assigned_footswitch):
-                value = get_body_value(body, poly_assigned_footswitch)
+            elif has_predicate(m, body, poly_assigned_footswitch):
+                value = get_body_value(m, body, poly_assigned_footswitch)
                 # print("### Got assigned foot switch", value, subject)
                 ui_queue.put(("assign_footswitch", value, subject))
 
-            if has_predicate(body, poly_looper_footswitch):
-                value = get_body_value(body, poly_looper_footswitch)
+            if has_predicate(m, body, poly_looper_footswitch):
+                value = get_body_value(m, body, poly_looper_footswitch)
                 # print("### Got assigned foot switch", value, subject)
                 ui_queue.put(("looper_footswitch", value, subject))
 
-            if has_object(body, ingen_Block):
-                # print("response is", t[0], "subject is", subject, "body is", body)
+            if has_object(m, body, ingen_Block):
+                # print("adding new block", body_triples, "subject is", subject, "body is", body)
                 # adding new block
                 x = 0
                 y = 0
                 plugin = ""
                 ir = None
                 is_enabled = True
-                for p in body:
+                for p in body_triples:
                     # print("got a block, triples are ")
-                    if p.predicate() == lv2_prototype:
-                        plugin = str(p.object())
-                    elif p.predicate() == ingen_canvasY:
-                        y = float(str(p.object()))
-                    elif p.predicate() == ingen_canvasX:
-                        x = float(str(p.object()))
-                    elif p.predicate() == ir_url:
-                        ir = str(p.object())
-                    elif p.predicate() == ingen_enabled:
-                        is_enabled = str(p.object()) != "false"
+                    if p[1] == lv2_prototype:
+                        plugin = str(parse_value(p[2]))
+                    elif p[1] == ingen_canvasY:
+                        y = float(str(parse_value(p[2])))
+                    elif p[1] == ingen_canvasX:
+                        x = float(str(parse_value(p[2])))
+                    elif p[1] == ir_url:
+                        ir = str(parse_value(p[2]))
+                    elif p[1] == ingen_enabled:
+                        is_enabled = str(parse_value(p[2])) != "false"
                         # print("## is enabled", is_enabled)
                 # print("x", x, "y", y, "plugin", plugin, "subject", subject)
                 ui_queue.put(("add_plugin", subject, plugin, x, y, is_enabled))
@@ -609,22 +629,21 @@ def parse_ingen(to_parse):
                     # print("#### ir file is ", ir)
                     ui_queue.put(("set_file", subject, ir))
 
-            elif has_predicate(body, ingen_value):
+            elif has_predicate(m, body, ingen_value):
                 # setting value
-                value = get_body_value(body, ingen_value)
+                value = get_body_value(m, body, ingen_value)
                 # print("has predicate value", value, "subject", subject, "body", body)
                 ui_queue.put(("value_change", subject, value))
-                if has_predicate(body, poly_spotlight):
-                    value = get_body_value(body, poly_spotlight)
+                if has_predicate(m, body, poly_spotlight):
+                    value = get_body_value(m, body, poly_spotlight)
                     # print("has poly_spoltlight", subject, "value", value)
                     ui_queue.put(("spotlight", subject, str(value)))
-                if has_predicate(body, midi_binding):
+                if has_predicate(m, body, midi_binding):
                     # print("midi binding predicate")
-                    m_n = get_node(m, midi_binding)
-                    midi_s = tuple(m.range((m_n, None, None)))
-                    if has_predicate(midi_s, midi_controllerNumber):
+                    midi_s = get_node(m, midi_binding)
+                    if has_predicate(m, midi_s, midi_controllerNumber):
                         try:
-                            value = get_body_value(midi_s, midi_controllerNumber)
+                            value = get_body_value(m, midi_s, midi_controllerNumber)
                             # print("midi learn parsed: value, ", int(str(value)))
                             ui_queue.put(("midi_learn", subject, int(str(value))))
                         except IndexError:
@@ -632,18 +651,18 @@ def parse_ingen(to_parse):
                             # print("midi learn parsed: index error ")
                             ui_queue.put(("midi_learn", subject, int(256)))
 
-            elif has_object(body, ingen_Arc):
+            elif has_object(m, body, ingen_Arc):
                 head = ""
                 tail = ""
-                for p in body:
-                    if p.predicate() == ingen_head:
-                        head = str(p.object())
-                    elif p.predicate() == ingen_tail:
-                        tail = str(p.object())
+                for p in body_triples:
+                    if p[1] == ingen_head:
+                        head = str(parse_value(p[2]))
+                    elif p[1] == ingen_tail:
+                        tail = str(parse_value(p[2]))
                 # print("##### \n\n ### \n arc head", head, "tail", tail)
                 # ui_queue.put(("add_connection", head[7:], tail[7:]))
                 ui_queue.put(("add_connection", head, tail))
-            elif has_object(body, lv2_AudioPort) or has_object(body, atom_AtomPort):
+            elif has_object(m, body, lv2_AudioPort) or has_object(m, body, atom_AtomPort):
                 # setting value
                 is_in = None
                 is_audio = None
@@ -652,21 +671,21 @@ def parse_ingen(to_parse):
                 x = None
                 y = None
                 physical_port = None
-                for p in body:
-                    if p.object() == lv2_OutputPort:
+                for p in body_triples:
+                    if parse_value(p[2]) == lv2_OutputPort:
                         is_in = False
-                    elif p.object() == lv2_InputPort:
+                    elif parse_value(p[2]) == lv2_InputPort:
                         is_in = True
-                    elif p.object() == lv2_AudioPort:
+                    elif parse_value(p[2]) == lv2_AudioPort:
                         is_audio = True
-                    elif p.object() == atom_AtomPort:
+                    elif parse_value(p[2]) == atom_AtomPort:
                         is_midi = True
-                    elif p.predicate() == ingen_canvasY:
-                        y = float(str(p.object()))
-                    elif p.predicate() == ingen_canvasX:
-                        x = float(str(p.object()))
-                    elif p.predicate() == poly_physical_port:
-                        physical_port = str(p.object())
+                    elif p[1] == ingen_canvasY:
+                        y = float(str(parse_value(p[2])))
+                    elif p[1] == ingen_canvasX:
+                        x = float(str(parse_value(p[2])))
+                    elif p[1] == poly_physical_port:
+                        physical_port = str(parse_value(p[2]))
                 if is_in is not None and (is_audio or is_midi):
                     # print("connecting jack port", is_in, "subject", subject)
                     # connect to jack port
@@ -674,38 +693,38 @@ def parse_ingen(to_parse):
                         connect_jack_port(subject, x, y, physical_port)
                 # else:
                 #     print("None! port is_in", is_in, "subject", subject)
-            elif has_predicate(body, ingen_enabled):
+            elif has_predicate(m, body, ingen_enabled):
                 # setting value
-                value = get_body_value(body, ingen_enabled)
+                value = get_body_value(m, body, ingen_enabled)
                 # print("in put enabled", subject, "value", value)
                 # print("in put enabled", subject, "value", value, "b value", value != "false")
                 # print("to parse", to_parse)
                 ui_queue.put(("enabled_change", subject, str(value) != "false"))
 
-    elif m.ask(None, None, patch_Set):
+    elif ask(m, None, None, patch_Set):
         # print ("in patch_Set")
         r_subject = get_value(m, patch_subject)
         # r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
         subject  = r_subject #[6:]
         # print("set subject is", subject)
         # print ("after get_value")
-        if m.ask(None, patch_property, ingen_enabled):
+        if ask(m, None, patch_property, ingen_enabled):
             value = get_value(m, patch_value)
             # print("in set enabled", subject, "value", value, "b value", bool(value))
             ui_queue.put(("enabled_change", subject, str(value) != "false"))
-        if m.ask(None, patch_property, ingen_file):
+        if ask(m, None, patch_property, ingen_file):
             value = get_value(m, patch_value)
             # print("in set enabled", subject, "value", value, "b value", bool(value))
             ui_queue.put(("pedalboard_loaded", subject, str(value)))
-        if m.ask(None, patch_property, poly_spotlight):
+        if ask(m, None, patch_property, poly_spotlight):
             value = get_value(m, patch_value)
             # print("broadcast_update parsed", subject, "value", value)
             ui_queue.put(("spotlight", subject, str(value)))
-        elif m.ask(None, patch_property, ingen_value):
+        elif ask(m, None, patch_property, ingen_value):
             value = get_value(m, patch_value)
             # print("broadcast_update parsed", subject, "value", value)
             ui_queue.put(("broadcast_update", subject, float(str(value))))
-        elif m.ask(None, patch_property, midi_binding):
+        elif ask(m, None, patch_property, midi_binding):
             # print("midi learn parsed subject:", subject)
             try:
                 value = get_value(m, midi_controllerNumber)
@@ -716,8 +735,8 @@ def parse_ingen(to_parse):
                 ui_queue.put(("midi_learn", subject, int(256)))
 
 
-    elif m.ask(None, None, patch_Delete):
-        if not m.ask(None, patch_body, None):
+    elif ask(m, None, None, patch_Delete):
+        if not ask(m, None, patch_body, None):
             subject = get_value(m, patch_subject)
             if subject is not None:
                 # subject = str(subject)[7:]
@@ -728,27 +747,29 @@ def parse_ingen(to_parse):
             body = get_body(m)
             if body is None:
                 return
-            if has_object(body, ingen_Arc):
+            body_triples = get_body_triples(m)
+
+            if has_object(m, body, ingen_Arc):
                 head = ""
                 tail = ""
-                for p in body:
-                    if p.predicate() == ingen_head:
-                        head = str(p.object())
-                    elif p.predicate() == ingen_tail:
-                        tail = str(p.object())
+                for p in body_triples:
+                    if p[1] == ingen_head:
+                        head = str(parse_value(p[2]))
+                    elif p[1] == ingen_tail:
+                        tail = str(parse_value(p[2]))
                 if head and tail:
                     # print("in remove arc head", head, "tail", tail)
                     # ui_queue.put(("remove_connection", head[7:], tail[7:]))
                     ui_queue.put(("remove_connection", head, tail))
 
-    elif m.ask(None, None, patch_Patch):
+    elif ask(m, None, None, patch_Patch):
         # print ("in patch_Set")
         r_subject = get_value(m, patch_subject)
         # r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
         subject  = r_subject #[6:]
         # print("set subject is", subject)
         # print ("after get_value")
-        if m.ask(None, midi_binding, None):
+        if ask(m, None, midi_binding, None):
             # print("midi unlearn parsed", subject)
             ui_queue.put(("midi_learn", subject, -1))
 
@@ -768,13 +789,14 @@ def start_send_thread():
     s_thread = ExceptionThread(target=DestinationThread)
     s_thread.start()
 
-if not IS_REMOTE_TEST:
-    # server = "tcp://127.0.0.1:16180"
-    server = "unix:///tmp/ingen.sock"
-else:
-    # server = "tcp://192.168.1.139:16180"
-    server = "tcp://10.1.1.246:16180"
-# server = "tcp://192.168.1.140:16180"
+# if not IS_REMOTE_TEST:
+#     # server = "tcp://127.0.0.1:16180"
+#     server = "unix:///tmp/ingen.sock"
+# else:
+#     # server = "tcp://192.168.1.139:16180"
+#     server = "tcp://10.1.1.246:16180"
+# server = "tcp://localhost:16180"
+server = "unix:///tmp/ingen.sock"
 ingen = ingen.Remote(server)
 
 # """
