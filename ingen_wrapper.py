@@ -744,7 +744,7 @@ def parse_ingen(to_parse):
                 # print("in delete subject", subject)
                 ui_queue.put(("remove_plugin", subject))
         else:
-            body = get_body(m)
+            body = get_body_id(m)
             if body is None:
                 return
             body_triples = get_body_triples(m)

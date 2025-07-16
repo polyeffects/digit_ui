@@ -99,7 +99,7 @@ T.Button {
         height: parent.height 
         radius: control.radius
         color: !control.enabled ? control.Material.buttonDisabledColor :
-                control.highlighted ? control.Material.highlightedButtonColor : control.down ? control.Material.foreground : control.Material.buttonColor
+                control.highlighted ? control.Material.highlightedButtonColor : control.down ? control.Material.foreground : control.Material.background//buttonColor
                 border {
                     width: control.highlighted || control.checked || control.has_border ? 2 : 0; 
                     color: control.checked ? control.Material.accentColor : Constants.poly_dark_grey
