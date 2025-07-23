@@ -552,7 +552,7 @@ def get_body_id(model):
 def parse_ingen(to_parse):
     # try:
     if True:
-        # print("parsing", to_parse)
+        print("parsing", to_parse)
         m = lightrdf.RDFDocument(io.BytesIO(to_parse.encode()), parser=lightrdf.turtle.PatternParser)
     # except:
         # print("parsing", to_parse)

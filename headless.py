@@ -11,8 +11,8 @@ from pathlib import Path
 sys._excepthook = sys.excepthook
 
 def debug_print(*args, **kwargs):
-    pass
-    # print( "From py: "+" ".join(map(str,args)), **kwargs)
+    # pass
+    print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 def exception_hook(exctype, value, tb):
     debug_print("except hook 1 got a thing!") #, exctype, value, traceback)
@@ -69,8 +69,20 @@ ample_controllable_modules = {'ingen:/main/amp_nam1', 'ingen:/main/mono_cab1', '
         'ingen:/main/mono_cab2', 'ingen:/main/tonestack1', 'ingen:/main/tonestack2',
         'ingen:/main/boost1', 'ingen:/main/boost2', 'ingen:/main/stereo_reverb1'}
 
+trails_controllable_modules = { 'ingen:/main/wavefolder1', 'ingen:/main/multi_resonator1', 'ingen:/main/turntable_stop2',
+        'ingen:/main/delay2', 'ingen:/main/chorus_j1', 'ingen:/main/delay4', 'ingen:/main/vinyl1', 'ingen:/main/reverse1',
+        'ingen:/main/twist_delay1', 'ingen:/main/looping_envelope1', 'ingen:/main/turntable_stop1',
+        'ingen:/main/granular1', 'ingen:/main/delay1', 'ingen:/main/delay3', 'ingen:/main/time_stretch1'}
+
+# trails_controllable_modules = {'/main/turntable_stop2', '/main/delay1', '/main/delay2', '/main/delay3',
+#         '/main/looping_envelope1', '/main/turntable_stop1', '/main/vinyl1',
+#         '/main/wavefolder1', '/main/time_stretch1', '/main/chorus_j1', '/main/multi_resonator1',
+#         '/main/twist_delay1', '/main/delay4', '/main/reverse1', '/main/granular1'}
+
 if PEDAL_TYPE == pedal_types.ample: # pedal_types.verbs
     verbs_controllable_modules = ample_controllable_modules
+elif PEDAL_TYPE == pedal_types.trails: # pedal_types.verbs
+    verbs_controllable_modules = trails_controllable_modules
 
 def reset_footswitch_assignments():
     global footswitch_assignments
@@ -379,6 +391,7 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=Tru
 
         # if were the last verbs needed effect, load verbs preset
 
+        print("remaining modules", verbs_controllable_modules - set(current_effects.keys()))
         if effect_name in verbs_controllable_modules and len(verbs_controllable_modules - set(current_effects.keys())) == 0:
             # load verbs preset
             if not mcu_comms.verbs_initial_preset_loaded:
@@ -677,9 +690,8 @@ class Knobs():
         # check if were kill dry, if so, set enabled value, else just call default ingen:enabled
         effect_type = current_effects[effect_name]["effect_type"]
         if "kill_dry" in effect_prototypes[effect_type]:
-            v = 1.0 - (current_effects[effect_name]["controls"]["enabled"])
-            knobs.ui_knob_change(effect_name, "enabled", v)
-            current_effects[effect_name]["enabled"] = bool(v)
+            knobs.ui_knob_change(effect_name, "enabled", float(is_active))
+            current_effects[effect_name]["enabled"] = float(is_active)
         else:
             ingen_wrapper.set_bypass(effect_name, is_active)
 
@@ -1400,12 +1412,11 @@ def process_ui_messages():
                             # debug_print("kill dry value set", value)
                             current_effects[effect_name]["enabled"] = bool(float(value))
                         current_effects[effect_name]["controls"][parameter].value = float(value)
-                        debug_print("### send value to mcu", effect_name, parameter, value )
                         if not mcu_comms.verbs_initial_preset_loaded:
+                            debug_print("### send value to mcu", effect_name, parameter, value )
                             mcu_comms.send_value_to_mcu(effect_name, parameter, float(value))
                 except ValueError:
                     pass
-
             elif m[0] == "bpm_change":
                 current_bpm.value = m[1][0]
             elif m[0] == "set_plugin_state":

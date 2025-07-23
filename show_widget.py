@@ -920,9 +920,9 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
         # check if were kill dry, if so, set enabled value, else just call default ingen:enabled
         effect_type = current_effects[effect_name]["effect_type"]
         if "kill_dry" in effect_prototypes[effect_type]:
-            v = 1.0 - (current_effects[effect_name]["controls"]["enabled"].value)
+            v = float(is_active)
             knobs.ui_knob_change(effect_name, "enabled", v)
-            current_effects[effect_name]["enabled"].value = bool(v)
+            current_effects[effect_name]["enabled"].value = bool(is_active)
         else:
             ingen_wrapper.set_bypass(effect_name, is_active)
 
