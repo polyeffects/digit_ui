@@ -3,7 +3,7 @@ import serial, os
 from collections import defaultdict
 # import Adafruit_BBIO.GPIO as GPIO
 import time, queue, threading, json, subprocess
-import itertools
+import itertools, operator, statistics
 # from Adafruit_BBIO.Encoder import RotaryEncoder, eQEP2, eQEP0
 # left_encoder = RotaryEncoder(eQEP0)
 # right_encoder = RotaryEncoder(eQEP2)
@@ -31,6 +31,7 @@ footswitch_action_time = defaultdict(int)
 # shared to headless
 verbs_initial_preset_loaded = False
 a_tap_time = 0
+prev_a_tap_time = [0, 0, 0]
 b_tap_time = 0
 B_HOLD_TIME = 0.8
 PRESET_SWITCH_TIME = 0.5
@@ -39,6 +40,11 @@ set_list_number = 0
 current_preset_number = [0, 0]
 audio_side = "1" # 1 or 2
 current_mode = 0
+sustain = False
+sequencer_on = False
+last_step_time = 0
+step_duration = 0.500
+
 
 input_queue = queue.Queue()
 to_mcu_queue = queue.Queue()
@@ -119,7 +125,7 @@ def set_mono_sum_kill_dry(mono, kill_dry):
         command += "jack_disconnect system:capture_1 ingen:in_2;"
 
     if PEDAL_TYPE == pedal_types.verbs or PEDAL_TYPE == pedal_types.trails:
-        if kill_dry:
+        if kill_dry or PEDAL_TYPE == pedal_type.trails:
             command += "amixer -- cset name='Left Playback Mixer Left Bypass Volume' 0;"
             command += "amixer -- cset name='Right Playback Mixer Right Bypass Volume' 0;"
             command += "amixer -- cset name='Right Playback Mixer Left Bypass Volume' 0;"
@@ -227,7 +233,7 @@ def cab_enabled_name(value):
         return value
 
 
-def load_verbs_preset(p, load_now=True):
+def load_verbs_preset(p, load_now=True, from_sequencer=False):
     # verbs presets are index : {(effect_name, effect_parameter, value), 
     to_mcu_queue.put([176, cc_messages["PRESET_CHANGE_CC"], int(p)])
     # mute before loading if ample
@@ -251,7 +257,7 @@ def load_verbs_preset(p, load_now=True):
             return
 
     if PEDAL_TYPE == pedal_types.trails:
-        load_trails(p)
+        load_trails(p, from_sequencer)
         return
 
     for effect_id, parameter, value in verbs_presets[str(p)]:
@@ -318,29 +324,31 @@ def load_verbs_preset(p, load_now=True):
             time.sleep(0.01)
             knobs.ui_knob_change(sub_graph+"mono_cab1", "wet", -19.0)
 
-def load_trails(p):
+def load_trails(p, from_sequencer=False):
     # enable and disable modules based on category, 
     # disable first then enable
     global current_mode
-    all_modules = set(itertools.chain.from_iterable(trails_enable_map.values()))
     # disable anything that isn't used by this patch
     current_mode = p // 8 # groups of 8
-    print("### loading trails preset", p, current_mode)
-    for e in (all_modules - trails_enable_map[current_mode]):
-        knobs.set_bypass(sub_graph+e, False)
-        print("### bypass", e)
-    for e in trails_enable_map[current_mode]:
-        knobs.set_bypass(sub_graph+e, True)
-        print("### enable", e)
+    if not from_sequencer:
+        all_modules = set(itertools.chain.from_iterable(trails_enable_map.values()))
+        # print("### loading trails preset", p, current_mode)
+        for e in (all_modules - trails_enable_map[current_mode]):
+            knobs.set_bypass(sub_graph+e, False)
+            # print("### bypass", e)
+        for e in trails_enable_map[current_mode]:
+            knobs.set_bypass(sub_graph+e, True)
+            # print("### enable", e)
     # set the values required by this mode TODO
-    for effect_id, parameter, value in trails_mode_settings[current_mode]:
-        knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
+        for effect_id, parameter, value in trails_mode_settings[current_mode]:
+            knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
     # set the values from the preset, lookup mapping
     for i, value in enumerate(verbs_presets[str(p)]):
-        effect_id, parameter = trails_control_map[current_mode][i]
-        knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
-        # print("### sending value to MCU", sub_graph+effect_id, parameter, float(value))
-        send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
+        if i < 4:
+            effect_id, parameter = trails_control_map[current_mode][i]
+            knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
+            # print("### sending value to MCU", sub_graph+effect_id, parameter, float(value))
+            send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
 
 def import_done():
     # if we've got a set list now, parse it
@@ -443,7 +451,7 @@ def update_midi_ccs(channel):
             knobs.set_midi_cc(sub_graph+"filter_uberheim2", parameter, channel, cc)
         else:
             if cc == cc_messages["CRESCENDO_CC"]: # remap these
-                if PEDAL_TYPE == pedal_types.verbs:
+                if PEDAL_TYPE != pedal_types.ample:
                     knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, 18)
                 else:
                     knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, 18)
@@ -491,14 +499,19 @@ def set_side(n):
 def toggle_side():
     # toggle value
     # only do anything if we are split
-    if hardware_state["split"]:
-        global audio_side
-        if audio_side == "1":
-            audio_side = "2"
-        else:
-            audio_side = "1"
-        to_mcu_queue.put([176, cc_messages["SIDE_CC"], int(audio_side)-1])
-        update_mcu_values()
+    if (PEDAL_TYPE == pedal_types.ample):
+        if hardware_state["split"]:
+            global audio_side
+            if audio_side == "1":
+                audio_side = "2"
+            else:
+                audio_side = "1"
+            to_mcu_queue.put([176, cc_messages["SIDE_CC"], int(audio_side)-1])
+            update_mcu_values()
+    elif (PEDAL_TYPE == pedal_types.trails):
+        global sequencer_on
+        sequencer_on = not sequencer_on
+
 
 def toggle_cab():
     # toggle value, write out to file to persist
@@ -633,6 +646,9 @@ def process_cc(b_bytes):
             ig_a, ig_b, min_s, max_s = reverse_trails_param(effect_id, parameter)
         # scale
         value = scale_number(v, 0, 127, min_s, max_s)
+        # for trails quantise pitch param to ints
+        if (PEDAL_TYPE == pedal_types.trails and parameter in ("pitch_param", "frequency_param")):
+            value = round(value)
         # print("cc", v, value, effect_id, parameter)
         # check if we're crescendo, footswitch A actions
         if cc == cc_messages["CRESCENDO_CC"]:
@@ -643,6 +659,10 @@ def process_cc(b_bytes):
                 # set on time
                 global a_tap_time
                 a_tap_time = time.perf_counter()
+
+                prev_a_tap_time[2] = prev_a_tap_time[1]
+                prev_a_tap_time[1] = prev_a_tap_time[0]
+                prev_a_tap_time[0] = a_tap_time
                 # print("setting a tap time ", a_tap_time)
                 if PEDAL_TYPE in (pedal_types.ample, pedal_types.trails):
                     footswitch_is_down["a"] = True
@@ -658,8 +678,28 @@ def process_cc(b_bytes):
                     if not footswitch_action_done["a"]:
                         # print("a foot switch up toggling")
                         if (PEDAL_TYPE == pedal_types.trails):
-                            pass
-                            # TODO sustain action
+                            # if the sequencer is currently on, we're doing tap tempo
+                            if sequencer_on:
+                                # calculate average time between beats
+
+                                average_beat_time = statistics.fmean([abs(y-x) for (x, y) in itertools.pairwise(prev_a_tap_time)])
+                                # if it's too large, wait for another beat
+                                # print("average_beat_time is ", average_beat_time)
+                                if average_beat_time < 4.0 and average_beat_time > 0.15:
+                                    global step_duration
+                                    step_duration = average_beat_time
+                            else:
+                                global sustain
+                                sustain = not sustain
+                                if sustain:
+                                    v_s = 127
+                                else:
+                                    v_s = 0
+                                value = scale_number(v_s, 0, 127, min_s, max_s)
+                                knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
+                                if effect_id == "turntable_stop1":
+                                    knobs.ui_knob_change(sub_graph+"turntable_stop2", parameter, float(value))
+                                send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
                         else:
                             knobs.ui_knob_toggle(sub_graph+"boost1", "on")
                             time.sleep(0.01)
@@ -681,9 +721,14 @@ def process_cc(b_bytes):
                         load_verbs_preset_from_set_list(set_list[set_list_number], True)
         # set the values
         # onset and low cut are two modules each
-        elif effect_id == "delay1":
+        elif effect_id in ("delay1", "delay2", "delay3", "delay4"):
             knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
-            knobs.ui_knob_change(sub_graph+"delay6", parameter, float(value))
+            if (PEDAL_TYPE == pedal_types.verbs):
+                knobs.ui_knob_change(sub_graph+"delay6", parameter, float(value))
+            if (PEDAL_TYPE == pedal_types.trails):
+                knobs.ui_knob_change(sub_graph+"delay2", parameter, float(value))
+                knobs.ui_knob_change(sub_graph+"delay3", parameter, float(value))
+                knobs.ui_knob_change(sub_graph+"delay4", parameter, float(value))
         elif effect_id == 'filter_uberheim1':
             knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
             knobs.ui_knob_change(sub_graph+"filter_uberheim2", parameter, float(value))
@@ -751,7 +796,7 @@ def send_value_to_mcu(effect_name, parameter, value):
     effect_name = effect_name.rsplit('/', 1)[1]
     if (PEDAL_TYPE == pedal_types.trails):
         effect_name, parameter, min_s, max_s = reverse_trails_param(effect_name, parameter)
-        print("### MCU mapped param", effect_name, parameter, float(value))
+        # print("### MCU mapped param", effect_name, parameter, float(value))
     if (effect_name, parameter) in effect_name_parameter_cc_map:
         if (PEDAL_TYPE == pedal_types.trails):
             cc_num, ingore_min_s, ingore_max_s = effect_name_parameter_cc_map[(effect_name, parameter)]
@@ -760,7 +805,7 @@ def send_value_to_mcu(effect_name, parameter, value):
         # scale it
         v = int(scale_number(value, min_s, max_s,  0, 127))
         # add to mcu queue
-        print("added", effect_name, parameter, value, "v is", v, "to mcu queue")
+        # print("added", effect_name, parameter, value, "v is", v, "to mcu queue")
         add_to_mcu_queue(cc_num, v)
 
 def add_to_mcu_queue(cc, value): # value needs to be scaled first
@@ -787,6 +832,7 @@ def process_hold_actions():
     # called often to check if timers have elapsed. 
     global b_tap_time
     global a_tap_time
+    global prev_a_tap_time
     if footswitch_is_down["b"]:
         # check how long since last b action
         if not footswitch_action_done["b"] and time.perf_counter() - b_tap_time > B_HOLD_TIME:
@@ -824,6 +870,19 @@ def process_hold_actions():
             # print("loading next in set list", set_list_number)
             load_verbs_preset_from_set_list(set_list[set_list_number], False)
 
+def process_sequencer():
+    if sequencer_on:
+        # check how long since we changed presets, 
+        # if elapsed time is great that step time, change preset
+        global last_step_time
+        if (time.perf_counter() - last_step_time) > step_duration:
+            last_step_time = time.perf_counter()
+            n_p = (current_preset_number[0] + 1)
+            if n_p > ((current_mode * 8) + 7 ):
+                n_p = current_mode * 8
+            # print("loading next in set list", set_list_number)
+            load_verbs_preset(n_p, True, True)
+
 def process_from_mcu():
     # read internal MIDI messages
     global current_bytes
@@ -831,6 +890,8 @@ def process_from_mcu():
         # first check if we need to process hold actions
         if PEDAL_TYPE in (pedal_types.ample, pedal_types.trails):
             process_hold_actions()
+        if PEDAL_TYPE == pedal_types.trails:
+            process_sequencer()
         msg = ser.read(3-len(current_bytes))
         if len(msg) == 0:
             break

@@ -1820,7 +1820,12 @@ if __name__ == "__main__":
     # mcu_comms.load_verbs_preset(0)
     # ingen_wrapper._FINISH = True
     update_dsp_usage_count = 200
-    type_v = 1 if PEDAL_TYPE == pedal_types.ample else 0
+    if PEDAL_TYPE == pedal_types.trails:
+        type_v = 2
+    elif PEDAL_TYPE == pedal_types.ample:
+        type_v = 1
+    else:
+        type_v = 0
     mcu_comms.send_loading_progress_to_mcu(type_v)
     while not EXIT_PROCESS[0]:
         # debug_print("processing events")
