@@ -1,10 +1,9 @@
 import ingen
 from queue import Queue
-import lightrdf
+import json
 import queue
 import time, re, io
 import threading, subprocess
-from io import StringIO as StringIO
 import traceback
 import logging
 import urllib.parse
@@ -17,95 +16,41 @@ from static_globals import IS_REMOTE_TEST
 ingen_started_lock = threading.Lock()
 ingen_started = False
 
-def iri_equal(a, b):
-    #print("iri", a, b)
-    return (hasattr(b, "strip") and a.iri == b.strip("<>")) or (hasattr(b, "iri") and a.iri == b.iri)
-
-lightrdf.IRI.__eq__ = iri_equal
-
-atom_AtomPort = lightrdf.IRI("http://lv2plug.in/ns/ext/atom#AtomPort")
-ingen_max_run_load = lightrdf.IRI("http://drobilla.net/ns/ingen#maxRunLoad")
-ingen_mean_run_load = lightrdf.IRI("http://drobilla.net/ns/ingen#meanRunLoad")
-ingen_min_run_load = lightrdf.IRI("http://drobilla.net/ns/ingen#minRunLoad")
-ingen_Arc = lightrdf.IRI("http://drobilla.net/ns/ingen#Arc")
-ingen_Block = lightrdf.IRI("http://drobilla.net/ns/ingen#Block")
-ingen_canvasX = lightrdf.IRI("http://drobilla.net/ns/ingen#canvasX")
-ingen_canvasY = lightrdf.IRI("http://drobilla.net/ns/ingen#canvasY")
-ingen_enabled = lightrdf.IRI("http://drobilla.net/ns/ingen#enabled")
-ingen_file = lightrdf.IRI("http://drobilla.net/ns/ingen#file")
-ingen_head = lightrdf.IRI("http://drobilla.net/ns/ingen#head")
-ingen_minRunLoad = lightrdf.IRI("http://drobilla.net/ns/ingen#minRunLoad")
-ingen_tail = lightrdf.IRI("http://drobilla.net/ns/ingen#tail")
-ingen_value = lightrdf.IRI("http://drobilla.net/ns/ingen#value")
-lv2_AudioPort = lightrdf.IRI("http://lv2plug.in/ns/lv2core#AudioPort")
-lv2_AtomPort = lightrdf.IRI("http://lv2plug.in/ns/lv2core#AtomPort")
-lv2_InputPort = lightrdf.IRI("http://lv2plug.in/ns/lv2core#InputPort")
-lv2_OutputPort = lightrdf.IRI("http://lv2plug.in/ns/lv2core#OutputPort")
-lv2_prototype = lightrdf.IRI("http://lv2plug.in/ns/lv2core#prototype")
-midi_binding = lightrdf.IRI("http://lv2plug.in/ns/ext/midi#binding")
-midi_controllerNumber = lightrdf.IRI("http://lv2plug.in/ns/ext/midi#controllerNumber")
-patch_Put = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#Put")
-patch_Patch = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#Patch")
-patch_Delete = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#Delete")
-patch_Set = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#Set")
-patch_body = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#body")
-patch_property = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#property")
-patch_subject = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#subject")
-patch_value = lightrdf.IRI("http://lv2plug.in/ns/ext/patch#value")
-poly_assigned_footswitch = lightrdf.IRI("http://polyeffects.com/ns/core#assigned_footswitch")
-rdf_type = lightrdf.IRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
-rdfs_comment = lightrdf.IRI("http://www.w3.org/2000/01/rdf-schema#comment")
-
-# atom_AtomPort = serd.curie("atom:AtomPort")
-# ingen_max_run_load = serd.curie("ingen:maxRunLoad")
-# ingen_mean_run_load = serd.curie("ingen:meanRunLoad")
-# ingen_min_run_load = serd.curie("ingen:minRunLoad")
-# ingen_Arc = serd.curie("ingen:Arc")
-# ingen_Block = serd.curie("ingen:Block")
-# ingen_canvasX = serd.curie("ingen:canvasX")
-# ingen_canvasY = serd.curie("ingen:canvasY")
-# ingen_enabled = serd.curie("ingen:enabled")
-# ingen_file = serd.curie("ingen:file")
-# ingen_head = serd.curie("ingen:head")
-# ingen_minRunLoad = serd.curie("ingen:minRunLoad")
-# ingen_tail = serd.curie("ingen:tail")
-# ingen_value = serd.curie("ingen:value")
-# lv2_AudioPort = serd.curie("lv2:AudioPort")
-# lv2_InputPort = serd.curie("lv2:InputPort")
-# lv2_OutputPort = serd.curie("lv2:OutputPort")
-# lv2_prototype = serd.curie("lv2:prototype")
-# midi_binding = serd.curie("midi:binding")
-# midi_controllerNumber = serd.curie("midi:controllerNumber")
-# patch_Put = serd.curie("patch:Put")
-# patch_Patch = serd.curie("patch:Patch")
-# patch_Delete = serd.curie("patch:Delete")
-# patch_Set = serd.curie("patch:Set")
-# patch_body = serd.curie("patch:body")
-# patch_property = serd.curie("patch:property")
-# patch_subject = serd.curie("patch:subject")
-# patch_value = serd.curie("patch:value")
-poly_assigned_footswitch = lightrdf.IRI("http://polyeffects.com/ns/core#assigned_footswitch")
-poly_looper_footswitch = lightrdf.IRI("http://polyeffects.com/ns/core#looper_footswitch")
-poly_spotlight = lightrdf.IRI("http://polyeffects.com/ns/core#spotlight")
-poly_physical_port = lightrdf.IRI("http://polyeffects.com/ns/core#physical_port")
-# rdf_type = serd.curie("rdf:type")
-# rdfs_comment = serd.curie("rdfs:comment")
-
-ir_url = lightrdf.IRI("http://polyeffects.com/lv2/polyconvo#ir")
-
-prefix_header = """@prefix xml: <http://www.w3.org/XML/1998/namespace> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix atom: <http://lv2plug.in/ns/ext/atom#> .
-@prefix ingen: <http://drobilla.net/ns/ingen#> .
-@prefix ingerr: <http://drobilla.net/ns/ingen/errors#> .
-@prefix lv2: <http://lv2plug.in/ns/lv2core#> .
-@prefix patch: <http://lv2plug.in/ns/ext/patch#> .
-@prefix midi: <http://lv2plug.in/ns/ext/midi#> .
-@prefix rsz: <http://lv2plug.in/ns/ext/resize-port#> .
-@prefix doap: <http://usefulinc.com/ns/doap#> .
-@prefix poly: <http://polyeffects.com/ns/core#> ."""
+atom_AtomPort = "atom:AtomPort"
+ingen_max_run_load = "ingen:maxRunLoad"
+ingen_mean_run_load = "ingen:meanRunLoad"
+ingen_min_run_load = "ingen:minRunLoad"
+ingen_Arc = "ingen:Arc"
+ingen_Block = "ingen:Block"
+ingen_canvasX = "ingen:canvasX"
+ingen_canvasY = "ingen:canvasY"
+ingen_enabled = "ingen:enabled"
+ingen_file = "ingen:file"
+ingen_head = "ingen:head"
+ingen_minRunLoad = "ingen:minRunLoad"
+ingen_tail = "ingen:tail"
+ingen_value = "ingen:value"
+lv2_AudioPort = "lv2:AudioPort"
+lv2_InputPort = "lv2:InputPort"
+lv2_OutputPort = "lv2:OutputPort"
+lv2_prototype = "lv2:prototype"
+midi_binding = "midi:binding"
+midi_controllerNumber = "midi:controllerNumber"
+patch_Put = "patch:Put"
+patch_Patch = "patch:Patch"
+patch_Delete = "patch:Delete"
+patch_Set = "patch:Set"
+patch_body = "patch:body"
+patch_property = "patch:property"
+patch_subject = "patch:subject"
+patch_value = "patch:value"
+poly_assigned_footswitch = "http://polyeffects.com/ns/core#assigned_footswitch"
+poly_looper_footswitch = "http://polyeffects.com/ns/core#looper_footswitch"
+poly_spotlight = "http://polyeffects.com/ns/core#spotlight"
+poly_physical_port = "http://polyeffects.com/ns/core#physical_port"
+rdf_type = "rdf:type"
+rdfs_comment = "rdfs:comment"
+ir_url = "http://polyeffects.com/lv2/polyconvo#ir"
 
 
 class ExceptionThread(threading.Thread):
@@ -423,13 +368,24 @@ def ingen_recv_thread( ) :
             return
         r = ingen.recv()
         # print("recv in ingen_wrapper", r)
-        for s in r.split("\n\n"):
-            if len(s) > 10:
-                if not (len(s) < 80 and ("ingen:BundleEnd" in s or "ingen:BundleStart" in s) or "@prefix" in s):
-                    # print("len is ", len(s), )
-                    # print (" to parse", s)
-                    p_s = prefix_header + s
-                    parse_ingen(p_s)
+        # for s in r.split("\n\n"):
+        #     if len(s) > 10:
+        #         if not (len(s) < 80 and ("ingen:BundleEnd" in s or "ingen:BundleStart" in s) or "@prefix" in s):
+        if len(r) > 0:
+            print("len is ", len(r), )
+            print (" to parse", r)
+            bundle = {}
+            # try:
+            if True:
+                with open("/tmp/ingen.json", "w") as f:
+                    f.write(r)
+                bundle = json.loads(r)
+            # except:
+                # print("!!! failed to parse json from ingen")
+
+                for k, v in bundle.items():
+                    parse_ingen(v)
+
 
 """
 sooperlooper:loop0_in_1
@@ -512,96 +468,63 @@ def connect_jack_port(port, x, y, physical_port):
                 else:
                     pass
                     # print("got port we don't know", port, x, y, physical_port)
+
 def parse_value(v):
     r = v.split("^")[0].strip('"').strip("<>")
     # print("parsing value", v, r)
     return r
 
-def ask(d, s, p, o):
-    return len([t for t in d.search_triples(s, p, o)]) > 0
-
-def get_value(model, p):
-    return parse_value(tuple(model.search_triples(None, p, None))[0][2])
-
-def get_node(model, p):
-    return tuple(model.search_triples(None, p, None))[0][2]
-
-def has_predicate(d, body, p):
-    return ask(d, body, p, None)
-
-def has_object(d, body, o):
-    return ask(d, body, None, o)
-
-def get_body_value(d, body, p):
-    return parse_value([t for t in d.search_triples(body, p, None)][0][2])
-
-def get_body_triples(model):
-    try:
-        b_n = get_node(model, patch_body)
-        return tuple(model.search_triples(b_n, None, None))
-    except:
-        return None
-
-def get_body_id(model):
-    try:
-        b_n = get_node(model, patch_body)
-        return b_n
-    except:
-        return None
+def ask(d, k, v):
+    if k in d and d[k] == v:
+        return True
+    else:
+        return False
 
 def parse_ingen(to_parse):
     # try:
     if True:
         print("parsing", to_parse)
-        m = lightrdf.RDFDocument(io.BytesIO(to_parse.encode()), parser=lightrdf.turtle.PatternParser)
+    m = to_parse
     # except:
         # print("parsing", to_parse)
         # print("###\n###\n###\nfailed to parse")
         # return
-    if ask(m, None, None, patch_Put):
-        r_subject = get_value(m, patch_subject)
-        # r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
-        subject  = r_subject #[6:]
-        # print("put subject is", subject)
+    if ask(m, "a", "patch:Put"):
+        subject = m["patch:subject"][0]
 
-        if ask(m, None, patch_body, None):
-            body = get_body_id(m)
-            body_triples = get_body_triples(m)
+        if "patch:body" in m:
+            body = m["patch:body"]
             if body is None:
                 return
 
-            if r_subject == "/engine":
+            if subject == "/engine":
                 max_load = 0
                 mean_load = 0
                 min_load = 0
                 send = False
-                for p in body_triples:
-                    if p[1] == ingen_max_run_load:
-                        send = True
-                        max_load = float(str(parse_value(p[2])))
-                    elif p[1] == ingen_mean_run_load:
-                        mean_load = float(str(parse_value(p[2])))
-                        send = True
-                    elif p[1] == ingen_min_run_load:
-                        min_load = float(str(parse_value(p[2])))
-                        send = True
+                if ingen_max_run_load in body:
+                    send = True
+                    max_load = float(body[max_load][0])
+                elif ingen_mean_run_load in body:
+                    mean_load = float(body[mean_load][0])
+                    send = True
+                elif ingen_min_run_load in body:
+                    min_load = float(body[min_load][0])
+                    send = True
                 # print("load subject", subject, max_load, mean_load, min_load)
                 if send:
                     ui_queue.put(("dsp_load", max_load, mean_load, min_load))
-            elif has_predicate(m, body, rdfs_comment):
-                value = get_body_value(m, body, rdfs_comment)
+            if rdfs_comment in body:
+                value = body[rdfs_comment][0]
                 ui_queue.put(("set_comment", value, subject))
-            elif has_predicate(m, body, poly_assigned_footswitch):
-                value = get_body_value(m, body, poly_assigned_footswitch)
-                # print("### Got assigned foot switch", value, subject)
+            if poly_assigned_footswitch in body:
+                value = body[poly_assigned_footswitch][0]
                 ui_queue.put(("assign_footswitch", value, subject))
-
-            if has_predicate(m, body, poly_looper_footswitch):
-                value = get_body_value(m, body, poly_looper_footswitch)
-                # print("### Got assigned foot switch", value, subject)
+            if poly_looper_footswitch in body:
+                value = body[poly_looper_footswitch][0]
                 ui_queue.put(("looper_footswitch", value, subject))
 
-            if has_object(m, body, ingen_Block):
+            if ingen_Block in body:
                 # print("adding new block", body_triples, "subject is", subject, "body is", body)
                 # adding new block
                 x = 0
@@ -609,19 +532,18 @@ def parse_ingen(to_parse):
                 plugin = ""
                 ir = None
                 is_enabled = True
-                for p in body_triples:
-                    # print("got a block, triples are ")
-                    if p[1] == lv2_prototype:
-                        plugin = str(parse_value(p[2]))
-                    elif p[1] == ingen_canvasY:
-                        y = float(str(parse_value(p[2])))
-                    elif p[1] == ingen_canvasX:
-                        x = float(str(parse_value(p[2])))
-                    elif p[1] == ir_url:
-                        ir = str(parse_value(p[2]))
-                    elif p[1] == ingen_enabled:
-                        is_enabled = str(parse_value(p[2])) != "false"
-                        # print("## is enabled", is_enabled)
+                # print("got a block, triples are ")
+                if lv2_prototype in body:
+                    plugin = body[lv2_prototype][0]
+                if ingen_canvasY in body:
+                    y = float(body[ingen_canvasY][0])
+                if ingen_canvasX in body:
+                    x = float(body[ingen_canvasX][0])
+                if ir_url in body:
+                    ir = body[ir_url][0]
+                if ingen_enabled in body:
+                    is_enabled = body[ingen_enabled][0] != "false"
+                    # print("## is enabled", is_enabled)
                 # print("x", x, "y", y, "plugin", plugin, "subject", subject)
                 ui_queue.put(("add_plugin", subject, plugin, x, y, is_enabled))
                 if ir is not None:
@@ -629,21 +551,21 @@ def parse_ingen(to_parse):
                     # print("#### ir file is ", ir)
                     ui_queue.put(("set_file", subject, ir))
 
-            elif has_predicate(m, body, ingen_value):
+            elif ingen_value in body:
                 # setting value
-                value = get_body_value(m, body, ingen_value)
+                value = body[ingen_value][0]
                 # print("has predicate value", value, "subject", subject, "body", body)
                 ui_queue.put(("value_change", subject, value))
-                if has_predicate(m, body, poly_spotlight):
-                    value = get_body_value(m, body, poly_spotlight)
+                if poly_spotlight in body:
+                    value = body[poly_spotlight][0]
                     # print("has poly_spoltlight", subject, "value", value)
                     ui_queue.put(("spotlight", subject, str(value)))
-                if has_predicate(m, body, midi_binding):
+                if midi_binding in body:
                     # print("midi binding predicate")
-                    midi_s = get_node(m, midi_binding)
-                    if has_predicate(m, midi_s, midi_controllerNumber):
+                    midi_s = m[midi_binding]
+                    if midi_controllerNumber in midi_s:
                         try:
-                            value = get_body_value(m, midi_s, midi_controllerNumber)
+                            value = midi_s[midi_controllerNumber][0]
                             # print("midi learn parsed: value, ", int(str(value)))
                             ui_queue.put(("midi_learn", subject, int(str(value))))
                         except IndexError:
@@ -651,18 +573,13 @@ def parse_ingen(to_parse):
                             # print("midi learn parsed: index error ")
                             ui_queue.put(("midi_learn", subject, int(256)))
 
-            elif has_object(m, body, ingen_Arc):
-                head = ""
-                tail = ""
-                for p in body_triples:
-                    if p[1] == ingen_head:
-                        head = str(parse_value(p[2]))
-                    elif p[1] == ingen_tail:
-                        tail = str(parse_value(p[2]))
+            elif ingen_Arc in body:
+                head = body[ingen_head][0]
+                tail = body[ingen_tail][0]
                 # print("##### \n\n ### \n arc head", head, "tail", tail)
                 # ui_queue.put(("add_connection", head[7:], tail[7:]))
                 ui_queue.put(("add_connection", head, tail))
-            elif has_object(m, body, lv2_AudioPort) or has_object(m, body, atom_AtomPort):
+            elif "a" in body and (lv2_AudioPort in body["a"] in atom_AtomPort in body["a"]):
                 # setting value
                 is_in = None
                 is_audio = None
@@ -671,21 +588,21 @@ def parse_ingen(to_parse):
                 x = None
                 y = None
                 physical_port = None
-                for p in body_triples:
-                    if parse_value(p[2]) == lv2_OutputPort:
-                        is_in = False
-                    elif parse_value(p[2]) == lv2_InputPort:
-                        is_in = True
-                    elif parse_value(p[2]) == lv2_AudioPort:
-                        is_audio = True
-                    elif parse_value(p[2]) == atom_AtomPort:
-                        is_midi = True
-                    elif p[1] == ingen_canvasY:
-                        y = float(str(parse_value(p[2])))
-                    elif p[1] == ingen_canvasX:
-                        x = float(str(parse_value(p[2])))
-                    elif p[1] == poly_physical_port:
-                        physical_port = str(parse_value(p[2]))
+                port_types = body["a"]
+                if lv2_OutputPort in port_types:
+                    is_in = False
+                elif lv2_InputPort in port_types:
+                    is_in = True
+                elif lv2_AudioPort in port_types:
+                    is_audio = True
+                elif atom_AtomPort in port_types:
+                    is_midi = True
+
+                y = float(body[ingen_canvasY][0])
+                x = float(body[ingen_canvasX][0])
+                if poly_physical_port in body:
+                    physical_port = body[poly_physical_port][0]
+
                 if is_in is not None and (is_audio or is_midi):
                     # print("connecting jack port", is_in, "subject", subject)
                     # connect to jack port
@@ -693,83 +610,78 @@ def parse_ingen(to_parse):
                         connect_jack_port(subject, x, y, physical_port)
                 # else:
                 #     print("None! port is_in", is_in, "subject", subject)
-            elif has_predicate(m, body, ingen_enabled):
+            elif ingen_enabled in body:
                 # setting value
-                value = get_body_value(m, body, ingen_enabled)
+                value = body[ingen_enabled][0]
                 # print("in put enabled", subject, "value", value)
                 # print("in put enabled", subject, "value", value, "b value", value != "false")
                 # print("to parse", to_parse)
                 ui_queue.put(("enabled_change", subject, str(value) != "false"))
 
-    elif ask(m, None, None, patch_Set):
+    elif ask(m, "a", patch_Set):
         # print ("in patch_Set")
-        r_subject = get_value(m, patch_subject)
-        # r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
-        subject  = r_subject #[6:]
+        subject = m[patch_subject][0]
         # print("set subject is", subject)
-        # print ("after get_value")
-        if ask(m, None, patch_property, ingen_enabled):
-            value = get_value(m, patch_value)
-            # print("in set enabled", subject, "value", value, "b value", bool(value))
-            ui_queue.put(("enabled_change", subject, str(value) != "false"))
-        if ask(m, None, patch_property, ingen_file):
-            value = get_value(m, patch_value)
-            # print("in set enabled", subject, "value", value, "b value", bool(value))
-            ui_queue.put(("pedalboard_loaded", subject, str(value)))
-        if ask(m, None, patch_property, poly_spotlight):
-            value = get_value(m, patch_value)
-            # print("broadcast_update parsed", subject, "value", value)
-            ui_queue.put(("spotlight", subject, str(value)))
-        elif ask(m, None, patch_property, ingen_value):
-            value = get_value(m, patch_value)
-            # print("broadcast_update parsed", subject, "value", value)
-            ui_queue.put(("broadcast_update", subject, float(str(value))))
-        elif ask(m, None, patch_property, midi_binding):
-            # print("midi learn parsed subject:", subject)
-            try:
-                value = get_value(m, midi_controllerNumber)
-                # print("midi learn parsed: value, ", int(str(value)))
-                ui_queue.put(("midi_learn", subject, int(str(value))))
-            except IndexError:
-                # bender etc are just an out of range CC number... 
-                ui_queue.put(("midi_learn", subject, int(256)))
+        if patch_property in m:
+            if ingen_enabled in m[patch_property]:
+                value = m[patch_value][0]
+                # print("in set enabled", subject, "value", value, "b value", bool(value))
+                ui_queue.put(("enabled_change", subject, str(value) != "false"))
+            if ingen_file in m[patch_property]:
+                value = m[patch_value][0]
+                # print("in set enabled", subject, "value", value, "b value", bool(value))
+                ui_queue.put(("pedalboard_loaded", subject, str(value)))
+            if poly_spotlight in m[patch_property]:
+                value = m[patch_value][0]
+                # print("broadcast_update parsed", subject, "value", value)
+                ui_queue.put(("spotlight", subject, str(value)))
+            elif ingen_value in m[patch_property]:
+                value = m[patch_value][0]
+                # print("broadcast_update parsed", subject, "value", value)
+                ui_queue.put(("broadcast_update", subject, float(str(value))))
+            elif midi_binding in m[patch_property]:
+                # print("midi learn parsed subject:", subject)
+                try:
+                    value = m[midi_controllerNumber][0]
+                    # print("midi learn parsed: value, ", int(str(value)))
+                    ui_queue.put(("midi_learn", subject, int(str(value))))
+                except IndexError:
+                    # bender etc are just an out of range CC number... 
+                    ui_queue.put(("midi_learn", subject, int(256)))
 
 
-    elif ask(m, None, None, patch_Delete):
-        if not ask(m, None, patch_body, None):
-            subject = get_value(m, patch_subject)
+    elif ask(m, "a", patch_Set):
+        body = None
+        if "patch:body" not in m:
+            subject = m[patch_subject][0]
             if subject is not None:
                 # subject = str(subject)[7:]
                 # subject = str(subject)[7:]
                 # print("in delete subject", subject)
                 ui_queue.put(("remove_plugin", subject))
         else:
-            body = get_body_id(m)
+            body = m["patch:body"]
             if body is None:
                 return
-            body_triples = get_body_triples(m)
 
-            if has_object(m, body, ingen_Arc):
+            if ingen_Arc in body:
                 head = ""
                 tail = ""
-                for p in body_triples:
-                    if p[1] == ingen_head:
-                        head = str(parse_value(p[2]))
-                    elif p[1] == ingen_tail:
-                        tail = str(parse_value(p[2]))
+                if ingen_head in body:
+                    head = body[ingen_head][0]
+                if ingen_tail in body:
+                    tail = body[ingen_tail][0]
                 if head and tail:
                     # print("in remove arc head", head, "tail", tail)
                     # ui_queue.put(("remove_connection", head[7:], tail[7:]))
                     ui_queue.put(("remove_connection", head, tail))
 
-    elif ask(m, None, None, patch_Patch):
+    elif ask(m, "a", patch_Patch):
         # print ("in patch_Set")
-        r_subject = get_value(m, patch_subject)
-        # r_subject  = str(g.value(response, NS.patch.subject, None))[7:]
-        subject  = r_subject #[6:]
+        subject = m[patch_subject][0]
         # print("set subject is", subject)
         # print ("after get_value")
-        if ask(m, None, midi_binding, None):
+        if midi_binding in m:
             # print("midi unlearn parsed", subject)
             ui_queue.put(("midi_learn", subject, -1))
 

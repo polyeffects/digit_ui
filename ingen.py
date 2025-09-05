@@ -152,8 +152,8 @@ class Remote(Interface):
             # print(chunk.decode('utf-8'), end="")
 
             msg += chunk.decode('utf-8')
-            if msg[-2:] == '\n\n':
-                break
+            # if msg[-2:] == '\n\n':
+            #     break
         # print("msg is ", msg)
 
         return msg
