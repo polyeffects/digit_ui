@@ -372,19 +372,22 @@ def ingen_recv_thread( ) :
         #     if len(s) > 10:
         #         if not (len(s) < 80 and ("ingen:BundleEnd" in s or "ingen:BundleStart" in s) or "@prefix" in s):
         if len(r) > 0:
-            print("len is ", len(r), )
-            print (" to parse", r)
+            # print("len is ", len(r), )
+            # print (" to parse", r)
             bundle = {}
-            # try:
-            if True:
+            try:
+            # if True:
                 with open("/tmp/ingen.json", "w") as f:
                     f.write(r)
                 bundle = json.loads(r)
-            # except:
-                # print("!!! failed to parse json from ingen")
 
                 for k, v in bundle.items():
                     parse_ingen(v)
+            except Exception as e:
+                print("!!! failed to parse json from ingen")
+                print(e)
+                logging.error(traceback.format_exc())
+
 
 
 """
@@ -475,15 +478,15 @@ def parse_value(v):
     return r
 
 def ask(d, k, v):
-    if k in d and d[k] == v:
+    if k in d and v in d[k]:
         return True
     else:
         return False
 
 def parse_ingen(to_parse):
     # try:
-    if True:
-        print("parsing", to_parse)
+    # if True:
+        # print("parsing", to_parse)
     m = to_parse
     # except:
         # print("parsing", to_parse)
@@ -492,10 +495,12 @@ def parse_ingen(to_parse):
     if ask(m, "a", "patch:Put"):
         subject = m["patch:subject"][0]
 
+        # print("### got put subject", subject)
         if "patch:body" in m:
             body = m["patch:body"]
             if body is None:
                 return
+            # print("### got put, body is ", body)
 
             if subject == "/engine":
                 max_load = 0
@@ -524,8 +529,8 @@ def parse_ingen(to_parse):
                 value = body[poly_looper_footswitch][0]
                 ui_queue.put(("looper_footswitch", value, subject))
 
-            if ingen_Block in body:
-                # print("adding new block", body_triples, "subject is", subject, "body is", body)
+            if ask(body, "a", ingen_Block):
+                print("adding new block", "subject is", subject, "body is", body)
                 # adding new block
                 x = 0
                 y = 0
@@ -543,7 +548,7 @@ def parse_ingen(to_parse):
                     ir = body[ir_url][0]
                 if ingen_enabled in body:
                     is_enabled = body[ingen_enabled][0] != "false"
-                    # print("## is enabled", is_enabled)
+                    print("## is enabled", is_enabled)
                 # print("x", x, "y", y, "plugin", plugin, "subject", subject)
                 ui_queue.put(("add_plugin", subject, plugin, x, y, is_enabled))
                 if ir is not None:
@@ -573,43 +578,47 @@ def parse_ingen(to_parse):
                             # print("midi learn parsed: index error ")
                             ui_queue.put(("midi_learn", subject, int(256)))
 
-            elif ingen_Arc in body:
+            elif ask(body, "a", ingen_Arc):
                 head = body[ingen_head][0]
                 tail = body[ingen_tail][0]
                 # print("##### \n\n ### \n arc head", head, "tail", tail)
                 # ui_queue.put(("add_connection", head[7:], tail[7:]))
                 ui_queue.put(("add_connection", head, tail))
-            elif "a" in body and (lv2_AudioPort in body["a"] in atom_AtomPort in body["a"]):
+            elif "a" in body and (lv2_AudioPort in body["a"] or atom_AtomPort in body["a"]):
                 # setting value
                 is_in = None
                 is_audio = None
                 is_midi = None
-                # print("lv2.name", str(subject))
+                # print("### got audioport or atomport_, subject", str(subject))
                 x = None
                 y = None
                 physical_port = None
                 port_types = body["a"]
+
                 if lv2_OutputPort in port_types:
                     is_in = False
                 elif lv2_InputPort in port_types:
                     is_in = True
-                elif lv2_AudioPort in port_types:
+
+                if lv2_AudioPort in port_types:
                     is_audio = True
-                elif atom_AtomPort in port_types:
+                if atom_AtomPort in port_types:
                     is_midi = True
 
-                y = float(body[ingen_canvasY][0])
-                x = float(body[ingen_canvasX][0])
+                if ingen_canvasY in body:
+                    y = float(body[ingen_canvasY][0])
+                if ingen_canvasX in body:
+                    x = float(body[ingen_canvasX][0])
                 if poly_physical_port in body:
                     physical_port = body[poly_physical_port][0]
 
                 if is_in is not None and (is_audio or is_midi):
-                    # print("connecting jack port", is_in, "subject", subject)
+                    # print("### connecting jack port", is_in, "subject", subject)
                     # connect to jack port
                     if x is not None and y is not None:
                         connect_jack_port(subject, x, y, physical_port)
-                # else:
-                #     print("None! port is_in", is_in, "subject", subject)
+                else:
+                    print("None! port is_in", is_in, "subject", subject)
             elif ingen_enabled in body:
                 # setting value
                 value = body[ingen_enabled][0]
@@ -625,11 +634,11 @@ def parse_ingen(to_parse):
         if patch_property in m:
             if ingen_enabled in m[patch_property]:
                 value = m[patch_value][0]
-                # print("in set enabled", subject, "value", value, "b value", bool(value))
+                print("in set enabled", subject, "value", value, "b value", bool(value))
                 ui_queue.put(("enabled_change", subject, str(value) != "false"))
             if ingen_file in m[patch_property]:
                 value = m[patch_value][0]
-                # print("in set enabled", subject, "value", value, "b value", bool(value))
+                print("in set enabled", subject, "value", value, "b value", bool(value))
                 ui_queue.put(("pedalboard_loaded", subject, str(value)))
             if poly_spotlight in m[patch_property]:
                 value = m[patch_value][0]
