@@ -727,10 +727,18 @@ class Knobs():
         else:
             debug_print("ui_knob_change effect not found", effect_name, parameter, value, effect_name in current_effects)
 
-    def ui_knob_toggle(self, effect_name, parameter):
+    def ui_knob_toggle(self, effect_name, parameter, min_v = None, max_v = None):
         # debug_print("in ui knob toggle", effect_name, parameter)
         if (effect_name in current_effects) and (parameter in current_effects[effect_name]["controls"]):
-            value = 1.0 - current_effects[effect_name]["controls"][parameter].value
+            value = 0.0
+            if min_v is None:
+                value = 1.0 - current_effects[effect_name]["controls"][parameter].value
+            else:
+                if max_v < current_effects[effect_name]["controls"][parameter].value + 0.01:
+                    value = min_v
+                else:
+                    value = max_v
+
             # clamping here to make it a bit more obvious
             value = clamp(value, current_effects[effect_name]["controls"][parameter].rmin, current_effects[effect_name]["controls"][parameter].rmax)
             # clamping here to make it a bit more obvious
@@ -1178,6 +1186,9 @@ you'll need to flash the usb flash drive to a format that works for Beebo, pleas
                 ingen_wrapper.midi_learn(effect_name+"/"+parameter)
         else:
             debug_print("effect not found", effect_name, parameter, value, effect_name in current_effects)
+
+    def forget_midi_cc(self, effect_name, parameter):
+        ingen_wrapper.midi_forget(effect_name+"/"+parameter)
 
     def set_midi_cc(self, effect_name, parameter, channel, cc):
         ingen_wrapper.midi_set_cc(effect_name+"/"+parameter, channel, cc)
@@ -1686,7 +1697,7 @@ def midi_pc_thread():
                     program = program - 55
                     set_list = knobs.get_set_list()
                     mcu_comms.load_verbs_preset_from_set_list(set_list[program % len(set_list)], True)
-        elif PEDAL_TYPE == pedal_types.ample and len(l) > 12 and l[6] == b'b'[0]: # 0xB0 is CC
+        elif PEDAL_TYPE in (pedal_types.ample, pedal_types.trails) and len(l) > 12 and l[6] == b'b'[0]: # 0xB0 is CC
             b = l.decode()
             debug_print(f"####### b {b} split {b.split()} len l {len(l)}")
             ig, b1, b2, v = b.split()[:4]

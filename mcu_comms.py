@@ -8,14 +8,14 @@ import itertools, operator, statistics
 # left_encoder = RotaryEncoder(eQEP0)
 # right_encoder = RotaryEncoder(eQEP2)
 from static_globals import IS_REMOTE_TEST, PEDAL_TYPE, pedal_types, trails_range_map, trails_mode_settings
-from static_globals import trails_control_map, trails_enable_map, verbs_keys, verbs_keys_invert
+from static_globals import trails_control_map, trails_enable_map, verbs_keys, verbs_keys_invert, TRAILS_SUSTAIN
 
 
 # is_on = False
 KNOB_MAX = 255
 EXIT_THREADS = False
 bypass_setup = False
-main_enable = False
+main_enable = None # needs to be None so we can check if ever set
 knobs = None # set from headless
 
 # GPIO.setup("P8_17", GPIO.OUT)
@@ -39,11 +39,11 @@ NUM_PRESETS = 56
 set_list_number = 0
 current_preset_number = [0, 0]
 audio_side = "1" # 1 or 2
-current_mode = 0
-sustain = False
+current_mode = 3 # not 0 to start so that it's a change at start up, but valid.
 sequencer_on = False
 last_step_time = 0
 step_duration = 0.500
+cur_midi_channel = 0 # easier to access here than accessing from headless
 
 
 input_queue = queue.Queue()
@@ -95,6 +95,15 @@ cc_messages = {"ONSET_CC": 14,
         "LUM_CC": 60,
         }
 
+cc_ordering = [
+            cc_messages["MIX_CC"],
+            cc_messages["ONSET_CC"],
+            cc_messages["LOW_CUT_CC"],
+            cc_messages["SMOOSH_CC"],
+            18,
+            19,
+        ]
+
 try:
     with open("/pedal_state/hardware_state.json") as f:
         hardware_state = json.load(f)
@@ -125,7 +134,7 @@ def set_mono_sum_kill_dry(mono, kill_dry):
         command += "jack_disconnect system:capture_1 ingen:in_2;"
 
     if PEDAL_TYPE == pedal_types.verbs or PEDAL_TYPE == pedal_types.trails:
-        if kill_dry or PEDAL_TYPE == pedal_type.trails:
+        if kill_dry or PEDAL_TYPE == pedal_types.trails:
             command += "amixer -- cset name='Left Playback Mixer Left Bypass Volume' 0;"
             command += "amixer -- cset name='Right Playback Mixer Right Bypass Volume' 0;"
             command += "amixer -- cset name='Right Playback Mixer Left Bypass Volume' 0;"
@@ -186,6 +195,8 @@ elif PEDAL_TYPE == pedal_types.trails:
 
 # invert map 
 cc_effect_name_parameter_map = {v[0]: (k, *v[1:]) for k, v in effect_name_parameter_cc_map.items()}
+
+
 
 def write_hardware_state():
     with open("/pedal_state/hardware_state.json", "w") as f:
@@ -328,20 +339,27 @@ def load_trails(p, from_sequencer=False):
     # enable and disable modules based on category, 
     # disable first then enable
     global current_mode
+    global sequencer_on
     # disable anything that isn't used by this patch
-    current_mode = p // 8 # groups of 8
-    if not from_sequencer:
-        all_modules = set(itertools.chain.from_iterable(trails_enable_map.values()))
-        # print("### loading trails preset", p, current_mode)
-        for e in (all_modules - trails_enable_map[current_mode]):
-            knobs.set_bypass(sub_graph+e, False)
-            # print("### bypass", e)
-        for e in trails_enable_map[current_mode]:
-            knobs.set_bypass(sub_graph+e, True)
-            # print("### enable", e)
-    # set the values required by this mode TODO
-        for effect_id, parameter, value in trails_mode_settings[current_mode]:
-            knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
+    # we need to disable sustain if we're switching modes outside of the sequencer
+    if current_mode != p // 8:
+        set_trails_sustain(False)
+        update_midi_ccs(cur_midi_channel, p // 8) # update midi bindings on mode switch
+        current_mode = p // 8 # groups of 8
+        sequencer_on = False # disable sequencer if we switch mode
+
+        if not from_sequencer:
+            all_modules = set(itertools.chain.from_iterable(trails_enable_map.values()))
+            # print("### loading trails preset", p, current_mode)
+            for e in (all_modules - trails_enable_map[current_mode]):
+                knobs.set_bypass(sub_graph+e, False)
+                # print("### bypass", e)
+            for e in trails_enable_map[current_mode]:
+                knobs.set_bypass(sub_graph+e, True)
+                # print("### enable", e)
+            # set the values required by this mode
+            for effect_id, parameter, value in trails_mode_settings[current_mode]:
+                knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
     # set the values from the preset, lookup mapping
     for i, value in enumerate(verbs_presets[str(p)]):
         if i < 4:
@@ -434,42 +452,72 @@ def update_mcu_values():
             # print(f"effect name side {effect_name_side} {parameter} value {value}")
             send_value_to_mcu(effect_name_side, parameter, value)
 
-def update_midi_ccs(channel):
-    for cc in cc_effect_name_parameter_map.keys():
-        effect_id_parameter, min_s, max_s = cc_effect_name_parameter_map[cc]
-        effect_id, parameter = effect_id_parameter
-        effect_id_trim = effect_id[:-1]
-        # scale
-        # set the values
-        # onset and low cut are two modules each
-        if effect_id == "delay1":
-            knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc)
-            if PEDAL_TYPE == pedal_types.verbs:
-                knobs.set_midi_cc(sub_graph+"delay6", parameter, channel, cc)
-        elif effect_id == 'filter_uberheim1':
-            knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc)
-            knobs.set_midi_cc(sub_graph+"filter_uberheim2", parameter, channel, cc)
+# XXX
+    effect_name_parameter_cc_map = {
+            ("wet_dry_stereo1", "level") : (cc_messages["MIX_CC"], -1, 1),
+            ("delay1", "Delay_1") : (cc_messages["ONSET_CC"], 0.01, 0.7), # also delay6
+            ("filter_uberheim1", "cutoff") : (cc_messages["LOW_CUT_CC"], 0.01, 0.7), # also filter_uberheim2
+            ("vca1", "gain") : (cc_messages["SMOOSH_CC"], 0, 1),
+            ("sum1", "a") : (cc_messages["CRESCENDO_CC"], 0, 1),
+            }
+
+def update_midi_ccs(channel, new_mode=-1):
+    # if we're trails, then the CC change what they a bound to each mode
+    global cur_midi_channel
+    cur_midi_channel = channel
+    local_mode = -1
+    if (PEDAL_TYPE == pedal_types.trails):
+        if new_mode != current_mode:
+            # unlearn all CCs for this mode
+            for effect_id, parameter in trails_control_map[current_mode]:
+                knobs.forget_midi_cc(sub_graph+effect_id, parameter)
+        if new_mode == -1:
+            local_mode = current_mode
         else:
-            if cc == cc_messages["CRESCENDO_CC"]: # remap these
-                if PEDAL_TYPE != pedal_types.ample:
-                    knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, 18)
-                else:
-                    knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, 18)
-                    knobs.set_midi_cc(sub_graph+effect_id_trim+"2", parameter, channel, 18+20)
-            elif cc == cc_messages["BYPASS_CC"]: # remap these
-                knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, 19)
-            else:
+            local_mode = new_mode
+        # assign new ones
+        multiple_effects = {"turntable_stop1":"turntable_stop2", "delay1": "delay2", "delay3":"delay4"}
+        for i, effect_id_parameter in enumerate(trails_control_map[local_mode]):
+            effect_id, parameter = effect_id_parameter
+            if effect_id in multiple_effects:
+                knobs.set_midi_cc(sub_graph+multiple_effects[effect_id], parameter, channel, cc_ordering[i])
+            knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc_ordering[i])
+    else:
+        for cc in cc_effect_name_parameter_map.keys():
+            effect_id_parameter, min_s, max_s = cc_effect_name_parameter_map[cc]
+            effect_id, parameter = effect_id_parameter
+            effect_id_trim = effect_id[:-1]
+            # scale
+            # set the values
+            # onset and low cut are two modules each
+            if effect_id == "delay1":
+                knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc)
                 if PEDAL_TYPE == pedal_types.verbs:
-                    knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc)
+                    knobs.set_midi_cc(sub_graph+"delay6", parameter, channel, cc)
+            elif effect_id == 'filter_uberheim1':
+                knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc)
+                knobs.set_midi_cc(sub_graph+"filter_uberheim2", parameter, channel, cc)
+            else:
+                if cc == cc_messages["CRESCENDO_CC"]: # remap these
+                    if PEDAL_TYPE != pedal_types.ample:
+                        knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, 18)
+                    else:
+                        knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, 18)
+                        knobs.set_midi_cc(sub_graph+effect_id_trim+"2", parameter, channel, 18+20)
+                elif cc == cc_messages["BYPASS_CC"]: # remap these
+                    knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, 19)
                 else:
-                    knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc)
-                    if cc != cc_messages["ROOM_CC"]: # room only on 1 side
-                        knobs.set_midi_cc(sub_graph+effect_id_trim+"2", parameter, channel, cc+20)
+                    if PEDAL_TYPE == pedal_types.verbs:
+                        knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc)
+                    else:
+                        knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc)
+                        if cc != cc_messages["ROOM_CC"]: # room only on 1 side
+                            knobs.set_midi_cc(sub_graph+effect_id_trim+"2", parameter, channel, cc+20)
 
 def toggle_mono_sum():
     # toggle value, write out to file to persist
     hardware_state["mono"] = not hardware_state["mono"] # {"mono": False, "kill_dry": False}
-    # print("mono to stereo is now", hardware_state["mono"])
+    print("mono to stereo is now", hardware_state["mono"])
     write_hardware_state()
     set_mono_sum_kill_dry(hardware_state["mono"], hardware_state["kill_dry"])
     to_mcu_queue.put([176, cc_messages["IMPORT_DONE_CC"], 127])
@@ -529,8 +577,15 @@ def set_cab(): # called from headless
 def toggle_kill_dry():
     # toggle value, write out to file to persist
     hardware_state["kill_dry"] = not hardware_state["kill_dry"] # {"mono": False, "kill_dry": False}
+    print("### toggling kill dry now", hardware_state["kill_dry"])
     write_hardware_state()
     set_mono_sum_kill_dry(hardware_state["mono"], hardware_state["kill_dry"])
+    if (PEDAL_TYPE == pedal_types.trails):
+        # level of wet dry just controls dry
+        if hardware_state["kill_dry"]:
+            knobs.ui_knob_change(sub_graph+"wet_dry_stereo1", "level", 0.0)
+        else:
+            knobs.ui_knob_change(sub_graph+"wet_dry_stereo1", "level", 1.0)
     to_mcu_queue.put([176, cc_messages["IMPORT_DONE_CC"], 127])
 
 def set_lum(v):
@@ -542,9 +597,12 @@ def set_lum(v):
         to_mcu_queue.put([176, cc_messages["LUM_CC"], v])
 
 def set_main_enable(is_enabled):
+    # can get overwhelmed from MIDI so just set it if we're changing
     command = ""
     # set bypass state, 
     global main_enable
+    if main_enable == is_enabled:
+        return
     main_enable = is_enabled
 
 
@@ -574,6 +632,12 @@ def set_main_enable(is_enabled):
         command += "amixer -- cset name='Left Playback Mixer Left Bypass Volume' 0;"
         command += "amixer -- cset name='Right Playback Mixer Right Bypass Volume' 0;"
         command += "amixer -- cset name='Right Playback Mixer Left Bypass Volume' 0;"
+        if (PEDAL_TYPE == pedal_types.trails):
+            # level of wet dry just controls dry
+            if hardware_state["kill_dry"]:
+                knobs.ui_knob_change(sub_graph+"wet_dry_stereo1", "level", 0.0)
+            else:
+                knobs.ui_knob_change(sub_graph+"wet_dry_stereo1", "level", 1.0)
     else:
         # print("is enabled is ", is_enabled)
         # disenable amps, enable dry
@@ -582,17 +646,37 @@ def set_main_enable(is_enabled):
         # knobs.set_bypass(sub_graph+"amp_nam2", False) # double due to ingen bug
         command += "amixer -- cset name='Left Playback Mixer Left DAC Switch' off;"
         command += "amixer -- cset name='Right Playback Mixer Right DAC Switch' off;"
-        command += "amixer -- cset name='Left Playback Mixer Left Bypass Volume' 5;"
-        command += "amixer -- cset name='Right Playback Mixer Right Bypass Volume' 5;"
-        if hardware_state["mono"]:
-            command += "amixer -- cset name='Right Playback Mixer Left Bypass Volume' 5;"
-        else:
+
+        if hardware_state["kill_dry"]:
+            command += "amixer -- cset name='Left Playback Mixer Left Bypass Volume' 0;"
+            command += "amixer -- cset name='Right Playback Mixer Right Bypass Volume' 0;"
             command += "amixer -- cset name='Right Playback Mixer Left Bypass Volume' 0;"
+        else:
+            command += "amixer -- cset name='Left Playback Mixer Left Bypass Volume' 5;"
+            command += "amixer -- cset name='Right Playback Mixer Right Bypass Volume' 5;"
+            if hardware_state["mono"]:
+                command += "amixer -- cset name='Right Playback Mixer Left Bypass Volume' 5;"
+            else:
+                command += "amixer -- cset name='Right Playback Mixer Left Bypass Volume' 0;"
     subprocess.call(command, shell=True)
 
     # communicate setting to MCU
     to_mcu_queue.put([176, cc_messages["BYPASS_CC"], 127 if main_enable else 0])
     # set_mono_sum_kill_dry(hardware_state["mono"], hardware_state["kill_dry"])
+
+def set_trails_sustain(toggle=True):
+    effect_id, parameter = trails_control_map[current_mode][TRAILS_SUSTAIN]
+    value_on = trails_range_map[current_mode][TRAILS_SUSTAIN][1]
+    value_off = trails_range_map[current_mode][TRAILS_SUSTAIN][0]
+    if toggle:
+        knobs.ui_knob_toggle(sub_graph+effect_id, parameter, value_off, value_on)
+        if effect_id == "turntable_stop1":
+            knobs.ui_knob_toggle(sub_graph+"turntable_stop2", parameter, value_off, value_on)
+    else:
+        send_value_to_mcu(sub_graph+effect_id, parameter, float(value_off))
+        knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value_off))
+        if effect_id == "turntable_stop1":
+            knobs.ui_knob_change(sub_graph+"turntable_stop2", parameter, float(value_off))
 
 
 def process_cc(b_bytes):
@@ -689,17 +773,8 @@ def process_cc(b_bytes):
                                     global step_duration
                                     step_duration = average_beat_time
                             else:
-                                global sustain
-                                sustain = not sustain
-                                if sustain:
-                                    v_s = 127
-                                else:
-                                    v_s = 0
-                                value = scale_number(v_s, 0, 127, min_s, max_s)
-                                knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
-                                if effect_id == "turntable_stop1":
-                                    knobs.ui_knob_change(sub_graph+"turntable_stop2", parameter, float(value))
-                                send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
+                                set_trails_sustain()
+
                         else:
                             knobs.ui_knob_toggle(sub_graph+"boost1", "on")
                             time.sleep(0.01)
@@ -795,6 +870,8 @@ def send_value_to_mcu(effect_name, parameter, value):
         effect_name = effect_name[:-1]+"1"
     effect_name = effect_name.rsplit('/', 1)[1]
     if (PEDAL_TYPE == pedal_types.trails):
+        if "turntable_stop2" in effect_name:
+            return
         effect_name, parameter, min_s, max_s = reverse_trails_param(effect_name, parameter)
         # print("### MCU mapped param", effect_name, parameter, float(value))
     if (effect_name, parameter) in effect_name_parameter_cc_map:
