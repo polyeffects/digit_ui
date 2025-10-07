@@ -1004,19 +1004,18 @@ class Knobs(QObject, metaclass=properties.PropertyMeta):
 
     @Slot(str, str)
     def update_ir(self, effect_id, ir_file):
-        is_cab = True
+        is_cab = False
         prefix="file://"
         effect_type = current_effects[effect_id]["effect_type"]
-        if effect_type in ["mono_reverb", "stereo_reverb", "quad_ir_reverb"]:
-            is_cab = False
 
         if "file://" in ir_file:
             prefix=''
 
+        effect_type = current_effects[effect_id]["effect_type"]
         current_effects[effect_id]["controls"]["ir"].name = ir_file
         # ir_browser_model_s.external_ir_set(ir_file)
         # print("#### file", ir_file, "prefix", prefix)
-        ingen_wrapper.set_file(effect_id, prefix+ir_file, is_cab)
+        ingen_wrapper.set_file(effect_id, prefix+ir_file, is_cab, effect_type)
 
     @Slot(str, str)
     def update_json(self, effect_id, ir_file):
@@ -2117,13 +2116,10 @@ def process_ui_messages():
                         if current_effects[effect_name]["controls"]["ir"].name != ir_file:
                             current_effects[effect_name]["controls"]["ir"].name = ir_file
                             effect_type = current_effects[effect_name]["effect_type"]
-                            if effect_type in ["mono_reverb", "stereo_reverb", "quad_ir_reverb"]:
-                                # debug_print("setting reverb file", urllib.parse.unquote(ir_file))
-                                knobs.update_ir(effect_name, urllib.parse.unquote(ir_file))
-                            elif effect_type in ["mono_cab", "stereo_cab", "quad_ir_cab"]:
-                                knobs.update_ir(effect_name, urllib.parse.unquote(ir_file))
-                            elif effect_type in ["amp_rtneural", "amp_nam"]:
+                            if effect_type in ["amp_rtneural", "amp_nam"]:
                                 knobs.update_json(effect_name, urllib.parse.unquote(ir_file))
+                            else:
+                                knobs.update_ir(effect_name, urllib.parse.unquote(ir_file))
                                 # debug_print("setting cab file", urllib.parse.unquote(ir_file))
                         # qDebug("setting knob file " + ir_file)
                 except ValueError:

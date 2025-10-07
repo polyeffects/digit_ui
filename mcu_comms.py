@@ -44,6 +44,7 @@ sequencer_on = False
 last_step_time = 0
 step_duration = 0.500
 cur_midi_channel = 0 # easier to access here than accessing from headless
+last_sent_value = -1
 
 
 input_queue = queue.Queue()
@@ -116,7 +117,7 @@ try:
 except:
     hardware_state = {"mono": False, "kill_dry": False, "cab_enabled": True, "split": False, "lum": 80}
 
-if PEDAL_TYPE != pedal_types.verbs:
+if PEDAL_TYPE == pedal_types.ample:
     hardware_state["kill_dry"] = True
     if hardware_state['split']:
         to_mcu_queue.put([176, cc_messages["SPLIT_CC"], int(hardware_state['split'])])
@@ -247,6 +248,9 @@ def cab_enabled_name(value):
 def load_verbs_preset(p, load_now=True, from_sequencer=False):
     # verbs presets are index : {(effect_name, effect_parameter, value), 
     to_mcu_queue.put([176, cc_messages["PRESET_CHANGE_CC"], int(p)])
+    global last_sent_value, last_effect_id_parameter
+    last_sent_value = -1
+    last_effect_id_parameter = None
     # mute before loading if ample
     if PEDAL_TYPE == pedal_types.ample:
         if hardware_state["split"]:
@@ -342,9 +346,10 @@ def load_trails(p, from_sequencer=False):
     global sequencer_on
     # disable anything that isn't used by this patch
     # we need to disable sustain if we're switching modes outside of the sequencer
+    mode_changed = False
     if current_mode != p // 8:
         set_trails_sustain(False)
-        update_midi_ccs(cur_midi_channel, p // 8) # update midi bindings on mode switch
+        mode_changed = True
         current_mode = p // 8 # groups of 8
         sequencer_on = False # disable sequencer if we switch mode
 
@@ -352,14 +357,17 @@ def load_trails(p, from_sequencer=False):
             all_modules = set(itertools.chain.from_iterable(trails_enable_map.values()))
             # print("### loading trails preset", p, current_mode)
             for e in (all_modules - trails_enable_map[current_mode]):
+                time.sleep(0.01)
                 knobs.set_bypass(sub_graph+e, False)
                 # print("### bypass", e)
             for e in trails_enable_map[current_mode]:
                 knobs.set_bypass(sub_graph+e, True)
+                time.sleep(0.01)
                 # print("### enable", e)
             # set the values required by this mode
             for effect_id, parameter, value in trails_mode_settings[current_mode]:
                 knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
+                time.sleep(0.01)
     # set the values from the preset, lookup mapping
     for i, value in enumerate(verbs_presets[str(p)]):
         if i < 4:
@@ -367,6 +375,8 @@ def load_trails(p, from_sequencer=False):
             knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
             # print("### sending value to MCU", sub_graph+effect_id, parameter, float(value))
             send_value_to_mcu(sub_graph+effect_id, parameter, float(value))
+    if mode_changed:
+        update_midi_ccs(cur_midi_channel, p // 8) # update midi bindings on mode switch
 
 def import_done():
     # if we've got a set list now, parse it
@@ -467,20 +477,27 @@ def update_midi_ccs(channel, new_mode=-1):
     cur_midi_channel = channel
     local_mode = -1
     if (PEDAL_TYPE == pedal_types.trails):
+        multiple_effects = {"turntable_stop1":"turntable_stop2", "delay1": "delay2", "delay3":"delay4"}
         if new_mode != current_mode:
             # unlearn all CCs for this mode
             for effect_id, parameter in trails_control_map[current_mode]:
                 knobs.forget_midi_cc(sub_graph+effect_id, parameter)
+                if effect_id in multiple_effects:
+                    time.sleep(0.04)
+                    knobs.forget_midi_cc(sub_graph+multiple_effects[effect_id], parameter)
+                time.sleep(0.04)
+            time.sleep(0.04)
         if new_mode == -1:
             local_mode = current_mode
         else:
             local_mode = new_mode
         # assign new ones
-        multiple_effects = {"turntable_stop1":"turntable_stop2", "delay1": "delay2", "delay3":"delay4"}
         for i, effect_id_parameter in enumerate(trails_control_map[local_mode]):
             effect_id, parameter = effect_id_parameter
             if effect_id in multiple_effects:
+                time.sleep(0.04)
                 knobs.set_midi_cc(sub_graph+multiple_effects[effect_id], parameter, channel, cc_ordering[i])
+            time.sleep(0.04)
             knobs.set_midi_cc(sub_graph+effect_id, parameter, channel, cc_ordering[i])
     else:
         for cc in cc_effect_name_parameter_map.keys():
@@ -524,25 +541,27 @@ def toggle_mono_sum():
 
 def toggle_split():
     # toggle value, write out to file to persist
-    hardware_state["split"] = not hardware_state["split"] # {"mono": False, "kill_dry": False}
-    write_hardware_state()
-    global audio_side
-    if audio_side == "2":
-        audio_side = "1"
-        to_mcu_queue.put([176, cc_messages["SIDE_CC"], int(audio_side)-1])
-    to_mcu_queue.put([176, cc_messages["SPLIT_CC"], int(hardware_state['split'])])
-    update_mcu_values()
+    if (PEDAL_TYPE == pedal_types.ample):
+        hardware_state["split"] = not hardware_state["split"] # {"mono": False, "kill_dry": False}
+        write_hardware_state()
+        global audio_side
+        if audio_side == "2":
+            audio_side = "1"
+            to_mcu_queue.put([176, cc_messages["SIDE_CC"], int(audio_side)-1])
+        to_mcu_queue.put([176, cc_messages["SPLIT_CC"], int(hardware_state['split'])])
+        update_mcu_values()
 
 def set_side(n):
     # only do anything if we are split
-    if hardware_state["split"]:
-        global audio_side
-        if n:
-            audio_side = "2"
-        else:
-            audio_side = "1"
-        to_mcu_queue.put([176, cc_messages["SIDE_CC"], int(audio_side)-1])
-        update_mcu_values()
+    if (PEDAL_TYPE == pedal_types.ample):
+        if hardware_state["split"]:
+            global audio_side
+            if n:
+                audio_side = "2"
+            else:
+                audio_side = "1"
+            to_mcu_queue.put([176, cc_messages["SIDE_CC"], int(audio_side)-1])
+            update_mcu_values()
 
 def toggle_side():
     # toggle value
@@ -671,11 +690,13 @@ def set_trails_sustain(toggle=True):
     if toggle:
         knobs.ui_knob_toggle(sub_graph+effect_id, parameter, value_off, value_on)
         if effect_id == "turntable_stop1":
+            time.sleep(0.05)
             knobs.ui_knob_toggle(sub_graph+"turntable_stop2", parameter, value_off, value_on)
     else:
         send_value_to_mcu(sub_graph+effect_id, parameter, float(value_off))
         knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value_off))
         if effect_id == "turntable_stop1":
+            time.sleep(0.05)
             knobs.ui_knob_change(sub_graph+"turntable_stop2", parameter, float(value_off))
 
 
@@ -685,6 +706,7 @@ def process_cc(b_bytes):
     # check if press on a is a short press vs hold, if short press, 
     # print("got bytes", b_bytes, "cc is ", cc)
     # then go to next preset in set list
+    global last_sent_value, last_effect_id_parameter
 
     # check if we're bypass, footswitch B actions
     if cc == cc_messages["BYPASS_CC"]:
@@ -733,6 +755,14 @@ def process_cc(b_bytes):
         # for trails quantise pitch param to ints
         if (PEDAL_TYPE == pedal_types.trails and parameter in ("pitch_param", "frequency_param")):
             value = round(value)
+
+        # avoid sending the same value twice
+        if v == last_sent_value and effect_id_parameter == last_effect_id_parameter:
+            return
+
+        last_sent_value = v
+        last_effect_id_parameter = effect_id_parameter
+
         # print("cc", v, value, effect_id, parameter)
         # check if we're crescendo, footswitch A actions
         if cc == cc_messages["CRESCENDO_CC"]:
@@ -807,7 +837,7 @@ def process_cc(b_bytes):
         elif effect_id == 'filter_uberheim1':
             knobs.ui_knob_change(sub_graph+effect_id, parameter, float(value))
             knobs.ui_knob_change(sub_graph+"filter_uberheim2", parameter, float(value))
-        elif effect_id  == "wet_dry_stereo2" or effect_id == "sum1":
+        elif (effect_id  == "wet_dry_stereo2" or effect_id == "sum1") and PEDAL_TYPE != pedal_types.trails:
             # knobs.ui_knob_change(sub_graph+effect_id, parameter, 1.0-float(value))
             pass # processed already
         elif effect_id == 'stereo_reverb1':

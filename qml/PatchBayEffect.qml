@@ -324,7 +324,8 @@ Rectangle {
             patchStack.push(editWarpsMeta, {"objectName":"editWarpsMeta"});
             patch_bay.current_help_text = "" // Constants.help["delay_detail"]; // FIXME
 		}
-        else if (effect_type == "mono_reverb" || effect_type == "stereo_reverb" || effect_type == "quad_ir_reverb")
+        else if (['mono_reverb', 'stereo_reverb', 'quad_ir_reverb', 'short_quad_ir_reverb',
+            'short_stereo_reverb'].indexOf(effect_type) >= 0)
         {
             patch_bay.current_help_text = Constants.help["reverb_detail"];
             patchStack.push("ReverbBrowser.qml", {"effect": effect_id,  "effect_type": effect_type,
@@ -361,7 +362,7 @@ Rectangle {
             //     })
             });
         }
-        else if (effect_type == "mono_cab" || effect_type == "stereo_cab" || effect_type == "quad_ir_cab"){
+        else if (effect_type == "mono_cab" || effect_type == "short_mono_cab" || effect_type == "stereo_cab" || effect_type == "quad_ir_cab"){
             patch_bay.current_help_text = Constants.help["reverb_detail"];
             patchStack.push("ReverbBrowser.qml", {"effect": effect_id, "effect_type": effect_type,
             "top_folder": "file:///audio/cabs/",

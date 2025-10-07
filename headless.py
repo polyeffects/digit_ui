@@ -11,8 +11,8 @@ from pathlib import Path
 sys._excepthook = sys.excepthook
 
 def debug_print(*args, **kwargs):
-    # pass
-    print( "From py: "+" ".join(map(str,args)), **kwargs)
+    pass
+    # print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 def exception_hook(exctype, value, tb):
     debug_print("except hook 1 got a thing!") #, exctype, value, traceback)
@@ -71,8 +71,10 @@ ample_controllable_modules = {'ingen:/main/amp_nam1', 'ingen:/main/mono_cab1', '
 
 trails_controllable_modules = { 'ingen:/main/wavefolder1', 'ingen:/main/multi_resonator1', 'ingen:/main/turntable_stop2',
         'ingen:/main/delay2', 'ingen:/main/chorus_j1', 'ingen:/main/delay4', 'ingen:/main/vinyl1', 'ingen:/main/reverse1',
-        'ingen:/main/twist_delay1', 'ingen:/main/looping_envelope1', 'ingen:/main/turntable_stop1',
-        'ingen:/main/granular1', 'ingen:/main/delay1', 'ingen:/main/delay3', 'ingen:/main/time_stretch1'}
+        'ingen:/main/twist_delay1', 'ingen:/main/looping_envelope1', 'ingen:/main/turntable_stop1', 'ingen:/main/sum1',
+        'ingen:/main/granular1', 'ingen:/main/delay1', 'ingen:/main/delay3', 'ingen:/main/time_stretch1',
+        'ingen:/main/vca1', 'ingen:/main/vca2', 'ingen:/main/vca3','ingen:/main/lfo1'
+        }
 
 # trails_controllable_modules = {'/main/turntable_stop2', '/main/delay1', '/main/delay2', '/main/delay3',
 #         '/main/looping_envelope1', '/main/turntable_stop1', '/main/vinyl1',
@@ -391,7 +393,7 @@ def from_backend_new_effect(effect_name, effect_type, x=20, y=30, is_enabled=Tru
 
         # if were the last verbs needed effect, load verbs preset
 
-        print("remaining modules", verbs_controllable_modules - set(current_effects.keys()))
+        # debug_print("remaining modules", verbs_controllable_modules - set(current_effects.keys()))
         if effect_name in verbs_controllable_modules and len(verbs_controllable_modules - set(current_effects.keys())) == 0:
             # load verbs preset
             if not mcu_comms.verbs_initial_preset_loaded:

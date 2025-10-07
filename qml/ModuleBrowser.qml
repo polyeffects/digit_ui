@@ -113,7 +113,7 @@ Item {
             } 
         }
         Repeater {
-            model: [['mod effects', "phaser, flanger, chorus..."], ['time effects', 'reverb, delay, looping, freeze...'], ['pitch + synth', 'filters, pitch shift, strum, oscillators...'], ['utilites', 'foot switch, maths, tempo...'], ['level + dynamics', 'vca, compressor, eq, mixer, wet/dry...'],  ['cv generators', 'lfo, envelopes, sequencers, clocks...'], ['amps, cabs + gain', 'nam amps, cabs, wavefolder, bitcrusher...'], ['midi', 'midi io, utilities'], ['ported', 'ports of eurorack modules']]
+            model: [['mod effects', "phaser, flanger, chorus..."], ['time effects', 'reverb, delay, looping, freeze...'], ['pitch + synth', 'filters, pitch shift, strum, oscillators...'], ['utilities', 'foot switch, maths, tempo...'], ['level + dynamics', 'vca, compressor, eq, mixer, wet/dry...'],  ['cv generators', 'lfo, envelopes, sequencers, clocks...'], ['amps, cabs + gain', 'nam amps, cabs, wavefolder, bitcrusher...'], ['midi', 'midi io, utilities'], ['ported', 'ports of eurorack modules']]
 
             PolyButton {
                 height: 56

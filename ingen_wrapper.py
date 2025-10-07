@@ -272,11 +272,11 @@ def set_json_nam(effect_id, file_name):
     q.put((ingen.set, effect_id, "http://polyeffects.com/lv2/polyconvo#ir", "<"+file_name+">")) # for UI persist
 
 
-def set_file(effect_id, file_name, is_cab):
+def set_file(effect_id, file_name, is_cab, effect_type):
     effect_id = effect_id
     file_name = urllib.parse.quote(file_name[len("file://"):])
-    # print("setting file", effect_id, file_name, is_cab)
-    if any([a in effect_id for a in ["quad_ir_reverb", "mono_cab", "stereo_reverb"]]):
+    print("$$$ setting file", effect_id, file_name, is_cab)
+    if effect_type in ["quad_ir_reverb", "mono_cab", "stereo_reverb"]:
         body = """[
              a patch:Set ;
              patch:property <http://gareus.org/oss/lv2/zeroconvolv#ir>;
