@@ -659,7 +659,7 @@ def parse_ingen(to_parse):
                     ui_queue.put(("midi_learn", subject, int(256)))
 
 
-    elif ask(m, "a", patch_Set):
+    elif ask(m, "a", patch_Delete):
         body = None
         if "patch:body" not in m:
             subject = m[patch_subject][0]
