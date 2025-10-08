@@ -2468,8 +2468,8 @@ if __name__ == "__main__":
                     initial_preset = True
                     jump_to_preset(False, 0, True)
                 else:
-                    # pass
-                    ingen_wrapper.get_state("/engine")
+                    pass
+                    # ingen_wrapper.get_state("/engine")
                 # debug_print("******* \n\n***** \n getting engine state, dsp")
         except Exception as e:
             qCritical("########## e2 is:"+ str(e))

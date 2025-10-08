@@ -384,7 +384,8 @@ def ingen_recv_thread( ) :
                 for k, v in bundle.items():
                     parse_ingen(v)
             except Exception as e:
-                print("!!! failed to parse json from ingen")
+                print("!!! failed to parse json from ingen, tried to parse \n\n", r)
+                print("!!!")
                 print(e)
                 logging.error(traceback.format_exc())
 
@@ -673,7 +674,7 @@ def parse_ingen(to_parse):
             if body is None:
                 return
 
-            if ingen_Arc in body:
+            if ask(body, "a", ingen_Arc):
                 head = ""
                 tail = ""
                 if ingen_head in body:
@@ -681,7 +682,7 @@ def parse_ingen(to_parse):
                 if ingen_tail in body:
                     tail = body[ingen_tail][0]
                 if head and tail:
-                    # print("in remove arc head", head, "tail", tail)
+                    print("in remove arc head", head, "tail", tail)
                     # ui_queue.put(("remove_connection", head[7:], tail[7:]))
                     ui_queue.put(("remove_connection", head, tail))
 
