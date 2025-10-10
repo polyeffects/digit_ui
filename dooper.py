@@ -616,12 +616,13 @@ class Loop:
 
     def __setattr__(self, name, val):
         if name in loop_parameters_settable:
+            # print("sending setattr", name, val)
             self.send('set', name, val)
         else:
             self.__dict__[name] = val
 
     def set(self, control, value):
-        print("sending set value", control, value)
+        # print("sending set value", control, value)
         self.looper.send('set', control, value)
 
     def loop_set(self, name, val):

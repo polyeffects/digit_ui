@@ -143,7 +143,7 @@ import "module_info.js" as ModuleInfo
             }
 
             onReRemoveModule: {
-                console.log("remove module signal", l_effect_id);
+                // console.log("remove module signal", l_effect_id);
                 selected_effect = null;
                 if  (l_effect_id in effect_map) {
                     effect_map[l_effect_id].destroy(1);
@@ -151,7 +151,7 @@ import "module_info.js" as ModuleInfo
                 }
                 knobs.finish_remove_effect(l_effect_id)
 
-                console.log("done remove module signal", l_effect_id);
+                // console.log("done remove module signal", l_effect_id);
             }
 
             onReLoadingPreset: {
@@ -204,7 +204,7 @@ import "module_info.js" as ModuleInfo
             function findConnections(drawContext){ 
                 // iterate over items in rep1, adding to dictionary of effect_id : patchbayeffect
                 // source and targets are the wrong way round XXX 
-                console.log("finding connection", Object.keys(portConnections));
+                // console.log("finding connection", Object.keys(portConnections));
                 for (var source_effect_port_str in portConnections){ 
                     var source_effect_port = rsplit(source_effect_port_str, "/", 1);
                     var targets = portConnections[source_effect_port_str];

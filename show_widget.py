@@ -99,8 +99,8 @@ context = None
 amp_browser_model_s = None
 
 def debug_print(*args, **kwargs):
-    # pass
-    print( "From py: "+" ".join(map(str,args)), **kwargs)
+    pass
+    # print( "From py: "+" ".join(map(str,args)), **kwargs)
 
 
 effect_type_maps = module_info.effect_type_maps
@@ -531,7 +531,7 @@ def load_preset(name, initial=False, force=False):
     knobs.spotlight_entries = []
     preset_description.name = "Tap here to enter preset description"
     to_delete = list(current_effects.keys())
-    print("load preset to delete, current_effects", to_delete)
+    # print("load preset to delete, current_effects", to_delete)
     for effect_id in to_delete:
         if effect_id in ["/main/out_1", "/main/out_2", "/main/out_3", "/main/out_4", "/main/in_1", "/main/in_2", "/main/in_3", "/main/in_4"]:
             pass
@@ -677,7 +677,6 @@ def from_backend_add_connection(head, tail):
         debug_print("## tail not in sub graph 1", effect_id_port_name, sub_graphs)
         if effect_id_port_name[0] == "/main":
             return
-        print("effect_id_port_name", effect_id_port_name)
         t_effect, t_port = effect_id_port_name
         debug_print("## tail not in sub_graph 2", tail, t_effect, t_port, sub_graphs)
         if t_effect not in current_effects:
@@ -1824,7 +1823,7 @@ def looper_footswitch_action(foot_switch_name):
     # foot switches store command and arguments
     for action_params in looper_footswitch_assignments[foot_switch_name]:
         # getattr(loopler, "cancel_midi_learn")() 
-        print("command is ", action_params[0], "params", repr(action_params[1]))
+        # print("command is ", action_params[0], "params", repr(action_params[1]))
         func = getattr(loopler, action_params[0])
         func(*action_params[1])
         return True

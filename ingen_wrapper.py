@@ -90,7 +90,7 @@ def DestinationThread( ) :
                         time.sleep(0.1)
                     time.sleep(0.2)
 
-                    # print("setting ingen remote server dest")
+                    print("setting ingen remote server dest")
                     ingen.socket_connect()
                     ingen_started = True
 
@@ -275,7 +275,7 @@ def set_json_nam(effect_id, file_name):
 def set_file(effect_id, file_name, is_cab, effect_type):
     effect_id = effect_id
     file_name = urllib.parse.quote(file_name[len("file://"):])
-    print("$$$ setting file", effect_id, file_name, is_cab)
+    # print("$$$ setting file", effect_id, file_name, is_cab)
     if effect_type in ["quad_ir_reverb", "mono_cab", "stereo_reverb"]:
         body = """[
              a patch:Set ;
@@ -385,7 +385,6 @@ def ingen_recv_thread( ) :
                     parse_ingen(v)
             except Exception as e:
                 print("!!! failed to parse json from ingen, tried to parse \n\n", r)
-                print("!!!")
                 print(e)
                 logging.error(traceback.format_exc())
 
@@ -531,7 +530,7 @@ def parse_ingen(to_parse):
                 ui_queue.put(("looper_footswitch", value, subject))
 
             if ask(body, "a", ingen_Block):
-                print("adding new block", "subject is", subject, "body is", body)
+                # print("adding new block", "subject is", subject, "body is", body)
                 # adding new block
                 x = 0
                 y = 0
@@ -549,7 +548,7 @@ def parse_ingen(to_parse):
                     ir = body[ir_url][0]
                 if ingen_enabled in body:
                     is_enabled = body[ingen_enabled][0] != "false"
-                    print("## is enabled", is_enabled)
+                    # print("## is enabled", is_enabled)
                 # print("x", x, "y", y, "plugin", plugin, "subject", subject)
                 ui_queue.put(("add_plugin", subject, plugin, x, y, is_enabled))
                 if ir is not None:
@@ -635,11 +634,11 @@ def parse_ingen(to_parse):
         if patch_property in m:
             if ingen_enabled in m[patch_property]:
                 value = m[patch_value][0]
-                print("in set enabled", subject, "value", value, "b value", bool(value))
+                # print("in set enabled", subject, "value", value, "b value", bool(value))
                 ui_queue.put(("enabled_change", subject, str(value) != "false"))
             if ingen_file in m[patch_property]:
                 value = m[patch_value][0]
-                print("in set enabled", subject, "value", value, "b value", bool(value))
+                # print("in set enabled", subject, "value", value, "b value", bool(value))
                 ui_queue.put(("pedalboard_loaded", subject, str(value)))
             if poly_spotlight in m[patch_property]:
                 value = m[patch_value][0]
@@ -682,7 +681,7 @@ def parse_ingen(to_parse):
                 if ingen_tail in body:
                     tail = body[ingen_tail][0]
                 if head and tail:
-                    print("in remove arc head", head, "tail", tail)
+                    # print("in remove arc head", head, "tail", tail)
                     # ui_queue.put(("remove_connection", head[7:], tail[7:]))
                     ui_queue.put(("remove_connection", head, tail))
 

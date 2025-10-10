@@ -4,9 +4,9 @@ from PySide2.QtCore import QObject, QUrl, Slot, QStringListModel, Property, Sign
 from dooper import LooperThread, loop_parameters, looper_parameters
 from properties import PropertyMeta, Property
 
-l_thread = LooperThread()
+l_thread = LooperThread(verbose=False)
 
-unused = ('redo_is_tap', 'use_rate', 'use_common_ins', 'use_common_outs', 'use_safety_feedback', 'pan_3', 'pan_4', 'input_latency', 'output_latency', 'trigger_latency', 'autoset_latency')
+unused = ('redo_is_tap', 'use_rate', 'use_common_ins', 'use_common_outs', 'use_safety_feedback', 'pan_3', 'pan_4', 'trigger_latency') #'input_latency', 'output_latency', 'trigger_latency') #, 'autoset_latency')
 
 def clamp(v, min_value, max_value):
     return max(min(v, max_value), min_value)
@@ -66,10 +66,10 @@ class Loop(QObject, metaclass=PropertyMeta):
     pan_2 = Property(float)        	# range 0 -> 1
     # pan_3 = Property(float)        	# range 0 -> 1
     # pan_4 = Property(float)        	# range 0 -> 1
-    # # input_latency = Property(float) # range 0 -> ...
-    # output_latency = Property(float) # range 0 -> ...
+    input_latency = Property(float) # range 0 -> ...
+    output_latency = Property(float) # range 0 -> ...
     # trigger_latency = Property(float) # range 0 -> ...
-    # autoset_latency = Property(float)  # 0 = off, not 0 = on
+    autoset_latency = Property(int)  # 0 = off, not 0 = on
     mute_quantized = Property(float)
     overdub_quantized = Property(float)
     pitch_shift = Property(float)
@@ -101,6 +101,9 @@ class Loop(QObject, metaclass=PropertyMeta):
         # self.name = name
         for k in set_params:
             type(self).__dict__[k].setter(self, 0)
+
+        # if k in ["input_latency", "output_latency"]:
+        #     type(self).__dict__[k].setter(self, 155)
 
 class Loopler(QObject, metaclass=PropertyMeta):
     is_running = False

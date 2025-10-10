@@ -609,7 +609,7 @@ Item {
                 height: 500
                 title: "Gain (dB)"
                 current_effect: effect
-                row_param: effect_type != "mono_cab" ? "gain" : "wet"
+				row_param: ['mono_cab', 'stereo_reverb', 'quad_ir_reverb'].indexOf(effect_type) >= 0 ? "wet" : "gain" 
                 Material.foreground: Constants.poly_green
             }
 
