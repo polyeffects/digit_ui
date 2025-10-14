@@ -126,6 +126,7 @@ def set_tags(current_sub_graph, description):
     q.put((ingen.put, current_sub_graph+"/control", 'doap:category """%s"""' % description))
 
 def set_footswitch_control(effect_id, foot_switch):
+    print(f"Assigning footswitch effect_id {effect_id} fs {foot_switch}")
     q.put((ingen.put, effect_id, '<http://polyeffects.com/ns/core#assigned_footswitch> """%s"""' % foot_switch))
 
 def set_looper_footswitch(current_sub_graph, foot_switch):
@@ -500,7 +501,7 @@ def parse_ingen(to_parse):
             body = m["patch:body"]
             if body is None:
                 return
-            # print("### got put, body is ", body)
+            print("### got put, body is ", body)
 
             if subject == "/engine":
                 max_load = 0
@@ -524,9 +525,11 @@ def parse_ingen(to_parse):
                 ui_queue.put(("set_comment", value, subject))
             if poly_assigned_footswitch in body:
                 value = body[poly_assigned_footswitch][0]
+                print(f"foot switch assigned value {value} subject {subject}")
                 ui_queue.put(("assign_footswitch", value, subject))
             if poly_looper_footswitch in body:
                 value = body[poly_looper_footswitch][0]
+                print("loopler foot switch assigned")
                 ui_queue.put(("looper_footswitch", value, subject))
 
             if ask(body, "a", ingen_Block):
@@ -622,10 +625,10 @@ def parse_ingen(to_parse):
             elif ingen_enabled in body:
                 # setting value
                 value = body[ingen_enabled][0]
-                # print("in put enabled", subject, "value", value)
-                # print("in put enabled", subject, "value", value, "b value", value != "false")
-                # print("to parse", to_parse)
-                ui_queue.put(("enabled_change", subject, str(value) != "false"))
+                print("in put enabled", subject, "value", value)
+                print("in put enabled", subject, "value", value, "b value", value != "false")
+                print("to parse", to_parse)
+                ui_queue.put(("enabled_change", subject, value))
 
     elif ask(m, "a", patch_Set):
         # print ("in patch_Set")

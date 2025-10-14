@@ -360,7 +360,7 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                             'xor_vs_and': ['xor vs and', 0.5, 0.0, 1.0],
                              'enabled': ['Enabled', 1, 0, 1],
                              },
-                'kill_dry': True,
+                # 'kill_dry': True,
                'description': 'Brutal bitmangler. Warning, can get very loud. '
                               'Based on Mutable Instuments Warps Parasite.',
                'inputs': {'bit_cv': ['bit cv', 'CVPort'],
@@ -678,7 +678,7 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                                  'y_coord': ['y coordinate', 0.04, 0.0, 1.0],
                                  'enabled': ['Enabled', 1, 0, 1],
                                  },
-                    'kill_dry': True,
+                    # 'kill_dry': True,
                     'description': 'binaural panner, allows positioning in 3D. '
                                    'Based on Parasite firware of Warps by '
                                    'Mutable Instruments.',
@@ -988,7 +988,7 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                            'texture_param': ['texture', 0.73, 0.0, 1.0],
                            'enabled': ['Enabled', 1, 0, 1],
                            },
-              'kill_dry': True,
+              # 'kill_dry': True,
               'description': 'Granular texture generator, can work as a weird '
                              'delay or reverb. Based on Parasite firmware of '
                              'Mutable Instruments Clouds.',
@@ -1042,7 +1042,7 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                                    'texture_param': ['filter', 0.44, 0.0, 1.0],
                                    'enabled': ['Enabled', 1, 0, 1],
                                    },
-                      'kill_dry': True,
+                      # 'kill_dry': True,
                       'description': 'Granular pitch shifting, micro looping '
                                      'delay. CPU Hungry. Based on Parasite '
                                      'firmware of Clouds by Mutable '
@@ -1291,7 +1291,7 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                                   'timbre': ['timbre', 0.5, 0.0, 1.0],
                                   'enabled': ['Enabled', 1, 0, 1],
                                   },
-                     'kill_dry': True,
+                     # 'kill_dry': True,
                      'description': 'A powerful cross modulation module which '
                                     'applies an algorithm to the two inputs. '
                                     'Based on Warps by Mutable Instruments.',
@@ -2450,7 +2450,7 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                                                       1.0],
                                   'enabled': ['Enabled', 1, 0, 1],
                                   },
-                     'kill_dry': True,
+                     # 'kill_dry': True,
                      'description': 'Resonator building block simulating '
                                     'multiple vibrating structures. Based on '
                                     'Rings by Mutable Instruments.',
@@ -2720,7 +2720,7 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                              'texture_param': ['damp', 0.33, 0.0, 1.0],
                              'enabled': ['Enabled', 1, 0, 1],
                              },
-                'kill_dry': True,
+                # 'kill_dry': True,
                 'description': 'A special effects algorthmic reverb, featuring '
                                'longer tails than the convolution reverb. '
                                'Based Parasites Oliverb firmware of Mutable '
@@ -2906,7 +2906,7 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                              'texture_param': ['filter', 0.5, 0.0, 1.0],
                              'enabled': ['Enabled', 1, 0, 1],
                              },
-                'kill_dry': True,
+                # 'kill_dry': True,
                 'description': 'dual voice four part resonator. Based on '
                                'Parasite firmware of Clouds by Mutable '
                                'Intstruments.',
@@ -3387,7 +3387,7 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                                'texture_param': ['Filter', 0.48, 0.0, 1.0],
                                'enabled': ['Enabled', 1, 0, 1],
                                },
-                  'kill_dry': True,
+                  # 'kill_dry': True,
                   'description': 'A granular time stretching and pitch '
                                  'shifting module. Based on Parasite firmware '
                                  'of Clouds by Mutable Instruments.',
@@ -3505,7 +3505,7 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                                                   8.0],
                               'enabled': ['Enabled', 1, 0, 1],
                               },
-                 'kill_dry': True,
+                 # 'kill_dry': True,
                  'description': 'A delay where speed and length interact with '
                                 'quality. Based on Parasite firmware of Warps '
                                 'by Mutable Instruments.',
@@ -3660,7 +3660,7 @@ effect_prototypes_models_all = {'ad_env_level': {'category': 2,
                              'n_folds': ['number of folds', 0.0, 0.0, 8.0],
                              'enabled': ['Enabled', 1, 0, 1],
                              },
-                'kill_dry': True,
+                # 'kill_dry': True,
                 'description': 'Chebyshev wave folder. Based on Parasite '
                                'firmware of Warps by Mutable Instruments. ',
                 'inputs': {'carrier': ['carrier', 'AudioPort'],
