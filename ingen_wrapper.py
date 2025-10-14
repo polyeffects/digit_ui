@@ -501,23 +501,25 @@ def parse_ingen(to_parse):
             body = m["patch:body"]
             if body is None:
                 return
-            print("### got put, body is ", body)
+            # print("### got put, body is ", body, "subject", subject)
 
-            if subject == "/engine":
+            if subject == "ingen:/engine":
                 max_load = 0
                 mean_load = 0
                 min_load = 0
                 send = False
                 if ingen_max_run_load in body:
                     send = True
-                    max_load = float(body[max_load][0])
-                elif ingen_mean_run_load in body:
-                    mean_load = float(body[mean_load][0])
+                    max_load = float(body[ingen_max_run_load][0])
+
+                if ingen_mean_run_load in body:
+                    mean_load = float(body[ingen_mean_run_load][0])
                     send = True
-                elif ingen_min_run_load in body:
-                    min_load = float(body[min_load][0])
+
+                if ingen_min_run_load in body:
+                    min_load = float(body[ingen_min_run_load][0])
                     send = True
-                # print("load subject", subject, max_load, mean_load, min_load)
+                # print("### load subject", subject, max_load, mean_load, min_load)
                 if send:
                     ui_queue.put(("dsp_load", max_load, mean_load, min_load))
             if rdfs_comment in body:
@@ -525,11 +527,11 @@ def parse_ingen(to_parse):
                 ui_queue.put(("set_comment", value, subject))
             if poly_assigned_footswitch in body:
                 value = body[poly_assigned_footswitch][0]
-                print(f"foot switch assigned value {value} subject {subject}")
+                # print(f"foot switch assigned value {value} subject {subject}")
                 ui_queue.put(("assign_footswitch", value, subject))
             if poly_looper_footswitch in body:
                 value = body[poly_looper_footswitch][0]
-                print("loopler foot switch assigned")
+                # print("loopler foot switch assigned")
                 ui_queue.put(("looper_footswitch", value, subject))
 
             if ask(body, "a", ingen_Block):
@@ -625,9 +627,9 @@ def parse_ingen(to_parse):
             elif ingen_enabled in body:
                 # setting value
                 value = body[ingen_enabled][0]
-                print("in put enabled", subject, "value", value)
-                print("in put enabled", subject, "value", value, "b value", value != "false")
-                print("to parse", to_parse)
+                # print("in put enabled", subject, "value", value)
+                # print("in put enabled", subject, "value", value, "b value", value != "false")
+                # print("to parse", to_parse)
                 ui_queue.put(("enabled_change", subject, value))
 
     elif ask(m, "a", patch_Set):

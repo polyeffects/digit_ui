@@ -1881,7 +1881,7 @@ def send_to_footswitch_blocks(timestamp, switch_name, value=0):
     if value == 0:
         for effect_id in footswitch_assignments[trimmed_name]:
             enabled = current_effects[effect_id]["enabled"].value
-            print(f"foot switch toggle {effect_id}, enabled is {enabled}")
+            # print(f"foot switch toggle {effect_id}, enabled is {enabled}")
             knobs.set_bypass(effect_id, not enabled) # toggle
             found_effect = True
         if looper_footswitch_action(trimmed_name):
@@ -2098,7 +2098,7 @@ def process_ui_messages():
             elif m[0] == "assign_footswitch":
                 footswitch, effect_name = m[1:]
                 effect_name = effect_name.removeprefix("ingen:")
-                print(f"assigned foot switch {footswitch} effect_name {effect_name}  current_effects.keys {current_effects.keys()}")
+                # print(f"assigned foot switch {footswitch} effect_name {effect_name}  current_effects.keys {current_effects.keys()}")
                 if effect_name in current_effects:
                     current_effects[effect_name]["assigned_footswitch"].value = footswitch
                     # remove existing assignment if any
