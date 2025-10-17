@@ -1696,8 +1696,11 @@ def add_io():
     if current_pedal_model.name == "hector":
         for i in range(5,7):
             ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
+            time.sleep(0.1)
         for i in range(5,9):
             ingen_wrapper.add_output("/main/out_"+str(i), x=-20, y=(80 * i))
+            time.sleep(0.1)
+        time.sleep(2)
     # else:
     #     for i in range(1,5):
     #         ingen_wrapper.add_input("/main/in_"+str(i), x=1192, y=(80*i))
@@ -1994,9 +1997,9 @@ def process_ui_messages():
         while not EXIT_PROCESS[0]:
             m = list(ui_messages.get(block=False))
             if len(m) > 1:
-                # if m[1].startswith("ingen:"):
+                if str(m[1]).startswith("ingen:"):
                     # debug_print("message starts with ingen:", m)
-                m[1] = m[1].removeprefix("ingen:")
+                    m[1] = m[1].removeprefix("ingen:")
 
             # debug_print("got ui message", m)
             if m[0] == "value_change":
@@ -2408,15 +2411,15 @@ if __name__ == "__main__":
     knobs.launch_task(0.5, handle_MIDI_program_change)
 
     # qWarning("logging with qwarning")
-    try:
-        add_io()
-    except Exception as e:
-        debug_print("########## e1 is:", e)
-        ex_type, ex_value, tb = sys.exc_info()
-        error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
-        debug_print("EXception is:", error)
-        EXIT_PROCESS[0] = True
-        sys.exit()
+    # try:
+    #     add_io()
+    # except Exception as e:
+    #     debug_print("########## e1 is:", e)
+    #     ex_type, ex_value, tb = sys.exc_info()
+    #     error = ex_type, ex_value, ''.join(traceback.format_tb(tb))
+    #     debug_print("EXception is:", error)
+    #     EXIT_PROCESS[0] = True
+    #     sys.exit()
 
     sys._excepthook = sys.excepthook
     def exception_hook(exctype, value, tb):
@@ -2444,6 +2447,7 @@ if __name__ == "__main__":
             pedal_hardware.EXIT_THREADS = True
             ingen_wrapper.ingen.sock.close()
             sys.exit()
+
     signal(SIGINT,  signalHandler)
     signal(SIGTERM, signalHandler)
     initial_preset = False
@@ -2467,6 +2471,7 @@ if __name__ == "__main__":
                 num_loops = 0
 
                 if not initial_preset:
+                    add_io()
                     initial_preset = True
                     jump_to_preset(False, 0, True)
                 else:
