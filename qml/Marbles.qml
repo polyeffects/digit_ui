@@ -554,7 +554,7 @@ Item {
                     IconSlider {
                         width: 730
                         height: 120
-                        row_param: "x_steps_param"
+                        row_param: "y_steps_param"
                         icons: ['Steps1.png', 'Steps2.png',  'Steps3.png',  'Steps4.png', 'Steps5.png']
                         current_effect: effect_id
                         icon_path: "../icons/digit/marbles/y_voltage/Steps icons/"
