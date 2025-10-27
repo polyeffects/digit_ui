@@ -165,11 +165,14 @@ def add_sub_graph(effect_id):
     ))
 
 def midi_learn(port):
+    # print("####### sending MIDI learn")
     q.put((ingen.set, port, "http://lv2plug.in/ns/ext/midi#binding", "<http://lv2plug.in/ns/ext/patch#wildcard>"))
 
 def midi_set_cc(port, channel, in_cc):
+    # print("####### sending MIDI forget")
     midi_forget(port)
     cc = channel << 8 | in_cc
+    # print("####### sending MIDI set CC")
     q.put((ingen.set, port, "http://lv2plug.in/ns/ext/midi#binding", f"""
         [
         a midi:Controller ;
@@ -633,17 +636,17 @@ def parse_ingen(to_parse):
                 ui_queue.put(("enabled_change", subject, value))
 
     elif ask(m, "a", patch_Set):
-        # print ("in patch_Set")
         subject = m[patch_subject][0]
-        # print("set subject is", subject)
+        # print ("in patch_Set", subject)
         if patch_property in m:
+            # print("set subject is", subject, m[patch_property])
             if ingen_enabled in m[patch_property]:
                 value = m[patch_value][0]
                 # print("in set enabled", subject, "value", value, "b value", bool(value))
                 ui_queue.put(("enabled_change", subject, str(value) != "false"))
             if ingen_file in m[patch_property]:
                 value = m[patch_value][0]
-                # print("in set enabled", subject, "value", value, "b value", bool(value))
+                # print("### Pedalboard loaded in set enabled", subject, "value", value, "b value", bool(value))
                 ui_queue.put(("pedalboard_loaded", subject, str(value)))
             if poly_spotlight in m[patch_property]:
                 value = m[patch_value][0]
@@ -656,11 +659,13 @@ def parse_ingen(to_parse):
             elif midi_binding in m[patch_property]:
                 # print("midi learn parsed subject:", subject)
                 try:
-                    value = m[midi_controllerNumber][0]
+                    value = m[patch_value][midi_controllerNumber][0]
+
                     # print("midi learn parsed: value, ", int(str(value)))
                     ui_queue.put(("midi_learn", subject, int(str(value))))
                 except IndexError:
                     # bender etc are just an out of range CC number... 
+                    # print("midi value out of range")
                     ui_queue.put(("midi_learn", subject, int(256)))
 
 

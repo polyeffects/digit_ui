@@ -145,9 +145,11 @@ class Remote(Interface):
                 self.sock.settimeout(2)
                 chunk = self.sock.recv(1)
             except socket.timeout:
+                # print("recv timeout")
                 continue
 
             if not chunk or chunk[0] == 0:  # End of transmission
+                # print("recv returned nothing")
                 break
             # print(chunk.decode('utf-8'), end="")
 
