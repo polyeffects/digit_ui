@@ -44,6 +44,7 @@ patch_body = "patch:body"
 patch_property = "patch:property"
 patch_subject = "patch:subject"
 patch_value = "patch:value"
+patch_remove = "patch:remove"
 poly_assigned_footswitch = "http://polyeffects.com/ns/core#assigned_footswitch"
 poly_looper_footswitch = "http://polyeffects.com/ns/core#looper_footswitch"
 poly_spotlight = "http://polyeffects.com/ns/core#spotlight"
@@ -700,7 +701,7 @@ def parse_ingen(to_parse):
         subject = m[patch_subject][0]
         # print("set subject is", subject)
         # print ("after get_value")
-        if midi_binding in m:
+        if midi_binding in m[patch_remove]:
             # print("midi unlearn parsed", subject)
             ui_queue.put(("midi_learn", subject, -1))
 

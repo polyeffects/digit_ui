@@ -578,6 +578,9 @@ def toggle_side():
     elif (PEDAL_TYPE == pedal_types.trails):
         global sequencer_on
         sequencer_on = not sequencer_on
+        # reset times on sequencer toggle.
+        global prev_a_tap_time
+        prev_a_tap_time = [0, 0, 0]
 
 
 def toggle_cab():
@@ -774,9 +777,10 @@ def process_cc(b_bytes):
                 global a_tap_time
                 a_tap_time = time.perf_counter()
 
-                prev_a_tap_time[2] = prev_a_tap_time[1]
-                prev_a_tap_time[1] = prev_a_tap_time[0]
-                prev_a_tap_time[0] = a_tap_time
+                if sequencer_on:
+                    prev_a_tap_time[2] = prev_a_tap_time[1]
+                    prev_a_tap_time[1] = prev_a_tap_time[0]
+                    prev_a_tap_time[0] = a_tap_time
                 # print("setting a tap time ", a_tap_time)
                 if PEDAL_TYPE in (pedal_types.ample, pedal_types.trails):
                     footswitch_is_down["a"] = True
