@@ -27,8 +27,8 @@ ApplicationWindow {
     property bool flip_screen: Boolean(pedalState["screen_flipped"])
     property bool interconnect: false
     contentOrientation: flip_screen ? Qt.LandscapeOrientation : Qt.InvertedLandscapeOrientation
-    width: onDevice ? 720 : 1280 
-    height: onDevice ? 1280 : 720
+    width: 1280 
+    height: 720
     title: "Digit 2"
     visible: true
     FontLoader { id: docFont; source: "fonts/BarlowSemiCondensed-Medium.ttf" }
@@ -43,8 +43,8 @@ ApplicationWindow {
     }
     Item {
         transform: Rotation {
-			angle: !onDevice ? 0 : flip_screen ? 90 : -90
-            origin.x: (flip_screen ? 720 : 1280) / 2 
+			angle: flip_screen ? 180 : 0
+            origin.x: (!flip_screen ? 720 : 1280) / 2 
             origin.y: (flip_screen ? 720 : 1280) / 2 
         } 
         width: 1280//Screen.height
