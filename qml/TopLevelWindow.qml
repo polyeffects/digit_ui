@@ -26,7 +26,7 @@ ApplicationWindow {
     property int presetBrowserIndex: 0
     property bool flip_screen: Boolean(pedalState["screen_flipped"])
     property bool interconnect: false
-    contentOrientation: flip_screen ? Qt.LandscapeOrientation : Qt.InvertedLandscapeOrientation
+    contentOrientation: flip_screen ? Qt.InvertedPortraitOrientation : Qt.PortraitOrientation
     width: 1280 
     height: 720
     title: "Digit 2"
