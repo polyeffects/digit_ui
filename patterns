@@ -1,0 +1,93 @@
+system:capture_2
+    ingen:in_1
+
+system:capture_3
+    ingen:in_2
+
+system:capture_6
+    ingen:in_3
+
+system:capture_1
+    ingen:in_4
+
+system:capture_4
+    ingen:in_5
+
+system:capture_5
+    ingen:in_6
+
+sooperlooper:common_out_1
+    ingen:loop_common_out_1
+
+sooperlooper:common_out_2
+    ingen:loop_common_out_2
+
+# match a2j capture ports that aren't sooperlooper
+^(?!a2j:sooperlooper)a2j.*capture
+    ingen:midi_in
+
+^(?!a2j:sooperlooper)a2j.*capture
+    midi-monitor:input
+
+^(?!a2j:sooperlooper)a2j.*capture
+    ttymidi:MIDI_out
+
+^(?!a2j:sooperlooper)a2j.*capture
+    ingen:control
+
+^(?!a2j:sooperlooper)a2j.*capture
+    a2j:sooperlooper.*playback
+
+ttymidi:MIDI_in
+    ingen:midi_in
+
+ttymidi:MIDI_in
+    midi-monitor:input
+
+ttymidi:MIDI_in
+    ingen:control
+
+ttymidi:MIDI_in
+    a2j:sooperlooper.*playback
+
+ingen:out_1
+    system:playback_1
+
+ingen:out_2
+    system:playback_3
+
+ingen:out_3
+    system:playback_5
+
+ingen:out_4
+    system:playback_7
+
+ingen:out_5
+    system:playback_2
+
+ingen:out_6
+    system:playback_4
+
+ingen:out_7
+    system:playback_6
+
+ingen:out_8
+    system:playback_8
+
+ingen:midi_out
+    ttymidi:MIDI_out
+
+ingen:midi_out
+    ^(?!a2j:sooperlooper)a2j.*playback
+
+ingen:loop_common_in_1
+    sooperlooper:common_in_1
+
+ingen:loop_common_in_2
+    sooperlooper:common_in_2
+
+ingen:loop_extra_midi
+    a2j:sooperlooper.*playback
+
+a2j:sooperlooper.*capture
+    ingen:loop_midi_out
