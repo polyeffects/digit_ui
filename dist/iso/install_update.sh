@@ -10,20 +10,21 @@
 # BASH-VERSION  :4.2+
 
 # Check current filesystem type
-# ROOT_FS_TYPE="$(sed -n -e 's|^/dev/\S\+ /media/root-ro/overlay/lower \(btrfs\) .*$|\1|p' /proc/mounts)"
-# test "$ROOT_FS_TYPE" == btrfs && exit 100
+ROOT_FS_TYPE="$(sed -n -e 's|^/dev/\S\+ /media/root-ro/overlay/lower \(btrfs\) .*$|\1|p' /proc/mounts)"
+test "$ROOT_FS_TYPE" == btrfs && exit 100
 
 panel_version=80
 /usb_flash/fbtextdemo -c /home/debian/UI/qml/fonts/BarlowSemiCondensed-SemiBold.ttf "Don't panic" -w 800 -h 800 -f 100 -y 200 -x 1000
 sed -i 's/dep_add_modules_mount \/$//g' /usr/share/initramfs-tools/hook-functions
 if [ -d /mnt/temp_boot/boot ]; then 
 	sed -i 's/cma=512M/cma=512M skipoverlay overlayroot=disabled/g' /mnt/temp_boot/boot/boot.cmd
-    grep -q /mnt/temp_boot/boot/dtb/allwinner/sun50i-a64-sopine-baseboard.dtb w500hdc023 && panel_version=23
-    grep -q /mnt/temp_boot/boot/dtb/allwinner/sun50i-a64-sopine-baseboard.dtb w500hdc019 && panel_version=19
+    grep -q w500hdc023 /mnt/temp_boot/boot/dtb/allwinner/sun50i-a64-sopine-baseboard.dtb && panel_version=23
+    grep -q w500hdc019 /mnt/temp_boot/boot/dtb/allwinner/sun50i-a64-sopine-baseboard.dtb && panel_version=19
+
 else
 	sed -i 's/cma=512M/cma=512M skipoverlay overlayroot=disabled/g' /boot/boot.cmd
-    grep -q /boot/dtb/allwinner/sun50i-a64-sopine-baseboard.dtb w500hdc023 && panel_version=23
-    grep -q /boot/dtb/allwinner/sun50i-a64-sopine-baseboard.dtb w500hdc019 && panel_version=19
+    grep -q w500hdc023 /boot/dtb/allwinner/sun50i-a64-sopine-baseboard.dtb  && panel_version=23
+    grep -q w500hdc019 /boot/dtb/allwinner/sun50i-a64-sopine-baseboard.dtb && panel_version=19
 fi
 cp /usb_flash/fbtextdemo /usr/lib/
 
@@ -160,17 +161,18 @@ chmod +x /etc/initramfs-tools/scripts/local-bottom/copy_panel
 
 /usb_flash/fbtextdemo -c /home/debian/UI/qml/fonts/BarlowSemiCondensed-SemiBold.ttf "Building updater 407" -w 800 -h 800 -f 100 -y 200 -x 1000
 # Regenerate initrd
-update-initramfs -v -c -k `uname -r`
+update-initramfs -v -u -k `uname -r`
+mkimage -C none -A arm -T script -d /boot/boot.cmd /boot/boot.scr
 
-if [ -d /mnt/temp_boot/boot ]; then 
-	mkimage -C none -A arm -T script -d /mnt/temp_boot/boot/boot.cmd /mnt/temp_boot/boot/boot.scr
-	cp -f /boot/uInitrd-5.4.2-rt5-001 /mnt/temp_boot/boot/
-else
-	mkimage -C none -A arm -T script -d /boot/boot.cmd /boot/boot.scr
-	cp -f /boot/uInitrd-5.4.2-rt5-001 /overlay/lower/boot/
-	cp -f /boot/boot.cmd /overlay/lower/boot/
-	cp -f /boot/boot.scr /overlay/lower/boot/
-fi
+# if [ -d /mnt/temp_boot/boot ]; then 
+# 	mkimage -C none -A arm -T script -d /mnt/temp_boot/boot/boot.cmd /mnt/temp_boot/boot/boot.scr
+# 	cp -f /boot/uInitrd-5.4.2-rt5-001 /mnt/temp_boot/boot/
+# else
+# mkimage -C none -A arm -T script -d /boot/boot.cmd /boot/boot.scr
+cp -f /boot/uInitrd-5.4.2-rt5-001 /overlay/lower/boot/
+cp -f /boot/boot.cmd /overlay/lower/boot/
+cp -f /boot/boot.scr /overlay/lower/boot/
+# fi
 
 # Remove files
 rm -f /etc/initramfs-tools/hooks/flash_iso /etc/initramfs-tools/scripts/init-premount/flash_poly
